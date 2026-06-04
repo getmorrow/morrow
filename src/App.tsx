@@ -4320,6 +4320,11 @@ function AdminPage({
       eventAudience: rawEventAudienceGuess(event),
       eventSetting: rawEventSettingGuess(event),
       eventFitNote: 'Bitte kuratieren: Passt dieses Event wirklich zur Auszeit, zur Zielgruppe und zum gewünschten Tagesrhythmus?',
+      packageFit: rawEventAudienceGuess(event) === 'families'
+        ? ['family_escape']
+        : rawEventAudienceGuess(event) === 'couples'
+          ? ['couple_reset']
+          : ['family_escape', 'couple_reset'],
       routeNote: 'Vor Freigabe prüfen: Datum, Uhrzeit, Ticket/Anmeldung, Andrang, Wetter, Wege und ob es den Aufenthalt bereichert.',
       status: 'candidate',
       sourceUrl: event.detailUrl || event.sourceUrl,
@@ -9914,7 +9919,7 @@ function LocalPlaceDrawer({
       audiences: draft.category === 'experience' ? draft.audiences : undefined,
       ageMin: draft.category === 'experience' && !Number.isNaN(ageMin) ? ageMin : undefined,
       ageNote: draft.category === 'experience' ? draft.ageNote.trim() || undefined : undefined,
-      packageFit: draft.category === 'experience' ? draft.packageFit : undefined,
+      packageFit: ['experience', 'event'].includes(draft.category) ? draft.packageFit : undefined,
       setting: draft.category === 'experience' ? draft.setting || undefined : undefined,
       intensity: draft.category === 'experience' ? draft.intensity || undefined : undefined,
       experienceAccess: draft.category === 'experience' ? draft.experienceAccess || undefined : undefined,
@@ -10036,6 +10041,24 @@ function LocalPlaceDrawer({
                   <label>Warum passend?
                     <textarea rows={3} value={draft.eventFitNote} onChange={(event) => updateDraft('eventFitNote', event.target.value)} placeholder="Kurze Morrow-Einschätzung, wann dieses Event wirklich zur Auszeit passt." />
                   </label>
+                </div>
+                <div className="admin-checkbox-list">
+                  <article>
+                    <span>
+                      <strong>Passende Auszeiten</strong>
+                      Leer bedeutet: Das Event kann für alle Auszeiten erscheinen, sofern Datum und Zielgruppe passen.
+                    </span>
+                    {Object.entries(localExperiencePackageFitLabels).map(([value, label]) => (
+                      <label key={value}>
+                        <input
+                          type="checkbox"
+                          checked={draft.packageFit?.includes(value as NonNullable<typeof draft.packageFit>[number])}
+                          onChange={() => toggleDraftPackageFit(value as NonNullable<typeof draft.packageFit>[number])}
+                        />
+                        <span>{label}</span>
+                      </label>
+                    ))}
+                  </article>
                 </div>
               </section>
             )}

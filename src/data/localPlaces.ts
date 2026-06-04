@@ -177,7 +177,7 @@ export const localFoodReservationTypeLabels: Record<LocalFoodReservationType, st
 }
 
 const localPlaceCategoryValues = ['beach', 'food', 'experience', 'event', 'weather', 'shopping', 'emergency', 'service', 'tide'] satisfies Array<Exclude<LocalPlaceCategory, 'all'>>
-const localPlaceStatusValues = ['candidate', 'approved', 'paused'] satisfies LocalPlaceStatus[]
+const localPlaceStatusValues = ['candidate', 'approved', 'paused', 'rejected'] satisfies LocalPlaceStatus[]
 const localExperienceAudienceValues = ['families', 'couples', 'adults', 'kids'] satisfies LocalExperienceAudience[]
 const localExperiencePackageFitValues = ['family_escape', 'couple_reset'] satisfies LocalExperiencePackageFit[]
 const localExperienceSettingValues = ['indoor', 'outdoor', 'both'] satisfies LocalExperienceSetting[]
@@ -801,6 +801,30 @@ export const localPlaceCandidates: LocalPlaceCandidate[] = [
     lng: 8.5864438,
   },
   {
+    id: 'event-sound-of-urban-nature-2026',
+    category: 'event',
+    label: 'Veranstaltungen',
+    title: 'Sound of Urban Nature 2026',
+    description: 'Open-Air-Festival im Urban Nature Hotel. Als kuratierter Hinweis für Paare geeignet, wenn sie am Samstag Lust auf Musik, Drinks und eine lebendige Abendstimmung haben.',
+    meta: 'Veranstaltung · Musik',
+    address: 'Urban Nature Hotel, 25826 Sankt Peter-Ording',
+    websiteUrl: 'https://www.st-peter-ording.de/veranstaltungskalender/veranstaltungen/STP/c5f9186f-e3d4-44f5-a8ab-4b6fdd79daab',
+    photoUrls: ['https://resc.deskline.net/images/STP/1/dc7110a1-3429-4cc6-81e5-1c3b216c3471/54/urban-nature-SPO-egr-plaza-406.jpg'],
+    openingHours: 'Sa., 15.08.2026, 15:00 Uhr',
+    eventStartDate: '2026-08-15',
+    eventEndDate: '2026-08-15',
+    eventTime: '15:00',
+    eventAudience: 'couples',
+    eventSetting: 'outdoor',
+    eventFitNote: 'Passt für Couple Reset als optionaler Abendimpuls, wenn Gäste bewusst etwas Musik und lebendige Atmosphäre möchten.',
+    packageFit: ['couple_reset'],
+    routeNote: 'Vor Ort kurz Programm, Tickets, Lautstärke und Rückweg prüfen. Nicht als Pflichtprogramm, sondern als Option für einen lebendigen Abend zeigen.',
+    status: 'approved',
+    sourceUrl: 'https://www.st-peter-ording.de/veranstaltungskalender/veranstaltungen',
+    lat: 54.3115891312344,
+    lng: 8.60861777022246,
+  },
+  {
     id: 'event-familienfest-2026',
     category: 'event',
     label: 'Veranstaltungen',
@@ -994,8 +1018,8 @@ function guestPlaceRouteNote(place: LocalPlaceCandidate) {
   return place.routeNote
 }
 
-function localExperienceFitsPackage(place: LocalPlaceCandidate, packageItem: MorrowPackage | null) {
-  if (place.category !== 'experience' || !place.packageFit || place.packageFit.length === 0 || !packageItem) return true
+function localPlaceFitsPackage(place: LocalPlaceCandidate, packageItem: MorrowPackage | null) {
+  if (!['experience', 'event'].includes(place.category) || !place.packageFit || place.packageFit.length === 0 || !packageItem) return true
   if (packageItem.slug === 'family-escape') return place.packageFit.includes('family_escape')
   if (packageItem.slug === 'couple-reset') return place.packageFit.includes('couple_reset')
   return true
@@ -1087,7 +1111,7 @@ export function getGuestLocalPlaces(packageItem: MorrowPackage | null): LocalPla
     ...basePlaces,
     ...packageExperiencePlaces,
     ...approvedCandidatesForGuestApp()
-      .filter((place) => localExperienceFitsPackage(place, packageItem))
+      .filter((place) => localPlaceFitsPackage(place, packageItem))
       .map((place) => ({
       id: place.id,
       category: place.category,

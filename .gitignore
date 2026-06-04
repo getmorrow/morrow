@@ -18,6 +18,7 @@ tmp/
 tmp-*.png
 outputs/
 supabase/.temp/
+.github/
 
 # Editor directories and files
 .vscode/*
