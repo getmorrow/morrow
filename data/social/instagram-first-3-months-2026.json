@@ -1,0 +1,3549 @@
+[
+  {
+    "id": "01",
+    "date": "2026-05-22",
+    "time": "19:30",
+    "pillar": "Vertrauen",
+    "format": "Single Still",
+    "asset": "public/brand/generated/morrow-spo-hero-people-boardwalk.png",
+    "headline": "Auszeit beginnt vor der Anreise.",
+    "kicker": "Morrow in SPO",
+    "layout": "photo",
+    "caption": "Manchmal beginnt Erholung nicht erst am Meer. Sondern in dem Moment, in dem nicht mehr alles selbst sortiert werden muss.\n\nMorrow kuratiert Auszeiten in Sankt Peter-Ording: besondere Unterkünfte, lokale Momente und persönliche Vorbereitung in einem Aufenthalt.\n\nFür Familien. Für Paare. Für alle, die weniger suchen und besser ankommen wollen.\n\n#Morrow #SanktPeterOrding #NordseeAuszeit #KuratierteAuszeit #SPO",
+    "sourceId": "01",
+    "contentRole": "Brand opener",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "02",
+    "pillar": "Vertrauen",
+    "format": "Carousel",
+    "asset": "public/brand/generated/morrow-spo-arrival-detail.png",
+    "headline": "Was ist Morrow?",
+    "kicker": "Kurz erklärt",
+    "layout": "checklist",
+    "points": [
+      "Kuratierte Auszeiten in SPO",
+      "Unterkunft, Ort und Erlebnis zusammengedacht",
+      "Weniger Recherche vor der Reise",
+      "Persönliche Vorbereitung statt anonymer Buchung"
+    ],
+    "slides": [
+      {
+        "title": "Kein endloser Katalog",
+        "body": "Morrow zeigt nicht alles. Sondern das, was zu eurer Auszeit passt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      },
+      {
+        "title": "SPO als Ausgangspunkt",
+        "body": "Wind, Weite, Wege und Unterkunft werden zusammen gedacht.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Für Familien und Paare",
+        "body": "Mit mehr Ruhe vor der Reise und weniger offenen Fragen vor Ort.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Kuratieren heißt Verantwortung",
+        "body": "Wir wählen aus, fragen nach und bereiten vor.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      }
+    ],
+    "caption": "Morrow ist für alle, die nicht einfach nur eine Unterkunft suchen.\n\nWir kuratieren Auszeiten in Sankt Peter-Ording: Unterkunft, Ort, Rhythmus und Empfehlungen werden so vorbereitet, dass aus freien Tagen echte Ankunft wird.\n\n#Morrow #SanktPeterOrding #NordseeAuszeit #KuratierteAuszeit #SPO",
+    "sourceId": "N01",
+    "date": "2026-05-24",
+    "time": "09:30",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "03",
+    "date": "2026-05-25",
+    "time": "19:30",
+    "pillar": "Vorbereitung",
+    "format": "Carousel",
+    "headline": "Was Morrow anders macht.",
+    "kicker": "Nicht nur Unterkunft",
+    "layout": "checklist",
+    "points": [
+      "Ausgewählte Unterkunft",
+      "Lokales Erlebnis",
+      "Ruhiger Tagesrhythmus",
+      "Persönliche Betreuung"
+    ],
+    "caption": "Morrow ist keine weitere Seite mit Ferienwohnungen.\n\nWir denken aus Sicht der Gäste: Was braucht dieser Aufenthalt, damit er sich gut anfühlt? Daraus entsteht die Auszeit, nicht nur die Buchung.\n\n#Morrow #Hospitality #KuratierteReisen #NordseeAuszeit #SPO",
+    "sourceId": "21",
+    "contentRole": "Morrow explainer",
+    "asset": "public/brand/generated/social/morrow-social-set-a-arrival-bag-detail.png",
+    "slides": [
+      {
+        "title": "Ausgewählte Unterkunft",
+        "body": "Nicht beliebig, sondern passend zur Auszeit.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      },
+      {
+        "title": "Lokales Erlebnis",
+        "body": "Ein Moment, der den Ort spürbar macht.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Gute Vorbereitung sieht man oft erst, wenn nichts hakt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir klären Details, bevor sie vor Ort stören."
+          ],
+          [
+            "Merken",
+            "Care heißt: Ihr müsst nicht alles selbst tragen."
+          ]
+        ]
+      },
+      {
+        "title": "Ruhiger Rhythmus",
+        "body": "Vorbereitet genug, damit vor Ort Luft bleibt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Gute Vorbereitung sieht man oft erst, wenn nichts hakt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir klären Details, bevor sie vor Ort stören."
+          ],
+          [
+            "Merken",
+            "Care heißt: Ihr müsst nicht alles selbst tragen."
+          ]
+        ]
+      },
+      {
+        "title": "Persönliche Betreuung",
+        "body": "Ein Ansprechpartner statt anonymer Buchungslogik.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Gute Vorbereitung sieht man oft erst, wenn nichts hakt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir klären Details, bevor sie vor Ort stören."
+          ],
+          [
+            "Merken",
+            "Care heißt: Ihr müsst nicht alles selbst tragen."
+          ]
+        ]
+      }
+    ],
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "04",
+    "date": "2026-05-27",
+    "time": "12:15",
+    "pillar": "Anfrage",
+    "format": "Single Still",
+    "asset": "public/brand/generated/morrow-spo-family-final-moment.png",
+    "headline": "Family Escape: weniger planen, mehr draußen sein.",
+    "kicker": "Auszeit ansehen",
+    "layout": "photo",
+    "caption": "Unsere Family Escape ist für Familien gedacht, die SPO nicht aus einer langen Liste zusammensuchen möchten.\n\nUnterkunft, Naturmoment, lokale Orientierung und persönliche Vorbereitung kommen zusammen, damit aus ein paar Tagen am Meer eine echte gemeinsame Zeit wird.\n\nAnfragen sind persönlich und unverbindlich.\n\n#FamilyEscape #FamilienurlaubSPO #NordseeMitKindern #Morrow #SanktPeterOrding",
+    "sourceId": "19",
+    "contentRole": "Family conversion",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "05",
+    "date": "2026-05-31",
+    "time": "09:30",
+    "pillar": "Anfrage",
+    "format": "Single Still",
+    "asset": "public/brand/generated/morrow-article-couple-dunes-rest.png",
+    "headline": "Couple Reset: wieder etwas Luft brauchen.",
+    "kicker": "Auszeit ansehen",
+    "layout": "photo",
+    "caption": "Eine kurze Auszeit zu zweit muss nicht kompliziert sein.\n\nMorrow verbindet ruhige Unterkunft, SPO-Gefühl und passende Empfehlungen zu einem Aufenthalt, der nicht nach Arbeit vor dem Urlaub klingt.\n\nWenn ihr ein Wochenende oder ein paar Tage am Meer plant: schreibt uns oder stellt eine Anfrage.\n\n#CoupleReset #PaarurlaubNordsee #AuszeitZuZweit #SanktPeterOrding #Morrow",
+    "sourceId": "20",
+    "contentRole": "Couple conversion",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "06",
+    "date": "2026-06-01",
+    "time": "19:30",
+    "pillar": "Anfrage",
+    "format": "Carousel",
+    "headline": "So funktioniert eine Morrow Anfrage.",
+    "kicker": "Ganz einfach",
+    "layout": "checklist",
+    "points": [
+      "Auszeit auswählen",
+      "Wunschzeitraum senden",
+      "Persönliche Rückmeldung erhalten",
+      "Aufenthalt gemeinsam finalisieren"
+    ],
+    "caption": "Morrow ist persönlich angelegt.\n\nIhr sendet eine Anfrage, wir prüfen Verfügbarkeit und passendste Optionen, und daraus entsteht ein Aufenthalt, der nicht anonym aus einem Warenkorb kommt.\n\n#Morrow #AuszeitPlanen #SanktPeterOrding #Nordseeurlaub #Anfrage",
+    "sourceId": "31",
+    "contentRole": "Conversion explainer",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-21-hand-place-card.png",
+    "slides": [
+      {
+        "title": "1. Auszeit auswählen",
+        "body": "Family Escape, Couple Reset oder ein passender Aufenthalt am Wasser.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Neue Gäste müssen verstehen, was als Nächstes passiert."
+          ],
+          [
+            "Morrow Blick",
+            "Erst einordnen, dann empfehlen. Keine anonyme Sofortbuchung."
+          ],
+          [
+            "Merken",
+            "Gute Anfrage senkt Aufwand, weil sie die richtigen Fragen früh klärt."
+          ]
+        ]
+      },
+      {
+        "title": "2. Wunschzeitraum senden",
+        "body": "Kurz, persönlich und unverbindlich.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Neue Gäste müssen verstehen, was als Nächstes passiert."
+          ],
+          [
+            "Morrow Blick",
+            "Erst einordnen, dann empfehlen. Keine anonyme Sofortbuchung."
+          ],
+          [
+            "Merken",
+            "Gute Anfrage senkt Aufwand, weil sie die richtigen Fragen früh klärt."
+          ]
+        ]
+      },
+      {
+        "title": "3. Rückmeldung bekommen",
+        "body": "Wir prüfen Verfügbarkeit und passende Optionen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Neue Gäste müssen verstehen, was als Nächstes passiert."
+          ],
+          [
+            "Morrow Blick",
+            "Erst einordnen, dann empfehlen. Keine anonyme Sofortbuchung."
+          ],
+          [
+            "Merken",
+            "Gute Anfrage senkt Aufwand, weil sie die richtigen Fragen früh klärt."
+          ]
+        ]
+      },
+      {
+        "title": "4. Gemeinsam finalisieren",
+        "body": "Aus Anfrage wird ein vorbereiteter Aufenthalt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Neue Gäste müssen verstehen, was als Nächstes passiert."
+          ],
+          [
+            "Morrow Blick",
+            "Erst einordnen, dann empfehlen. Keine anonyme Sofortbuchung."
+          ],
+          [
+            "Merken",
+            "Gute Anfrage senkt Aufwand, weil sie die richtigen Fragen früh klärt."
+          ]
+        ]
+      }
+    ],
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "07",
+    "pillar": "Anfrage",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-05-itinerary-cup-window.png",
+    "headline": "Was nach eurer Anfrage passiert.",
+    "kicker": "Anfrage",
+    "layout": "checklist",
+    "points": [
+      "Ihr beschreibt eure Auszeit",
+      "Wir prüfen, was passt",
+      "Ihr bekommt eine persönliche Rückmeldung",
+      "Erst dann wird es konkret"
+    ],
+    "slides": [
+      {
+        "title": "1. Anfrage",
+        "body": "Ihr sagt uns, worum es geht: Familie, Paarzeit, Zeitraum, Wunschgefühl.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Neue Gäste müssen verstehen, was als Nächstes passiert."
+          ],
+          [
+            "Morrow Blick",
+            "Erst einordnen, dann empfehlen. Keine anonyme Sofortbuchung."
+          ],
+          [
+            "Merken",
+            "Gute Anfrage senkt Aufwand, weil sie die richtigen Fragen früh klärt."
+          ]
+        ]
+      },
+      {
+        "title": "2. Prüfung",
+        "body": "Wir schauen, welche Auszeit wirklich passt und was realistisch ist.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Neue Gäste müssen verstehen, was als Nächstes passiert."
+          ],
+          [
+            "Morrow Blick",
+            "Erst einordnen, dann empfehlen. Keine anonyme Sofortbuchung."
+          ],
+          [
+            "Merken",
+            "Gute Anfrage senkt Aufwand, weil sie die richtigen Fragen früh klärt."
+          ]
+        ]
+      },
+      {
+        "title": "3. Rückmeldung",
+        "body": "Ihr bekommt keine anonyme Liste, sondern eine sortierte Empfehlung.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Neue Gäste müssen verstehen, was als Nächstes passiert."
+          ],
+          [
+            "Morrow Blick",
+            "Erst einordnen, dann empfehlen. Keine anonyme Sofortbuchung."
+          ],
+          [
+            "Merken",
+            "Gute Anfrage senkt Aufwand, weil sie die richtigen Fragen früh klärt."
+          ]
+        ]
+      },
+      {
+        "title": "4. Entscheidung",
+        "body": "Wenn es passt, gehen wir gemeinsam in die konkrete Vorbereitung.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Neue Gäste müssen verstehen, was als Nächstes passiert."
+          ],
+          [
+            "Morrow Blick",
+            "Erst einordnen, dann empfehlen. Keine anonyme Sofortbuchung."
+          ],
+          [
+            "Merken",
+            "Gute Anfrage senkt Aufwand, weil sie die richtigen Fragen früh klärt."
+          ]
+        ]
+      }
+    ],
+    "caption": "Eine Morrow Anfrage ist kein Buchungsformular, das euch direkt in den nächsten Funnel schiebt.\n\nSie ist der Anfang einer passenden Auswahl. Erst verstehen, dann empfehlen.\n\n#Morrow #Anfrage #NordseeAuszeit #SanktPeterOrding #KuratierteAuszeit",
+    "sourceId": "N10",
+    "date": "2026-06-03",
+    "time": "12:15",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "08",
+    "date": "2026-06-07",
+    "time": "09:30",
+    "pillar": "SPO Orientierung",
+    "format": "Carousel",
+    "headline": "Vier Fragen, bevor ihr SPO bucht.",
+    "kicker": "Kurz vor der Planung",
+    "layout": "checklist",
+    "points": [
+      "Welcher Strandabschnitt passt zu euch?",
+      "Braucht ihr Ruhe, Erlebnis oder beides?",
+      "Wie viel Planung wollt ihr wirklich vor Ort machen?",
+      "Welche Unterkunft macht Pausen leicht?"
+    ],
+    "caption": "SPO kann sehr unterschiedlich wirken, je nachdem, wie man reist.\n\nFamilien brauchen andere Wege als Paare. Ein kurzer Reset braucht andere Anker als eine Ferienwoche. Deshalb beginnt Morrow nicht mit hundert Optionen, sondern mit den richtigen Fragen.\n\n#Reiseplanung #SPOtipps #SanktPeterOrding #Nordseeurlaub #Morrow",
+    "sourceId": "11",
+    "contentRole": "Planning save post",
+    "asset": "public/brand/generated/social/morrow-social-set-b-breakfast-map-detail.png",
+    "slides": [
+      {
+        "title": "Welcher Strand passt zu euch?",
+        "body": "Ording, Bad, Böhl und Dorf/Süd fühlen sich unterschiedlich an.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      },
+      {
+        "title": "Braucht ihr Ruhe, Erlebnis oder beides?",
+        "body": "Ein Familienaufenthalt braucht andere Anker als ein Wochenende zu zweit.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Wie viel wollt ihr vor Ort planen?",
+        "body": "Je weniger Recherche im Urlaub, desto leichter fühlt sich die Auszeit an.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist kein kompakter Badeort, sondern ein Ort mit Rhythmus."
+          ],
+          [
+            "Morrow Blick",
+            "Wir übersetzen Weite, Wetter und Wege in gute Entscheidungen."
+          ],
+          [
+            "Merken",
+            "Orientierung macht den Ort entspannter."
+          ]
+        ]
+      },
+      {
+        "title": "Welche Unterkunft macht Pausen leicht?",
+        "body": "Rückzug ist kein Detail. Er ist Teil des Aufenthalts.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      }
+    ],
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "09",
+    "pillar": "Family Escape",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/morrow-social-set-b-father-child-beach.png",
+    "headline": "SPO-Packliste für Familien.",
+    "kicker": "Mit Kindern",
+    "layout": "checklist",
+    "points": [
+      "Windfest statt nur wetterfest",
+      "Schuhe für Sand, Watt und Wege",
+      "Snacks für lange Strandwege",
+      "Ein Plan B, bevor Stimmung kippt"
+    ],
+    "slides": [
+      {
+        "title": "Wind ist der Normalfall",
+        "body": "Morgen kann sich anders anfühlen als Mittag. Schichten helfen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Die Wege sind lang",
+        "body": "Nicht jeder Strandmoment beginnt direkt am Parkplatz.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Pausen retten Tage",
+        "body": "Snacks, warme Sachen und ein kurzer Rückzug sind keine Nebensache.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Plan B vorher klären",
+        "body": "Wenn Regen kommt, sollte nicht der ganze Tag neu erfunden werden.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      }
+    ],
+    "caption": "SPO mit Kindern ist wunderschön. Aber selten ganz leicht, wenn man es wie einen normalen Strandort plant.\n\nWind, Wege, Wetter und Pausen gehören dazu. Genau deshalb denken wir diese Details bei Family Escape Auszeiten mit.\n\n#SPOmitKindern #Familienurlaub #NordseeMitKindern #Packliste #Morrow",
+    "sourceId": "N03",
+    "date": "2026-06-08",
+    "time": "19:30",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "10",
+    "date": "2026-06-10",
+    "time": "12:15",
+    "pillar": "Family Escape",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/morrow-social-set-a-family-dunes-wide.png",
+    "headline": "Vier Dinge, die Familienurlaub in SPO leichter machen.",
+    "kicker": "Mit Kindern",
+    "layout": "checklist",
+    "points": [
+      "Ein Strandabschnitt, der passt",
+      "Ein Plan B bei Wind und Wetter",
+      "Eine Unterkunft, die Pausen ernst nimmt",
+      "Ein Erlebnis, das nicht überfordert"
+    ],
+    "caption": "Familienurlaub in SPO muss nicht voll sein, um sich reich anzufühlen.\n\nOft reichen ein guter Strandanker, ein realistischer Tagesrhythmus und ein Moment, der allen in Erinnerung bleibt. Genau diese Auswahl ist Teil unserer kuratierten Auszeiten.\n\n#SPOmitKindern #Familienauszeit #Nordseeurlaub #SanktPeterOrding #Morrow",
+    "sourceId": "05",
+    "contentRole": "Family save post",
+    "slides": [
+      {
+        "title": "1. Ein Strandabschnitt, der passt",
+        "body": "Mit Kindern ist nicht jeder Strandmoment gleich. Wege, Wind und Pausen entscheiden mit.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "2. Ein Plan B bei Wetter",
+        "body": "Nordsee bleibt Nordsee. Eine gute Auszeit rechnet mit Wind, Regen und müden Kindern.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "3. Eine Unterkunft, die Pausen trägt",
+        "body": "Nicht nur Bettenzahl zählt. Wichtig ist, ob Ankommen, Essen und Rückzug leicht werden.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "4. Ein Erlebnis, das nicht überfordert",
+        "body": "Ein guter Moment reicht oft mehr als ein voller Tagesplan.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      }
+    ],
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "11",
+    "pillar": "Family Escape",
+    "format": "Carousel",
+    "asset": "public/brand/generated/morrow-spo-family-watt.png",
+    "headline": "Ein Familientag in SPO ohne zu viel Programm.",
+    "kicker": "Tagesrhythmus",
+    "layout": "checklist",
+    "points": [
+      "Ein klarer Start",
+      "Ein weiter Draußen-Moment",
+      "Eine echte Pause",
+      "Ein früher, ruhiger Abend"
+    ],
+    "slides": [
+      {
+        "title": "Vormittag: ein Anker",
+        "body": "Ein Strandabschnitt, ein Weg, ein Naturmoment. Nicht fünf Ziele.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Mittag: Pause ernst nehmen",
+        "body": "Familientage werden besser, wenn nicht alle dauernd durchhalten müssen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Nachmittag: offen lassen",
+        "body": "Oft entsteht der beste Moment, wenn nicht alles gefüllt ist.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Abend: früh genug runterfahren",
+        "body": "Ein guter Familienurlaub muss nicht jeden Tag groß enden.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      }
+    ],
+    "caption": "Familienurlaub wird selten besser, wenn jeder Tag voll ist.\n\nEin guter SPO-Tag braucht Orientierung, Pausen und genug Luft. Genau daraus entsteht oft das Gefühl, wirklich weg gewesen zu sein.\n\n#Familienauszeit #SPOmitKindern #Nordseeurlaub #Morrow #FamilyEscape",
+    "sourceId": "N04",
+    "date": "2026-06-14",
+    "time": "09:30",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "12",
+    "date": "2026-06-15",
+    "time": "19:30",
+    "pillar": "Couple Reset",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-03-couple-dune-bench.png",
+    "headline": "Paarzeit braucht Raum, nicht Perfektion.",
+    "kicker": "Zu zweit",
+    "layout": "split",
+    "caption": "Ein ruhiger Tisch. Ein Spaziergang ohne Ziel. Ein Abend, der nicht zwischen Buchungsseiten und Restaurantrecherche zerfällt.\n\nMorrow bereitet vor, damit vor Ort mehr Platz für das bleibt, weswegen man losfährt: Zeit miteinander.\n\n#Paarzeit #SPO #NordseeZuZweit #SlowTravel #Morrow",
+    "sourceId": "08",
+    "contentRole": "Couple save post",
+    "slides": [
+      {
+        "title": "Raum für Ankommen",
+        "body": "Nicht direkt weiterplanen. Erst auspacken, Tee, Meerluft, kurzer Weg raus.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Paarzeit kippt schnell, wenn sie schon bei der Planung anstrengend wird."
+          ],
+          [
+            "Morrow Blick",
+            "Wir bereiten genug vor, damit vor Ort Raum und Ruhe bleiben."
+          ],
+          [
+            "Merken",
+            "Nicht Perfektion macht es wertvoll, sondern ein leichter gemeinsamer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Raum für Nähe",
+        "body": "Ein Spaziergang ohne Ziel kann mehr tun als ein überfülltes Programm.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Paarzeit kippt schnell, wenn sie schon bei der Planung anstrengend wird."
+          ],
+          [
+            "Morrow Blick",
+            "Wir bereiten genug vor, damit vor Ort Raum und Ruhe bleiben."
+          ],
+          [
+            "Merken",
+            "Nicht Perfektion macht es wertvoll, sondern ein leichter gemeinsamer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Raum für gute Abende",
+        "body": "Dinner, Wellness oder einfach ein ruhiger Tisch: vorbereitet, aber nicht inszeniert.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Morrow bereitet vor",
+        "body": "Damit eure Zeit nicht mit Recherche beginnt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Paarzeit kippt schnell, wenn sie schon bei der Planung anstrengend wird."
+          ],
+          [
+            "Morrow Blick",
+            "Wir bereiten genug vor, damit vor Ort Raum und Ruhe bleiben."
+          ],
+          [
+            "Merken",
+            "Nicht Perfektion macht es wertvoll, sondern ein leichter gemeinsamer Rhythmus."
+          ]
+        ]
+      }
+    ],
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "13",
+    "pillar": "Couple Reset",
+    "format": "Carousel",
+    "asset": "public/brand/generated/morrow-article-couple-wide-boardwalk.png",
+    "headline": "Ein Wochenende zu zweit in SPO.",
+    "kicker": "Couple Reset",
+    "layout": "checklist",
+    "points": [
+      "Freitag: nicht sofort weiterplanen",
+      "Samstag: ein weiter Weg",
+      "Samstagabend: ein Tisch, der passt",
+      "Sonntag: langsam zurück"
+    ],
+    "slides": [
+      {
+        "title": "Freitag",
+        "body": "Ankommen, Tasche abstellen, raus aus dem Alltag. Kein Entscheidungsabend.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Samstag",
+        "body": "Ein Weg durch Dünen und Wind reicht oft mehr als ein voller Plan.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Samstagabend",
+        "body": "Gute Empfehlung statt spontaner Restaurantrecherche.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Sonntag",
+        "body": "Nicht hetzen. Eine gute Auszeit braucht einen weichen Abschluss.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Paarzeit kippt schnell, wenn sie schon bei der Planung anstrengend wird."
+          ],
+          [
+            "Morrow Blick",
+            "Wir bereiten genug vor, damit vor Ort Raum und Ruhe bleiben."
+          ],
+          [
+            "Merken",
+            "Nicht Perfektion macht es wertvoll, sondern ein leichter gemeinsamer Rhythmus."
+          ]
+        ]
+      }
+    ],
+    "caption": "Ein Wochenende zu zweit muss nicht spektakulär sein.\n\nEs muss leicht genug beginnen, Raum lassen und nicht schon bei der Planung wieder nach Arbeit klingen.\n\n#AuszeitZuZweit #Paarurlaub #SanktPeterOrding #CoupleReset #Morrow",
+    "sourceId": "N05",
+    "date": "2026-06-17",
+    "time": "12:15",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "14",
+    "date": "2026-06-21",
+    "time": "09:30",
+    "pillar": "Vorbereitung",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-01-arrival-bag-room.png",
+    "headline": "Ankommen ist ein Detailgefühl.",
+    "kicker": "Vorbereitet",
+    "layout": "split",
+    "caption": "Ein guter Aufenthalt fühlt sich nicht zufällig leicht an.\n\nEr entsteht aus kleinen vorbereiteten Dingen: klare Informationen, passende Empfehlungen, sinnvolle Wege und ein Ansprechpartner, wenn vor Ort doch etwas offen ist.\n\n#Hospitality #Ankommen #NordseeAuszeit #Morrow #SanktPeterOrding",
+    "sourceId": "12",
+    "contentRole": "Care trust",
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "15",
+    "date": "2026-06-22",
+    "time": "19:30",
+    "pillar": "SPO Orientierung",
+    "format": "Carousel",
+    "asset": "public/brand/generated/morrow-spo-image-set.png",
+    "headline": "Strand ist in SPO nicht einfach Strand.",
+    "kicker": "Lokale Orientierung",
+    "layout": "photo",
+    "caption": "Ording, Bad, Böhl, Dorf/Südstrand: SPO hat unterschiedliche Strandgefühle.\n\nWer mit Kindern reist, sucht oft andere Wege und Pausen als ein Paar auf kurzer Auszeit. Deshalb gehört lokale Orientierung bei Morrow zum Angebot, nicht zum Nachrecherchieren.\n\n#SPO #SanktPeterOrding #Strandurlaub #Nordsee #Morrow",
+    "sourceId": "16",
+    "contentRole": "Local authority",
+    "slides": [
+      {
+        "title": "Ording",
+        "body": "Weit, offen, ikonisch. Gut, wenn ihr das große SPO-Gefühl sucht.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      },
+      {
+        "title": "Bad",
+        "body": "Zentraler, mit Seebrücke und mehr Infrastruktur in der Nähe.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Paarzeit kippt schnell, wenn sie schon bei der Planung anstrengend wird."
+          ],
+          [
+            "Morrow Blick",
+            "Wir bereiten genug vor, damit vor Ort Raum und Ruhe bleiben."
+          ],
+          [
+            "Merken",
+            "Nicht Perfektion macht es wertvoll, sondern ein leichter gemeinsamer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Böhl",
+        "body": "Ruhiger, weiter, oft ein guter Anker für langsamere Tage.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      },
+      {
+        "title": "Dorf/Süd",
+        "body": "Praktisch, wenn Wege und kleine Entscheidungen leicht bleiben sollen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      }
+    ],
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "16",
+    "date": "2026-06-24",
+    "time": "12:15",
+    "pillar": "SPO Orientierung",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/morrow-social-set-b-empty-boardwalk-bag.png",
+    "headline": "Was tun, wenn SPO euch mit Regen begrüßt?",
+    "kicker": "Nordsee Wetter",
+    "layout": "checklist",
+    "points": [
+      "Erst ankommen, nicht umplanen",
+      "Kurzer Dünenweg statt voller Ausflug",
+      "Warmer Tisch am Nachmittag",
+      "Ein guter Plan B reicht"
+    ],
+    "slides": [
+      {
+        "title": "Regen ist kein Fehler im Plan",
+        "body": "An der Nordsee gehört Wetter zum Aufenthalt. Gut ist, wenn es euch nicht komplett aus dem Rhythmus bringt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Kurz raus bleibt wichtig",
+        "body": "Ein kleiner Weg an die Luft reicht oft, damit der Tag nicht nach Warten klingt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Innen braucht es Wärme",
+        "body": "Tee, ein guter Tisch, Rückzug und genug Raum für müde Stimmung.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Morrow denkt Plan B mit",
+        "body": "Nicht als Aktivitätenliste, sondern als ruhige Alternative, die zu euch passt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      }
+    ],
+    "caption": "Regen macht eine Auszeit nicht schlechter. Er zeigt nur schneller, ob sie gut vorbereitet ist.\n\nBei Morrow denken wir Wetter nicht als Störung, sondern als Teil von SPO: mit kurzen Wegen, passenden Pausen und Alternativen, die den Tag nicht überladen.\n\n#SPOBeiRegen #NordseeWetter #SanktPeterOrding #Morrow #Reiseplanung",
+    "sourceId": "37",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "17",
+    "date": "2026-06-28",
+    "time": "09:30",
+    "pillar": "Vorbereitung",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-33-linen-towels-key.png",
+    "headline": "Was wir vor einer Empfehlung prüfen.",
+    "kicker": "Sorgfältig geprüft",
+    "layout": "checklist",
+    "points": [
+      "Passt es zum Anlass?",
+      "Passt es zum Wetter?",
+      "Passt es zu Wegen und Energie?",
+      "Passt es wirklich zu euch?"
+    ],
+    "slides": [
+      {
+        "title": "Nicht alles ist für alle gut",
+        "body": "Eine Empfehlung wird erst wertvoll, wenn Anlass, Stimmung und Reiseform mitgedacht sind.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      },
+      {
+        "title": "Wetter verändert Entscheidungen",
+        "body": "Wind, Regen oder Sonne machen denselben Ort sehr unterschiedlich.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Wege sind Teil der Qualität",
+        "body": "Eine gute Idee ist nur gut, wenn sie vor Ort leicht erreichbar bleibt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      },
+      {
+        "title": "Morrow kuratiert im Kontext",
+        "body": "Nicht allgemeine Tipps. Sondern passende Orientierung.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      }
+    ],
+    "caption": "Eine Empfehlung ist schnell gegeben. Eine passende Empfehlung braucht mehr Sorgfalt.\n\nBei Morrow prüfen wir nicht nur, ob etwas schön ist, sondern ob es zu Anlass, Wetter, Wegen und Gästen passt.\n\n#MorrowCare #SPOEmpfehlungen #SanktPeterOrding #KuratierteAuszeit #Hospitality",
+    "sourceId": "42",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "18",
+    "pillar": "Vertrauen",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-29-living-room-dune-window.png",
+    "headline": "Für wen Morrow nicht passt.",
+    "kicker": "Klarheit",
+    "layout": "checklist",
+    "points": [
+      "Wenn ihr maximale Auswahl wollt",
+      "Wenn nur der niedrigste Preis zählt",
+      "Wenn ihr alles spontan entscheiden möchtet",
+      "Wenn persönliche Vorbereitung egal ist"
+    ],
+    "slides": [
+      {
+        "title": "Nicht für Vergleichssuche",
+        "body": "Morrow ist kein Portal mit hundert fast gleichen Optionen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Eine gute Auszeit beginnt mit weniger offenen Fragen."
+          ],
+          [
+            "Morrow Blick",
+            "Ort, Unterkunft und Rhythmus müssen zusammenpassen."
+          ],
+          [
+            "Merken",
+            "Weniger suchen. Besser ankommen."
+          ]
+        ]
+      },
+      {
+        "title": "Nicht für lauter, schneller, voller",
+        "body": "Unsere Auszeiten sind ruhig, bewusst und nicht überfüllt geplant.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Eine gute Auszeit beginnt mit weniger offenen Fragen."
+          ],
+          [
+            "Morrow Blick",
+            "Ort, Unterkunft und Rhythmus müssen zusammenpassen."
+          ],
+          [
+            "Merken",
+            "Weniger suchen. Besser ankommen."
+          ]
+        ]
+      },
+      {
+        "title": "Nicht für anonyme Buchung",
+        "body": "Wir wollen verstehen, was zu euch und eurer Reise passt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Eine gute Auszeit beginnt mit weniger offenen Fragen."
+          ],
+          [
+            "Morrow Blick",
+            "Ort, Unterkunft und Rhythmus müssen zusammenpassen."
+          ],
+          [
+            "Merken",
+            "Weniger suchen. Besser ankommen."
+          ]
+        ]
+      },
+      {
+        "title": "Gut, wenn ihr weniger suchen wollt",
+        "body": "Und mehr Vertrauen in eine kuratierte Auswahl haben möchtet.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      }
+    ],
+    "caption": "Morrow passt nicht zu jeder Reise. Und das ist gut so.\n\nWir sind richtig für euch, wenn ihr weniger vergleichen, besser vorbereitet ankommen und eine Auszeit möchten, die nicht nur gebucht, sondern kuratiert ist.\n\n#Morrow #SlowTravel #NordseeAuszeit #SanktPeterOrding #KuratierteReise",
+    "sourceId": "N02",
+    "date": "2026-06-29",
+    "time": "19:30",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "19",
+    "pillar": "Vorbereitung",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-18-key-tray-detail.png",
+    "headline": "Was in einer Morrow Auszeit vorbereitet ist.",
+    "kicker": "Gut vorbereitet",
+    "layout": "checklist",
+    "points": [
+      "Passende Unterkunft",
+      "Realistischer Tagesrhythmus",
+      "Lokale Empfehlungen",
+      "Ansprechbarkeit vor Ort"
+    ],
+    "slides": [
+      {
+        "title": "Unterkunft",
+        "body": "Nicht nur schön, sondern passend zu Reiseart, Pausen und Wegen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Rhythmus",
+        "body": "Familien und Paare brauchen unterschiedliche Arten von Leichtigkeit.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Empfehlungen",
+        "body": "Weniger Listen, mehr Auswahl mit Kontext.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      },
+      {
+        "title": "Care",
+        "body": "Wenn etwas offen ist, soll nicht wieder alles bei euch liegen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Gute Vorbereitung sieht man oft erst, wenn nichts hakt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir klären Details, bevor sie vor Ort stören."
+          ],
+          [
+            "Merken",
+            "Care heißt: Ihr müsst nicht alles selbst tragen."
+          ]
+        ]
+      }
+    ],
+    "caption": "Vorbereitung soll nicht nach Aufwand aussehen. Sie soll sich vor Ort leicht anfühlen.\n\nDarum denken wir Unterkunft, Rhythmus, Empfehlungen und Care zusammen.\n\n#MorrowCare #Hospitality #NordseeAuszeit #SanktPeterOrding #Morrow",
+    "sourceId": "N06",
+    "date": "2026-07-01",
+    "time": "12:15",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "20",
+    "pillar": "SPO Orientierung",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-34-empty-posts-beach-path.png",
+    "headline": "SPO bei Regen: 24 Stunden ohne schlechte Laune.",
+    "kicker": "Plan B",
+    "layout": "checklist",
+    "points": [
+      "Kurz raus statt gar nicht raus",
+      "Warmer Tisch am Nachmittag",
+      "Unterkunft als Pause nutzen",
+      "Nur einen festen Moment planen"
+    ],
+    "slides": [
+      {
+        "title": "Nicht alles umwerfen",
+        "body": "Regen ist in SPO kein Ausnahmezustand. Er braucht nur ein anderes Tempo.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Kurz raus",
+        "body": "Ein kleiner Dünenweg kann mehr bringen als ein voller Ersatzplan.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Warm werden",
+        "body": "Ein guter Tisch am Nachmittag verändert den ganzen Tag.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Weniger ist besser",
+        "body": "Bei Regen reicht oft ein starker Anker statt vier Programmpunkte.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      }
+    ],
+    "caption": "SPO bei Regen kann schön sein, wenn man nicht erst im Regen anfangen muss zu suchen.\n\nEin guter Plan B ist nicht voll. Er ist ruhig, realistisch und schnell greifbar.\n\n#SPObeiRegen #SanktPeterOrding #Nordseeurlaub #Regenplan #Morrow",
+    "sourceId": "N07",
+    "date": "2026-07-05",
+    "time": "09:30",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "21",
+    "pillar": "SPO Orientierung",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/morrow-social-set-a-empty-boardwalk-pfahlbau.png",
+    "headline": "Ortsgefühl statt Geheimtipps.",
+    "kicker": "SPO ehrlich",
+    "layout": "split",
+    "slides": [
+      {
+        "title": "Nicht alles muss Geheimtipp sein",
+        "body": "Manchmal ist der richtige Ort wichtiger als der unbekannte.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist kein kompakter Badeort, sondern ein Ort mit Rhythmus."
+          ],
+          [
+            "Morrow Blick",
+            "Wir übersetzen Weite, Wetter und Wege in gute Entscheidungen."
+          ],
+          [
+            "Merken",
+            "Orientierung macht den Ort entspannter."
+          ]
+        ]
+      },
+      {
+        "title": "SPO ist kein einzelnes Gefühl",
+        "body": "Bad, Ording, Böhl und Dorf haben unterschiedliche Rhythmen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      },
+      {
+        "title": "Kontext vor Liste",
+        "body": "Eine Empfehlung hilft nur, wenn sie zu eurem Tag passt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      },
+      {
+        "title": "Morrow sortiert vor",
+        "body": "Damit ihr nicht vor Ort mit zehn offenen Tabs anfangt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist kein kompakter Badeort, sondern ein Ort mit Rhythmus."
+          ],
+          [
+            "Morrow Blick",
+            "Wir übersetzen Weite, Wetter und Wege in gute Entscheidungen."
+          ],
+          [
+            "Merken",
+            "Orientierung macht den Ort entspannter."
+          ]
+        ]
+      }
+    ],
+    "caption": "Nicht jeder gute Ort muss ein Geheimtipp sein.\n\nEntscheidend ist, ob er zu eurem Rhythmus passt: mit Kindern, zu zweit, bei Wind, bei Regen, für kurze Wege oder für Weite.\n\n#SPOtipps #SanktPeterOrding #Nordsee #Morrow #Reiseplanung",
+    "sourceId": "N08",
+    "date": "2026-07-06",
+    "time": "19:30",
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "22",
+    "pillar": "Vorbereitung",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-37-breakfast-setting-two.png",
+    "headline": "Warum wir nicht 100 Unterkünfte zeigen.",
+    "kicker": "Kuration",
+    "layout": "checklist",
+    "points": [
+      "Mehr Auswahl macht nicht automatisch leichter",
+      "Reiseart zählt mehr als Filter",
+      "Pausen, Wege und Stimmung gehören dazu",
+      "Weglassen ist Teil der Qualität"
+    ],
+    "slides": [
+      {
+        "title": "Auswahl kann laut werden",
+        "body": "Zu viele Optionen fühlen sich schnell wieder wie Arbeit an.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      },
+      {
+        "title": "Filter reichen nicht",
+        "body": "Familienpause, Paarzeit und Wetterrhythmus sieht man nicht in jedem Suchfeld.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Weglassen ist Arbeit",
+        "body": "Gute Kuration heißt auch: Dinge bewusst nicht empfehlen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      },
+      {
+        "title": "Mehr Vertrauen",
+        "body": "Am Ende soll nicht die größte Liste gewinnen, sondern die passendste Auszeit.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Gute Vorbereitung sieht man oft erst, wenn nichts hakt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir klären Details, bevor sie vor Ort stören."
+          ],
+          [
+            "Merken",
+            "Care heißt: Ihr müsst nicht alles selbst tragen."
+          ]
+        ]
+      }
+    ],
+    "caption": "Wir glauben nicht, dass eine Reise besser wird, wenn man nur mehr Auswahl bekommt.\n\nMorrow kuratiert bewusst. Damit ihr nicht alles vergleichen müsst, sondern besser versteht, was wirklich zu euch passt.\n\n#Kuration #SlowTravel #Morrow #NordseeAuszeit #SanktPeterOrding",
+    "sourceId": "N09",
+    "date": "2026-07-08",
+    "time": "12:15",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "23",
+    "date": "2026-07-12",
+    "time": "09:30",
+    "pillar": "SPO Orientierung",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-22-boardwalk-pfahlbau-grey.png",
+    "headline": "SPO ist weit. Genau deshalb braucht ihr Orientierung.",
+    "kicker": "Ort mit Ruhe",
+    "layout": "split",
+    "caption": "SPO ist kein Ort für hektisches Abhaken. Es ist ein Ort für Wind, Weite, lange Wege zum Strand und Entscheidungen, die leichter werden, wenn jemand sie vorsortiert.\n\nBei Morrow denken wir Unterkunft, Rhythmus und lokale Empfehlungen zusammen, damit aus einem Aufenthalt eine stimmige Auszeit wird.\n\n#SanktPeterOrding #SPO #Nordseeurlaub #Reiseplanung #Morrow",
+    "sourceId": "02",
+    "contentRole": "Saveable orientation",
+    "slides": [
+      {
+        "title": "Warum SPO Vorbereitung braucht",
+        "body": "Strandwege, Wetter, Ortsteile und Tagesrhythmus verändern, wie leicht sich ein Aufenthalt anfühlt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Für Familien",
+        "body": "Kurze Wege, Pausen und ein Plan B sind oft wichtiger als die längste Aktivitätenliste.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Für Paare",
+        "body": "Wenige gute Anker reichen: ruhige Unterkunft, Spaziergang, Dinner oder Wellness, genug freie Zeit.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Paarzeit kippt schnell, wenn sie schon bei der Planung anstrengend wird."
+          ],
+          [
+            "Morrow Blick",
+            "Wir bereiten genug vor, damit vor Ort Raum und Ruhe bleiben."
+          ],
+          [
+            "Merken",
+            "Nicht Perfektion macht es wertvoll, sondern ein leichter gemeinsamer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Morrow denkt das zusammen",
+        "body": "Unterkunft, Ort, Erlebnis und Betreuung werden nicht getrennt geplant, sondern als Auszeit.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      }
+    ],
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "24",
+    "date": "2026-07-13",
+    "time": "19:30",
+    "pillar": "Vertrauen",
+    "format": "Single Still",
+    "headline": "Weniger suchen. Besser ankommen.",
+    "kicker": "Weniger suchen",
+    "layout": "quote",
+    "caption": "Nicht jede Reise wird besser, wenn man mehr Auswahl hat.\n\nUnser Ansatz: wenige, sorgfältig kuratierte Auszeiten statt endloser Vergleichssuche. Mit Unterkunft, Ort, Erlebnis und Betreuung, die zusammenpassen.\n\nDas ist ruhiger. Persönlicher. Und oft genau das, was vor einem freien Wochenende wirklich fehlt.\n\n#MindfulTravel #Nordsee #Auszeit #Morrow #SlowTravel",
+    "sourceId": "03",
+    "contentRole": "Brand belief",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-06-wide-beach-pfahlbau.png",
+    "styleguideTemplate": "Styleguide Foto-Zitatkarte"
+  },
+  {
+    "id": "25",
+    "date": "2026-07-15",
+    "time": "12:15",
+    "pillar": "Family Escape",
+    "format": "Single Still",
+    "asset": "public/brand/generated/morrow-spo-family.png",
+    "headline": "Familienurlaub wird leichter, wenn weniger offen ist.",
+    "kicker": "Family Escape",
+    "layout": "photo",
+    "caption": "Mit Kindern ist Urlaub oft dann gut, wenn die großen Dinge vorbereitet sind und genug Raum für kleine Momente bleibt.\n\nUnsere Family Escape denkt genau das zusammen: eine passende Unterkunft, SPO-Weite, ein naturnahes Erlebnis und Empfehlungen, die den Tag nicht voller, sondern einfacher machen.\n\n#Familienurlaub #SanktPeterOrdingMitKindern #NordseeMitKindern #Morrow #FamilyEscape",
+    "sourceId": "04",
+    "contentRole": "Family promise",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "26",
+    "date": "2026-07-19",
+    "time": "09:30",
+    "pillar": "Family Escape",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-02-family-boardwalk-sea.png",
+    "headline": "Manchmal ist das Programm schon da.",
+    "kicker": "Naturmoment",
+    "layout": "photo",
+    "caption": "Kinder brauchen nicht immer mehr Programm. Manchmal reicht ein weiter Himmel, nasser Sand unter den Füßen und genug Zeit, um einfach zu schauen.\n\nMorrow plant nicht jeden Moment durch. Wir schaffen die Bedingungen, damit gute Momente leichter passieren.\n\n#Wattenmeer #NordseeMitKindern #SanktPeterOrding #Familienurlaub #Morrow",
+    "sourceId": "06",
+    "contentRole": "Family emotion",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "27",
+    "date": "2026-07-20",
+    "time": "19:30",
+    "pillar": "Couple Reset",
+    "format": "Single Still",
+    "asset": "public/brand/generated/morrow-spo-couple.png",
+    "headline": "Eine Auszeit zu zweit darf leise beginnen.",
+    "kicker": "Couple Reset",
+    "layout": "photo",
+    "caption": "Nicht jeder Paarurlaub braucht große Gesten. Manchmal geht es um zwei freie Tage, weniger Alltag im Kopf und einen Ort, der Abstand schafft.\n\nUnsere Couple Reset Auszeiten verbinden ruhige Unterkunft, lokale Empfehlungen und genug offene Zeit für Spaziergänge, Dinner oder einfach Nichtstun.\n\n#AuszeitZuZweit #Paarurlaub #SanktPeterOrding #NordseeAuszeit #Morrow",
+    "sourceId": "07",
+    "contentRole": "Couple emotion",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "28",
+    "date": "2026-07-22",
+    "time": "12:15",
+    "pillar": "Couple Reset",
+    "format": "Single Still",
+    "headline": "Nicht romantischer. Echter.",
+    "kicker": "Ruhiger reisen",
+    "layout": "quote",
+    "caption": "Wir glauben nicht an inszenierte Romantik.\n\nWir glauben an warme Orte, gute Vorbereitung, ehrliche Nähe und diesen Moment, in dem beide merken: Es war richtig, kurz rauszufahren.\n\n#RomantischesWochenende #SanktPeterOrding #PaarurlaubNordsee #Morrow #Auszeit",
+    "sourceId": "09",
+    "contentRole": "Couple belief",
+    "asset": "public/brand/generated/social/morrow-social-set-a-couple-boardwalk-dusk.png",
+    "styleguideTemplate": "Styleguide Foto-Zitatkarte"
+  },
+  {
+    "id": "29",
+    "date": "2026-07-26",
+    "time": "09:30",
+    "pillar": "SPO Orientierung",
+    "format": "Single Still",
+    "asset": "public/brand/generated/morrow-spo-final-boardwalk.png",
+    "headline": "SPO ist kein Ziel für Eile.",
+    "kicker": "Nordsee Rhythmus",
+    "layout": "photo",
+    "caption": "Der Weg durch die Dünen. Der erste Blick auf das Wasser. Der Wind, der lauter ist als der Kalender.\n\nSankt Peter-Ording wirkt, wenn man ihm Zeit lässt. Unsere Auszeiten sind darauf gebaut: weniger Druck, mehr Rhythmus.\n\n#SanktPeterOrding #Nordsee #Dünen #AuszeitAmMeer #Morrow",
+    "sourceId": "10",
+    "contentRole": "Place emotion",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "30",
+    "date": "2026-07-27",
+    "time": "19:30",
+    "pillar": "Vorbereitung",
+    "format": "Carousel",
+    "headline": "Kuratieren heißt: bewusst weglassen.",
+    "kicker": "Qualität & Care",
+    "layout": "quote",
+    "caption": "Kuratieren heißt für uns nicht, möglichst viel schön zu nennen.\n\nEs heißt: auswählen, weglassen, zusammenführen und Verantwortung für das Gefühl des Aufenthalts übernehmen.\n\nSo entsteht aus Unterkunft, Ort und Erlebnis eine Auszeit.\n\n#Kuration #TravelBrand #Morrow #Nordsee #Hospitality",
+    "sourceId": "13",
+    "contentRole": "Morrow method",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-27-shell-key-note.png",
+    "slides": [
+      {
+        "title": "Nicht alles zeigen",
+        "body": "Mehr Auswahl ist nicht automatisch mehr Sicherheit.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      },
+      {
+        "title": "Das Passende verbinden",
+        "body": "Unterkunft, Ort, Erlebnis und Betreuung müssen zusammen wirken.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      },
+      {
+        "title": "Verantwortung übernehmen",
+        "body": "Eine Auszeit ist erst gut, wenn sie sich vor Ort leicht anfühlt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      }
+    ],
+    "styleguideTemplate": "Styleguide Foto-Zitatkarte"
+  },
+  {
+    "id": "31",
+    "date": "2026-07-29",
+    "time": "12:15",
+    "pillar": "Family Escape",
+    "format": "Carousel",
+    "asset": "public/brand/generated/morrow-article-family-stay-arrival.png",
+    "headline": "Familienunterkunft ist mehr als Bettenzahl.",
+    "kicker": "Unterkunft",
+    "layout": "split",
+    "caption": "Mit Kindern zählt nicht nur, wie viele Personen schlafen können.\n\nWichtig ist, ob Ankommen leicht wird, Pausen funktionieren, Wege kurz genug sind und der Ort nicht ständig neue Entscheidungen verlangt.\n\nGenau darauf achten wir bei Morrow Auszeiten.\n\n#Familienunterkunft #NordseeMitKindern #SPO #Morrow #UrlaubMitKindern",
+    "sourceId": "14",
+    "contentRole": "Family stay education",
+    "slides": [
+      {
+        "title": "Pausen",
+        "body": "Kann der Tag leicht unterbrochen werden, ohne dass alles kippt?",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Ankommen",
+        "body": "Funktioniert der erste Abend ruhig, auch wenn alle müde sind?",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Wege",
+        "body": "Sind Strand, Essen und kleine Erledigungen realistisch erreichbar?",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Rückzug",
+        "body": "Hat jeder genug Raum, wenn der Tag voll war?",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      }
+    ],
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "32",
+    "date": "2026-08-02",
+    "time": "09:30",
+    "pillar": "Couple Reset",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/morrow-social-set-b-couple-beach-path.png",
+    "headline": "Der schönste Plan: ein freier Nachmittag.",
+    "kicker": "Paarzeit",
+    "layout": "photo",
+    "caption": "Wir planen Auszeiten nicht, damit jede Stunde gefüllt ist.\n\nWir planen sie, damit freie Zeit nicht leer wirkt: mit passender Unterkunft, guter Orientierung und wenigen Ankern, die den Aufenthalt tragen.\n\n#AuszeitZuZweit #SanktPeterOrding #NordseeZuZweit #Morrow #SlowTravel",
+    "sourceId": "15",
+    "contentRole": "Couple emotion",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "33",
+    "date": "2026-08-03",
+    "time": "19:30",
+    "pillar": "SPO Orientierung",
+    "format": "Single Still",
+    "headline": "Bei Wind wird SPO ehrlicher.",
+    "kicker": "Nordsee Wetter",
+    "layout": "quote",
+    "caption": "Nordsee ist nicht Kulisse. Sie ist Wetter, Licht, Wind, Sand und manchmal ein Planwechsel.\n\nGute Auszeiten rechnen damit. Sie brauchen warme Rückzugsorte, flexible Empfehlungen und genug Gelassenheit für das, was der Tag mitbringt.\n\n#NordseeWetter #SanktPeterOrding #AuszeitAmMeer #Morrow #SPO",
+    "sourceId": "17",
+    "contentRole": "Place belief",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-30-wooden-stairs-sea.png",
+    "styleguideTemplate": "Styleguide Foto-Zitatkarte"
+  },
+  {
+    "id": "34",
+    "date": "2026-08-05",
+    "time": "12:15",
+    "pillar": "Family Escape",
+    "format": "Carousel",
+    "asset": "public/brand/generated/morrow-spo-local-family-orientation.png",
+    "headline": "Richtung statt Stundenplan.",
+    "kicker": "Mit Kindern",
+    "layout": "split",
+    "caption": "Der Unterschied ist klein, aber wichtig.\n\nEin Stundenplan macht eng. Eine gute Richtung gibt Sicherheit. Bei Morrow geht es um diesen ruhigen Rahmen: vorbereitet genug, damit ihr vor Ort freier seid.\n\n#Familienurlaub #SPOmitKindern #NordseeFamilie #Morrow #UrlaubOhneStress",
+    "sourceId": "18",
+    "contentRole": "Family rhythm",
+    "slides": [
+      {
+        "title": "Morgens langsam",
+        "body": "Kein Druck, sofort alles zu schaffen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Familienurlaub braucht klare Anker und genug Luft dazwischen."
+          ],
+          [
+            "Morrow Blick",
+            "Wir planen nicht voller, sondern leichter."
+          ],
+          [
+            "Merken",
+            "Der beste Moment ist oft der, der nicht erzwungen werden muss."
+          ]
+        ]
+      },
+      {
+        "title": "Ein guter Draußen-Moment",
+        "body": "Strand, Watt oder Dünen reichen oft als Tagesanker.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      },
+      {
+        "title": "Pausen ernst nehmen",
+        "body": "Eine gute Familienauszeit hat Lücken, nicht nur Programmpunkte.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      }
+    ],
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "35",
+    "date": "2026-08-09",
+    "time": "09:30",
+    "pillar": "SPO Orientierung",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/morrow-social-set-b-mother-child-map-dunes.png",
+    "headline": "Empfehlungen sind nur gut, wenn sie zu euch passen.",
+    "kicker": "Vor Ort",
+    "layout": "split",
+    "caption": "Nicht jede Empfehlung ist für jede Reise richtig.\n\nMit Kindern, zu zweit, bei Regen, in der Nebensaison, mit Hund oder ohne Auto: gute Orientierung entsteht aus Kontext. Deshalb kuratiert Morrow nicht abstrakt, sondern passend zur Auszeit.\n\n#SPOEmpfehlungen #SanktPeterOrding #Nordseeurlaub #Morrow #TravelTips",
+    "sourceId": "22",
+    "contentRole": "Local recommendation",
+    "slides": [
+      {
+        "title": "Mit Kindern",
+        "body": "Kürzere Wege, Pausen, wetterfeste Alternativen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Zu zweit",
+        "body": "Ruhige Abende, Spaziergänge, gute Zeitfenster.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Mit Hund",
+        "body": "Strandregeln, Wege und Rückzugsorte müssen mitgedacht werden.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      },
+      {
+        "title": "In der Nebensaison",
+        "body": "Weniger Betrieb, mehr Ruhe, andere Öffnungszeiten.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      }
+    ],
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "36",
+    "date": "2026-08-10",
+    "time": "19:30",
+    "pillar": "Family Escape",
+    "format": "Single Still",
+    "headline": "Kinder erinnern sich selten an perfekte Planung.",
+    "kicker": "Familienzeit",
+    "layout": "quote",
+    "caption": "Sie erinnern sich an Wind im Gesicht, nasse Schuhe, warmes Licht in der Unterkunft und daran, dass niemand den ganzen Tag aufs Handy schauen musste.\n\nDas ist der Punkt unserer Family-Auszeiten: Vorbereitung, die vor Ort leichter macht.\n\n#Familienzeit #NordseeMitKindern #Morrow #SanktPeterOrding #UrlaubMitKindern",
+    "sourceId": "23",
+    "contentRole": "Family share post",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-12-mother-child-dune-sea.png",
+    "styleguideTemplate": "Styleguide Foto-Zitatkarte"
+  },
+  {
+    "id": "37",
+    "date": "2026-08-12",
+    "time": "12:15",
+    "pillar": "Couple Reset",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-13-couple-waterline-walk.png",
+    "headline": "Zwei Tage können reichen.",
+    "kicker": "Kurz raus",
+    "layout": "photo",
+    "caption": "Ein Wochenende am Meer muss nicht groß werden, um zu wirken.\n\nWenn Unterkunft, Ankommen, Essen, Wege und Rhythmus vorbereitet sind, bleibt mehr von dem übrig, wofür ihr losfahrt: Zeit zu zweit.\n\n#WochenendeAmMeer #Paarurlaub #SPO #Morrow #NordseeAuszeit",
+    "sourceId": "24",
+    "contentRole": "Couple short trip",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "38",
+    "date": "2026-08-16",
+    "time": "09:30",
+    "pillar": "Vorbereitung",
+    "format": "Single Still",
+    "asset": "public/brand/generated/morrow-spo-interior.png",
+    "headline": "Rückzug ist Teil des Erlebnisses.",
+    "kicker": "Unterkunft",
+    "layout": "split",
+    "caption": "Eine gute Unterkunft ist nicht nur der Ort zwischen zwei Aktivitäten.\n\nSie ist der warme Rückzug nach Wind, Strand und vielen Eindrücken. Deshalb gehört sie bei Morrow zur Auszeit selbst, nicht nur zur Logistik.\n\n#Ferienunterkunft #Nordseeurlaub #Morrow #SPO #Auszeit",
+    "sourceId": "25",
+    "contentRole": "Stay trust",
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "39",
+    "date": "2026-08-17",
+    "time": "19:30",
+    "pillar": "SPO Orientierung",
+    "format": "Carousel",
+    "headline": "Was wir für SPO immer mitdenken.",
+    "kicker": "Sorgfältig geprüft",
+    "layout": "checklist",
+    "points": [
+      "Wind und Wetter",
+      "Wege zum Strand",
+      "Pausen im Tagesrhythmus",
+      "Alter und Anlass der Gäste",
+      "Gute Momente statt voller Listen"
+    ],
+    "caption": "Ein Aufenthalt in SPO wird besser, wenn man den Ort ernst nimmt.\n\nWeite, Wind und Strandwege sind kein Nebensatz. Sie prägen den Rhythmus. Genau deshalb planen wir Auszeiten nicht aus dem Katalog, sondern vom Aufenthalt her.\n\n#SanktPeterOrding #SPO #NordseePlanung #Morrow #Auszeit",
+    "sourceId": "26",
+    "contentRole": "Morrow quality check",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-38-dune-fence-horizon.png",
+    "slides": [
+      {
+        "title": "Wind und Wetter",
+        "body": "Nicht als Störung, sondern als Teil des Orts.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Wege zum Strand",
+        "body": "SPO fühlt sich anders an, wenn Wege zu lang oder unklar sind.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      },
+      {
+        "title": "Pausen im Rhythmus",
+        "body": "Gute Aufenthalte brauchen Luft zwischen den Momenten.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Alter und Anlass",
+        "body": "Familie, Paarzeit, Hund oder Nebensaison verändern die Planung.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      }
+    ],
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "40",
+    "date": "2026-08-19",
+    "time": "12:15",
+    "pillar": "Vertrauen",
+    "format": "Single Still",
+    "headline": "Eine schöne Zeit ist kein Zufall.",
+    "kicker": "Morrow",
+    "layout": "quote",
+    "caption": "Sie entsteht aus Auswahl, Vorbereitung und dem Gefühl, dass jemand mitgedacht hat.\n\nDas ist die Idee hinter Morrow: kuratierte Auszeiten an besonderen Orten am Wasser.\n\n#Morrow #KuratierteAuszeit #Nordsee #SanktPeterOrding #Hospitality",
+    "sourceId": "27",
+    "contentRole": "Brand belief",
+    "asset": "public/brand/generated/social/morrow-social-set-b-coastal-house-evening.png",
+    "styleguideTemplate": "Styleguide Foto-Zitatkarte"
+  },
+  {
+    "id": "41",
+    "date": "2026-08-23",
+    "time": "09:30",
+    "pillar": "Family Escape",
+    "format": "Single Still",
+    "asset": "public/brand/generated/morrow-article-family-arrival-dunes.png",
+    "headline": "Ankommen mit Kindern braucht weniger Reibung.",
+    "kicker": "Ankommen mit Kindern",
+    "layout": "photo",
+    "caption": "Nach der Anreise muss nicht sofort das nächste To-do warten.\n\nEine gute Familienauszeit lässt Raum zum Auspacken, Runterkommen, Rausgehen und langsam in den Ort finden. Diese ersten Stunden sind oft entscheidender, als man vorher denkt.\n\n#Familienurlaub #Ankommen #SanktPeterOrding #Morrow #NordseeMitKindern",
+    "sourceId": "28",
+    "contentRole": "Family arrival",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "42",
+    "date": "2026-08-24",
+    "time": "19:30",
+    "pillar": "Couple Reset",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/morrow-social-set-a-couple-tea-table.png",
+    "headline": "Paarzeit sollte nicht mit Recherche anfangen.",
+    "kicker": "Vorbereitet",
+    "layout": "split",
+    "caption": "Restaurant suchen, Wellness prüfen, Strandabschnitt vergleichen, Unterkunft sortieren: Schon die Planung kann sich wie Arbeit anfühlen.\n\nMorrow nimmt euch diese erste Sortierung ab und lässt genug Luft für eigene Entscheidungen.\n\n#Paarwochenende #NordseeZuZweit #SPO #Morrow #AuszeitZuZweit",
+    "sourceId": "29",
+    "contentRole": "Couple pain point",
+    "slides": [
+      {
+        "title": "Nicht erst Restaurants suchen",
+        "body": "Ein guter Abend darf vorbereitet sein, ohne durchgeplant zu wirken.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Nicht Strandabschnitte vergleichen",
+        "body": "Wichtig ist, was zu Anlass, Wetter und Rhythmus passt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Nicht Unterkunft allein denken",
+        "body": "Der Aufenthalt wirkt erst, wenn Rückzug und Ort zusammenpassen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Paarzeit kippt schnell, wenn sie schon bei der Planung anstrengend wird."
+          ],
+          [
+            "Morrow Blick",
+            "Wir bereiten genug vor, damit vor Ort Raum und Ruhe bleiben."
+          ],
+          [
+            "Merken",
+            "Nicht Perfektion macht es wertvoll, sondern ein leichter gemeinsamer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Morrow sortiert vor",
+        "body": "Damit ihr vor Ort eigene Zeit habt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Paarzeit kippt schnell, wenn sie schon bei der Planung anstrengend wird."
+          ],
+          [
+            "Morrow Blick",
+            "Wir bereiten genug vor, damit vor Ort Raum und Ruhe bleiben."
+          ],
+          [
+            "Merken",
+            "Nicht Perfektion macht es wertvoll, sondern ein leichter gemeinsamer Rhythmus."
+          ]
+        ]
+      }
+    ],
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "43",
+    "date": "2026-08-26",
+    "time": "12:15",
+    "pillar": "SPO Orientierung",
+    "format": "Single Still",
+    "asset": "public/brand/generated/morrow-spo-hero.png",
+    "headline": "Der Ort darf den Takt vorgeben.",
+    "kicker": "SPO",
+    "layout": "photo",
+    "caption": "In Sankt Peter-Ording ist der schönste Takt oft nicht der eigene Kalender.\n\nEs sind Tide, Wind, Licht, Hunger, müde Beine und der Moment, in dem der Strand plötzlich weit genug wirkt.\n\n#SPO #Nordsee #SanktPeterOrding #SlowTravel #Morrow",
+    "sourceId": "30",
+    "contentRole": "Place emotion",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "44",
+    "date": "2026-08-30",
+    "time": "09:30",
+    "pillar": "Vorbereitung",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-14-cups-book-window.png",
+    "headline": "Vertrauen entsteht, wenn Vorbereitung sichtbar wird.",
+    "kicker": "Vorbereitung",
+    "layout": "split",
+    "caption": "Gerade bei einem neuen Account ist Vertrauen wichtig.\n\nDarum zeigen wir bei Morrow nicht nur schöne Motive, sondern auch, wie wir denken: sorgfältig, lokal, ruhig und mit Blick auf echte Aufenthalte.\n\n#TravelBrand #Morrow #SPO #NordseeAuszeit #Vertrauen",
+    "sourceId": "32",
+    "contentRole": "Trust builder",
+    "slides": [
+      {
+        "title": "Klare Informationen",
+        "body": "Damit Ankommen nicht mit offenen Fragen beginnt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Gute Vorbereitung sieht man oft erst, wenn nichts hakt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir klären Details, bevor sie vor Ort stören."
+          ],
+          [
+            "Merken",
+            "Care heißt: Ihr müsst nicht alles selbst tragen."
+          ]
+        ]
+      },
+      {
+        "title": "Passende Empfehlungen",
+        "body": "Nicht allgemein, sondern passend zur Auszeit.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      },
+      {
+        "title": "Sinnvolle Wege",
+        "body": "Vor Ort zählt, was wirklich leicht erreichbar ist.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      },
+      {
+        "title": "Ein Ansprechpartner",
+        "body": "Menschliche Betreuung statt anonymer Buchungslogik.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Gute Vorbereitung sieht man oft erst, wenn nichts hakt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir klären Details, bevor sie vor Ort stören."
+          ],
+          [
+            "Merken",
+            "Care heißt: Ihr müsst nicht alles selbst tragen."
+          ]
+        ]
+      }
+    ],
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "45",
+    "date": "2026-08-31",
+    "time": "19:30",
+    "pillar": "Vertrauen",
+    "format": "Single Still",
+    "headline": "Für Familien. Für Paare. Für Orte am Wasser.",
+    "kicker": "Orte am Wasser",
+    "layout": "quote",
+    "caption": "Morrow startet in Sankt Peter-Ording und wächst von dort aus weiter an besondere Orte am Wasser.\n\nImmer mit derselben Idee: weniger beliebige Auswahl, mehr sorgfältig vorbereitete Auszeiten.\n\n#Morrow #Nordsee #SanktPeterOrding #AuszeitAmWasser #KuratierteReisen",
+    "sourceId": "33",
+    "contentRole": "Brand direction",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-08-couple-boardwalk-rain.png",
+    "styleguideTemplate": "Styleguide Foto-Zitatkarte"
+  },
+  {
+    "id": "46",
+    "date": "2026-09-02",
+    "time": "12:15",
+    "pillar": "Anfrage",
+    "format": "Single Still",
+    "asset": "public/brand/generated/morrow-spo-final-family.png",
+    "headline": "Noch eine ruhige Familienauszeit im Sommer?",
+    "kicker": "Family Escape",
+    "layout": "photo",
+    "caption": "Unsere Family Escape ist für Familien gedacht, die SPO mit weniger Planungsdruck erleben möchten.\n\nSchreibt uns für Verfügbarkeit, passende Zeiträume und die Frage, ob diese Auszeit zu euch passt.\n\n#FamilyEscape #FamilienurlaubSPO #NordseeMitKindern #Morrow #SommerAnDerNordsee",
+    "sourceId": "34",
+    "contentRole": "Family conversion",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "47",
+    "date": "2026-09-06",
+    "time": "09:30",
+    "pillar": "Anfrage",
+    "format": "Single Still",
+    "asset": "public/brand/generated/morrow-spo-couple-testimonial-beach-a.png",
+    "headline": "Kurz raus. Ohne alles selbst zu planen.",
+    "kicker": "Couple Reset",
+    "layout": "photo",
+    "caption": "Ein paar Tage am Meer können viel verändern, wenn sie nicht schon vorab nach Arbeit klingen.\n\nUnsere Couple Reset Auszeiten verbinden ruhige Unterkunft, SPO-Rhythmus und persönliche Vorbereitung. Für zwei, die wieder etwas Luft brauchen.\n\n#CoupleReset #AuszeitZuZweit #PaarurlaubNordsee #SanktPeterOrding #Morrow",
+    "sourceId": "35",
+    "contentRole": "Couple conversion",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "48",
+    "date": "2026-09-07",
+    "time": "19:30",
+    "pillar": "Vertrauen",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-04-empty-rain-boardwalk.png",
+    "headline": "Nicht nur wegfahren. Gut ankommen.",
+    "kicker": "Weiter geht es",
+    "layout": "photo",
+    "caption": "Die ersten Wochen hier sind unser Auftakt.\n\nWir teilen Orte, Auszeiten, Gedanken und kleine Orientierung für Sankt Peter-Ording. Ruhig, persönlich und mit dem Anspruch, dass Reisen wieder leichter werden darf.\n\nFolgt Morrow, wenn ihr Auszeiten am Wasser sucht, die vorbereitet wirken, ohne durchgeplant zu sein.\n\n#Morrow #NordseeAuszeit #SanktPeterOrding #SlowTravel #KuratierteAuszeiten",
+    "sourceId": "36",
+    "contentRole": "Brand closer",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "49",
+    "date": "2026-09-09",
+    "time": "12:15",
+    "pillar": "Family Escape",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/morrow-social-set-a-family-breakfast-interior.png",
+    "headline": "Der erste Morgen entscheidet oft den ganzen Familienrhythmus.",
+    "kicker": "Erster Morgen",
+    "layout": "split",
+    "caption": "Familienurlaub beginnt nicht erst am Strand.\n\nOft entscheidet der erste Morgen: Gibt es genug Ruhe? Sind die Wege klar? Muss direkt etwas organisiert werden? Genau diese kleinen Reibungen nehmen wir ernst.\n\n#Familienurlaub #NordseeMitKindern #Morrow #SanktPeterOrding #Ankommen",
+    "sourceId": "38",
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "50",
+    "date": "2026-09-13",
+    "time": "09:30",
+    "pillar": "Vertrauen",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-17-coastal-house-evening.png",
+    "headline": "Manchmal ist Luxus einfach: nicht mehr suchen müssen.",
+    "kicker": "Weniger suchen",
+    "layout": "quote",
+    "caption": "Luxus muss nicht laut sein.\n\nManchmal ist er ein gut vorbereiteter Ort, eine klare Empfehlung, ein erster Abend ohne Recherche und das Gefühl, dass jemand vorher mitgedacht hat.\n\n#Morrow #SlowTravel #NordseeAuszeit #KuratierteReisen #Hospitality",
+    "sourceId": "39",
+    "styleguideTemplate": "Styleguide Foto-Zitatkarte"
+  },
+  {
+    "id": "51",
+    "date": "2026-09-14",
+    "time": "19:30",
+    "pillar": "SPO Orientierung",
+    "format": "Carousel",
+    "asset": "public/brand/generated/morrow-spo-local-orientation.png",
+    "headline": "SPO ohne Auto: schön, aber nicht überall gleich leicht.",
+    "kicker": "Vor Ort",
+    "layout": "split",
+    "slides": [
+      {
+        "title": "Wege entscheiden mit",
+        "body": "SPO ist weitläufig. Ohne Auto zählen Unterkunftslage, Tagesrhythmus und realistische Entfernungen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      },
+      {
+        "title": "Nicht jeder Plan passt",
+        "body": "Was auf der Karte nah wirkt, kann mit Kindern, Wind oder Gepäck anders sein.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Gute Vorbereitung spart Energie",
+        "body": "Vorab sortierte Wege machen den Aufenthalt leichter, ohne ihn zu verplanen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      },
+      {
+        "title": "Morrow denkt Mobilität mit",
+        "body": "Damit vor Ort nicht jede Entscheidung neu beginnt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist kein kompakter Badeort, sondern ein Ort mit Rhythmus."
+          ],
+          [
+            "Morrow Blick",
+            "Wir übersetzen Weite, Wetter und Wege in gute Entscheidungen."
+          ],
+          [
+            "Merken",
+            "Orientierung macht den Ort entspannter."
+          ]
+        ]
+      }
+    ],
+    "caption": "SPO ohne Auto kann wunderbar sein. Aber es braucht ehrliche Orientierung.\n\nWelche Wege sind realistisch? Was liegt wirklich nah? Wo wird ein kurzer Ausflug plötzlich aufwendig? Genau solche Fragen gehören für uns zur Vorbereitung.\n\n#SPOOhneAuto #SanktPeterOrding #Nordseeurlaub #Morrow #Reiseplanung",
+    "sourceId": "40",
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "52",
+    "date": "2026-09-16",
+    "time": "12:15",
+    "pillar": "Couple Reset",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-23-couple-dinner-table.png",
+    "headline": "Ein guter Abend braucht nicht viel. Nur keinen Suchstress.",
+    "kicker": "Zu zweit",
+    "layout": "photo",
+    "caption": "Manchmal entscheidet ein Abend mehr als ein ganzer Plan.\n\nEin ruhiger Tisch, ein kurzer Spaziergang, ein Ort, der schon passt. Paarzeit wird leichter, wenn nicht erst vor Ort alles verglichen werden muss.\n\n#Paarzeit #AuszeitZuZweit #SPO #NordseeZuZweit #Morrow",
+    "sourceId": "41",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "53",
+    "date": "2026-09-20",
+    "time": "09:30",
+    "pillar": "Family Escape",
+    "format": "Single Still",
+    "asset": "public/brand/generated/morrow-spo-family-plan-boardwalk.png",
+    "headline": "Wenn Kinder müde werden, zeigt sich die Qualität der Planung.",
+    "kicker": "Familienzeit",
+    "layout": "quote",
+    "caption": "Gute Familienauszeiten erkennt man nicht nur an den schönen Momenten.\n\nMan erkennt sie auch daran, was passiert, wenn jemand müde ist, Hunger hat oder der Wind lauter wird als der Plan. Genau dafür braucht es Ruhe im System.\n\n#Familienurlaub #NordseeMitKindern #Morrow #SPOmitKindern #ReisenMitKindern",
+    "sourceId": "43",
+    "styleguideTemplate": "Styleguide Foto-Zitatkarte"
+  },
+  {
+    "id": "54",
+    "date": "2026-09-21",
+    "time": "19:30",
+    "pillar": "SPO Orientierung",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-15-dune-path-sea.png",
+    "headline": "SPO hat mehrere Orte. Jeder passt anders.",
+    "kicker": "Ortsteile",
+    "layout": "split",
+    "slides": [
+      {
+        "title": "Ording",
+        "body": "Weit, offen, ikonisch. Gut für das große Strandgefühl.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      },
+      {
+        "title": "Bad",
+        "body": "Zentraler, mit mehr Infrastruktur und kürzeren Entscheidungen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      },
+      {
+        "title": "Böhl",
+        "body": "Ruhiger, weiter, oft gut für langsamere Tage.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      },
+      {
+        "title": "Dorf und Süd",
+        "body": "Praktisch, wenn Alltag, Essen und kleine Wege leichter sein sollen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist weitläufig. Der falsche Anker macht gute Tage unnötig schwer."
+          ],
+          [
+            "Morrow Blick",
+            "Wir denken Ortsteil, Wege und Tagesform zusammen."
+          ],
+          [
+            "Merken",
+            "Eine Empfehlung ist nur gut, wenn sie zu eurem konkreten Tag passt."
+          ]
+        ]
+      }
+    ],
+    "caption": "SPO ist nicht ein Strandgefühl. SPO sind mehrere Rhythmen.\n\nJe nachdem, ob ihr mit Kindern reist, zu zweit kommt, Ruhe sucht oder viel draußen sein wollt, passt ein anderer Anker besser.\n\n#SanktPeterOrding #SPOtipps #Nordseeurlaub #Morrow #Ortskenntnis",
+    "sourceId": "44",
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "55",
+    "date": "2026-09-23",
+    "time": "12:15",
+    "pillar": "Vertrauen",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-19-empty-beach-footprints.png",
+    "headline": "Nicht jeder freie Tag muss voll werden.",
+    "kicker": "Ruhiger reisen",
+    "layout": "photo",
+    "caption": "Freie Zeit wird nicht automatisch besser, wenn man sie füllt.\n\nManchmal braucht sie nur einen guten Ort, einen klaren Anfang und genug Luft, damit der Tag selbst entstehen darf.\n\n#SlowTravel #NordseeAuszeit #Morrow #SanktPeterOrding #Auszeit",
+    "sourceId": "45",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "56",
+    "date": "2026-09-27",
+    "time": "09:30",
+    "pillar": "Couple Reset",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-40-couple-reading-sofa.png",
+    "headline": "Drei Dinge, die Paarzeit in SPO leichter machen.",
+    "kicker": "Paarzeit",
+    "layout": "checklist",
+    "points": [
+      "Ein ruhiger erster Abend",
+      "Ein Weg ohne Ziel",
+      "Ein Tisch, der schon passt"
+    ],
+    "slides": [
+      {
+        "title": "1. Nicht direkt weiterplanen",
+        "body": "Ankommen darf der erste Programmpunkt sein.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Paarzeit kippt schnell, wenn sie schon bei der Planung anstrengend wird."
+          ],
+          [
+            "Morrow Blick",
+            "Wir bereiten genug vor, damit vor Ort Raum und Ruhe bleiben."
+          ],
+          [
+            "Merken",
+            "Nicht Perfektion macht es wertvoll, sondern ein leichter gemeinsamer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "2. Rausgehen ohne Ziel",
+        "body": "Ein weiter Weg durch Wind und Dünen reicht oft.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "3. Den Abend vorbereiten",
+        "body": "Gute Empfehlung statt spontaner Vergleichssuche.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Mehr Raum für euch",
+        "body": "Morrow sortiert vor, damit vor Ort weniger offen bleibt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Paarzeit kippt schnell, wenn sie schon bei der Planung anstrengend wird."
+          ],
+          [
+            "Morrow Blick",
+            "Wir bereiten genug vor, damit vor Ort Raum und Ruhe bleiben."
+          ],
+          [
+            "Merken",
+            "Nicht Perfektion macht es wertvoll, sondern ein leichter gemeinsamer Rhythmus."
+          ]
+        ]
+      }
+    ],
+    "caption": "Paarzeit wird nicht besser, wenn sie perfekter geplant ist.\n\nSie wird besser, wenn die richtigen Dinge vorbereitet sind und dazwischen genug Raum bleibt.\n\n#Paarurlaub #AuszeitZuZweit #SanktPeterOrding #Morrow #CoupleReset",
+    "sourceId": "46",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "57",
+    "date": "2026-09-28",
+    "time": "19:30",
+    "pillar": "SPO Orientierung",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-16-bicycles-dune-path.png",
+    "headline": "Der Weg zum Strand ist in SPO Teil des Erlebnisses.",
+    "kicker": "SPO Detail",
+    "layout": "quote",
+    "caption": "In SPO ist der Weg zum Strand selten nur ein Weg.\n\nEr ist Wind, Blick, Erwartung, manchmal Geduld und oft der Moment, in dem der Alltag leiser wird.\n\n#SanktPeterOrding #Nordsee #Dünenweg #Morrow #SlowTravel",
+    "sourceId": "47",
+    "styleguideTemplate": "Styleguide Foto-Zitatkarte"
+  },
+  {
+    "id": "58",
+    "date": "2026-09-30",
+    "time": "12:15",
+    "pillar": "Family Escape",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-07-family-dunes-after-rain.png",
+    "headline": "Ein guter Familienplan hat Lücken.",
+    "kicker": "Mit Kindern",
+    "layout": "split",
+    "caption": "Mit Kindern braucht ein guter Plan nicht mehr Punkte. Er braucht bessere Lücken.\n\nZeit für Umwege. Zeit für Hunger. Zeit für Wind. Zeit dafür, dass nicht alles so läuft, wie man dachte.\n\n#Familienurlaub #ReisenMitKindern #NordseeMitKindern #Morrow #SPO",
+    "sourceId": "48",
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "59",
+    "date": "2026-10-04",
+    "time": "09:30",
+    "pillar": "Vorbereitung",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-10-rain-boots-entry.png",
+    "headline": "Was Ankommen leichter macht.",
+    "kicker": "Ankunft",
+    "layout": "checklist",
+    "points": [
+      "Klare erste Information",
+      "Ein realistischer erster Abend",
+      "Weniger offene Entscheidungen",
+      "Ein Ansprechpartner"
+    ],
+    "slides": [
+      {
+        "title": "Nicht alles auf später schieben",
+        "body": "Die erste Stunde entscheidet oft, ob Ankommen ruhig wird.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Gute Vorbereitung sieht man oft erst, wenn nichts hakt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir klären Details, bevor sie vor Ort stören."
+          ],
+          [
+            "Merken",
+            "Care heißt: Ihr müsst nicht alles selbst tragen."
+          ]
+        ]
+      },
+      {
+        "title": "Der erste Abend darf einfach sein",
+        "body": "Nicht direkt Restaurantsuche, Einkauf und Wege klären.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Informationen müssen sortiert sein",
+        "body": "Zu viel ist nicht besser. Das Passende zählt.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Gute Vorbereitung sieht man oft erst, wenn nichts hakt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir klären Details, bevor sie vor Ort stören."
+          ],
+          [
+            "Merken",
+            "Care heißt: Ihr müsst nicht alles selbst tragen."
+          ]
+        ]
+      },
+      {
+        "title": "Menschliche Rückmeldung",
+        "body": "Wenn etwas offen ist, sollte jemand da sein.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Neue Gäste müssen verstehen, was als Nächstes passiert."
+          ],
+          [
+            "Morrow Blick",
+            "Erst einordnen, dann empfehlen. Keine anonyme Sofortbuchung."
+          ],
+          [
+            "Merken",
+            "Gute Anfrage senkt Aufwand, weil sie die richtigen Fragen früh klärt."
+          ]
+        ]
+      }
+    ],
+    "caption": "Ankommen ist kein Zufall.\n\nEs entsteht aus vielen kleinen Dingen, die vorher geklärt wurden: was zuerst wichtig ist, was warten kann und wo ihr euch melden könnt.\n\n#Ankommen #Hospitality #Morrow #NordseeAuszeit #SanktPeterOrding",
+    "sourceId": "49",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "60",
+    "date": "2026-10-05",
+    "time": "19:30",
+    "pillar": "SPO Orientierung",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-20-family-dune-picnic.png",
+    "headline": "SPO wirkt anders, wenn man nicht erst vor Ort sortieren muss.",
+    "kicker": "Orientierung",
+    "layout": "photo",
+    "caption": "Die schönsten Orte helfen wenig, wenn man sie erst im Urlaub vergleichen muss.\n\nMorrow sortiert vor: nicht alles, sondern das, was zu eurer Auszeit passt.\n\n#SPOtipps #SanktPeterOrding #Reiseplanung #Morrow #Nordseeurlaub",
+    "sourceId": "50",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "61",
+    "date": "2026-10-07",
+    "time": "12:15",
+    "pillar": "Vertrauen",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-28-couple-dune-edge.png",
+    "headline": "Auszeit ist kein Ortswechsel. Auszeit ist ein anderes Tempo.",
+    "kicker": "Weniger suchen",
+    "layout": "quote",
+    "caption": "Man kann wegfahren und trotzdem im gleichen Tempo bleiben.\n\nUnsere Auszeiten sind darauf gebaut, dass der Ort, die Unterkunft und die Vorbereitung zusammen ein anderes Gefühl möglich machen.\n\n#Auszeit #SlowTravel #Morrow #Nordsee #SanktPeterOrding",
+    "sourceId": "51",
+    "styleguideTemplate": "Styleguide Foto-Zitatkarte"
+  },
+  {
+    "id": "62",
+    "date": "2026-10-11",
+    "time": "09:30",
+    "pillar": "Family Escape",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-31-family-breakfast-table.png",
+    "headline": "Vier kleine Momente, die Familienurlaub tragen.",
+    "kicker": "Mit Kindern",
+    "layout": "checklist",
+    "points": [
+      "Der erste Blick aufs Wasser",
+      "Ein Snack ohne Eile",
+      "Ein Plan B ohne Drama",
+      "Ein Abend, der früh genug endet"
+    ],
+    "slides": [
+      {
+        "title": "Der erste Blick aufs Wasser",
+        "body": "Manchmal reicht ein einziger Moment, um anzukommen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Ein Snack ohne Eile",
+        "body": "Kleine Pausen halten den Tag zusammen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Plan B ohne Drama",
+        "body": "Wenn Wetter oder Stimmung kippen, sollte nicht alles neu anfangen.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Ein ruhiger Abend",
+        "body": "Familienurlaub gewinnt oft durch weniger, nicht durch mehr.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      }
+    ],
+    "caption": "Familienurlaub lebt nicht nur von großen Ausflügen.\n\nOft sind es die kleinen Momente, die den Tag gut machen: ein Blick, eine Pause, ein einfacher Abend und das Gefühl, nicht alles steuern zu müssen.\n\n#Familienurlaub #SPOmitKindern #NordseeMitKindern #Morrow #FamilyEscape",
+    "sourceId": "52",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "63",
+    "date": "2026-10-12",
+    "time": "19:30",
+    "pillar": "Couple Reset",
+    "format": "Single Still",
+    "asset": "public/brand/generated/morrow-article-couple-arrival-detail.png",
+    "headline": "Kurz weg funktioniert nur, wenn Ankommen schnell leicht wird.",
+    "kicker": "Kurz raus",
+    "layout": "split",
+    "caption": "Bei zwei oder drei Tagen zählt jede offene Entscheidung mehr.\n\nDeshalb denken wir kurze Auszeiten besonders sorgfältig: Anreise, erster Abend, Wege, Essen, Rückzug und ein Moment draußen.\n\n#Kurztrip #Paarurlaub #NordseeZuZweit #Morrow #SanktPeterOrding",
+    "sourceId": "53",
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "64",
+    "date": "2026-10-14",
+    "time": "12:15",
+    "pillar": "SPO Orientierung",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-09-family-breakfast-window.png",
+    "headline": "Nebensaison ist kein Kompromiss.",
+    "kicker": "SPO ruhiger",
+    "layout": "photo",
+    "caption": "Wenn SPO leerer wird, wird vieles deutlicher: Wind, Weite, Wege und dieser ruhige Abstand zum Alltag.\n\nGerade in der Nebensaison können Auszeiten besonders gut funktionieren, wenn sie passend vorbereitet sind.\n\n#Nebensaison #SanktPeterOrding #NordseeAuszeit #Morrow #SlowTravel",
+    "sourceId": "54",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "65",
+    "date": "2026-10-18",
+    "time": "09:30",
+    "pillar": "Vorbereitung",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-32-couple-cups-window.png",
+    "headline": "Vorbereitung soll man nicht merken. Nur fühlen.",
+    "kicker": "Vorbereitung",
+    "layout": "quote",
+    "caption": "Gute Vorbereitung drängt sich nicht in den Vordergrund.\n\nSie sorgt dafür, dass der Aufenthalt leichter wirkt: weniger offene Fragen, bessere Entscheidungen und ein ruhiger Anfang.\n\n#MorrowCare #Hospitality #NordseeAuszeit #SanktPeterOrding #Morrow",
+    "sourceId": "55",
+    "styleguideTemplate": "Styleguide Foto-Zitatkarte"
+  },
+  {
+    "id": "66",
+    "date": "2026-10-19",
+    "time": "19:30",
+    "pillar": "SPO Orientierung",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-36-family-bag-boardwalk.png",
+    "headline": "Drei SPO-Fehler, die ihr leicht vermeiden könnt.",
+    "kicker": "SPO besser planen",
+    "layout": "checklist",
+    "points": [
+      "Wege unterschätzen",
+      "Zu viel in einen Tag legen",
+      "Wetter wie Störung behandeln"
+    ],
+    "slides": [
+      {
+        "title": "1. Wege unterschätzen",
+        "body": "SPO ist weit. Entfernung fühlt sich mit Wind, Kindern oder Gepäck anders an.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "2. Zu viel planen",
+        "body": "Der Ort wirkt besser, wenn nicht jeder Tag voll ist.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist kein kompakter Badeort, sondern ein Ort mit Rhythmus."
+          ],
+          [
+            "Morrow Blick",
+            "Wir übersetzen Weite, Wetter und Wege in gute Entscheidungen."
+          ],
+          [
+            "Merken",
+            "Orientierung macht den Ort entspannter."
+          ]
+        ]
+      },
+      {
+        "title": "3. Wetter falsch denken",
+        "body": "Wind und Regen gehören nicht gegen den Plan. Sie gehören in den Plan.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO verändert sich schnell: Wind, Wege und Wetter gehören zum Ort."
+          ],
+          [
+            "Morrow Blick",
+            "Ein guter Plan B ist ruhig, nah und ohne neue Recherche machbar."
+          ],
+          [
+            "Merken",
+            "Nicht mehr Programm hilft, sondern ein realistischer Rhythmus."
+          ]
+        ]
+      },
+      {
+        "title": "Besser: Rhythmus planen",
+        "body": "Morrow denkt Aufenthalt vom Gefühl vor Ort her.",
+        "support": [
+          [
+            "Warum wichtig",
+            "SPO ist kein kompakter Badeort, sondern ein Ort mit Rhythmus."
+          ],
+          [
+            "Morrow Blick",
+            "Wir übersetzen Weite, Wetter und Wege in gute Entscheidungen."
+          ],
+          [
+            "Merken",
+            "Orientierung macht den Ort entspannter."
+          ]
+        ]
+      }
+    ],
+    "caption": "SPO ist kein Ort für Überplanung.\n\nWer Wege, Wetter und Pausen ernst nimmt, erlebt den Ort meistens leichter. Genau deshalb beginnt gute Orientierung vor der Anreise.\n\n#SPOtipps #SanktPeterOrding #Nordseeurlaub #Morrow #Reiseplanung",
+    "sourceId": "56",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "67",
+    "date": "2026-10-21",
+    "time": "12:15",
+    "pillar": "Vertrauen",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-35-couple-boardwalk-edge.png",
+    "headline": "Ein Ort wird besser, wenn man ihn nicht nur bucht.",
+    "kicker": "Morrow",
+    "layout": "split",
+    "caption": "Buchen ist nur ein Teil der Reise.\n\nWas einen Aufenthalt wirklich prägt, sind die Entscheidungen davor: welche Unterkunft, welcher Rhythmus, welche Wege, welche Momente und wie viel offen bleiben darf.\n\n#Morrow #KuratierteAuszeit #Nordsee #SanktPeterOrding #Hospitality",
+    "sourceId": "57",
+    "styleguideTemplate": "Styleguide Editorial Look"
+  },
+  {
+    "id": "68",
+    "date": "2026-10-25",
+    "time": "09:30",
+    "pillar": "Family Escape",
+    "format": "Single Still",
+    "asset": "public/brand/generated/morrow-spo-family-testimonial-dunes-second-family.png",
+    "headline": "Manchmal ist der beste Familienmoment der, der nicht geplant war.",
+    "kicker": "Familienzeit",
+    "layout": "photo",
+    "caption": "Nicht jeder gute Moment braucht einen Programmpunkt.\n\nManchmal reicht ein Weg durch die Dünen, ein bisschen Wind und genug Zeit, damit Kinder den Ort selbst entdecken können.\n\n#Familienzeit #NordseeMitKindern #SanktPeterOrding #Morrow #FamilyEscape",
+    "sourceId": "58",
+    "styleguideTemplate": "Styleguide Story Photo"
+  },
+  {
+    "id": "69",
+    "date": "2026-10-26",
+    "time": "19:30",
+    "pillar": "Anfrage",
+    "format": "Carousel",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-24-family-shoes-threshold.png",
+    "headline": "Wann eine Morrow Auszeit zu euch passt.",
+    "kicker": "Anfrage",
+    "layout": "checklist",
+    "points": [
+      "Ihr wollt weniger Recherche",
+      "Ihr sucht einen passenden Ort",
+      "Ihr möchtet persönliche Vorbereitung",
+      "Ihr wollt nicht anonym buchen"
+    ],
+    "slides": [
+      {
+        "title": "Wenn Auswahl zu viel wird",
+        "body": "Morrow ist für Menschen, die nicht noch mehr Optionen brauchen, sondern bessere Orientierung.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      },
+      {
+        "title": "Wenn der Ort passen soll",
+        "body": "Unterkunft, Lage und Rhythmus müssen zusammen wirken.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mehr Auswahl macht Urlaub nicht automatisch leichter."
+          ],
+          [
+            "Morrow Blick",
+            "Wir lassen bewusst weg, was nicht zum Anlass, Ort oder Rhythmus passt."
+          ],
+          [
+            "Merken",
+            "Qualität entsteht durch Kontext, nicht durch die längste Liste."
+          ]
+        ]
+      },
+      {
+        "title": "Wenn Vorbereitung wichtig ist",
+        "body": "Gerade bei Familien und kurzen Paar-Auszeiten zählt jedes Detail.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Mit Kindern entscheidet oft die Pause, nicht der Programmpunkt."
+          ],
+          [
+            "Morrow Blick",
+            "Wir achten auf Wege, Rückzug und Tagesenergie statt nur auf Bettenzahl."
+          ],
+          [
+            "Merken",
+            "Ein guter Familientag hat Anker, aber nicht zu viele Verpflichtungen."
+          ]
+        ]
+      },
+      {
+        "title": "Dann fragt uns an",
+        "body": "Persönlich, ruhig und unverbindlich.",
+        "support": [
+          [
+            "Warum wichtig",
+            "Eine Anfrage soll leicht und unverbindlich starten."
+          ],
+          [
+            "Morrow Blick",
+            "Wir prüfen Passung, bevor es konkret wird."
+          ],
+          [
+            "Merken",
+            "Erst verstehen, dann anbieten."
+          ]
+        ]
+      }
+    ],
+    "caption": "Eine Morrow Auszeit passt zu euch, wenn ihr nicht einfach irgendwo buchen wollt.\n\nSondern wenn Unterkunft, Ort, Empfehlungen und Vorbereitung zusammen gedacht werden sollen.\n\n#Morrow #AuszeitPlanen #SanktPeterOrding #Nordseeurlaub #Anfrage",
+    "sourceId": "59",
+    "styleguideTemplate": "Styleguide Photo Poster"
+  },
+  {
+    "id": "70",
+    "date": "2026-10-28",
+    "time": "12:15",
+    "pillar": "Vertrauen",
+    "format": "Single Still",
+    "asset": "public/brand/generated/social/unique/morrow-ig-unique-25-family-low-tide-walk.png",
+    "headline": "Weiter raus. Ruhiger ankommen.",
+    "kicker": "Morrow",
+    "layout": "quote",
+    "caption": "Morrow bleibt eine Einladung, Reisen wieder leichter zu denken.\n\nWeniger vergleichen. Besser vorbereiten. Ruhiger ankommen. Am Wasser, wo der Abstand zum Alltag etwas einfacher wird.\n\n#Morrow #NordseeAuszeit #SlowTravel #SanktPeterOrding #AuszeitAmWasser",
+    "sourceId": "60",
+    "styleguideTemplate": "Styleguide Foto-Zitatkarte"
+  }
+]

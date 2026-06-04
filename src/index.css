@@ -1,0 +1,60 @@
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/HankenGrotesk-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/HankenGrotesk-Italic-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  --offblack: #181715;
+  --offwhite: #ece6d6;
+  --paper: #fffdf8;
+  --mist: #f7f4eb;
+  --salt: #ece6d6;
+  --sage: #6f6841;
+  --clay: #694722;
+  --sand: #d8cfbc;
+  --sea: #6f6841;
+  --line: rgba(24, 23, 21, 0.12);
+  --soft-shadow: 0 18px 48px rgba(24, 23, 21, 0.08);
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+  color: var(--offblack);
+  background: var(--paper);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}

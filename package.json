@@ -1,0 +1,44 @@
+{
+  "name": "new-project",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "db:build": "bash scripts/build-database.sh",
+    "events:scrape": "node scripts/scrape-spo-events.mjs",
+    "supabase:seed-packages": "node scripts/seed-supabase-packages.mjs",
+    "leads:discover": "node scripts/discover-leads.mjs",
+    "instagram:dry-run": "node scripts/instagram-publisher.mjs dry-run next",
+    "instagram:assets": "node scripts/instagram-publisher.mjs assets next",
+    "instagram:post": "node scripts/instagram-publisher.mjs post due",
+    "instagram:insights": "node scripts/instagram-publisher.mjs insights",
+    "qa:smoke": "node scripts/qa-smoke.mjs",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mingcute/react": "^1.4.1",
+    "@supabase/supabase-js": "^2.107.0",
+    "@types/leaflet": "^1.9.21",
+    "leaflet": "^1.9.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^24.12.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.2.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.5.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.58.2",
+    "vite": "^8.0.10"
+  }
+}
