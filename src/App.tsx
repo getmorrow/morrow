@@ -34,6 +34,8 @@ import {
   fetchStoredAgencies,
   fetchStoredAdminTasks,
   fetchStoredApprovedLocalPlaces,
+  fetchStoredBookings,
+  fetchStoredCustomers,
   fetchStoredExperienceProviders,
   fetchAdminProfile,
   fetchStoredCommunicationEvents,
@@ -48,6 +50,7 @@ import {
   upsertStoredAdminTask,
   upsertStoredAgency,
   upsertStoredBooking,
+  upsertStoredCustomer,
   upsertStoredExperienceProvider,
   upsertStoredLead,
   upsertStoredLocalPlace,
@@ -430,9 +433,14 @@ type CustomerProfile = {
   whatsappOptIn: boolean
   guestType: 'Familie' | 'Paar'
   requests: GuestLead[]
+  primaryLeadId?: string
+  customerType?: 'guest'
+  notes?: string
 }
 type BookingProfile = {
   id: string
+  leadId?: string
+  customerId?: string
   customerName: string
   email: string
   phone: string
@@ -513,6 +521,8 @@ const adminExperienceProviderStorageKey = 'morrow-admin-experience-providers'
 const adminOwnerPropertyStorageKey = 'morrow-admin-owner-properties'
 const adminTaskStorageKey = 'morrow-admin-tasks'
 const adminAgencyStorageKey = 'morrow-admin-agencies'
+const adminCustomerStorageKey = 'morrow-admin-customers'
+const adminBookingStorageKey = 'morrow-admin-bookings'
 const guestStayUnlockedStatuses: LeadStatus[] = ['Bezahlt', 'Vor Anreise', 'Aktiv', 'Abgeschlossen']
 
 const isGuestStayUnlocked = (status: LeadStatus) => guestStayUnlockedStatuses.includes(status)
@@ -542,9 +552,24 @@ const shouldSyncBookingFromLead = (lead: StoredLead): lead is GuestLead => (
   lead.type === 'guest' && bookingSyncStatuses.includes(lead.status)
 )
 
+const customerPayloadFromLead = (lead: GuestLead): CustomerProfile => ({
+  id: lead.id,
+  primaryLeadId: lead.id,
+  customerType: 'guest',
+  name: lead.name,
+  email: lead.email,
+  phone: lead.phone,
+  preferredChannel: 'email',
+  whatsappOptIn: Boolean(lead.whatsappOptIn),
+  guestType: lead.packageSlug === 'family-escape' ? 'Familie' : 'Paar',
+  requests: [lead],
+  notes: lead.internalNote,
+})
+
 const bookingPayloadFromLead = (lead: GuestLead, packageItem?: MorrowPackage | null) => ({
   id: lead.id,
   leadId: lead.id,
+  customerId: lead.id,
   packageId: packageItem?.id ?? lead.packageSlug,
   packageSlug: lead.packageSlug,
   packageName: lead.packageName,
@@ -566,6 +591,66 @@ const bookingPayloadFromLead = (lead: GuestLead, packageItem?: MorrowPackage | n
   updatedAt: lead.updatedAt,
   createdAt: lead.createdAt,
 })
+
+const normalizeStoredCustomer = (customer: CustomerProfile, leads: StoredLead[]): CustomerProfile => {
+  const matchingRequests = leads
+    .filter((lead): lead is GuestLead => (
+      lead.type === 'guest'
+      && (
+        lead.id === customer.primaryLeadId
+        || lead.email.toLowerCase() === customer.email.toLowerCase()
+      )
+    ))
+    .sort((a, b) => new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime())
+
+  return {
+    ...customer,
+    preferredChannel: 'email',
+    whatsappOptIn: Boolean(customer.whatsappOptIn),
+    guestType: customer.guestType ?? (matchingRequests[0]?.packageSlug === 'family-escape' ? 'Familie' : 'Paar'),
+    requests: matchingRequests.length > 0 ? matchingRequests : customer.requests ?? [],
+  }
+}
+
+const normalizeStoredBooking = (
+  booking: BookingProfile,
+  adminPackages: MorrowPackage[],
+  leads: StoredLead[],
+): BookingProfile => {
+  const linkedLead = leads.find((lead): lead is GuestLead => (
+    lead.type === 'guest' && (lead.id === booking.leadId || lead.id === booking.id)
+  ))
+  const packageItem = adminPackages.find((pkg) => (
+    pkg.slug === booking.packageSlug
+    || pkg.name === booking.packageName
+    || pkg.id === booking.packageItem?.id
+  ))
+  const rawPaymentStatus = String(booking.paymentStatus ?? linkedLead?.status ?? '').toLowerCase()
+
+  return {
+    ...booking,
+    id: booking.id,
+    leadId: booking.leadId ?? linkedLead?.id ?? booking.id,
+    customerId: booking.customerId ?? linkedLead?.id,
+    customerName: booking.customerName ?? linkedLead?.name ?? 'Gast',
+    email: booking.email ?? linkedLead?.email ?? '',
+    phone: booking.phone ?? linkedLead?.phone ?? '',
+    packageName: booking.packageName ?? linkedLead?.packageName ?? packageItem?.name ?? 'Auszeit',
+    packageSlug: booking.packageSlug ?? linkedLead?.packageSlug ?? packageItem?.slug ?? '',
+    packageItem,
+    selectedDate: booking.selectedDate ?? linkedLead?.selectedDate ?? '',
+    status: (booking.status ?? linkedLead?.status ?? 'Reserviert') as BookingStatus,
+    paymentStatus: rawPaymentStatus === 'bezahlt' ? 'Bezahlt' : 'Offen',
+    guests: booking.guests ?? linkedLead?.guests,
+    dog: booking.dog ?? linkedLead?.dog,
+    reservationExpiresAt: booking.reservationExpiresAt ?? linkedLead?.reservationExpiresAt,
+    paymentDueAt: booking.paymentDueAt ?? linkedLead?.paymentDueAt,
+    followUpAt: booking.followUpAt ?? linkedLead?.followUpAt,
+    internalNote: booking.internalNote ?? linkedLead?.internalNote,
+    checkInStatus: booking.checkInStatus ?? linkedLead?.checkInStatus,
+    experienceStatus: booking.experienceStatus ?? linkedLead?.experienceStatus,
+  }
+}
 
 const bookingGuestPreparationItems = ({
   paymentStatus,
@@ -1734,6 +1819,9 @@ function App() {
     })
     if (shouldSyncBookingFromLead(lead)) {
       const packageItem = packages.find((pkg) => pkg.slug === lead.packageSlug || pkg.name === lead.packageName) ?? null
+      void upsertStoredCustomer(customerPayloadFromLead(lead)).catch((error) => {
+        console.warn('Morrow backend customer sync failed. Lead state was updated.', error)
+      })
       void upsertStoredBooking(bookingPayloadFromLead(lead, packageItem)).catch((error) => {
         console.warn('Morrow backend booking sync failed. Lead state was updated.', error)
       })
@@ -4138,6 +4226,62 @@ function AdminPage({
   }, [])
   const [selectedAgencyId, setSelectedAgencyId] = useState<string | null>(null)
   const [agencyStatusFilter, setAgencyStatusFilter] = useState<AgencyStatusFilter>('all')
+  const [storedCustomers, setStoredCustomers] = useState<CustomerProfile[]>(() => {
+    try {
+      const saved = localStorage.getItem(adminCustomerStorageKey)
+      return saved ? JSON.parse(saved) as CustomerProfile[] : []
+    } catch {
+      return []
+    }
+  })
+  const [storedBookings, setStoredBookings] = useState<BookingProfile[]>(() => {
+    try {
+      const saved = localStorage.getItem(adminBookingStorageKey)
+      return saved ? JSON.parse(saved) as BookingProfile[] : []
+    } catch {
+      return []
+    }
+  })
+  useEffect(() => {
+    if (authMode !== 'supabase') return
+
+    let cancelled = false
+
+    fetchStoredCustomers<CustomerProfile>()
+      .then((remoteCustomers) => {
+        if (cancelled || !remoteCustomers) return
+        const normalizedCustomers = remoteCustomers.map((customer) => normalizeStoredCustomer(customer, leads))
+        setStoredCustomers(normalizedCustomers)
+        localStorage.setItem(adminCustomerStorageKey, JSON.stringify(normalizedCustomers))
+      })
+      .catch((error) => {
+        console.warn('Morrow backend customer sync failed. Falling back to derived customers.', error)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [authMode, leads])
+  useEffect(() => {
+    if (authMode !== 'supabase') return
+
+    let cancelled = false
+
+    fetchStoredBookings<BookingProfile>()
+      .then((remoteBookings) => {
+        if (cancelled || !remoteBookings) return
+        const normalizedBookings = remoteBookings.map((booking) => normalizeStoredBooking(booking, adminPackages, leads))
+        setStoredBookings(normalizedBookings)
+        localStorage.setItem(adminBookingStorageKey, JSON.stringify(normalizedBookings))
+      })
+      .catch((error) => {
+        console.warn('Morrow backend booking load failed. Falling back to derived bookings.', error)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [adminPackages, authMode, leads])
   const leadIdsForEmailEvents = useMemo(() => leads.map((lead) => lead.id).sort().join('|'), [leads])
   useEffect(() => {
     if (authMode !== 'supabase') {
@@ -4198,8 +4342,11 @@ function AdminPage({
   const selectedLead = selectedLeadId ? leads.find((lead) => lead.id === selectedLeadId) ?? null : null
   const selectedLeadEmailEvents = selectedLead ? emailEvents.filter((event) => event.lead_id === selectedLead.id) : []
   const selectedLeadCommunicationEvents = selectedLead ? communicationEvents.filter((event) => (event.lead_id ?? event.leadId) === selectedLead.id) : []
+  const selectedBookingProfile = selectedBookingId
+    ? storedBookings.find((booking) => booking.id === selectedBookingId || booking.leadId === selectedBookingId) ?? null
+    : null
   const selectedBookingLead = selectedBookingId
-    ? leads.find((lead): lead is GuestLead => lead.type === 'guest' && lead.id === selectedBookingId) ?? null
+    ? leads.find((lead): lead is GuestLead => lead.type === 'guest' && (lead.id === selectedBookingId || lead.id === selectedBookingProfile?.leadId)) ?? null
     : null
   const selectedPackage = selectedPackageId ? adminPackages.find((pkg) => pkg.id === selectedPackageId) ?? null : null
   const selectedExperiencePackage = selectedExperience ? adminPackages.find((pkg) => pkg.id === selectedExperience.packageId) ?? null : null
@@ -4950,7 +5097,22 @@ function AdminPage({
       })
       return map
     }, new Map<string, CustomerProfile>())
-  const customerRows = [...guestCustomerMap.values()]
+  const derivedCustomerRows = [...guestCustomerMap.values()]
+    .map((customer) => ({
+      ...customer,
+      requests: [...customer.requests].sort((a, b) => new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime()),
+    }))
+    .sort((a, b) => {
+      const aDue = a.requests.some((request) => request.followUpAt && request.followUpAt <= todayIso)
+      const bDue = b.requests.some((request) => request.followUpAt && request.followUpAt <= todayIso)
+      const aBooked = a.requests.some((request) => bookingStatusValues.includes(request.status))
+      const bBooked = b.requests.some((request) => bookingStatusValues.includes(request.status))
+      return Number(bDue) - Number(aDue)
+        || Number(bBooked) - Number(aBooked)
+        || new Date(b.requests[0]?.updatedAt ?? b.requests[0]?.createdAt ?? 0).getTime() - new Date(a.requests[0]?.updatedAt ?? a.requests[0]?.createdAt ?? 0).getTime()
+        || a.name.localeCompare(b.name)
+    })
+  const customerRows = (storedCustomers.length > 0 ? storedCustomers : derivedCustomerRows)
     .map((customer) => ({
       ...customer,
       requests: [...customer.requests].sort((a, b) => new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime()),
@@ -4966,7 +5128,7 @@ function AdminPage({
         || a.name.localeCompare(b.name)
     })
   const selectedCustomer = selectedCustomerId ? customerRows.find((customer) => customer.id === selectedCustomerId) ?? null : null
-  const bookingRows: BookingProfile[] = leads
+  const derivedBookingRows: BookingProfile[] = leads
     .filter((lead): lead is GuestLead => lead.type === 'guest' && bookingStatusValues.includes(lead.status))
     .map((lead) => {
       const packageItem = adminPackages.find((pkg) => pkg.slug === lead.packageSlug || pkg.name === lead.packageName)
@@ -4992,6 +5154,9 @@ function AdminPage({
         experienceStatus: lead.experienceStatus,
       }
     })
+    .sort((a, b) => a.selectedDate.localeCompare(b.selectedDate))
+  const bookingRows: BookingProfile[] = (storedBookings.length > 0 ? storedBookings : derivedBookingRows)
+    .map((booking) => normalizeStoredBooking(booking, adminPackages, leads))
     .sort((a, b) => a.selectedDate.localeCompare(b.selectedDate))
   const customerHasBooking = (customer: CustomerProfile) => customer.requests.some((request) => bookingStatusValues.includes(request.status))
   const customerHasDueFollowUp = (customer: CustomerProfile) => customer.requests.some((request) => request.followUpAt && request.followUpAt <= todayIso)

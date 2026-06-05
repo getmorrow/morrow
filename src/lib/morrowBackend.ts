@@ -21,6 +21,7 @@ const emailAutomationEnabled = import.meta.env.VITE_ENABLE_EMAIL_AUTOMATION === 
 const leadsTable = 'leads'
 const supportMessagesTable = 'support_messages'
 const adminTasksTable = 'admin_tasks'
+const customersTable = 'customers'
 const bookingsTable = 'bookings'
 const packagesTable = 'packages'
 const packageDatesTable = 'package_dates'
@@ -31,6 +32,10 @@ const localPlacesTable = 'local_places'
 const experienceProvidersTable = 'experience_providers'
 const experienceBlocksTable = 'experience_blocks'
 const agenciesTable = 'agencies'
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+const isUuid = (value: unknown): value is string => typeof value === 'string' && uuidPattern.test(value)
 
 export async function fetchStoredLeads<T extends StoredEntity>() {
   if (!isSupabaseConfigured || !supabase) return null
@@ -260,15 +265,70 @@ export async function deleteStoredAdminTask(id: string): Promise<BackendSaveResu
   return { ok: true, source: 'supabase' }
 }
 
+export async function fetchStoredCustomers<T extends StoredEntity>() {
+  if (!isSupabaseConfigured || !supabase) return null
+
+  const { data, error } = await supabase
+    .from(customersTable)
+    .select('payload')
+    .order('updated_at', { ascending: false })
+
+  if (error) throw error
+
+  return (data ?? [])
+    .map((row) => row.payload)
+    .filter(Boolean) as T[]
+}
+
+export async function upsertStoredCustomer<T extends StoredEntity>(customer: T): Promise<BackendSaveResult> {
+  if (!isSupabaseConfigured || !supabase) return { ok: true, source: 'local' }
+  if (!isUuid(customer.id)) return { ok: true, source: 'local' }
+  const payload = customer as Record<string, unknown>
+
+  const { error } = await supabase
+    .from(customersTable)
+    .upsert({
+      id: customer.id,
+      primary_lead_id: isUuid(payload.primaryLeadId) ? payload.primaryLeadId : null,
+      name: typeof payload.name === 'string' ? payload.name : 'Gast',
+      email: typeof payload.email === 'string' ? payload.email : null,
+      phone: typeof payload.phone === 'string' ? payload.phone : null,
+      customer_type: typeof payload.customerType === 'string' ? payload.customerType : 'guest',
+      notes: typeof payload.notes === 'string' ? payload.notes : null,
+      payload: customer,
+      updated_at: new Date().toISOString(),
+    })
+
+  if (error) return { ok: false, source: 'supabase', error: error.message }
+  return { ok: true, source: 'supabase' }
+}
+
+export async function fetchStoredBookings<T extends StoredEntity>() {
+  if (!isSupabaseConfigured || !supabase) return null
+
+  const { data, error } = await supabase
+    .from(bookingsTable)
+    .select('payload')
+    .order('updated_at', { ascending: false })
+
+  if (error) throw error
+
+  return (data ?? [])
+    .map((row) => row.payload)
+    .filter(Boolean) as T[]
+}
+
 export async function upsertStoredBooking<T extends StoredEntity>(booking: T): Promise<BackendSaveResult> {
   if (!isSupabaseConfigured || !supabase) return { ok: true, source: 'local' }
+  if (!isUuid(booking.id)) return { ok: true, source: 'local' }
   const payload = booking as Record<string, unknown>
 
   const { error } = await supabase
     .from(bookingsTable)
     .upsert({
       id: booking.id,
-      lead_id: typeof payload.leadId === 'string' ? payload.leadId : null,
+      lead_id: isUuid(payload.leadId) ? payload.leadId : null,
+      customer_id: isUuid(payload.customerId) ? payload.customerId : null,
       package_id: typeof payload.packageId === 'string' ? payload.packageId : null,
       status: typeof payload.status === 'string' ? payload.status : 'Reserviert',
       payment_status: typeof payload.paymentStatus === 'string' ? payload.paymentStatus : 'offen',
