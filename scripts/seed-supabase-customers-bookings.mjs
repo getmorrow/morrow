@@ -68,11 +68,13 @@ for (const lead of leads) {
   }
   const booking = {
     id: lead.id,
+    type: 'guest',
     leadId: lead.id,
     customerId: lead.id,
     packageId: packageItem?.id ?? lead.packageSlug,
     packageSlug: lead.packageSlug,
     packageName: lead.packageName,
+    name: lead.name,
     customerName: lead.name,
     email: lead.email,
     phone: lead.phone,
