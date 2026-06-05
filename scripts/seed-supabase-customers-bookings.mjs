@@ -63,6 +63,7 @@ for (const lead of leads) {
     guestType,
     requests: [lead],
     notes: lead.internalNote,
+    isTest: Boolean(lead.isTest),
     updatedAt: lead.updatedAt,
     createdAt: lead.createdAt,
   }
@@ -90,6 +91,7 @@ for (const lead of leads) {
     checkInStatus: lead.checkInStatus,
     experienceStatus: lead.experienceStatus,
     internalNote: lead.internalNote,
+    isTest: Boolean(lead.isTest),
     updatedAt: lead.updatedAt,
     createdAt: lead.createdAt,
   }

@@ -260,6 +260,7 @@ type GuestLead = {
   experienceStatus?: 'offen' | 'angefragt' | 'bestätigt'
   archivedAt?: string
   updatedAt?: string
+  isTest?: boolean
 }
 
 type OwnerLead = {
@@ -284,6 +285,7 @@ type OwnerLead = {
   followUpAt?: string
   archivedAt?: string
   updatedAt?: string
+  isTest?: boolean
 }
 
 type ExperienceLead = {
@@ -309,6 +311,7 @@ type ExperienceLead = {
   followUpAt?: string
   archivedAt?: string
   updatedAt?: string
+  isTest?: boolean
 }
 
 type StoredLead = GuestLead | OwnerLead | ExperienceLead
@@ -436,6 +439,7 @@ type CustomerProfile = {
   primaryLeadId?: string
   customerType?: 'guest'
   notes?: string
+  isTest?: boolean
 }
 type BookingProfile = {
   id: string
@@ -458,6 +462,7 @@ type BookingProfile = {
   internalNote?: string
   checkInStatus?: GuestLead['checkInStatus']
   experienceStatus?: GuestLead['experienceStatus']
+  isTest?: boolean
 }
 type GuestStayAccessPayload = {
   booking?: unknown
@@ -564,6 +569,7 @@ const customerPayloadFromLead = (lead: GuestLead): CustomerProfile => ({
   guestType: lead.packageSlug === 'family-escape' ? 'Familie' : 'Paar',
   requests: [lead],
   notes: lead.internalNote,
+  isTest: Boolean(lead.isTest),
 })
 
 const bookingPayloadFromLead = (lead: GuestLead, packageItem?: MorrowPackage | null) => ({
@@ -590,6 +596,7 @@ const bookingPayloadFromLead = (lead: GuestLead, packageItem?: MorrowPackage | n
   checkInStatus: lead.checkInStatus,
   experienceStatus: lead.experienceStatus,
   internalNote: lead.internalNote,
+  isTest: Boolean(lead.isTest),
   updatedAt: lead.updatedAt,
   createdAt: lead.createdAt,
 })
@@ -624,6 +631,7 @@ const normalizeStoredCustomer = (customer: CustomerProfile, leads: StoredLead[])
     whatsappOptIn: Boolean(customer.whatsappOptIn),
     guestType: customer.guestType ?? (matchingRequests[0]?.packageSlug === 'family-escape' ? 'Familie' : 'Paar'),
     requests: matchingRequests.length > 0 ? matchingRequests : customer.requests ?? [],
+    isTest: Boolean(customer.isTest || matchingRequests.some((request) => request.isTest)),
   }
 }
 
@@ -664,6 +672,7 @@ const normalizeStoredBooking = (
     internalNote: booking.internalNote ?? linkedLead?.internalNote,
     checkInStatus: booking.checkInStatus ?? linkedLead?.checkInStatus,
     experienceStatus: booking.experienceStatus ?? linkedLead?.experienceStatus,
+    isTest: Boolean(booking.isTest || linkedLead?.isTest),
   }
 }
 
@@ -4395,6 +4404,7 @@ function AdminPage({
     }
   }, [authMode, leadIdsForEmailEvents])
   const activeLeads = leads.filter((lead) => !lead.archivedAt)
+  const realActiveLeads = activeLeads.filter((lead) => !lead.isTest)
   const archivedLeads = leads.filter((lead) => lead.archivedAt)
   const selectedLead = selectedLeadId ? leads.find((lead) => lead.id === selectedLeadId) ?? null : null
   const selectedLeadEmailEvents = selectedLead ? emailEvents.filter((event) => event.lead_id === selectedLead.id) : []
@@ -4452,9 +4462,9 @@ function AdminPage({
       return lead.status === 'In Prüfung'
     })
     .sort((a, b) => Number(isLeadDue(b)) - Number(isLeadDue(a)) || new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime())
-  const guestLeads = activeLeads.filter((lead) => lead.type === 'guest')
-  const ownerLeads = activeLeads.filter((lead) => lead.type === 'owner')
-  const experienceProviderLeads = activeLeads.filter((lead) => lead.type === 'experience')
+  const guestLeads = realActiveLeads.filter((lead) => lead.type === 'guest')
+  const ownerLeads = realActiveLeads.filter((lead) => lead.type === 'owner')
+  const experienceProviderLeads = realActiveLeads.filter((lead) => lead.type === 'experience')
   const leadLabel = (lead: StoredLead) => {
     if (lead.type === 'guest') return lead.packageName
     if (lead.type === 'owner') return `${lead.propertyLocation} · ${lead.propertyType}`
@@ -5052,8 +5062,8 @@ function AdminPage({
     stayName: pkg.stay.name,
     dates: pkg.dates,
   }))
-  const reviewCount = activeLeads.filter((lead) => lead.status === 'In Prüfung').length
-  const dueFollowUps = activeLeads
+  const reviewCount = realActiveLeads.filter((lead) => lead.status === 'In Prüfung').length
+  const dueFollowUps = realActiveLeads
     .filter((lead) => lead.followUpAt && lead.followUpAt <= todayIso)
     .sort((a, b) => (a.followUpAt ?? '').localeCompare(b.followUpAt ?? ''))
   const activeAdminTasks = adminTasks.filter((task) => task.status !== 'done')
@@ -5078,7 +5088,7 @@ function AdminPage({
     { value: 'experienceProvider', label: 'Erlebnisanbieter' },
   ]
   const taskReferenceOptions: TaskReferenceOption[] = [
-    ...activeLeads.map((lead) => ({
+    ...realActiveLeads.map((lead) => ({
       value: `lead:${lead.id}`,
       type: 'lead' as AdminTaskReferenceType,
       id: lead.id,
@@ -5133,7 +5143,7 @@ function AdminPage({
     })
     .filter((task) => taskPriorityFilter === 'all' || task.priority === taskPriorityFilter)
     .sort((a, b) => Number(a.status === 'done') - Number(b.status === 'done') || a.dueAt.localeCompare(b.dueAt))
-  const newLeads = activeLeads
+  const newLeads = realActiveLeads
     .filter((lead) => lead.status === 'Neu')
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   const bookingStatusValues: LeadStatus[] = ['Reserviert', 'Bezahlt', 'Vor Anreise', 'Aktiv', 'Abgeschlossen', 'Storniert']
@@ -5215,6 +5225,8 @@ function AdminPage({
   const bookingRows: BookingProfile[] = (storedBookings.length > 0 ? storedBookings : derivedBookingRows)
     .map((booking) => normalizeStoredBooking(booking, adminPackages, leads))
     .sort((a, b) => a.selectedDate.localeCompare(b.selectedDate))
+  const realCustomerRows = customerRows.filter((customer) => !customer.isTest)
+  const realBookingRows = bookingRows.filter((booking) => !booking.isTest)
   const customerHasBooking = (customer: CustomerProfile) => customer.requests.some((request) => bookingStatusValues.includes(request.status))
   const customerHasDueFollowUp = (customer: CustomerProfile) => customer.requests.some((request) => request.followUpAt && request.followUpAt <= todayIso)
   const customerLatestRequest = (customer: CustomerProfile) => customer.requests[0]
@@ -5303,9 +5315,9 @@ function AdminPage({
     if (label === 'Offen') return 'is-open'
     return 'is-ready'
   }
-  const bookingsWithOpenOps = bookingRows.filter((booking) => bookingOpenItems(booking).length > 0)
-  const bookingsWithGuestPrepOpen = bookingRows.filter((booking) => bookingMissingGuestPreparationItems(booking).length > 0)
-  const bookingsDueToday = bookingRows.filter((booking) => booking.followUpAt && booking.followUpAt <= todayIso)
+  const bookingsWithOpenOps = realBookingRows.filter((booking) => bookingOpenItems(booking).length > 0)
+  const bookingsWithGuestPrepOpen = realBookingRows.filter((booking) => bookingMissingGuestPreparationItems(booking).length > 0)
+  const bookingsDueToday = realBookingRows.filter((booking) => booking.followUpAt && booking.followUpAt <= todayIso)
   const countByValue = <T extends string>(items: T[]) => items.reduce((map, item) => {
     map.set(item, (map.get(item) ?? 0) + 1)
     return map
@@ -5314,11 +5326,11 @@ function AdminPage({
     const topEntry = [...entries.entries()].sort((a, b) => b[1] - a[1])[0]
     return topEntry ? `${topEntry[0]} · ${topEntry[1]}` : fallback
   }
-  const leadSourceCounts = countByValue(leads.map((lead) => lead.source ?? 'Direkt'))
-  const lostLeadReasonCounts = countByValue(leads
+  const leadSourceCounts = countByValue(realActiveLeads.map((lead) => lead.source ?? 'Direkt'))
+  const lostLeadReasonCounts = countByValue(realActiveLeads
     .filter((lead) => ['Kein Interesse', 'Storniert'].includes(lead.status))
     .map((lead) => lead.lossReason ?? 'Nicht gepflegt'))
-  const bookedGuestLeads = bookingRows.filter((booking) => booking.status !== 'Storniert').length
+  const bookedGuestLeads = realBookingRows.filter((booking) => booking.status !== 'Storniert').length
   const taskTimingLabel = (task: AdminTask) => {
     if (task.status === 'done') return 'erledigt'
     if (!task.dueAt) return 'ohne Datum'
@@ -5591,7 +5603,7 @@ function AdminPage({
       {items.map((lead) => (
         <article key={lead.id} className={`lead-row${isLeadDue(lead) ? ' is-due' : ''}`}>
           <div>
-            <strong>{lead.name}</strong>
+            <strong>{lead.name}{lead.isTest ? ' · TEST' : ''}</strong>
             <span>{formatLeadDate(lead.createdAt)}</span>
             <span className="admin-contact-links">
               <a href={`mailto:${lead.email}`}>{lead.email}</a>
@@ -5920,8 +5932,8 @@ function AdminPage({
                 </button>
                 <button type="button" onClick={() => setActiveSection('customers')}>
                   <span>Kunden</span>
-                  <strong>{customerRows.length}</strong>
-                  <small>{bookingRows.length} Buchungen</small>
+                  <strong>{realCustomerRows.length}</strong>
+                  <small>{realBookingRows.length} Buchungen</small>
                 </button>
               </section>
             </section>
@@ -5931,8 +5943,8 @@ function AdminPage({
     </>
   )
   const renderLeads = () => {
-    const partnerLeads = activeLeads.filter((lead) => lead.type === 'owner' || lead.type === 'experience')
-    const requestReviewLeads = activeLeads.filter((lead) => lead.status === 'In Prüfung')
+    const partnerLeads = realActiveLeads.filter((lead) => lead.type === 'owner' || lead.type === 'experience')
+    const requestReviewLeads = realActiveLeads.filter((lead) => lead.status === 'In Prüfung')
 
     return (
       <section className="admin-leads-layout">
@@ -6330,13 +6342,13 @@ function AdminPage({
     </article>
   )
   const renderCustomers = () => {
-    const dueCustomers = customerRows.filter(customerHasDueFollowUp)
-    const bookedCustomers = customerRows.filter(customerHasBooking)
-    const requestCustomers = customerRows.filter((customer) => !customerHasBooking(customer))
+    const dueCustomers = realCustomerRows.filter(customerHasDueFollowUp)
+    const bookedCustomers = realCustomerRows.filter(customerHasBooking)
+    const requestCustomers = realCustomerRows.filter((customer) => !customerHasBooking(customer))
     return (
       <section className="admin-leads-layout">
         <section className="admin-command-strip admin-package-metrics" aria-label="Kunden Kennzahlen">
-          <article><span>{customerRows.length}</span><p>Kunden</p></article>
+          <article><span>{realCustomerRows.length}</span><p>Kunden</p></article>
           <article><span>{requestCustomers.length}</span><p>Anfragephase</p></article>
           <article><span>{bookedCustomers.length}</span><p>Mit Buchung</p></article>
           <article><span>{dueCustomers.length}</span><p>Heute handeln</p></article>
@@ -6397,7 +6409,7 @@ function AdminPage({
                 <article key={customer.id} className="admin-provider-card admin-customer-card">
                   <header>
                     <div>
-                      <span className="admin-package-kicker">{customer.guestType} · {customer.requests.length} Anfrage{customer.requests.length === 1 ? '' : 'n'}</span>
+                      <span className="admin-package-kicker">{customer.guestType} · {customer.requests.length} Anfrage{customer.requests.length === 1 ? '' : 'n'}{customer.isTest ? ' · TEST' : ''}</span>
                       <h3>{customer.name}</h3>
                     </div>
                     <span className="status-pill">{customerLifecycleLabel(customer)}</span>
@@ -6647,13 +6659,13 @@ function AdminPage({
     </article>
   )
   const renderBookings = () => {
-    const criticalBookings = bookingRows.filter((booking) => ['Support', 'Heute'].includes(bookingUrgencyLabel(booking)))
-    const prepBookings = bookingRows.filter((booking) => (
+    const criticalBookings = realBookingRows.filter((booking) => ['Support', 'Heute'].includes(bookingUrgencyLabel(booking)))
+    const prepBookings = realBookingRows.filter((booking) => (
       !criticalBookings.some((critical) => critical.id === booking.id)
       && bookingOpenItems(booking).length > 0
       && !['Abgeschlossen', 'Storniert'].includes(booking.status)
     ))
-    const readyBookings = bookingRows.filter((booking) => (
+    const readyBookings = realBookingRows.filter((booking) => (
       bookingOpenItems(booking).length === 0
       && !activeAdminTasks.some((task) => task.referenceType === 'booking' && task.referenceId === booking.id && isGuestSupportTask(task))
       && !['Storniert'].includes(booking.status)
@@ -6664,19 +6676,19 @@ function AdminPage({
         <section className="admin-booking-ops-strip is-primary" aria-label="Buchungen operative Signale">
           <article>
             <span>Buchungen</span>
-            <strong>{bookingRows.length}</strong>
+            <strong>{realBookingRows.length}</strong>
           </article>
           <article>
             <span>Zahlung offen</span>
-            <strong>{bookingRows.filter((booking) => booking.paymentStatus === 'Offen').length}</strong>
+            <strong>{realBookingRows.filter((booking) => booking.paymentStatus === 'Offen').length}</strong>
           </article>
           <article>
             <span>Check-in klären</span>
-            <strong>{bookingRows.filter((booking) => (booking.checkInStatus ?? 'offen') !== 'freigegeben' && !['Abgeschlossen', 'Storniert'].includes(booking.status)).length}</strong>
+            <strong>{realBookingRows.filter((booking) => (booking.checkInStatus ?? 'offen') !== 'freigegeben' && !['Abgeschlossen', 'Storniert'].includes(booking.status)).length}</strong>
           </article>
           <article>
             <span>Erlebnis klären</span>
-            <strong>{bookingRows.filter((booking) => (booking.experienceStatus ?? 'offen') !== 'bestätigt' && !['Abgeschlossen', 'Storniert'].includes(booking.status)).length}</strong>
+            <strong>{realBookingRows.filter((booking) => (booking.experienceStatus ?? 'offen') !== 'bestätigt' && !['Abgeschlossen', 'Storniert'].includes(booking.status)).length}</strong>
           </article>
           <article>
             <span>Heute fällig</span>
@@ -6746,7 +6758,7 @@ function AdminPage({
             <article key={booking.id} className={`admin-provider-card admin-booking-card ${bookingUrgencyClass(booking)}`}>
               <header>
                 <div>
-                  <span className="admin-package-kicker">{booking.packageName} · {booking.selectedDate}</span>
+                  <span className="admin-package-kicker">{booking.packageName} · {booking.selectedDate}{booking.isTest ? ' · TEST' : ''}</span>
                   <h3>{booking.customerName}</h3>
                 </div>
                 <div className="admin-booking-card-status">
