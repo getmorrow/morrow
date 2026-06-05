@@ -180,10 +180,11 @@ Ratgeber-Startartikel:
 
 Dieses Repo nutzt fuer den Prototyp:
 - React/Vite
-- lokale Lead-Speicherung via `localStorage`
+- Supabase fuer Leads, Admin Auth, E-Mail-Automation, Aufgaben, Auszeiten, Buchungsanlage und Gaestebereich-Zugriff
+- `localStorage` nur noch als Demo-/Fallback-Schicht; siehe `docs/SUPABASE_STORAGE_AUDIT_2026-06-05.md`
 - Plattform-Start unter `/`
 - Paketdetail-/Ads-Landingpages unter `/pakete/family-escape` und `/pakete/couple-reset`
-- Admin-MVP ueber `/?admin=1`
+- Admin-CRM unter `/admin`
 
 Wichtig: Paketdetailseiten sind zugleich Proof-of-Demand-Funnels. Sie ersetzen nicht die Morrow-Startseite.
 

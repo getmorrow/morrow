@@ -185,6 +185,41 @@ Screenshot:
 Naechster Schritt:
 - E-Mail-Automation bauen, damit nach Anfrage/Buchung automatisch Bestätigung und spaeter Gaestebereich-Link versendet werden koennen.
 
+## Supabase Storage Audit - 2026-06-05
+
+Aktueller Stand:
+- Leads, Admin Auth, E-Mail-Events, Kommunikationshistorie, Aufgaben, Auszeiten, Termine, Unterkuenfte aus Auszeiten, Buchungsanlage und Gaestebereich-Zugriff sind Supabase-angebunden.
+- Browser-Speicherung existiert noch als Demo-/Fallback-Schicht.
+- Kritische Admin-Module sind noch nicht Supabase-first: Vor-Ort-Orte und Veranstaltungen, Erlebnisanbieter, Agenturen, freie Eigentuemer-/Objektprofile, Kunden als eigene Datensaetze und Buchungen als vollwertige Admin-Quelle.
+
+Wichtige Regel:
+- Alles, was im Admin kuratiert oder freigegeben wird, muss kuenftig in Supabase landen. `localStorage` ist nur fuer lokale Demo oder technische Fallbacks erlaubt.
+
+Prioritaet:
+1. `local_places` produktionsnah anbinden, weil die Vor-Ort-Seite fuer den Gaestebereich ein Kernmehrwert ist.
+2. `experience_providers` und `experience_blocks` anbinden.
+3. Agenturen und Eigentuemerobjekte sauber trennen.
+4. Kunden und Buchungen als echte CRM-Daten aus Supabase lesen.
+
+Detailaudit:
+- `docs/SUPABASE_STORAGE_AUDIT_2026-06-05.md`
+
+## Local Places Sync V1 - 2026-06-05
+
+Umgesetzt im Code:
+- Admin-Vor-Ort-Orte koennen aus `local_places` geladen werden.
+- Bearbeiten, Freigeben, Pausieren, Ablehnen, Importieren und Loeschen synchronisiert nach Supabase, sobald Admin Auth aktiv ist.
+- Der Gaestebereich kann freigegebene Orte aus Supabase laden.
+- Statische/lokale Orte bleiben nur als Fallback fuer lokale Demo und Uebergang.
+- Seed-Skript `npm run supabase:seed-local-places` schreibt die aktuellen kuratierten Orte in `local_places`.
+
+Migration erforderlich:
+- `supabase/migrations/202606050001_local_places_public_read.sql` ausfuehren, damit Gaeste nur freigegebene Orte lesen duerfen.
+
+Naechster Schritt:
+- Nach Migration und Seed auf Live pruefen, ob Vor-Ort-Filter, Karte, Drawer und Veranstaltungen aus Supabase kommen.
+- Danach Erlebnisanbieter und Erlebnisbausteine nach Supabase migrieren.
+
 ## Email Automation V1
 
 Umgesetzt:

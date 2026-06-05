@@ -26,12 +26,15 @@ import {
   createStoredSupportMessage,
   deleteStoredAdminTask,
   deleteStoredLead,
+  deleteStoredLocalPlace,
   deleteStoredPackage,
   fetchStoredAdminTasks,
+  fetchStoredApprovedLocalPlaces,
   fetchAdminProfile,
   fetchStoredCommunicationEvents,
   fetchStoredEmailEvents,
   fetchStoredLeads,
+  fetchStoredLocalPlaces,
   fetchStoredPackages,
   fetchGuestStayByAccess,
   sendLeadNotification,
@@ -39,6 +42,7 @@ import {
   upsertStoredAdminTask,
   upsertStoredBooking,
   upsertStoredLead,
+  upsertStoredLocalPlace,
   upsertStoredPackage,
 } from './lib/morrowBackend'
 import { isSupabaseConfigured, supabase, type SupabaseSession } from './lib/supabase'
@@ -55,6 +59,7 @@ import {
   localExperienceSettingLabels,
   localFoodPriceLevelLabels,
   localPlaceCategoryLabels,
+  normalizeLocalPlaceCandidate,
 } from './data/localPlaces'
 import type { LocalPlace, LocalPlaceCandidate, LocalPlaceCategory, LocalPlaceStatus } from './data/localPlaces'
 
@@ -3984,6 +3989,26 @@ function AdminPage({
     }
   })
   useEffect(() => {
+    if (authMode !== 'supabase') return
+
+    let cancelled = false
+
+    fetchStoredLocalPlaces<LocalPlaceCandidate>()
+      .then((remotePlaces) => {
+        if (cancelled || !remotePlaces || remotePlaces.length === 0) return
+        const normalizedPlaces = remotePlaces.map((place) => normalizeLocalPlaceCandidate(place))
+        setAdminLocalPlaces(normalizedPlaces)
+        localStorage.setItem(adminLocalPlaceStorageKey, JSON.stringify(normalizedPlaces))
+      })
+      .catch((error) => {
+        console.warn('Morrow backend local place sync failed. Falling back to local places.', error)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [authMode])
+  useEffect(() => {
     let ignore = false
 
     fetch('/data/spo-events.json')
@@ -4291,8 +4316,21 @@ function AdminPage({
     setAdminLocalPlaces(nextPlaces)
     localStorage.setItem(adminLocalPlaceStorageKey, JSON.stringify(nextPlaces))
   }
+  const syncAdminLocalPlace = (place: LocalPlaceCandidate) => {
+    if (authMode !== 'supabase') return
+    void upsertStoredLocalPlace(place).catch((error) => {
+      console.warn('Morrow backend local place save failed. Local state was updated.', error)
+    })
+  }
   const updateLocalPlaceCandidate = (id: string, updates: Partial<LocalPlaceCandidate>) => {
-    saveAdminLocalPlaces(adminLocalPlaces.map((place) => place.id === id ? { ...place, ...updates } : place))
+    let changedPlace: LocalPlaceCandidate | null = null
+    const nextPlaces = adminLocalPlaces.map((place) => {
+      if (place.id !== id) return place
+      changedPlace = normalizeLocalPlaceCandidate({ ...place, ...updates }, place)
+      return changedPlace
+    })
+    saveAdminLocalPlaces(nextPlaces)
+    if (changedPlace) syncAdminLocalPlace(changedPlace)
   }
   const importRawSpoEvent = (event: RawSpoEventCandidate) => {
     const eventDate = event.date ? event.date.slice(0, 10) : undefined
@@ -4333,6 +4371,7 @@ function AdminPage({
     }
 
     saveAdminLocalPlaces([nextPlace, ...adminLocalPlaces])
+    syncAdminLocalPlace(nextPlace)
     setLocalPlaceCategoryFilter('event')
     setLocalPlaceStatusFilter('candidate')
     setSelectedLocalPlaceCandidateId(id)
@@ -4356,6 +4395,7 @@ function AdminPage({
     }
 
     saveAdminLocalPlaces([nextPlace, ...adminLocalPlaces])
+    syncAdminLocalPlace(nextPlace)
     setSelectedLocalPlaceCandidateId(id)
   }
   const toggleLocalPlaceCandidatePaused = (id: string) => {
@@ -4369,6 +4409,11 @@ function AdminPage({
     const confirmed = window.confirm('Diesen Vor-Ort-Kandidaten wirklich entfernen? Für kuratierte, aber aktuell nicht passende Orte ist „Nicht passend“ meist besser.')
     if (!confirmed) return
     saveAdminLocalPlaces(adminLocalPlaces.filter((item) => item.id !== id))
+    if (authMode === 'supabase') {
+      void deleteStoredLocalPlace(id).catch((error) => {
+        console.warn('Morrow backend local place delete failed. Local state was updated.', error)
+      })
+    }
     setSelectedLocalPlaceCandidateId(null)
   }
   const saveOwnerProperties = (nextProperties: OwnerPropertyProfile[]) => {
@@ -7316,6 +7361,7 @@ function GuestStayPage({
   const [compactGuestNav, setCompactGuestNav] = useState(false)
   const [remoteLead, setRemoteLead] = useState<GuestLead | null>(null)
   const [remotePackage, setRemotePackage] = useState<MorrowPackage | null>(null)
+  const [remoteLocalPlaces, setRemoteLocalPlaces] = useState<LocalPlaceCandidate[] | null>(null)
   const [remoteAccessChecked, setRemoteAccessChecked] = useState(Boolean(lead))
   const liveLocalData = useLiveLocalData()
   const localDrawerRef = useRef<HTMLElement | null>(null)
@@ -7348,6 +7394,29 @@ function GuestStayPage({
     }
   }, [accessCode, lead])
 
+  useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setRemoteLocalPlaces(null)
+      return
+    }
+
+    let cancelled = false
+
+    fetchStoredApprovedLocalPlaces<LocalPlaceCandidate>()
+      .then((places) => {
+        if (cancelled) return
+        setRemoteLocalPlaces((places ?? []).map((place) => normalizeLocalPlaceCandidate(place)))
+      })
+      .catch((error) => {
+        console.warn('Morrow guest local places sync failed. Falling back to local curated places.', error)
+        if (!cancelled) setRemoteLocalPlaces(null)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const activeLead = lead ?? remoteLead
   const packageItem = activeLead ? remotePackage ?? packages.find((pkg) => pkg.slug === activeLead.packageSlug) ?? null : null
   const propertySupportType = packageItem?.stay.propertySupportType ?? 'morrow'
@@ -7361,7 +7430,7 @@ function GuestStayPage({
   const firstName = activeLead?.name.split(' ')[0] ?? ''
   const isFamily = packageItem?.audience === 'families'
   const countdownLabel = activeLead ? guestStayCountdownLabel(activeLead.selectedDate) : null
-  const guestLocalPlaces = getGuestLocalPlaces(packageItem)
+  const guestLocalPlaces = getGuestLocalPlaces(packageItem, remoteLocalPlaces ?? undefined)
     .filter((place) => !activeLead || localEventOverlapsStay(place, activeLead.selectedDate))
     .filter((place) => localEventFitsPackage(place, packageItem))
   const localFilterOrder: LocalPlaceCategory[] = ['all', 'weather', 'tide', 'beach', 'food', 'experience', 'event', 'shopping', 'emergency']

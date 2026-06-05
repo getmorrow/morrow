@@ -590,7 +590,7 @@ Diese Punkte muessen wir gemeinsam klaeren, bevor die Plattform final gebaut wir
 - [x] Admin V1 mit Leads, Status und Paketliste technisch umgesetzt
 - [x] Admin-Funktionsroadmap fuer Bearbeiten, Deaktivieren, Archivieren und Loeschen dokumentiert
 - [x] Paketdaten als Seed-Daten und austauschbare Datenquelle vorbereitet
-- [ ] Supabase statt `localStorage`
+- [ ] Supabase statt `localStorage` vollständig: Leads/Auth/E-Mail/Aufgaben/Auszeiten sind angebunden; Vor-Ort-Daten, Erlebnisanbieter, Agenturen, freie Objektprofile, Kunden und Buchungen als Admin-Quelle sind noch offen.
 - [ ] echte E-Mail-Automation
 - [ ] vollstaendige Admin-Paketverwaltung statt Seed-Datenpflege im Code
 - [ ] Partner-/Anbieter-Datenbank produktionsnah

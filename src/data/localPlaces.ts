@@ -219,7 +219,7 @@ function enumValue<Value extends string>(value: unknown, allowedValues: readonly
   return allowedValues.includes(value as Value) ? value as Value : fallback
 }
 
-function normalizeLocalPlaceCandidate(rawPlace: Partial<LocalPlaceCandidate>, fallback?: LocalPlaceCandidate): LocalPlaceCandidate {
+export function normalizeLocalPlaceCandidate(rawPlace: Partial<LocalPlaceCandidate>, fallback?: LocalPlaceCandidate): LocalPlaceCandidate {
   const category = enumValue(rawPlace.category, localPlaceCategoryValues, fallback?.category) ?? 'food'
   const status = enumValue(rawPlace.status, localPlaceStatusValues, fallback?.status) ?? 'candidate'
 
@@ -954,8 +954,8 @@ export function getStoredLocalPlaceCandidates() {
   }
 }
 
-function approvedCandidatesForGuestApp() {
-  return getStoredLocalPlaceCandidates().filter((place) => place.status === 'approved' && place.lat && place.lng) as Array<LocalPlaceCandidate & { lat: number; lng: number }>
+function approvedCandidatesForGuestApp(candidates = getStoredLocalPlaceCandidates()) {
+  return candidates.filter((place) => place.status === 'approved' && place.lat && place.lng) as Array<LocalPlaceCandidate & { lat: number; lng: number }>
 }
 
 function guestPlaceMeta(place: LocalPlaceCandidate) {
@@ -1053,7 +1053,7 @@ function packageExperienceRouteNote(experience: ExperienceItem) {
   return 'Dieser Hinweis ist kuratiert und wird nur aufgenommen, wenn er wirklich zum Aufenthalt passt.'
 }
 
-export function getGuestLocalPlaces(packageItem: MorrowPackage | null): LocalPlace[] {
+export function getGuestLocalPlaces(packageItem: MorrowPackage | null, curatedCandidates?: LocalPlaceCandidate[]): LocalPlace[] {
   const basePlaces: LocalPlace[] = [
     {
       id: 'stay',
@@ -1110,7 +1110,7 @@ export function getGuestLocalPlaces(packageItem: MorrowPackage | null): LocalPla
   return [
     ...basePlaces,
     ...packageExperiencePlaces,
-    ...approvedCandidatesForGuestApp()
+    ...approvedCandidatesForGuestApp(curatedCandidates)
       .filter((place) => localPlaceFitsPackage(place, packageItem))
       .map((place) => ({
       id: place.id,

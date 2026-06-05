@@ -1,4 +1,5 @@
 import { isSupabaseConfigured, supabase } from './supabase'
+import type { LocalPlaceCandidate } from '../data/localPlaces'
 
 type StoredEntity = { id: string }
 
@@ -26,6 +27,7 @@ const packageDatesTable = 'package_dates'
 const propertiesTable = 'properties'
 const emailEventsTable = 'email_events'
 const communicationEventsTable = 'communication_events'
+const localPlacesTable = 'local_places'
 
 export async function fetchStoredLeads<T extends StoredEntity>() {
   if (!isSupabaseConfigured || !supabase) return null
@@ -370,6 +372,82 @@ export async function deleteStoredPackage(id: string): Promise<BackendSaveResult
 
   const { error } = await supabase
     .from(packagesTable)
+    .delete()
+    .eq('id', id)
+
+  if (error) return { ok: false, source: 'supabase', error: error.message }
+  return { ok: true, source: 'supabase' }
+}
+
+export async function fetchStoredLocalPlaces<T extends StoredEntity>() {
+  if (!isSupabaseConfigured || !supabase) return null
+
+  const { data, error } = await supabase
+    .from(localPlacesTable)
+    .select('payload')
+    .order('updated_at', { ascending: false })
+
+  if (error) throw error
+
+  return (data ?? [])
+    .map((row) => row.payload)
+    .filter(Boolean) as T[]
+}
+
+export async function fetchStoredApprovedLocalPlaces<T extends StoredEntity>() {
+  if (!isSupabaseConfigured || !supabase) return null
+
+  const { data, error } = await supabase
+    .from(localPlacesTable)
+    .select('payload')
+    .eq('status', 'approved')
+    .order('name', { ascending: true })
+
+  if (error) throw error
+
+  return (data ?? [])
+    .map((row) => row.payload)
+    .filter(Boolean) as T[]
+}
+
+export async function upsertStoredLocalPlace(place: LocalPlaceCandidate): Promise<BackendSaveResult> {
+  if (!isSupabaseConfigured || !supabase) return { ok: true, source: 'local' }
+
+  const { error } = await supabase
+    .from(localPlacesTable)
+    .upsert({
+      id: place.id,
+      name: place.title,
+      category: place.category,
+      status: place.status,
+      lat: typeof place.lat === 'number' ? place.lat : null,
+      lng: typeof place.lng === 'number' ? place.lng : null,
+      address: place.address ?? null,
+      website: place.websiteUrl ?? null,
+      reservation_url: place.reservationUrl ?? null,
+      menu_url: place.menuUrl ?? null,
+      rating: typeof place.ratingValue === 'number' ? place.ratingValue : null,
+      opening_hours: place.openingHours
+        ? {
+          label: place.openingHours,
+          source: place.openingHoursSource ?? null,
+          checked_at: place.openingHoursCheckedAt ?? null,
+        }
+        : null,
+      package_fit: place.packageFit ?? [],
+      payload: place,
+      updated_at: new Date().toISOString(),
+    })
+
+  if (error) return { ok: false, source: 'supabase', error: error.message }
+  return { ok: true, source: 'supabase' }
+}
+
+export async function deleteStoredLocalPlace(id: string): Promise<BackendSaveResult> {
+  if (!isSupabaseConfigured || !supabase) return { ok: true, source: 'local' }
+
+  const { error } = await supabase
+    .from(localPlacesTable)
     .delete()
     .eq('id', id)
 
