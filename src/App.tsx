@@ -9391,56 +9391,140 @@ function PackageDetailDrawer({
   onUpdatePackage: (id: string, updater: (pkg: MorrowPackage) => MorrowPackage) => void
 }) {
   const [draft, setDraft] = useState({
+    slug: '',
     name: '',
+    audience: 'families' as MorrowPackage['audience'],
+    formType: 'family' as MorrowPackage['formType'],
+    location: '',
     status: 'draft' as PackageStatus,
+    headline: '',
+    subline: '',
     shortPromise: '',
+    story: '',
+    cta: '',
+    priceFrom: '',
     concretePrice: '',
     priceNote: '',
     dates: '',
+    maxGuests: '',
+    fixedGuests: '',
     propertyId: '',
     stayName: '',
+    stayDescription: '',
     stayLocationNote: '',
+    stayFeatures: '',
+    imageRightsConfirmed: false,
     sleeps: '',
     bedrooms: '',
     bathrooms: '',
+    earliestArrival: '',
     latestArrival: '',
     checkOutTime: '',
     checkInType: 'unknown' as Stay['checkInType'],
     propertySupportType: 'morrow' as Stay['propertySupportType'],
     propertySupportName: '',
     dogOptional: false,
+    heroImage: '',
+    images: '',
+    planImage: '',
+    experienceImage: '',
+    stayImages: '',
     included: '',
+    forWhom: '',
+    experienceDirections: '',
   })
   const [experienceDrafts, setExperienceDrafts] = useState<MorrowPackage['experienceItems']>([])
+  const [momentDrafts, setMomentDrafts] = useState<MorrowPackage['moments']>([])
+  const [recommendationDrafts, setRecommendationDrafts] = useState<MorrowPackage['recommendations']>([])
+  const [faqDrafts, setFaqDrafts] = useState<MorrowPackage['faqs']>([])
 
   useEffect(() => {
     if (!item) return
     setDraft({
+      slug: item.slug,
       name: item.name,
+      audience: item.audience,
+      formType: item.formType,
+      location: item.location,
       status: item.status,
+      headline: item.headline,
+      subline: item.subline,
       shortPromise: item.shortPromise,
+      story: item.story,
+      cta: item.cta,
+      priceFrom: item.priceFrom,
       concretePrice: item.concretePrice,
       priceNote: item.priceNote,
       dates: item.dates.join('\n'),
+      maxGuests: item.maxGuests ? String(item.maxGuests) : '',
+      fixedGuests: item.fixedGuests ? String(item.fixedGuests) : '',
       propertyId: item.propertyId,
       stayName: item.stay.name,
+      stayDescription: item.stay.description,
       stayLocationNote: item.stay.locationNote,
+      stayFeatures: item.stay.features.join('\n'),
+      imageRightsConfirmed: item.stay.imageRightsConfirmed,
       sleeps: String(item.stay.sleeps),
       bedrooms: String(item.stay.bedrooms),
       bathrooms: String(item.stay.bathrooms),
+      earliestArrival: item.stay.earliestArrival,
       latestArrival: item.stay.latestArrival,
       checkOutTime: item.stay.checkOutTime,
       checkInType: item.stay.checkInType,
       propertySupportType: item.stay.propertySupportType ?? 'morrow',
       propertySupportName: item.stay.propertySupportName ?? '',
       dogOptional: item.dogOptional,
+      heroImage: item.heroImage,
+      images: item.images.join('\n'),
+      planImage: item.planImage,
+      experienceImage: item.experienceImage,
+      stayImages: item.stayImages.join('\n'),
       included: item.included.join('\n'),
+      forWhom: item.forWhom.join('\n'),
+      experienceDirections: item.experienceDirections.join('\n'),
     })
     setExperienceDrafts(item.experienceItems)
+    setMomentDrafts(item.moments)
+    setRecommendationDrafts(item.recommendations)
+    setFaqDrafts(item.faqs)
   }, [item])
 
   if (!item) return null
 
+  const splitLines = (value: string) => value.split('\n').map((line) => line.trim()).filter(Boolean)
+  const normalizeSlug = (value: string, fallback: string) => {
+    const normalized = value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+    return normalized || fallback
+  }
+  const packageIssues = () => {
+    const issues: string[] = []
+    if (!draft.name.trim()) issues.push('Name fehlt')
+    if (!draft.slug.trim()) issues.push('URL-Slug fehlt')
+    if (!draft.headline.trim()) issues.push('Headline fehlt')
+    if (!draft.subline.trim()) issues.push('Hero-Text fehlt')
+    if (!draft.shortPromise.trim()) issues.push('Kurzversprechen fehlt')
+    if (!draft.cta.trim()) issues.push('CTA fehlt')
+    if (!draft.concretePrice.trim() || !draft.priceFrom.trim()) issues.push('Preislogik fehlt')
+    if (splitLines(draft.dates).length === 0) issues.push('Termine fehlen')
+    if (!draft.propertyId.trim()) issues.push('Unterkunft nicht verbunden')
+    if (!draft.stayName.trim() || !draft.stayDescription.trim()) issues.push('Unterkunft unvollständig')
+    if (!draft.checkInType || draft.checkInType === 'unknown') issues.push('Schlüsselinfo fehlt')
+    if (!draft.imageRightsConfirmed) issues.push('Bildrechte offen')
+    if (!draft.heroImage.trim()) issues.push('Hero-Bild fehlt')
+    if (splitLines(draft.images).length < 2) issues.push('Galerie braucht Bilder')
+    if (splitLines(draft.included).length < 3) issues.push('Leistungen ergänzen')
+    if (splitLines(draft.forWhom).length < 2) issues.push('Zielgruppe schärfen')
+    if (experienceDrafts.filter((experience) => experience.role === 'included').length === 0) issues.push('Enthaltenes Erlebnis fehlt')
+    if (experienceDrafts.some((experience) => experience.role === 'included' && experience.confirmationStatus !== 'confirmed')) issues.push('Enthaltenes Erlebnis offen')
+    if (recommendationDrafts.length === 0) issues.push('Empfehlungen fehlen')
+    if (faqDrafts.length < 2) issues.push('FAQs ergänzen')
+    return issues
+  }
   const updateDraft = (key: keyof typeof draft, value: string | boolean) => {
     setDraft((current) => ({ ...current, [key]: value }))
   }
@@ -9469,6 +9553,39 @@ function PackageDetailDrawer({
   const removeExperienceDraft = (id: string) => {
     setExperienceDrafts((current) => current.filter((experience) => experience.id !== id))
   }
+  const updateMomentDraft = (index: number, key: keyof MorrowPackage['moments'][number], value: string) => {
+    setMomentDrafts((current) => current.map((moment, momentIndex) => (
+      momentIndex === index ? { ...moment, [key]: value } : moment
+    )))
+  }
+  const addMomentDraft = () => {
+    setMomentDrafts((current) => ([...current, { label: 'Moment', title: 'Neuer Moment', description: '' }]))
+  }
+  const removeMomentDraft = (index: number) => {
+    setMomentDrafts((current) => current.filter((_, momentIndex) => momentIndex !== index))
+  }
+  const updateRecommendationDraft = (index: number, key: keyof MorrowPackage['recommendations'][number], value: string) => {
+    setRecommendationDrafts((current) => current.map((recommendation, recommendationIndex) => (
+      recommendationIndex === index ? { ...recommendation, [key]: value } : recommendation
+    )))
+  }
+  const addRecommendationDraft = () => {
+    setRecommendationDrafts((current) => ([...current, { title: 'Neue Empfehlung', category: 'service', description: '' }]))
+  }
+  const removeRecommendationDraft = (index: number) => {
+    setRecommendationDrafts((current) => current.filter((_, recommendationIndex) => recommendationIndex !== index))
+  }
+  const updateFaqDraft = (index: number, key: keyof MorrowPackage['faqs'][number], value: string) => {
+    setFaqDrafts((current) => current.map((faq, faqIndex) => (
+      faqIndex === index ? { ...faq, [key]: value } : faq
+    )))
+  }
+  const addFaqDraft = () => {
+    setFaqDrafts((current) => ([...current, { question: 'Neue Frage', answer: '' }]))
+  }
+  const removeFaqDraft = (index: number) => {
+    setFaqDrafts((current) => current.filter((_, faqIndex) => faqIndex !== index))
+  }
   const applyPropertyToDraft = (propertyId: string) => {
     updateDraft('propertyId', propertyId)
     const property = properties.find((item) => item.id === propertyId)
@@ -9477,7 +9594,9 @@ function PackageDetailDrawer({
       ...current,
       propertyId,
       stayName: property.name,
+      stayDescription: property.notes || current.stayDescription,
       stayLocationNote: property.location,
+      stayFeatures: [property.propertyType, `${property.sleeps} Schlafplätze`].filter(Boolean).join('\n'),
       sleeps: String(property.sleeps),
       latestArrival: property.latestArrival,
       checkInType: property.checkInType,
@@ -9500,29 +9619,61 @@ function PackageDetailDrawer({
   const save = () => {
     const nextDates = draft.dates.split('\n').map((value) => value.trim()).filter(Boolean)
     const nextIncluded = draft.included.split('\n').map((value) => value.trim()).filter(Boolean)
+    const nextImages = splitLines(draft.images)
+    const nextStayImages = splitLines(draft.stayImages)
+    const nextForWhom = splitLines(draft.forWhom)
+    const nextExperienceDirections = splitLines(draft.experienceDirections)
+    const nextStayFeatures = splitLines(draft.stayFeatures)
     const sleeps = Number.parseInt(draft.sleeps, 10)
     const bedrooms = Number.parseInt(draft.bedrooms, 10)
     const bathrooms = Number.parseInt(draft.bathrooms, 10)
+    const maxGuests = Number.parseInt(draft.maxGuests, 10)
+    const fixedGuests = Number.parseInt(draft.fixedGuests, 10)
 
     onUpdatePackage(item.id, (pkg) => ({
       ...pkg,
+      slug: normalizeSlug(draft.slug, pkg.slug),
       name: draft.name,
+      audience: draft.audience,
+      formType: draft.formType,
+      location: draft.location,
       status: draft.status,
+      headline: draft.headline,
+      subline: draft.subline,
       shortPromise: draft.shortPromise,
+      story: draft.story,
+      cta: draft.cta,
+      priceFrom: draft.priceFrom,
       concretePrice: draft.concretePrice,
       priceNote: draft.priceNote,
       dates: nextDates.length > 0 ? nextDates : pkg.dates,
+      maxGuests: Number.isNaN(maxGuests) ? undefined : maxGuests,
+      fixedGuests: Number.isNaN(fixedGuests) ? undefined : fixedGuests,
       dogOptional: draft.dogOptional,
       propertyId: draft.propertyId || pkg.propertyId,
+      heroImage: draft.heroImage,
+      images: nextImages.length > 0 ? nextImages : pkg.images,
+      planImage: draft.planImage,
+      experienceImage: draft.experienceImage,
+      stayImages: nextStayImages.length > 0 ? nextStayImages : pkg.stayImages,
       included: nextIncluded.length > 0 ? nextIncluded : pkg.included,
+      forWhom: nextForWhom.length > 0 ? nextForWhom : pkg.forWhom,
+      moments: momentDrafts.filter((moment) => moment.title.trim()),
+      experienceDirections: nextExperienceDirections.length > 0 ? nextExperienceDirections : pkg.experienceDirections,
       experienceItems: experienceDrafts,
+      recommendations: recommendationDrafts.filter((recommendation) => recommendation.title.trim()),
+      faqs: faqDrafts.filter((faq) => faq.question.trim() && faq.answer.trim()),
       stay: {
         ...pkg.stay,
         name: draft.stayName,
+        description: draft.stayDescription,
         locationNote: draft.stayLocationNote,
+        features: nextStayFeatures.length > 0 ? nextStayFeatures : pkg.stay.features,
+        imageRightsConfirmed: draft.imageRightsConfirmed,
         sleeps: Number.isNaN(sleeps) ? pkg.stay.sleeps : sleeps,
         bedrooms: Number.isNaN(bedrooms) ? pkg.stay.bedrooms : bedrooms,
         bathrooms: Number.isNaN(bathrooms) ? pkg.stay.bathrooms : bathrooms,
+        earliestArrival: draft.earliestArrival,
         latestArrival: draft.latestArrival,
         checkOutTime: draft.checkOutTime,
         checkInType: draft.checkInType,
@@ -9532,6 +9683,8 @@ function PackageDetailDrawer({
     }))
     onClose()
   }
+  const issues = packageIssues()
+  const selectedProperty = properties.find((property) => property.id === draft.propertyId)
 
   return (
     <aside className="admin-drawer-shell" aria-label="Auszeit bearbeiten">
@@ -9541,16 +9694,47 @@ function PackageDetailDrawer({
           <div>
             <span>{audienceLabel(item.audience)} · {item.location}</span>
             <h2>{item.name}</h2>
-            <p>Preis, Termine, Unterkunft und sichtbare Kerninfos der Auszeit bearbeiten.</p>
+            <p>Auszeit, Unterkunft, Erlebnisse, Medien und Gästefragen zentral pflegen.</p>
           </div>
           <button className="admin-icon-button" type="button" aria-label="Schließen" onClick={onClose}><CloseLine size={18} /></button>
         </header>
 
         <div className="admin-drawer-body">
+          <section className="admin-drawer-section" aria-label="Pflichtfeldprüfung">
+            <h3>Bereit für Veröffentlichung</h3>
+            <div className="admin-review-issues">
+              {issues.length === 0
+                ? <span>Alle Pflichtfelder gepflegt</span>
+                : issues.map((issue) => <span key={issue}>{issue}</span>)}
+            </div>
+          </section>
+
           <section className="admin-drawer-form" aria-label="Auszeit bearbeiten">
             <h3>Auszeit</h3>
             <label>Name
               <input value={draft.name} onChange={(event) => updateDraft('name', event.target.value)} />
+            </label>
+            <label>URL-Slug
+              <input value={draft.slug} onChange={(event) => updateDraft('slug', event.target.value)} />
+            </label>
+            <label>Zielgruppe
+              <select value={draft.audience} onChange={(event) => {
+                const audience = event.target.value as MorrowPackage['audience']
+                updateDraft('audience', audience)
+                updateDraft('formType', audience === 'families' ? 'family' : 'couple')
+              }}>
+                <option value="families">Familien</option>
+                <option value="couples">Paare</option>
+              </select>
+            </label>
+            <label>Formularlogik
+              <select value={draft.formType} onChange={(event) => updateDraft('formType', event.target.value as MorrowPackage['formType'])}>
+                <option value="family">Familie</option>
+                <option value="couple">Paar</option>
+              </select>
+            </label>
+            <label>Ort
+              <input value={draft.location} onChange={(event) => updateDraft('location', event.target.value)} />
             </label>
             <label>Status
               <select value={draft.status} onChange={(event) => updateDraft('status', event.target.value as PackageStatus)}>
@@ -9559,13 +9743,28 @@ function PackageDetailDrawer({
                 <option value="paused">Pausiert</option>
               </select>
             </label>
+            <label>Headline
+              <textarea rows={3} value={draft.headline} onChange={(event) => updateDraft('headline', event.target.value)} />
+            </label>
+            <label>Hero-Text
+              <textarea rows={3} value={draft.subline} onChange={(event) => updateDraft('subline', event.target.value)} />
+            </label>
             <label>Kurzversprechen
               <textarea rows={3} value={draft.shortPromise} onChange={(event) => updateDraft('shortPromise', event.target.value)} />
+            </label>
+            <label>Story
+              <textarea rows={5} value={draft.story} onChange={(event) => updateDraft('story', event.target.value)} />
+            </label>
+            <label>CTA-Text
+              <input value={draft.cta} onChange={(event) => updateDraft('cta', event.target.value)} />
             </label>
           </section>
 
           <section className="admin-drawer-form" aria-label="Preis und Termine bearbeiten">
             <h3>Preis und Termine</h3>
+            <label>Preis ab
+              <input value={draft.priceFrom} onChange={(event) => updateDraft('priceFrom', event.target.value)} />
+            </label>
             <label>Preis
               <input value={draft.concretePrice} onChange={(event) => updateDraft('concretePrice', event.target.value)} />
             </label>
@@ -9574,6 +9773,12 @@ function PackageDetailDrawer({
             </label>
             <label>Termine
               <textarea rows={4} value={draft.dates} onChange={(event) => updateDraft('dates', event.target.value)} placeholder="Ein Termin pro Zeile" />
+            </label>
+            <label>Maximale Gäste
+              <input inputMode="numeric" value={draft.maxGuests} onChange={(event) => updateDraft('maxGuests', event.target.value)} placeholder="z. B. 4" />
+            </label>
+            <label>Feste Gästezahl
+              <input inputMode="numeric" value={draft.fixedGuests} onChange={(event) => updateDraft('fixedGuests', event.target.value)} placeholder="z. B. 2 bei Paaren" />
             </label>
           </section>
 
@@ -9587,6 +9792,12 @@ function PackageDetailDrawer({
                 ))}
               </select>
             </label>
+            {selectedProperty && (
+              <div className="admin-drawer-note admin-drawer-form-wide">
+                <span>Objekt verbunden</span>
+                <p>{selectedProperty.name} · {selectedProperty.location}. Änderungen hier pflegen die Auszeit-Kopie, das Objektprofil bleibt separat steuerbar.</p>
+              </div>
+            )}
             <label>Unterkunft
               <input value={draft.stayName} onChange={(event) => updateDraft('stayName', event.target.value)} />
             </label>
@@ -9598,6 +9809,9 @@ function PackageDetailDrawer({
             </label>
             <label>Badezimmer
               <input inputMode="numeric" value={draft.bathrooms} onChange={(event) => updateDraft('bathrooms', event.target.value)} />
+            </label>
+            <label>Anreise möglich ab
+              <input value={draft.earliestArrival} onChange={(event) => updateDraft('earliestArrival', event.target.value)} />
             </label>
             <label>Anreise möglich bis
               <input value={draft.latestArrival} onChange={(event) => updateDraft('latestArrival', event.target.value)} />
@@ -9620,8 +9834,49 @@ function PackageDetailDrawer({
                 <option value="no">Nein</option>
               </select>
             </label>
+            <label>Bildrechte bestätigt
+              <select value={draft.imageRightsConfirmed ? 'yes' : 'no'} onChange={(event) => updateDraft('imageRightsConfirmed', event.target.value === 'yes')}>
+                <option value="yes">Ja</option>
+                <option value="no">Nein</option>
+              </select>
+            </label>
+            <label>Betreuung bei Objektfragen
+              <select value={draft.propertySupportType} onChange={(event) => updateDraft('propertySupportType', event.target.value as Stay['propertySupportType'])}>
+                <option value="morrow">Morrow</option>
+                <option value="agency">Partneragentur</option>
+                <option value="hotel">Hotel / Gastgeber</option>
+              </select>
+            </label>
+            <label>Name Betreuung
+              <input value={draft.propertySupportName} onChange={(event) => updateDraft('propertySupportName', event.target.value)} />
+            </label>
+            <label>Unterkunftsbeschreibung
+              <textarea rows={4} value={draft.stayDescription} onChange={(event) => updateDraft('stayDescription', event.target.value)} />
+            </label>
             <label>Lagehinweis
               <textarea rows={3} value={draft.stayLocationNote} onChange={(event) => updateDraft('stayLocationNote', event.target.value)} />
+            </label>
+            <label>Ausstattung / Merkmale
+              <textarea rows={5} value={draft.stayFeatures} onChange={(event) => updateDraft('stayFeatures', event.target.value)} placeholder="Ein Merkmal pro Zeile" />
+            </label>
+          </section>
+
+          <section className="admin-drawer-form" aria-label="Medien bearbeiten">
+            <h3>Medien</h3>
+            <label>Hero-Bild
+              <input value={draft.heroImage} onChange={(event) => updateDraft('heroImage', event.target.value)} />
+            </label>
+            <label>Plan-Bild
+              <input value={draft.planImage} onChange={(event) => updateDraft('planImage', event.target.value)} />
+            </label>
+            <label>Erlebnis-Bild
+              <input value={draft.experienceImage} onChange={(event) => updateDraft('experienceImage', event.target.value)} />
+            </label>
+            <label>Galeriebilder
+              <textarea rows={5} value={draft.images} onChange={(event) => updateDraft('images', event.target.value)} placeholder="Ein Bildpfad pro Zeile" />
+            </label>
+            <label>Unterkunftsbilder
+              <textarea rows={5} value={draft.stayImages} onChange={(event) => updateDraft('stayImages', event.target.value)} placeholder="Ein Bildpfad pro Zeile" />
             </label>
           </section>
 
@@ -9668,6 +9923,15 @@ function PackageDetailDrawer({
                   <label>Anbieter
                     <input value={experience.providerName ?? ''} onChange={(event) => updateExperienceDraft(experience.id, 'providerName', event.target.value)} />
                   </label>
+                  <label>Preis / Inklusivlogik
+                    <input value={experience.priceNote ?? ''} onChange={(event) => updateExperienceDraft(experience.id, 'priceNote', event.target.value)} placeholder="z. B. im Paket enthalten" />
+                  </label>
+                  <label>Kapazität
+                    <input value={experience.capacityNote ?? ''} onChange={(event) => updateExperienceDraft(experience.id, 'capacityNote', event.target.value)} placeholder="z. B. bis 4 Personen" />
+                  </label>
+                  <label>Verfügbarkeit
+                    <input value={experience.availabilityNote ?? ''} onChange={(event) => updateExperienceDraft(experience.id, 'availabilityNote', event.target.value)} placeholder="z. B. wetterabhängig" />
+                  </label>
                   <label>Gastnotiz
                     <textarea rows={3} value={experience.guestNotes} onChange={(event) => updateExperienceDraft(experience.id, 'guestNotes', event.target.value)} />
                   </label>
@@ -9679,10 +9943,92 @@ function PackageDetailDrawer({
           </section>
 
           <section className="admin-drawer-form" aria-label="Leistungen bearbeiten">
-            <h3>Enthaltene Leistungen</h3>
+            <h3>Inhalte der Seite</h3>
             <label>Leistungen
               <textarea rows={6} value={draft.included} onChange={(event) => updateDraft('included', event.target.value)} placeholder="Eine Leistung pro Zeile" />
             </label>
+            <label>Für wen passt die Auszeit?
+              <textarea rows={5} value={draft.forWhom} onChange={(event) => updateDraft('forWhom', event.target.value)} placeholder="Ein Punkt pro Zeile" />
+            </label>
+            <label>Erlebnisrichtung
+              <textarea rows={5} value={draft.experienceDirections} onChange={(event) => updateDraft('experienceDirections', event.target.value)} placeholder="Ein Punkt pro Zeile" />
+            </label>
+          </section>
+
+          <section className="admin-drawer-form admin-drawer-form-wide" aria-label="Momente bearbeiten">
+            <div className="admin-drawer-heading-row">
+              <h3>Momente</h3>
+              <button className="admin-row-action" type="button" onClick={addMomentDraft}>Moment hinzufügen</button>
+            </div>
+            <div className="admin-experience-editor">
+              {momentDrafts.map((moment, index) => (
+                <article key={`${moment.title}-${index}`}>
+                  <label>Label
+                    <input value={moment.label} onChange={(event) => updateMomentDraft(index, 'label', event.target.value)} />
+                  </label>
+                  <label>Titel
+                    <input value={moment.title} onChange={(event) => updateMomentDraft(index, 'title', event.target.value)} />
+                  </label>
+                  <label>Beschreibung
+                    <textarea rows={3} value={moment.description} onChange={(event) => updateMomentDraft(index, 'description', event.target.value)} />
+                  </label>
+                  <button className="admin-row-action danger-soft" type="button" onClick={() => removeMomentDraft(index)}>Entfernen</button>
+                </article>
+              ))}
+              {momentDrafts.length === 0 && <p className="admin-empty-note">Noch keine Momente angelegt.</p>}
+            </div>
+          </section>
+
+          <section className="admin-drawer-form admin-drawer-form-wide" aria-label="Empfehlungen bearbeiten">
+            <div className="admin-drawer-heading-row">
+              <h3>Empfehlungen vor Ort</h3>
+              <button className="admin-row-action" type="button" onClick={addRecommendationDraft}>Empfehlung hinzufügen</button>
+            </div>
+            <div className="admin-experience-editor">
+              {recommendationDrafts.map((recommendation, index) => (
+                <article key={`${recommendation.title}-${index}`}>
+                  <label>Titel
+                    <input value={recommendation.title} onChange={(event) => updateRecommendationDraft(index, 'title', event.target.value)} />
+                  </label>
+                  <label>Kategorie
+                    <select value={recommendation.category} onChange={(event) => updateRecommendationDraft(index, 'category', event.target.value)}>
+                      <option value="food">Essen</option>
+                      <option value="nature">Natur</option>
+                      <option value="weather">Wetter</option>
+                      <option value="family">Familie</option>
+                      <option value="couple">Paar</option>
+                      <option value="service">Service</option>
+                    </select>
+                  </label>
+                  <label>Beschreibung
+                    <textarea rows={3} value={recommendation.description} onChange={(event) => updateRecommendationDraft(index, 'description', event.target.value)} />
+                  </label>
+                  <button className="admin-row-action danger-soft" type="button" onClick={() => removeRecommendationDraft(index)}>Entfernen</button>
+                </article>
+              ))}
+              {recommendationDrafts.length === 0 && <p className="admin-empty-note">Noch keine Empfehlung gepflegt.</p>}
+            </div>
+          </section>
+
+          <section className="admin-drawer-form admin-drawer-form-wide" aria-label="FAQ bearbeiten">
+            <div className="admin-drawer-heading-row">
+              <h3>FAQ</h3>
+              <button className="admin-row-action" type="button" onClick={addFaqDraft}>FAQ hinzufügen</button>
+            </div>
+            <div className="admin-experience-editor">
+              {faqDrafts.map((faq, index) => (
+                <article key={`${faq.question}-${index}`}>
+                  <label>Frage
+                    <input value={faq.question} onChange={(event) => updateFaqDraft(index, 'question', event.target.value)} />
+                  </label>
+                  <label>Antwort
+                    <textarea rows={4} value={faq.answer} onChange={(event) => updateFaqDraft(index, 'answer', event.target.value)} />
+                  </label>
+                  <button className="admin-row-action danger-soft" type="button" onClick={() => removeFaqDraft(index)}>Entfernen</button>
+                </article>
+              ))}
+              {faqDrafts.length === 0 && <p className="admin-empty-note">Noch keine FAQ gepflegt.</p>}
+            </div>
           </section>
         </div>
 

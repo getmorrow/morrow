@@ -30,6 +30,9 @@ export type ExperienceItem = {
   role: ExperienceRole
   includedInPrice: boolean
   confirmationStatus: 'planned' | 'requested' | 'confirmed'
+  priceNote?: string
+  capacityNote?: string
+  availabilityNote?: string
   guestNotes: string
 }
 

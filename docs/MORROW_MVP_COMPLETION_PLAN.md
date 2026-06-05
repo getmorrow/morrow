@@ -42,7 +42,7 @@ Ziel: Intern muss Morrow eine Auszeit wirklich anlegen, pflegen, buchen und vorb
 
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
-| Paket-Builder fuer neue Auszeiten | Admin-Auszeiten existieren, Supabase-Sync vorhanden, Bearbeitung teilweise vorhanden | Vollstaendiger Editor fuer Titel, Copy, Termine, Preise, Unterkunft, Erlebnisbausteine, Empfehlungen, Status | MVP-kritisch | Offen |
+| Paket-Builder fuer neue Auszeiten | Admin-Auszeiten existieren, Supabase-Sync vorhanden, Builder fuer Titel, Copy, Termine, Preise, Zielgruppe, Unterkunft, Medien, Erlebnisbausteine, Empfehlungen, Momente, FAQ und Status ist umgesetzt und end-to-end getestet | Builder spaeter mit Medienbibliothek und stärkerer Normalisierung weiter ausbauen | MVP-kritisch | Erledigt fuer MVP |
 | Unterkunftsverwaltung | Objektprofile, Agenturen, Check-in-Typ, Support-Typ, Anreisezeit, Basisdaten vorhanden | Medien, Bildrechte, Ausstattung, Hausregeln, Unterkunftsregeln, Schluesselinfos, Check-in/Check-out voll pflegbar | MVP-kritisch | Teilweise |
 | Medienverwaltung | Bilder liegen als Assets/URLs, keine echte Medienbibliothek | Pro Unterkunft und Auszeit Medien mit Rechten, Alt-Text, Reihenfolge | MVP-kritisch | Offen |
 | Erlebnisbausteine | Erlebnisanbieter und Erlebnisbausteine existieren, Supabase-Sync vorhanden | Preis, Kapazitaet, Verfuegbarkeit, Anbieter, Status, inkludiert/optional sauber pflegen | MVP-kritisch | Teilweise |
@@ -148,6 +148,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 ### Sprint 1: Operate stabilisieren
 
 1. Paket-Builder fertigstellen.
+   - Stand 2026-06-05: Builder-Oberflaeche erweitert; Build, Smoke-Test und End-to-End-Test mit temporaerer Test-Auszeit bestanden.
 2. Unterkunftsverwaltung erweitern: Medien, Rechte, Regeln, Check-in, Ausstattung.
 3. Erlebnisbausteine erweitern: Anbieter, Preis, Kapazitaet, Verfuegbarkeit.
 4. Monitoring fehlender Pflichtdaten bauen.
@@ -184,7 +185,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 - [x] Anfrage zu Kunde/Buchung getestet.
 - [x] Gaestebereich mit Access-Code getestet.
 - [x] Testdaten werden markiert und aus KPIs ausgeschlossen.
-- [ ] Neue Auszeit komplett im Admin anlegen.
+- [x] Neue Auszeit komplett im Admin anlegen.
 - [ ] Unterkunft mit Medien, Regeln, Check-in und Rechten im Admin pflegen.
 - [ ] Erlebnis mit Anbieter, Preis/Kapazitaet/Verfuegbarkeit im Admin pflegen.
 - [ ] Buchung erzeugt automatische Aufgaben.
