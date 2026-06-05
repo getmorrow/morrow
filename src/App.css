@@ -4604,6 +4604,33 @@ textarea {
   line-height: 1.32;
 }
 
+.admin-monitoring-panel {
+  align-content: start;
+}
+
+.admin-monitoring-total {
+  flex: 0 0 auto;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(126, 109, 56, 0.13);
+  color: rgba(24, 23, 21, 0.68);
+  font-size: 12px;
+  font-weight: 840;
+  line-height: 1;
+}
+
+.admin-monitoring-list button {
+  grid-template-columns: 92px minmax(0, 0.8fr) minmax(0, 0.7fr) minmax(0, 1.3fr);
+}
+
+.admin-monitoring-list em {
+  color: rgba(24, 23, 21, 0.7);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 760;
+  line-height: 1.32;
+}
+
 .lead-table,
 .admin-panel {
   display: grid;

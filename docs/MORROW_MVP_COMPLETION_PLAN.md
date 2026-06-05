@@ -49,7 +49,7 @@ Ziel: Intern muss Morrow eine Auszeit wirklich anlegen, pflegen, buchen und vorb
 | Buchungen | Kunden/Buchungen in Supabase, Statuslogik, Gaestebereich-Code getestet | Buchungsstatus, Zahlung, Vorbereitung, Aufgaben und Gaestebereich noch staerker miteinander koppeln | MVP-kritisch | Teilweise |
 | Aufgaben automatisch bei Buchungsstatus | Aufgaben manuell vorhanden, einige Vorbereitungschecks sichtbar | Automatische Aufgaben bei Reserviert/Bezahlt/Vor Anreise/Aktiv/Abgeschlossen | MVP-kritisch | Offen |
 | Audit-Log | Kommunikationshistorie vorhanden, kein vollstaendiger Aenderungsverlauf | Wer hat Status, Buchung, Paket, Unterkunft, Erlebnis geaendert? | MVP-light | Offen |
-| Monitoring fehlender Daten | Vorbereitungschecks in Buchung vorhanden | Zentrale Liste fehlender Pflichtdaten pro Auszeit/Buchung/Unterkunft/Erlebnis | MVP-kritisch | Teilweise |
+| Monitoring fehlender Daten | Zentrale Liste fehlender Pflichtdaten pro Auszeit, Buchung, Unterkunft und Erlebnis auf der Admin-Uebersicht vorhanden; direkte Sprungziele in Datensaetze getestet | Spaeter um lokale Orte, Partnerprofile und automatische Eskalation erweitern | MVP-kritisch | Erledigt fuer MVP |
 
 ## Block 2: Guest Comfort
 
@@ -154,6 +154,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 3. Erlebnisbausteine erweitern: Anbieter, Preis, Kapazitaet, Verfuegbarkeit.
    - Stand 2026-06-05: Erlebnis-Drawer und Erlebniskarten erweitert; Build, Smoke-Test und Speichern/Ruecksetzen-Test bestanden.
 4. Monitoring fehlender Pflichtdaten bauen.
+   - Stand 2026-06-05: Zentrales Pflichtdaten-Monitoring auf der Admin-Uebersicht gebaut; Build, Sichttest und Sprung in Datensatz bestanden.
 5. Automatische Aufgaben bei Buchungsstatus einfuehren.
 
 ### Sprint 2: Guest Comfort fertig machen
@@ -190,6 +191,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 - [x] Neue Auszeit komplett im Admin anlegen.
 - [x] Unterkunft mit Medien, Regeln, Check-in und Rechten im Admin pflegen.
 - [x] Erlebnis mit Anbieter, Preis/Kapazitaet/Verfuegbarkeit im Admin pflegen.
+- [x] Pflichtdaten-Monitoring auf Admin-Uebersicht zeigt Blocker und oeffnet Datensaetze.
 - [ ] Buchung erzeugt automatische Aufgaben.
 - [ ] Gaestebereich zeigt Anreise, Schluessel und Regeln aus Admin-Daten.
 - [ ] Supportnachricht aus Gaestebereich landet als Admin-Thema.
@@ -201,13 +203,13 @@ Diese Punkte bleiben bewusst nachgelagert:
 
 ## Naechster Konkreter Schritt
 
-Weiter mit Sprint 1, Punkt 4:
+Weiter mit Sprint 1, Punkt 5:
 
-`Monitoring fehlender Pflichtdaten bauen`
+`Automatische Aufgaben bei Buchungsstatus einfuehren`
 
 Definition of Done:
 
-- Zentrale Liste zeigt fehlende Pflichtdaten pro Auszeit, Unterkunft, Erlebnis und Buchung.
-- Admin kann direkt aus der Liste in den passenden Datensatz springen.
-- Testdaten werden kenntlich gemacht oder ausgeschlossen.
-- Liste hilft beim taeglichen Start: Was blockiert den naechsten zahlenden Gast?
+- Bei relevanten Statuswechseln entstehen passende interne Aufgaben.
+- Reserviert, Bezahlt, Vor Anreise, Aktiv und Abgeschlossen haben klare Standardaufgaben.
+- Keine doppelten Aufgaben bei wiederholtem Speichern.
+- Aufgaben sind im Admin direkt sichtbar und mit Buchung/Kunde verknuepft.

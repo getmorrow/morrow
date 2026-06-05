@@ -5753,7 +5753,6 @@ function AdminPage({
     0,
   )
   const openExperienceCount = experienceRows.filter((item) => item.confirmationStatus !== 'confirmed').length
-  const unlinkedExperienceCount = experienceRows.filter((item) => !item.providerId && !item.providerName).length
   const incompleteExperienceCount = experienceRows.filter((item) => (
     !item.priceNote?.trim()
     || !item.capacityNote?.trim()
@@ -5786,6 +5785,110 @@ function AdminPage({
     .filter((place) => place.status === 'candidate')
     .map((place) => ({ place, issues: localPlaceReviewIssues(place) }))
     .sort((a, b) => b.issues.length - a.issues.length || a.place.title.localeCompare(b.place.title))
+  const packageMonitoringIssues = (pkg: MorrowPackage) => {
+    const linkedProperty = ownerProperties.find((property) => property.id === pkg.propertyId)
+    const issues: string[] = []
+    if (!pkg.name.trim() || !pkg.slug.trim()) issues.push('Basisdaten')
+    if (!pkg.headline.trim() || !pkg.subline.trim() || !pkg.shortPromise.trim() || !pkg.cta.trim()) issues.push('Copy')
+    if (!pkg.concretePrice.trim() || !pkg.priceFrom.trim() || !pkg.priceNote.trim()) issues.push('Preis')
+    if (pkg.dates.length === 0 || pkg.dates.some((date) => date.toLowerCase().includes('ergänzen'))) issues.push('Termine')
+    if (!linkedProperty) issues.push('Unterkunft')
+    if (!pkg.stay.description.trim() || pkg.stay.checkInType === 'unknown' || !pkg.stay.imageRightsConfirmed) issues.push('Unterkunftsdaten')
+    if (!pkg.heroImage.trim() || pkg.images.length < 2 || pkg.stayImages.length === 0) issues.push('Medien')
+    if (pkg.included.length < 3 || pkg.forWhom.length < 2 || pkg.recommendations.length === 0 || pkg.faqs.length < 2) issues.push('Seiteninhalte')
+    if (pkg.experienceItems.filter((experience) => experience.role === 'included').length === 0) issues.push('Enthaltenes Erlebnis')
+    if (pkg.experienceItems.some((experience) => experience.role === 'included' && experience.confirmationStatus !== 'confirmed')) issues.push('Erlebnisbestätigung')
+    return Array.from(new Set(issues))
+  }
+  const propertyMonitoringIssues = (property: OwnerPropertyProfile) => {
+    const issues: string[] = []
+    if (!property.name.trim() || !property.location.trim() || !property.propertyType.trim()) issues.push('Basisdaten')
+    if (!property.ownerName.trim() || !property.email.trim()) issues.push('Eigentümerkontakt')
+    if (!property.description.trim()) issues.push('Beschreibung')
+    if (property.checkInType === 'unknown' || !property.checkInInstructions.trim()) issues.push('Check-in')
+    if (!property.earliestArrival.trim() || !property.latestArrival.trim() || !property.checkOutTime.trim()) issues.push('Anreise/Abreise')
+    if (property.amenities.length < 3) issues.push('Ausstattung')
+    if (property.houseRules.length < 2) issues.push('Regeln')
+    if (property.media.length === 0 || !property.imageRightsConfirmed) issues.push('Medien/Rechte')
+    if (!property.propertySupportName.trim()) issues.push('Support')
+    return issues
+  }
+  const experienceMonitoringIssues = (experience: typeof experienceRows[number]) => {
+    const issues: string[] = []
+    if (!experience.title.trim()) issues.push('Titel')
+    if (!experience.providerId && !experience.providerName?.trim()) issues.push('Anbieter')
+    if (!experience.priceNote?.trim()) issues.push('Preis')
+    if (!experience.capacityNote?.trim()) issues.push('Kapazität')
+    if (!experience.availabilityNote?.trim()) issues.push('Verfügbarkeit')
+    if (!experience.guestNotes.trim()) issues.push('Gastnotiz')
+    if (experience.role === 'included' && experience.confirmationStatus !== 'confirmed') issues.push('Bestätigung')
+    return issues
+  }
+  const monitoringItems = [
+    ...adminPackages.map((pkg) => {
+      const issues = packageMonitoringIssues(pkg)
+      return {
+        id: `monitor-package-${pkg.id}`,
+        type: 'Auszeit',
+        title: pkg.name,
+        meta: `${issues.length} offen · ${pkg.location}`,
+        issues,
+        priority: pkg.status === 'published' ? 0 : 1,
+        action: () => {
+          setActiveSection('packages')
+          setSelectedPackageId(pkg.id)
+        },
+      }
+    }),
+    ...ownerProperties.map((property) => {
+      const issues = propertyMonitoringIssues(property)
+      return {
+        id: `monitor-property-${property.id}`,
+        type: 'Unterkunft',
+        title: property.name,
+        meta: `${issues.length} offen · ${property.location}`,
+        issues,
+        priority: linkedPackageCount(property.id) > 0 ? 0 : 2,
+        action: () => {
+          setActiveSection('owners')
+          setSelectedOwnerPropertyId(property.id)
+        },
+      }
+    }),
+    ...experienceRows.map((experience) => {
+      const issues = experienceMonitoringIssues(experience)
+      return {
+        id: `monitor-experience-${experience.packageId}-${experience.id}`,
+        type: 'Erlebnis',
+        title: experience.title,
+        meta: `${issues.length} offen · ${experience.packageName}`,
+        issues,
+        priority: experience.role === 'included' ? 0 : 2,
+        action: () => {
+          setActiveSection('experiences')
+          setSelectedExperience({ packageId: experience.packageId, experienceId: experience.id })
+        },
+      }
+    }),
+    ...realBookingRows.map((booking) => {
+      const issues = bookingMissingGuestPreparationItems(booking).map((item) => item.label)
+      return {
+        id: `monitor-booking-${booking.id}`,
+        type: 'Buchung',
+        title: booking.customerName,
+        meta: `${issues.length} offen · ${booking.packageName}`,
+        issues,
+        priority: booking.status === 'Bezahlt' || booking.status === 'Vor Anreise' ? 0 : 1,
+        action: () => {
+          setActiveSection('bookings')
+          setSelectedBookingId(booking.id)
+        },
+      }
+    }),
+  ]
+    .filter((item) => item.issues.length > 0)
+    .sort((a, b) => a.priority - b.priority || b.issues.length - a.issues.length || a.title.localeCompare(b.title))
+  const topMonitoringItems = monitoringItems.slice(0, 8)
   const overviewWorkCandidates = [
     ...dueTasks.map((task) => ({
       id: `task-${task.id}`,
@@ -5977,6 +6080,27 @@ function AdminPage({
               </div>
             </section>
 
+            <section className="admin-panel admin-monitoring-panel">
+              <div className="admin-panel-heading">
+                <div>
+                  <h2>Pflichtdaten-Monitoring</h2>
+                  <p>Alles, was Auszeiten, Buchungen oder den Gästebereich blockiert. Öffnen, pflegen, abhaken.</p>
+                </div>
+                <span className="admin-monitoring-total">{monitoringItems.length} offen</span>
+              </div>
+              <div className="admin-overview-worklist admin-monitoring-list">
+                {topMonitoringItems.length === 0 && <p className="admin-empty-note">Alle kritischen Pflichtdaten sind gepflegt.</p>}
+                {topMonitoringItems.map((item) => (
+                  <button key={item.id} type="button" onClick={item.action}>
+                    <span>{item.type}</span>
+                    <strong>{item.title}</strong>
+                    <small>{item.meta}</small>
+                    <em>{item.issues.slice(0, 4).join(' · ')}{item.issues.length > 4 ? ` · +${item.issues.length - 4}` : ''}</em>
+                  </button>
+                ))}
+              </div>
+            </section>
+
             <section className="admin-panel admin-overview-health">
               <div className="admin-panel-heading">
                 <div>
@@ -6013,7 +6137,7 @@ function AdminPage({
                 <button type="button" onClick={() => setActiveSection('experiences')}>
                   <span>Erlebnisse</span>
                   <strong>{openExperienceCount}</strong>
-                  <small>{unlinkedExperienceCount} ohne Anbieter</small>
+                  <small>{incompleteExperienceCount} Daten offen</small>
                 </button>
                 <button type="button" onClick={() => {
                   setLocalPlaceStatusFilter('candidate')
