@@ -5754,6 +5754,12 @@ function AdminPage({
   )
   const openExperienceCount = experienceRows.filter((item) => item.confirmationStatus !== 'confirmed').length
   const unlinkedExperienceCount = experienceRows.filter((item) => !item.providerId && !item.providerName).length
+  const incompleteExperienceCount = experienceRows.filter((item) => (
+    !item.priceNote?.trim()
+    || !item.capacityNote?.trim()
+    || !item.availabilityNote?.trim()
+    || !item.guestNotes.trim()
+  )).length
   const linkedExperienceCount = (providerId: string) => experienceRows.filter((item) => item.providerProfile?.id === providerId).length
   const linkedPackageCount = (propertyId: string) => adminPackages.filter((pkg) => pkg.propertyId === propertyId).length
   const ownerLeadHasProfile = (lead: OwnerLead) => ownerProperties.some((property) => (
@@ -6989,8 +6995,16 @@ function AdminPage({
   const experienceCards = (
     <div className="admin-experience-cards">
       {filteredExperienceRows.length === 0 && <p className="admin-empty-note">Kein Erlebnis passt zu den aktuellen Filtern.</p>}
-      {filteredExperienceRows.map((item) => (
-        <article key={`${item.packageId}-${item.id}`} className={`admin-experience-card ${item.confirmationStatus !== 'confirmed' ? 'is-open' : 'is-ready'}`}>
+      {filteredExperienceRows.map((item) => {
+        const detailIssues = [
+          !item.priceNote?.trim() ? 'Preis fehlt' : '',
+          !item.capacityNote?.trim() ? 'Kapazität fehlt' : '',
+          !item.availabilityNote?.trim() ? 'Verfügbarkeit fehlt' : '',
+          !item.guestNotes.trim() ? 'Gastnotiz fehlt' : '',
+        ].filter(Boolean)
+
+        return (
+        <article key={`${item.packageId}-${item.id}`} className={`admin-experience-card ${item.confirmationStatus !== 'confirmed' || detailIssues.length > 0 ? 'is-open' : 'is-ready'}`}>
           <header className="admin-experience-card-header">
             <div>
               <span className="admin-package-kicker">{item.packageName} · {audienceLabel(item.packageAudience)}</span>
@@ -7009,14 +7023,24 @@ function AdminPage({
             <span>
               <strong>Auszeit</strong>{item.packageName}
             </span>
+            <span className={detailIssues.length === 0 ? 'is-ready' : 'is-open'}>
+              <strong>Details</strong>{detailIssues.length === 0 ? 'gepflegt' : `${detailIssues.length} offen`}
+            </span>
           </div>
           <div className="admin-experience-card-facts">
             <span><strong>Rolle</strong>{experienceRoleLabel(item.role)}</span>
-            <span><strong>Preislogik</strong>{item.includedInPrice ? 'im Preis enthalten' : 'nicht enthalten'}</span>
+            <span><strong>Preislogik</strong>{item.priceNote?.trim() || (item.includedInPrice ? 'im Preis enthalten' : 'nicht enthalten')}</span>
+            <span><strong>Kapazität</strong>{item.capacityNote?.trim() || 'offen'}</span>
+            <span><strong>Verfügbarkeit</strong>{item.availabilityNote?.trim() || 'offen'}</span>
             <span><strong>Anbieterprofil</strong>{item.providerProfile ? 'verbunden' : 'nicht verbunden'}</span>
           </div>
+          {detailIssues.length > 0 && (
+            <div className="admin-review-issues" aria-label={`${item.title} offene Erlebnisdaten`}>
+              {detailIssues.map((issue) => <span key={issue}>{issue}</span>)}
+            </div>
+          )}
           <footer className="admin-package-card-footer">
-            <span>{item.confirmationStatus === 'confirmed' ? 'Für diese Auszeit bestätigt' : item.providerProfile || item.providerName ? 'Bestätigung und Details klären' : 'Passenden Anbieter auswählen'}</span>
+            <span>{detailIssues.length > 0 ? 'Operative Erlebnisdaten ergänzen' : item.confirmationStatus === 'confirmed' ? 'Für diese Auszeit bestätigt' : item.providerProfile || item.providerName ? 'Bestätigung klären' : 'Passenden Anbieter auswählen'}</span>
             <div className="admin-package-actions">
               {item.providerProfile && (
                 <button className="admin-row-action" type="button" onClick={() => item.providerProfile && setSelectedExperienceProviderId(item.providerProfile.id)}>Anbieter öffnen</button>
@@ -7025,7 +7049,7 @@ function AdminPage({
             </div>
           </footer>
         </article>
-      ))}
+      )})}
     </div>
   )
   const renderExperiences = () => {
@@ -7039,7 +7063,7 @@ function AdminPage({
           <article><span>{experienceRows.length}</span><p>Erlebnisbausteine</p></article>
           <article><span>{includedExperienceCount}</span><p>Enthalten</p></article>
           <article><span>{openExperienceCount}</span><p>Offen</p></article>
-          <article><span>{unlinkedExperienceCount}</span><p>Ohne Anbieter</p></article>
+          <article><span>{incompleteExperienceCount}</span><p>Daten offen</p></article>
         </section>
         <AdminPanel title="Erlebnisarbeit">
           <p className="admin-panel-intro">Erlebnisse werden erst paketfähig, wenn Anbieter, Rolle und Bestätigung klar sind.</p>
@@ -10173,6 +10197,9 @@ function ExperienceDetailDrawer({
     includedInPrice: false,
     providerId: '',
     providerName: '',
+    priceNote: '',
+    capacityNote: '',
+    availabilityNote: '',
     guestNotes: '',
   })
 
@@ -10185,6 +10212,9 @@ function ExperienceDetailDrawer({
       includedInPrice: item.includedInPrice,
       providerId: item.providerId ?? '',
       providerName: item.providerName ?? '',
+      priceNote: item.priceNote ?? '',
+      capacityNote: item.capacityNote ?? '',
+      availabilityNote: item.availabilityNote ?? '',
       guestNotes: item.guestNotes,
     })
   }, [item])
@@ -10193,6 +10223,17 @@ function ExperienceDetailDrawer({
 
   const updateDraft = (key: keyof typeof draft, value: string | boolean) => {
     setDraft((current) => ({ ...current, [key]: value }))
+  }
+  const experienceIssues = () => {
+    const issues: string[] = []
+    if (!draft.title.trim()) issues.push('Titel fehlt')
+    if (!draft.providerId && !draft.providerName.trim()) issues.push('Anbieter fehlt')
+    if (!draft.priceNote.trim()) issues.push('Preislogik fehlt')
+    if (!draft.capacityNote.trim()) issues.push('Kapazität fehlt')
+    if (!draft.availabilityNote.trim()) issues.push('Verfügbarkeit fehlt')
+    if (!draft.guestNotes.trim()) issues.push('Gastnotiz fehlt')
+    if (draft.role === 'included' && draft.confirmationStatus !== 'confirmed') issues.push('Enthaltenes Erlebnis nicht bestätigt')
+    return issues
   }
   const save = () => {
     onUpdateExperience(packageItem.id, item.id, (experience) => ({
@@ -10205,10 +10246,14 @@ function ExperienceDetailDrawer({
       providerName: draft.providerId
         ? providers.find((provider) => provider.id === draft.providerId)?.name
         : draft.providerName.trim() || undefined,
+      priceNote: draft.priceNote,
+      capacityNote: draft.capacityNote,
+      availabilityNote: draft.availabilityNote,
       guestNotes: draft.guestNotes,
     }))
     onClose()
   }
+  const issues = experienceIssues()
 
   return (
     <aside className="admin-drawer-shell" aria-label="Erlebnis bearbeiten">
@@ -10224,6 +10269,15 @@ function ExperienceDetailDrawer({
         </header>
 
         <div className="admin-drawer-body">
+          <section className="admin-drawer-section" aria-label="Erlebnisprüfung">
+            <h3>Bereit für Auszeiten</h3>
+            <div className="admin-review-issues">
+              {issues.length === 0
+                ? <span>Alle Pflichtfelder gepflegt</span>
+                : issues.map((issue) => <span key={issue}>{issue}</span>)}
+            </div>
+          </section>
+
           <section className="admin-drawer-form" aria-label="Erlebnisdaten bearbeiten">
             <h3>Erlebnis</h3>
             <label>Titel
@@ -10260,6 +10314,15 @@ function ExperienceDetailDrawer({
                 <option value="yes">Ja</option>
                 <option value="no">Nein</option>
               </select>
+            </label>
+            <label>Preis / Inklusivlogik
+              <input value={draft.priceNote} onChange={(event) => updateDraft('priceNote', event.target.value)} placeholder="z. B. im Paket enthalten, Einkaufspreis 45 EUR p. P." />
+            </label>
+            <label>Kapazität
+              <input value={draft.capacityNote} onChange={(event) => updateDraft('capacityNote', event.target.value)} placeholder="z. B. bis 4 Personen, Kinder ab 6 Jahren" />
+            </label>
+            <label>Verfügbarkeit
+              <input value={draft.availabilityNote} onChange={(event) => updateDraft('availabilityNote', event.target.value)} placeholder="z. B. 12.-16. August, wetterabhängig" />
             </label>
             <label>Hinweis für Gäste
               <textarea rows={5} value={draft.guestNotes} onChange={(event) => updateDraft('guestNotes', event.target.value)} />

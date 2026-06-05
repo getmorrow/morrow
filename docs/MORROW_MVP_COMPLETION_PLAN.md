@@ -45,7 +45,7 @@ Ziel: Intern muss Morrow eine Auszeit wirklich anlegen, pflegen, buchen und vorb
 | Paket-Builder fuer neue Auszeiten | Admin-Auszeiten existieren, Supabase-Sync vorhanden, Builder fuer Titel, Copy, Termine, Preise, Zielgruppe, Unterkunft, Medien, Erlebnisbausteine, Empfehlungen, Momente, FAQ und Status ist umgesetzt und end-to-end getestet | Builder spaeter mit Medienbibliothek und stärkerer Normalisierung weiter ausbauen | MVP-kritisch | Erledigt fuer MVP |
 | Unterkunftsverwaltung | Objektprofile, Agenturen, Check-in-Typ, Support-Typ, Anreise/Abreise, Medien, Bildrechte, Ausstattung, Hausregeln, Schluesselinfos und Objekt-Support sind pflegbar und end-to-end getestet | Medienbibliothek, Alt-Texte und staerkere Normalisierung spaeter ausbauen | MVP-kritisch | Erledigt fuer MVP |
 | Medienverwaltung | Bilder liegen als Assets/URLs, keine echte Medienbibliothek | Pro Unterkunft und Auszeit Medien mit Rechten, Alt-Text, Reihenfolge | MVP-kritisch | Offen |
-| Erlebnisbausteine | Erlebnisanbieter und Erlebnisbausteine existieren, Supabase-Sync vorhanden | Preis, Kapazitaet, Verfuegbarkeit, Anbieter, Status, inkludiert/optional sauber pflegen | MVP-kritisch | Teilweise |
+| Erlebnisbausteine | Erlebnisanbieter und Erlebnisbausteine existieren, Supabase-Sync vorhanden; Preis, Kapazitaet, Verfuegbarkeit, Anbieter, Rolle, Bestätigung und Gastnotiz sind im Admin pflegbar und getestet | Spaeter staerker normalisieren und Anbieter-Verfuegbarkeiten separat pflegen | MVP-kritisch | Erledigt fuer MVP |
 | Buchungen | Kunden/Buchungen in Supabase, Statuslogik, Gaestebereich-Code getestet | Buchungsstatus, Zahlung, Vorbereitung, Aufgaben und Gaestebereich noch staerker miteinander koppeln | MVP-kritisch | Teilweise |
 | Aufgaben automatisch bei Buchungsstatus | Aufgaben manuell vorhanden, einige Vorbereitungschecks sichtbar | Automatische Aufgaben bei Reserviert/Bezahlt/Vor Anreise/Aktiv/Abgeschlossen | MVP-kritisch | Offen |
 | Audit-Log | Kommunikationshistorie vorhanden, kein vollstaendiger Aenderungsverlauf | Wer hat Status, Buchung, Paket, Unterkunft, Erlebnis geaendert? | MVP-light | Offen |
@@ -152,6 +152,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 2. Unterkunftsverwaltung erweitern: Medien, Rechte, Regeln, Check-in, Ausstattung.
    - Stand 2026-06-05: Objektprofile erweitert; Build, Smoke-Test und End-to-End-Test mit temporaerem Testobjekt bestanden.
 3. Erlebnisbausteine erweitern: Anbieter, Preis, Kapazitaet, Verfuegbarkeit.
+   - Stand 2026-06-05: Erlebnis-Drawer und Erlebniskarten erweitert; Build, Smoke-Test und Speichern/Ruecksetzen-Test bestanden.
 4. Monitoring fehlender Pflichtdaten bauen.
 5. Automatische Aufgaben bei Buchungsstatus einfuehren.
 
@@ -188,7 +189,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 - [x] Testdaten werden markiert und aus KPIs ausgeschlossen.
 - [x] Neue Auszeit komplett im Admin anlegen.
 - [x] Unterkunft mit Medien, Regeln, Check-in und Rechten im Admin pflegen.
-- [ ] Erlebnis mit Anbieter, Preis/Kapazitaet/Verfuegbarkeit im Admin pflegen.
+- [x] Erlebnis mit Anbieter, Preis/Kapazitaet/Verfuegbarkeit im Admin pflegen.
 - [ ] Buchung erzeugt automatische Aufgaben.
 - [ ] Gaestebereich zeigt Anreise, Schluessel und Regeln aus Admin-Daten.
 - [ ] Supportnachricht aus Gaestebereich landet als Admin-Thema.
@@ -200,14 +201,13 @@ Diese Punkte bleiben bewusst nachgelagert:
 
 ## Naechster Konkreter Schritt
 
-Weiter mit Sprint 1, Punkt 3:
+Weiter mit Sprint 1, Punkt 4:
 
-`Erlebnisbausteine erweitern`
+`Monitoring fehlender Pflichtdaten bauen`
 
 Definition of Done:
 
-- Admin kann Erlebnisbausteine mit Anbieter verbinden.
-- Preis, Kapazitaet und Verfuegbarkeit sind pro Baustein pflegbar.
-- Enthalten/optional/Empfehlung und Bestätigungsstatus sind klar.
-- Speicherung laeuft ueber Supabase.
-- Fehlende Pflichtfelder werden im Admin sichtbar.
+- Zentrale Liste zeigt fehlende Pflichtdaten pro Auszeit, Unterkunft, Erlebnis und Buchung.
+- Admin kann direkt aus der Liste in den passenden Datensatz springen.
+- Testdaten werden kenntlich gemacht oder ausgeschlossen.
+- Liste hilft beim taeglichen Start: Was blockiert den naechsten zahlenden Gast?
