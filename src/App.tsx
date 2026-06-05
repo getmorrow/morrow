@@ -594,6 +594,19 @@ const bookingPayloadFromLead = (lead: GuestLead, packageItem?: MorrowPackage | n
   createdAt: lead.createdAt,
 })
 
+const normalizeDateLabel = (value: string) => value
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .replace(/[–—]/g, '-')
+  .replace(/[.\s]+/g, '')
+
+const packageIncludesDate = (packageItem: MorrowPackage | undefined, selectedDate: string) => {
+  if (!packageItem || !selectedDate) return false
+  const normalizedSelectedDate = normalizeDateLabel(selectedDate)
+  return packageItem.dates.some((date) => normalizeDateLabel(date) === normalizedSelectedDate)
+}
+
 const normalizeStoredCustomer = (customer: CustomerProfile, leads: StoredLead[]): CustomerProfile => {
   const matchingRequests = leads
     .filter((lead): lead is GuestLead => (
@@ -697,6 +710,8 @@ const bookingGuestPreparationItems = ({
 }: Pick<BookingProfile, 'paymentStatus' | 'selectedDate' | 'checkInStatus' | 'experienceStatus' | 'packageItem'>): GuestPreparationItem[] => {
   const includedExperiences = packageItem?.experienceItems.filter((experience) => experience.role === 'included') ?? []
   const confirmedIncludedExperiences = includedExperiences.filter((experience) => experience.confirmationStatus === 'confirmed')
+  const dateMatchesPackage = packageIncludesDate(packageItem, selectedDate)
+  const experienceConfirmed = experienceStatus === 'bestätigt'
 
   return [
     {
@@ -716,8 +731,8 @@ const bookingGuestPreparationItems = ({
     {
       id: 'date',
       label: 'Termin passt zur Auszeit',
-      detail: packageItem?.dates.includes(selectedDate) ? selectedDate : 'Termin prüfen oder in der Auszeit ergänzen.',
-      done: Boolean(packageItem?.dates.includes(selectedDate)),
+      detail: dateMatchesPackage ? selectedDate : 'Termin prüfen oder in der Auszeit ergänzen.',
+      done: dateMatchesPackage,
       taskTitle: 'Termin in Auszeit prüfen',
     },
     {
@@ -730,8 +745,14 @@ const bookingGuestPreparationItems = ({
     {
       id: 'experience',
       label: 'Erlebnis bestätigt',
-      detail: confirmedIncludedExperiences.length > 0 ? confirmedIncludedExperiences.map((experience) => experience.title).join(', ') : 'Mindestens ein enthaltenes Erlebnis muss bestätigt sein.',
-      done: experienceStatus === 'bestätigt' && confirmedIncludedExperiences.length > 0,
+      detail: experienceConfirmed
+        ? confirmedIncludedExperiences.length > 0
+          ? confirmedIncludedExperiences.map((experience) => experience.title).join(', ')
+          : includedExperiences.length > 0
+            ? includedExperiences.map((experience) => experience.title).join(', ')
+            : 'In der Buchung bestätigt.'
+        : 'Mindestens ein enthaltenes Erlebnis muss bestätigt sein.',
+      done: experienceConfirmed,
       taskTitle: 'Erlebnis für Buchung bestätigen',
     },
     {
