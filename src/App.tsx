@@ -401,16 +401,29 @@ type OwnerPropertyStatus = 'lead' | 'in-review' | 'active' | 'paused'
 type OwnerPropertyProfile = {
   id: string
   name: string
+  description: string
   ownerName: string
   email: string
   phone: string
   location: string
   propertyType: string
   sleeps: number
+  bedrooms: number
+  bathrooms: number
   status: OwnerPropertyStatus
   currentRental: OwnerLead['currentRental']
   checkInType: Stay['checkInType']
+  earliestArrival: string
   latestArrival: string
+  checkOutTime: string
+  keySafeCode: string
+  checkInInstructions: string
+  amenities: string[]
+  houseRules: string[]
+  media: string[]
+  imageRightsConfirmed: boolean
+  propertySupportType: Stay['propertySupportType']
+  propertySupportName: string
   notes: string
 }
 type AgencyStatus = 'lead' | 'active' | 'paused'
@@ -1129,31 +1142,57 @@ const initialOwnerProperties: OwnerPropertyProfile[] = [
   {
     id: 'nordlicht-lodge',
     name: 'Nordlicht Lodge',
+    description: 'Helle, ruhige Familienunterkunft mit kurzen Wegen, Platz fuer gemeinsame Mahlzeiten und einem entspannten Rueckzugsort nach Strand- und Wattmomenten.',
     ownerName: 'Clara Jensen',
     email: 'clara.jensen@example.com',
     phone: '+49 170 2222222',
     location: 'Sankt Peter-Ording',
     propertyType: 'Ferienhaus',
     sleeps: 4,
+    bedrooms: 2,
+    bathrooms: 1,
     status: 'active',
     currentRental: 'agency',
     checkInType: 'agency_pickup',
+    earliestArrival: '16:00',
     latestArrival: '18:00',
+    checkOutTime: '10:00',
+    keySafeCode: '',
+    checkInInstructions: 'Schlüsselabholung bei der Partneragentur. Genaue Adresse und Hinweise nach Buchungsbestätigung bereitstellen.',
+    amenities: ['2 Schlafzimmer', 'Wohnbereich', 'Küche', 'Terrasse', 'familienfreundlich', 'WLAN'],
+    houseRules: ['Nichtraucherobjekt', 'Ruhezeiten beachten', 'Haustiere nur nach Bestätigung'],
+    media: ['/images/family-stay-living-room.png', '/images/family-stay-bedroom.png', '/images/family-stay-dining.png'],
+    imageRightsConfirmed: true,
+    propertySupportType: 'agency',
+    propertySupportName: 'Partneragentur SPO',
     notes: 'Startobjekt für Family Escape. Bild- und Textrechte liegen vor.',
   },
   {
     id: 'duenenruhe-suite',
     name: 'Dünenruhe Suite',
+    description: 'Ruhiges Apartment fuer zwei Personen, nah an Bad und Strandmomenten, mit genug Raum fuer Rueckzug, Kaffee am Morgen und langsame Abende.',
     ownerName: 'Mika Hansen',
     email: 'mika.hansen@example.com',
     phone: '+49 171 3333333',
     location: 'Sankt Peter-Ording Bad',
     propertyType: 'Apartment',
     sleeps: 2,
+    bedrooms: 1,
+    bathrooms: 1,
     status: 'active',
     currentRental: 'agency',
     checkInType: 'key_safe',
+    earliestArrival: '15:00',
     latestArrival: '22:00',
+    checkOutTime: '10:00',
+    keySafeCode: 'nach Buchung eintragen',
+    checkInInstructions: 'Schlüsselsafe am Objekt. Code erst nach verbindlicher Buchung im Gästebereich freigeben.',
+    amenities: ['1 Schlafzimmer', 'ruhiger Wohnbereich', 'Küche', 'WLAN', 'Dinner-nahe Lage'],
+    houseRules: ['Nichtraucherobjekt', 'Rücksicht auf Nachbarn', 'Hund nur nach Bestätigung'],
+    media: ['/images/couple-stay-bedroom.png', '/images/couple-stay-living.png', '/images/couple-stay-detail.png'],
+    imageRightsConfirmed: true,
+    propertySupportType: 'agency',
+    propertySupportName: 'Partneragentur SPO',
     notes: 'Startobjekt für Couple Reset. Schlüssel per Safe möglich.',
   },
 ]
@@ -1201,16 +1240,29 @@ const normalizeExperienceProvider = (provider: Partial<ExperienceProviderProfile
 const normalizeOwnerProperty = (property: Partial<OwnerPropertyProfile>, fallback?: OwnerPropertyProfile): OwnerPropertyProfile => ({
   id: property.id || fallback?.id || `property-${crypto.randomUUID()}`,
   name: property.name || fallback?.name || 'Objekt',
+  description: property.description || fallback?.description || '',
   ownerName: property.ownerName || fallback?.ownerName || '',
   email: property.email || fallback?.email || '',
   phone: property.phone || fallback?.phone || '',
   location: property.location || fallback?.location || 'Sankt Peter-Ording',
   propertyType: property.propertyType || fallback?.propertyType || 'Objekt',
   sleeps: typeof property.sleeps === 'number' ? property.sleeps : fallback?.sleeps ?? 2,
+  bedrooms: typeof property.bedrooms === 'number' ? property.bedrooms : fallback?.bedrooms ?? 1,
+  bathrooms: typeof property.bathrooms === 'number' ? property.bathrooms : fallback?.bathrooms ?? 1,
   status: property.status || fallback?.status || 'lead',
   currentRental: property.currentRental || fallback?.currentRental || 'agency',
   checkInType: property.checkInType || fallback?.checkInType || 'unknown',
+  earliestArrival: property.earliestArrival || fallback?.earliestArrival || '',
   latestArrival: property.latestArrival || fallback?.latestArrival || '',
+  checkOutTime: property.checkOutTime || fallback?.checkOutTime || '',
+  keySafeCode: property.keySafeCode || fallback?.keySafeCode || '',
+  checkInInstructions: property.checkInInstructions || fallback?.checkInInstructions || '',
+  amenities: Array.isArray(property.amenities) ? property.amenities : fallback?.amenities ?? [],
+  houseRules: Array.isArray(property.houseRules) ? property.houseRules : fallback?.houseRules ?? [],
+  media: Array.isArray(property.media) ? property.media : fallback?.media ?? [],
+  imageRightsConfirmed: typeof property.imageRightsConfirmed === 'boolean' ? property.imageRightsConfirmed : fallback?.imageRightsConfirmed ?? false,
+  propertySupportType: property.propertySupportType || fallback?.propertySupportType || propertySupportTypeFromRental(property.currentRental || fallback?.currentRental || 'agency'),
+  propertySupportName: property.propertySupportName || fallback?.propertySupportName || '',
   notes: property.notes || fallback?.notes || '',
 })
 
@@ -1516,6 +1568,16 @@ const currentRentalLabel = (currentRental: OwnerLead['currentRental']) => {
 const propertySupportTypeFromRental = (currentRental: OwnerLead['currentRental']): Stay['propertySupportType'] => (
   currentRental === 'agency' ? 'agency' : 'morrow'
 )
+
+const propertySupportLabel = (supportType: Stay['propertySupportType']) => {
+  const labels: Record<Stay['propertySupportType'], string> = {
+    morrow: 'Morrow',
+    agency: 'Partneragentur',
+    hotel: 'Hotel / Gastgeber',
+  }
+
+  return labels[supportType]
+}
 
 const taskPriorityLabel = (priority: AdminTaskPriority) => {
   const labels: Record<AdminTaskPriority, string> = {
@@ -4787,16 +4849,29 @@ function AdminPage({
     const nextProperty: OwnerPropertyProfile = {
       id,
       name: 'Neues Objekt',
+      description: '',
       ownerName: '',
       email: '',
       phone: '',
       location: 'Sankt Peter-Ording',
       propertyType: 'Objekttyp ergänzen',
       sleeps: 2,
+      bedrooms: 1,
+      bathrooms: 1,
       status: 'lead',
       currentRental: 'agency',
       checkInType: 'unknown',
+      earliestArrival: '',
       latestArrival: '',
+      checkOutTime: '',
+      keySafeCode: '',
+      checkInInstructions: '',
+      amenities: [],
+      houseRules: [],
+      media: [],
+      imageRightsConfirmed: false,
+      propertySupportType: 'agency',
+      propertySupportName: '',
       notes: 'Objektprofil ergänzen und Passung zu Auszeiten prüfen.',
     }
 
@@ -4825,16 +4900,29 @@ function AdminPage({
     const nextProperty: OwnerPropertyProfile = {
       id,
       name: `${lead.propertyType || 'Objekt'} ${lead.propertyLocation ? `· ${lead.propertyLocation}` : ''}`.trim(),
+      description: '',
       ownerName: lead.name,
       email: lead.email,
       phone: lead.phone,
       location: lead.propertyLocation || 'Sankt Peter-Ording',
       propertyType: lead.propertyType || 'Objekttyp ergänzen',
       sleeps: Number.isNaN(sleeps) ? 2 : sleeps,
+      bedrooms: 1,
+      bathrooms: 1,
       status: 'in-review',
       currentRental: lead.currentRental,
       checkInType: 'unknown',
+      earliestArrival: '',
       latestArrival: '',
+      checkOutTime: '',
+      keySafeCode: '',
+      checkInInstructions: '',
+      amenities: [],
+      houseRules: [],
+      media: [],
+      imageRightsConfirmed: false,
+      propertySupportType: propertySupportTypeFromRental(lead.currentRental),
+      propertySupportName: '',
       notes: [
         'Aus Eigentümeranfrage angelegt.',
         lead.listingUrl ? `Inserat: ${lead.listingUrl}` : '',
@@ -6607,11 +6695,12 @@ function AdminPage({
         {items.slice(0, 3).map((property) => {
           const packageCount = linkedPackageCount(property.id)
           const agency = agencyForProperty(property.id)
+          const dataReady = property.imageRightsConfirmed && property.media.length > 0 && property.checkInType !== 'unknown'
 
           return (
             <button key={property.id} type="button" onClick={() => setSelectedOwnerPropertyId(property.id)}>
               <strong>{property.name}</strong>
-              <span>{ownerPropertyStatusLabel(property.status)} · {packageCount} Auszeiten · {agency?.name ?? 'direkt / offen'}</span>
+              <span>{ownerPropertyStatusLabel(property.status)} · {packageCount} Auszeiten · {dataReady ? 'Stammdaten bereit' : 'Daten offen'} · {agency?.name ?? 'direkt / offen'}</span>
             </button>
           )
         })}
@@ -7092,6 +7181,9 @@ function AdminPage({
           {filteredOwnerProperties.map((property) => {
             const agency = agencyForProperty(property.id)
             const packageCount = linkedPackageCount(property.id)
+            const mediaReady = property.imageRightsConfirmed && property.media.length > 0
+            const opsReady = property.checkInType !== 'unknown' && property.earliestArrival && property.latestArrival && property.checkOutTime
+            const rulesReady = property.amenities.length >= 3 && property.houseRules.length >= 2
 
             return (
             <article key={property.id} className="admin-provider-card">
@@ -7113,12 +7205,19 @@ function AdminPage({
                 <span>
                   <strong>Check-in</strong>{checkInTypeLabel(property.checkInType)}
                 </span>
+                <span className={mediaReady ? 'is-ready' : 'is-open'}>
+                  <strong>Medien</strong>{mediaReady ? `${property.media.length} Bilder` : 'offen'}
+                </span>
+                <span className={rulesReady ? 'is-ready' : 'is-open'}>
+                  <strong>Regeln</strong>{rulesReady ? 'gepflegt' : 'offen'}
+                </span>
               </div>
               <div className="admin-experience-card-facts">
                 <span><strong>Eigentümer</strong>{property.ownerName}</span>
-                <span><strong>Schlafplätze</strong>{property.sleeps} Personen</span>
-                <span><strong>Anreise bis</strong>{property.latestArrival}</span>
+                <span><strong>Kapazität</strong>{property.sleeps} Pers. · {property.bedrooms} SZ · {property.bathrooms} Bad</span>
+                <span><strong>Anreise</strong>{opsReady ? `${property.earliestArrival}-${property.latestArrival}` : 'offen'} · Check-out {property.checkOutTime || 'offen'}</span>
                 <span><strong>Vermietung</strong>{currentRentalLabel(property.currentRental)}</span>
+                <span><strong>Support</strong>{property.propertySupportName || propertySupportLabel(property.propertySupportType)}</span>
               </div>
               <div className="admin-contact-links">
                 <a href={`mailto:${property.email}`}>{property.email}</a>
@@ -9594,14 +9693,22 @@ function PackageDetailDrawer({
       ...current,
       propertyId,
       stayName: property.name,
-      stayDescription: property.notes || current.stayDescription,
+      stayDescription: property.description || property.notes || current.stayDescription,
       stayLocationNote: property.location,
-      stayFeatures: [property.propertyType, `${property.sleeps} Schlafplätze`].filter(Boolean).join('\n'),
+      stayFeatures: property.amenities.length > 0
+        ? property.amenities.join('\n')
+        : [property.propertyType, `${property.sleeps} Schlafplätze`].filter(Boolean).join('\n'),
+      imageRightsConfirmed: property.imageRightsConfirmed,
       sleeps: String(property.sleeps),
+      bedrooms: String(property.bedrooms),
+      bathrooms: String(property.bathrooms),
+      earliestArrival: property.earliestArrival,
       latestArrival: property.latestArrival,
+      checkOutTime: property.checkOutTime,
       checkInType: property.checkInType,
-      propertySupportType: propertySupportTypeFromRental(property.currentRental),
-      propertySupportName: property.currentRental === 'agency' ? 'die Partneragentur' : '',
+      propertySupportType: property.propertySupportType,
+      propertySupportName: property.propertySupportName || (property.currentRental === 'agency' ? 'die Partneragentur' : ''),
+      stayImages: property.media.length > 0 ? property.media.join('\n') : current.stayImages,
     }))
   }
   const applyProviderToExperience = (experienceId: string, providerId: string) => {
@@ -10321,16 +10428,29 @@ function OwnerPropertyDrawer({
 }) {
   const [draft, setDraft] = useState({
     name: '',
+    description: '',
     ownerName: '',
     email: '',
     phone: '',
     location: '',
     propertyType: '',
     sleeps: '',
+    bedrooms: '',
+    bathrooms: '',
     status: 'lead' as OwnerPropertyStatus,
     currentRental: 'agency' as OwnerLead['currentRental'],
     checkInType: 'unknown' as Stay['checkInType'],
+    earliestArrival: '',
     latestArrival: '',
+    checkOutTime: '',
+    keySafeCode: '',
+    checkInInstructions: '',
+    amenities: '',
+    houseRules: '',
+    media: '',
+    imageRightsConfirmed: 'no',
+    propertySupportType: 'agency' as Stay['propertySupportType'],
+    propertySupportName: '',
     notes: '',
   })
 
@@ -10338,16 +10458,29 @@ function OwnerPropertyDrawer({
     if (!property) return
     setDraft({
       name: property.name,
+      description: property.description,
       ownerName: property.ownerName,
       email: property.email,
       phone: property.phone,
       location: property.location,
       propertyType: property.propertyType,
       sleeps: String(property.sleeps),
+      bedrooms: String(property.bedrooms),
+      bathrooms: String(property.bathrooms),
       status: property.status,
       currentRental: property.currentRental,
       checkInType: property.checkInType,
+      earliestArrival: property.earliestArrival,
       latestArrival: property.latestArrival,
+      checkOutTime: property.checkOutTime,
+      keySafeCode: property.keySafeCode,
+      checkInInstructions: property.checkInInstructions,
+      amenities: property.amenities.join('\n'),
+      houseRules: property.houseRules.join('\n'),
+      media: property.media.join('\n'),
+      imageRightsConfirmed: property.imageRightsConfirmed ? 'yes' : 'no',
+      propertySupportType: property.propertySupportType,
+      propertySupportName: property.propertySupportName,
       notes: property.notes,
     })
   }, [property])
@@ -10357,14 +10490,58 @@ function OwnerPropertyDrawer({
   const updateDraft = (key: keyof typeof draft, value: string) => {
     setDraft((current) => ({ ...current, [key]: value }))
   }
+  const splitLines = (value: string) => value.split('\n').map((line) => line.trim()).filter(Boolean)
+  const propertyIssues = () => {
+    const issues: string[] = []
+    if (!draft.name.trim()) issues.push('Objektname fehlt')
+    if (!draft.location.trim()) issues.push('Ort fehlt')
+    if (!draft.propertyType.trim()) issues.push('Objekttyp fehlt')
+    if (!draft.ownerName.trim() || !draft.email.trim()) issues.push('Eigentümerkontakt unvollständig')
+    if (!draft.description.trim()) issues.push('Beschreibung fehlt')
+    if (!draft.checkInType || draft.checkInType === 'unknown') issues.push('Schlüsselübergabe offen')
+    if (!draft.earliestArrival.trim() || !draft.latestArrival.trim() || !draft.checkOutTime.trim()) issues.push('Anreise/Abreise unvollständig')
+    if (!draft.checkInInstructions.trim()) issues.push('Check-in-Hinweise fehlen')
+    if (splitLines(draft.amenities).length < 3) issues.push('Ausstattung ergänzen')
+    if (splitLines(draft.houseRules).length < 2) issues.push('Regeln ergänzen')
+    if (splitLines(draft.media).length === 0) issues.push('Medien fehlen')
+    if (draft.imageRightsConfirmed !== 'yes') issues.push('Bildrechte offen')
+    if (!draft.propertySupportName.trim()) issues.push('Support-Zuständigkeit benennen')
+    return issues
+  }
   const save = () => {
     const sleeps = Number.parseInt(draft.sleeps, 10)
+    const bedrooms = Number.parseInt(draft.bedrooms, 10)
+    const bathrooms = Number.parseInt(draft.bathrooms, 10)
     onUpdateProperty(property.id, {
-      ...draft,
+      name: draft.name,
+      description: draft.description,
+      ownerName: draft.ownerName,
+      email: draft.email,
+      phone: draft.phone,
+      location: draft.location,
+      propertyType: draft.propertyType,
       sleeps: Number.isNaN(sleeps) ? property.sleeps : sleeps,
+      bedrooms: Number.isNaN(bedrooms) ? property.bedrooms : bedrooms,
+      bathrooms: Number.isNaN(bathrooms) ? property.bathrooms : bathrooms,
+      status: draft.status,
+      currentRental: draft.currentRental,
+      checkInType: draft.checkInType,
+      earliestArrival: draft.earliestArrival,
+      latestArrival: draft.latestArrival,
+      checkOutTime: draft.checkOutTime,
+      keySafeCode: draft.keySafeCode,
+      checkInInstructions: draft.checkInInstructions,
+      amenities: splitLines(draft.amenities),
+      houseRules: splitLines(draft.houseRules),
+      media: splitLines(draft.media),
+      imageRightsConfirmed: draft.imageRightsConfirmed === 'yes',
+      propertySupportType: draft.propertySupportType,
+      propertySupportName: draft.propertySupportName,
+      notes: draft.notes,
     })
     onClose()
   }
+  const issues = propertyIssues()
 
   return (
     <aside className="admin-drawer-shell" aria-label="Eigentümerobjekt bearbeiten">
@@ -10380,6 +10557,15 @@ function OwnerPropertyDrawer({
         </header>
 
         <div className="admin-drawer-body">
+          <section className="admin-drawer-section" aria-label="Objektprüfung">
+            <h3>Bereit für Auszeiten</h3>
+            <div className="admin-review-issues">
+              {issues.length === 0
+                ? <span>Alle Pflichtfelder gepflegt</span>
+                : issues.map((issue) => <span key={issue}>{issue}</span>)}
+            </div>
+          </section>
+
           <section className="admin-drawer-form" aria-label="Objektprofil bearbeiten">
             <h3>Objektprofil</h3>
             <label>Objektname
@@ -10411,6 +10597,12 @@ function OwnerPropertyDrawer({
             <label>Schlafplätze
               <input inputMode="numeric" value={draft.sleeps} onChange={(event) => updateDraft('sleeps', event.target.value)} />
             </label>
+            <label>Schlafzimmer
+              <input inputMode="numeric" value={draft.bedrooms} onChange={(event) => updateDraft('bedrooms', event.target.value)} />
+            </label>
+            <label>Badezimmer
+              <input inputMode="numeric" value={draft.bathrooms} onChange={(event) => updateDraft('bathrooms', event.target.value)} />
+            </label>
             <label>Aktuelle Vermietung
               <select value={draft.currentRental} onChange={(event) => updateDraft('currentRental', event.target.value)}>
                 <option value="self">Selbst</option>
@@ -10428,8 +10620,48 @@ function OwnerPropertyDrawer({
                 <option value="unknown">Noch offen</option>
               </select>
             </label>
+            <label>Anreise möglich ab
+              <input value={draft.earliestArrival} onChange={(event) => updateDraft('earliestArrival', event.target.value)} />
+            </label>
             <label>Anreise möglich bis
               <input value={draft.latestArrival} onChange={(event) => updateDraft('latestArrival', event.target.value)} />
+            </label>
+            <label>Check-out
+              <input value={draft.checkOutTime} onChange={(event) => updateDraft('checkOutTime', event.target.value)} />
+            </label>
+            <label>Support bei Objektfragen
+              <select value={draft.propertySupportType} onChange={(event) => updateDraft('propertySupportType', event.target.value)}>
+                <option value="morrow">Morrow</option>
+                <option value="agency">Partneragentur</option>
+                <option value="hotel">Hotel / Gastgeber</option>
+              </select>
+            </label>
+            <label>Name Support
+              <input value={draft.propertySupportName} onChange={(event) => updateDraft('propertySupportName', event.target.value)} />
+            </label>
+            <label>Bildrechte bestätigt
+              <select value={draft.imageRightsConfirmed} onChange={(event) => updateDraft('imageRightsConfirmed', event.target.value)}>
+                <option value="yes">Ja</option>
+                <option value="no">Nein</option>
+              </select>
+            </label>
+            <label>Beschreibung
+              <textarea rows={4} value={draft.description} onChange={(event) => updateDraft('description', event.target.value)} />
+            </label>
+            <label>Check-in-Hinweise
+              <textarea rows={4} value={draft.checkInInstructions} onChange={(event) => updateDraft('checkInInstructions', event.target.value)} />
+            </label>
+            <label>Schlüsselcode / Smartlock
+              <input value={draft.keySafeCode} onChange={(event) => updateDraft('keySafeCode', event.target.value)} placeholder="Nur intern bzw. erst nach Buchung anzeigen" />
+            </label>
+            <label>Ausstattung
+              <textarea rows={5} value={draft.amenities} onChange={(event) => updateDraft('amenities', event.target.value)} placeholder="Ein Merkmal pro Zeile" />
+            </label>
+            <label>Hausregeln
+              <textarea rows={5} value={draft.houseRules} onChange={(event) => updateDraft('houseRules', event.target.value)} placeholder="Eine Regel pro Zeile" />
+            </label>
+            <label>Medien
+              <textarea rows={5} value={draft.media} onChange={(event) => updateDraft('media', event.target.value)} placeholder="Ein Bildpfad oder eine URL pro Zeile" />
             </label>
             <label>Interne Notiz
               <textarea rows={5} value={draft.notes} onChange={(event) => updateDraft('notes', event.target.value)} />

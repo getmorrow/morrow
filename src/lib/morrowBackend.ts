@@ -624,9 +624,13 @@ export async function upsertStoredOwnerProperty<T extends StoredEntity>(property
       location: typeof payload.location === 'string' ? payload.location : '',
       sleeps: typeof payload.sleeps === 'number' ? payload.sleeps : null,
       check_in_type: typeof payload.checkInType === 'string' ? payload.checkInType : null,
-      support_type: typeof payload.currentRental === 'string' ? payload.currentRental : null,
-      support_name: typeof payload.ownerName === 'string' ? payload.ownerName : null,
-      image_rights_confirmed: false,
+      support_type: typeof payload.propertySupportType === 'string'
+        ? payload.propertySupportType
+        : typeof payload.currentRental === 'string' ? payload.currentRental : null,
+      support_name: typeof payload.propertySupportName === 'string' && payload.propertySupportName
+        ? payload.propertySupportName
+        : typeof payload.ownerName === 'string' ? payload.ownerName : null,
+      image_rights_confirmed: typeof payload.imageRightsConfirmed === 'boolean' ? payload.imageRightsConfirmed : false,
       status: typeof payload.status === 'string' ? payload.status : 'lead',
       payload: property,
       updated_at: new Date().toISOString(),

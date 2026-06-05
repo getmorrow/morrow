@@ -43,7 +43,7 @@ Ziel: Intern muss Morrow eine Auszeit wirklich anlegen, pflegen, buchen und vorb
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
 | Paket-Builder fuer neue Auszeiten | Admin-Auszeiten existieren, Supabase-Sync vorhanden, Builder fuer Titel, Copy, Termine, Preise, Zielgruppe, Unterkunft, Medien, Erlebnisbausteine, Empfehlungen, Momente, FAQ und Status ist umgesetzt und end-to-end getestet | Builder spaeter mit Medienbibliothek und stärkerer Normalisierung weiter ausbauen | MVP-kritisch | Erledigt fuer MVP |
-| Unterkunftsverwaltung | Objektprofile, Agenturen, Check-in-Typ, Support-Typ, Anreisezeit, Basisdaten vorhanden | Medien, Bildrechte, Ausstattung, Hausregeln, Unterkunftsregeln, Schluesselinfos, Check-in/Check-out voll pflegbar | MVP-kritisch | Teilweise |
+| Unterkunftsverwaltung | Objektprofile, Agenturen, Check-in-Typ, Support-Typ, Anreise/Abreise, Medien, Bildrechte, Ausstattung, Hausregeln, Schluesselinfos und Objekt-Support sind pflegbar und end-to-end getestet | Medienbibliothek, Alt-Texte und staerkere Normalisierung spaeter ausbauen | MVP-kritisch | Erledigt fuer MVP |
 | Medienverwaltung | Bilder liegen als Assets/URLs, keine echte Medienbibliothek | Pro Unterkunft und Auszeit Medien mit Rechten, Alt-Text, Reihenfolge | MVP-kritisch | Offen |
 | Erlebnisbausteine | Erlebnisanbieter und Erlebnisbausteine existieren, Supabase-Sync vorhanden | Preis, Kapazitaet, Verfuegbarkeit, Anbieter, Status, inkludiert/optional sauber pflegen | MVP-kritisch | Teilweise |
 | Buchungen | Kunden/Buchungen in Supabase, Statuslogik, Gaestebereich-Code getestet | Buchungsstatus, Zahlung, Vorbereitung, Aufgaben und Gaestebereich noch staerker miteinander koppeln | MVP-kritisch | Teilweise |
@@ -150,6 +150,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 1. Paket-Builder fertigstellen.
    - Stand 2026-06-05: Builder-Oberflaeche erweitert; Build, Smoke-Test und End-to-End-Test mit temporaerer Test-Auszeit bestanden.
 2. Unterkunftsverwaltung erweitern: Medien, Rechte, Regeln, Check-in, Ausstattung.
+   - Stand 2026-06-05: Objektprofile erweitert; Build, Smoke-Test und End-to-End-Test mit temporaerem Testobjekt bestanden.
 3. Erlebnisbausteine erweitern: Anbieter, Preis, Kapazitaet, Verfuegbarkeit.
 4. Monitoring fehlender Pflichtdaten bauen.
 5. Automatische Aufgaben bei Buchungsstatus einfuehren.
@@ -186,7 +187,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 - [x] Gaestebereich mit Access-Code getestet.
 - [x] Testdaten werden markiert und aus KPIs ausgeschlossen.
 - [x] Neue Auszeit komplett im Admin anlegen.
-- [ ] Unterkunft mit Medien, Regeln, Check-in und Rechten im Admin pflegen.
+- [x] Unterkunft mit Medien, Regeln, Check-in und Rechten im Admin pflegen.
 - [ ] Erlebnis mit Anbieter, Preis/Kapazitaet/Verfuegbarkeit im Admin pflegen.
 - [ ] Buchung erzeugt automatische Aufgaben.
 - [ ] Gaestebereich zeigt Anreise, Schluessel und Regeln aus Admin-Daten.
@@ -199,15 +200,14 @@ Diese Punkte bleiben bewusst nachgelagert:
 
 ## Naechster Konkreter Schritt
 
-Start mit Sprint 1, Punkt 1:
+Weiter mit Sprint 1, Punkt 3:
 
-`Paket-Builder fertigstellen`
+`Erlebnisbausteine erweitern`
 
 Definition of Done:
 
-- Admin kann eine neue Auszeit erstellen.
-- Admin kann bestehende Auszeit bearbeiten.
-- Termine, Preis, Zielgruppe, Unterkunft, Erlebnisbausteine, Empfehlungen, Status sind editierbar.
+- Admin kann Erlebnisbausteine mit Anbieter verbinden.
+- Preis, Kapazitaet und Verfuegbarkeit sind pro Baustein pflegbar.
+- Enthalten/optional/Empfehlung und Bestätigungsstatus sind klar.
 - Speicherung laeuft ueber Supabase.
-- Oeffentliche Auszeitseite rendert aus diesen Daten.
 - Fehlende Pflichtfelder werden im Admin sichtbar.
