@@ -460,7 +460,7 @@ type BookingProfile = {
   experienceStatus?: GuestLead['experienceStatus']
 }
 type GuestStayAccessPayload = {
-  booking?: GuestLead
+  booking?: unknown
   package?: MorrowPackage
 }
 type GuestPreparationItem = {
@@ -568,11 +568,13 @@ const customerPayloadFromLead = (lead: GuestLead): CustomerProfile => ({
 
 const bookingPayloadFromLead = (lead: GuestLead, packageItem?: MorrowPackage | null) => ({
   id: lead.id,
+  type: 'guest',
   leadId: lead.id,
   customerId: lead.id,
   packageId: packageItem?.id ?? lead.packageSlug,
   packageSlug: lead.packageSlug,
   packageName: lead.packageName,
+  name: lead.name,
   customerName: lead.name,
   email: lead.email,
   phone: lead.phone,
@@ -650,6 +652,40 @@ const normalizeStoredBooking = (
     checkInStatus: booking.checkInStatus ?? linkedLead?.checkInStatus,
     experienceStatus: booking.experienceStatus ?? linkedLead?.experienceStatus,
   }
+}
+
+const normalizeGuestStayAccessBooking = (
+  rawBooking?: unknown,
+): GuestLead | null => {
+  const booking = rawBooking as (Partial<GuestLead> & Partial<BookingProfile>) | null | undefined
+  if (!booking?.id) return null
+  const now = new Date().toISOString()
+  const status = (booking.status ?? 'Bezahlt') as LeadStatus
+
+  return {
+    id: booking.leadId ?? booking.id,
+    type: 'guest',
+    status,
+    name: booking.name ?? booking.customerName ?? 'Gast',
+    email: booking.email ?? '',
+    phone: booking.phone ?? '',
+    packageName: booking.packageName ?? 'Auszeit',
+    packageSlug: booking.packageSlug ?? '',
+    selectedDate: booking.selectedDate ?? '',
+    adults: '',
+    children: '',
+    childAges: '',
+    guests: booking.guests,
+    dog: booking.dog,
+    preferredChannel: 'email',
+    whatsappOptIn: false,
+    source: 'Direkt',
+    checkInStatus: booking.checkInStatus,
+    experienceStatus: booking.experienceStatus,
+    internalNote: booking.internalNote,
+    createdAt: booking.createdAt ?? now,
+    updatedAt: booking.updatedAt ?? now,
+  } as GuestLead
 }
 
 const bookingGuestPreparationItems = ({
@@ -7718,7 +7754,7 @@ function GuestStayPage({
     fetchGuestStayByAccess<GuestStayAccessPayload>(bookingId, accessCode)
       .then((payload) => {
         if (cancelled) return
-        setRemoteLead(payload?.booking ?? null)
+        setRemoteLead(normalizeGuestStayAccessBooking(payload?.booking))
         setRemotePackage(payload?.package ?? null)
       })
       .catch((error) => {
