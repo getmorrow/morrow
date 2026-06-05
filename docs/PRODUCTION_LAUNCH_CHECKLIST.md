@@ -4,12 +4,15 @@ Stand: 2026-06-04
 
 Ziel: Morrow sicher von lokalem MVP zu einer öffentlich erreichbaren Phase-1-Version bringen.
 
+Operativer MVP-Abschlussrahmen: `docs/MORROW_MVP_COMPLETION_PLAN.md`
+
 ## 1. Secrets rotieren
 
 Vor Livegang rotieren, weil Werte im Arbeitschat geteilt wurden:
 - Supabase Personal Access Token
 - Supabase Service Role Key
 - Resend API Key
+- Admin-Passwort fuer `auszeiten@getmorrow.de`, weil es im Arbeitschat geteilt wurde
 
 Danach neu setzen:
 - Supabase Edge Function Secret `RESEND_API_KEY`
@@ -53,6 +56,20 @@ Nicht in Vercel-Frontend setzen:
 - `SUPABASE_SERVICE_ROLE_KEY`
 
 Diese bleiben ausschließlich in Supabase Edge Function Secrets.
+
+## 3a. MVP Completion Vor Erstem Zahlenden Gast
+
+Vor dem ersten zahlenden Gast muessen die MVP-kritischen Punkte aus `docs/MORROW_MVP_COMPLETION_PLAN.md` geprueft werden:
+
+- Paket-Builder fuer neue Auszeiten.
+- Unterkunftsverwaltung mit Medien, Regeln, Check-in, Ausstattung und Bildrechten.
+- Erlebnisbausteine mit Anbieter, Preis, Kapazitaet und Verfuegbarkeit.
+- Gaestebereich zeigt Anreise, Schluessel und Unterkunftsregeln aus Admin-Daten.
+- Support-/Problem-Ticket-Flow landet im Admin.
+- Statusbasierte E-Mails mindestens fuer Anfrage, Reservierung/Bestaetigung und Vor-Anreise.
+- AGB, Buchungsbedingungen, Stornobedingungen und Zahlungsbedingungen final verlinkt.
+- WhatsApp-/Marketing-Einwilligung rechtlich geprueft.
+- Conversion-Tracking fuer Anfragefluss getestet.
 
 ## 4. Domain
 

@@ -2,6 +2,8 @@
 
 Zentrale Orientierung: [docs/MORROW_MASTER_FRAME.md](docs/MORROW_MASTER_FRAME.md)
 
+MVP-Fertigstellung: [docs/MORROW_MVP_COMPLETION_PLAN.md](docs/MORROW_MVP_COMPLETION_PLAN.md)
+
 Vor Produkt-, Design- oder Codeentscheidungen immer zuerst den Master Frame lesen und nach der Umsetzung die Checkliste dort aktualisieren.
 
 ## Aktuelle Welten

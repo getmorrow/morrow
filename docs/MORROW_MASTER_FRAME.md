@@ -13,6 +13,7 @@ Zusatzquellen:
 - `docs/PACKAGE_CONTENT_MODEL.md` definiert, wie Auszeiten spaeter admin-faehig als feste Morrow-Templates mit editierbaren Sections gepflegt werden.
 - `docs/SEO_GEO_KEYWORD_PLAN.md` definiert Keyword-, Suchintention- und GEO-Regeln fuer Ratgeberartikel.
 - `docs/PHASE1_INFORMATION_ARCHITECTURE.md` enthaelt die Seitenstruktur fuer Phase 1.
+- `docs/MORROW_MVP_COMPLETION_PLAN.md` ist die operative Abschlussliste fuer den echten MVP-Start mit ersten zahlenden Gaesten.
 - `docs/PLATFORM_MODEL_PHASE2.md` enthaelt das spaetere Plattformmodell mit Rollen, Modulen, Admin, Partnern und Portalen.
 - `docs/WIREFRAMES_PHASE1.md` enthaelt die strukturellen Wireframes vor UI-Design.
 - `docs/COMPETITOR_ANALYSIS_SPO.md` enthaelt die Konkurrenzanalyse zu Golde SPO und Koch + Co.
@@ -590,15 +591,17 @@ Diese Punkte muessen wir gemeinsam klaeren, bevor die Plattform final gebaut wir
 - [x] Admin V1 mit Leads, Status und Paketliste technisch umgesetzt
 - [x] Admin-Funktionsroadmap fuer Bearbeiten, Deaktivieren, Archivieren und Loeschen dokumentiert
 - [x] Paketdaten als Seed-Daten und austauschbare Datenquelle vorbereitet
-- [ ] Supabase statt `localStorage` vollständig: Leads/Auth/E-Mail/Aufgaben/Auszeiten sind angebunden; Vor-Ort-Daten, Erlebnisanbieter, Agenturen, freie Objektprofile, Kunden und Buchungen als Admin-Quelle sind noch offen.
-- [ ] echte E-Mail-Automation
+- [x] Supabase statt `localStorage` fuer MVP-Kern: Leads/Auth/E-Mail/Aufgaben/Auszeiten/Vor-Ort-Daten/Erlebnisanbieter/Agenturen/Objekte/Kunden/Buchungen sind angebunden; `localStorage` bleibt nur lokale Demo/Fallback.
+- [x] echte E-Mail-Automation fuer Anfrage-Bestaetigung und interne Lead-Mail getestet
 - [ ] vollstaendige Admin-Paketverwaltung statt Seed-Datenpflege im Code
-- [ ] Partner-/Anbieter-Datenbank produktionsnah
+- [x] Partner-/Anbieter-Datenbank produktionsnah als Admin-Grundlage angebunden
+- [ ] MVP Completion Plan abgearbeitet: Paket-Builder, Unterkunftsdetails, Erlebnisdetails, Gaestebereich-Komfort, Kommunikation, Recht und Tracking finalisieren.
 
 ## 9. Arbeitsregeln Fuer Codex
 
 Vor jeder neuen Umsetzung:
 - [ ] Dieses Dokument lesen.
+- [ ] `docs/MORROW_MVP_COMPLETION_PLAN.md` lesen, wenn MVP-Reife, Admin, Gaestebereich, Buchung, Kommunikation oder Launch betroffen sind.
 - [ ] Bei Website-/Funnel-Arbeit `docs/WEB_PRODUCTION_AGENTS.md` anwenden.
 - [ ] Pruefen, welche Produktwelt betroffen ist.
 - [ ] Keine internen Inhalte auf oeffentliche Seiten setzen.
