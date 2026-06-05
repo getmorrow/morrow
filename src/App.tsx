@@ -6775,7 +6775,7 @@ function AdminPage({
               <div className="admin-experience-card-facts">
                 <span><strong>Zahlung</strong>{booking.paymentStatus}</span>
                 <span><strong>Personen</strong>{booking.guests ?? 'Offen'}</span>
-                <span><strong>Nächster Schritt</strong>{booking.followUpAt ? formatFollowUpDate(booking.followUpAt) : 'Offen'}</span>
+                <span><strong>Nächster Schritt</strong>{booking.followUpAt ? formatFollowUpDate(booking.followUpAt) : openItems.length === 0 && supportCount === 0 ? 'Aufenthalt bereit' : 'Offen'}</span>
                 <span><strong>Unterkunft</strong>{booking.packageItem?.stay.name ?? 'Offen'}</span>
                 <span><strong>Check-in</strong>{booking.checkInStatus ?? 'offen'}</span>
                 <span><strong>Erlebnis</strong>{booking.experienceStatus ?? 'offen'}</span>
