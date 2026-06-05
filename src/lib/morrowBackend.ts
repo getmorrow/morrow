@@ -28,6 +28,8 @@ const propertiesTable = 'properties'
 const emailEventsTable = 'email_events'
 const communicationEventsTable = 'communication_events'
 const localPlacesTable = 'local_places'
+const experienceProvidersTable = 'experience_providers'
+const experienceBlocksTable = 'experience_blocks'
 
 export async function fetchStoredLeads<T extends StoredEntity>() {
   if (!isSupabaseConfigured || !supabase) return null
@@ -364,6 +366,35 @@ export async function upsertStoredPackage<T extends StoredEntity>(packageItem: T
     if (datesError) return { ok: false, source: 'supabase', error: datesError.message }
   }
 
+  const experienceItems = Array.isArray(payload.experienceItems)
+    ? payload.experienceItems.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+    : []
+
+  const { error: deleteExperienceBlocksError } = await supabase
+    .from(experienceBlocksTable)
+    .delete()
+    .eq('package_id', packageItem.id)
+
+  if (deleteExperienceBlocksError) return { ok: false, source: 'supabase', error: deleteExperienceBlocksError.message }
+
+  if (experienceItems.length > 0) {
+    const { error: experienceBlocksError } = await supabase
+      .from(experienceBlocksTable)
+      .insert(experienceItems.map((experience) => ({
+        id: typeof experience.id === 'string' ? experience.id : `${packageItem.id}-${crypto.randomUUID()}`,
+        package_id: packageItem.id,
+        provider_id: typeof experience.providerId === 'string' ? experience.providerId : null,
+        title: typeof experience.title === 'string' ? experience.title : 'Erlebnisbaustein',
+        role: typeof experience.role === 'string' ? experience.role : 'planned',
+        included_in_price: typeof experience.includedInPrice === 'boolean' ? experience.includedInPrice : false,
+        confirmation_status: typeof experience.confirmationStatus === 'string' ? experience.confirmationStatus : 'planned',
+        payload: experience,
+        updated_at: new Date().toISOString(),
+      })))
+
+    if (experienceBlocksError) return { ok: false, source: 'supabase', error: experienceBlocksError.message }
+  }
+
   return { ok: true, source: 'supabase' }
 }
 
@@ -448,6 +479,56 @@ export async function deleteStoredLocalPlace(id: string): Promise<BackendSaveRes
 
   const { error } = await supabase
     .from(localPlacesTable)
+    .delete()
+    .eq('id', id)
+
+  if (error) return { ok: false, source: 'supabase', error: error.message }
+  return { ok: true, source: 'supabase' }
+}
+
+export async function fetchStoredExperienceProviders<T extends StoredEntity>() {
+  if (!isSupabaseConfigured || !supabase) return null
+
+  const { data, error } = await supabase
+    .from(experienceProvidersTable)
+    .select('payload')
+    .order('updated_at', { ascending: false })
+
+  if (error) throw error
+
+  return (data ?? [])
+    .map((row) => row.payload)
+    .filter(Boolean) as T[]
+}
+
+export async function upsertStoredExperienceProvider<T extends StoredEntity>(provider: T): Promise<BackendSaveResult> {
+  if (!isSupabaseConfigured || !supabase) return { ok: true, source: 'local' }
+  const payload = provider as Record<string, unknown>
+
+  const { error } = await supabase
+    .from(experienceProvidersTable)
+    .upsert({
+      id: provider.id,
+      name: typeof payload.name === 'string' ? payload.name : 'Erlebnisanbieter',
+      location: typeof payload.location === 'string' ? payload.location : null,
+      category: typeof payload.category === 'string' ? payload.category : null,
+      status: typeof payload.status === 'string' ? payload.status : 'lead',
+      website: typeof payload.website === 'string' ? payload.website : null,
+      email: typeof payload.email === 'string' ? payload.email : null,
+      phone: typeof payload.phone === 'string' ? payload.phone : null,
+      payload: provider,
+      updated_at: new Date().toISOString(),
+    })
+
+  if (error) return { ok: false, source: 'supabase', error: error.message }
+  return { ok: true, source: 'supabase' }
+}
+
+export async function deleteStoredExperienceProvider(id: string): Promise<BackendSaveResult> {
+  if (!isSupabaseConfigured || !supabase) return { ok: true, source: 'local' }
+
+  const { error } = await supabase
+    .from(experienceProvidersTable)
     .delete()
     .eq('id', id)
 

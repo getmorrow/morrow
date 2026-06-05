@@ -87,10 +87,10 @@ Soll-Zustand:
    - Aktuelle Seed-Daten einmalig in Supabase schreiben. Skript vorhanden, Ausführung noch nötig.
    - Guest App aus Supabase lesen lassen. Erledigt im Code, Migration/Seed noch nötig.
 
-2. Erlebnisanbieter und Erlebnisbausteine migrieren.
-   - Anbieterprofile in `experience_providers` speichern.
-   - Erlebnisbausteine in `experience_blocks` speichern.
-   - Pakete verbinden Erlebnisbausteine relational statt nur im Payload.
+2. Erlebnisanbieter und Erlebnisbausteine migrieren. Status: begonnen am 2026-06-05.
+   - Anbieterprofile in `experience_providers` speichern. Erledigt im Code.
+   - Erlebnisbausteine in `experience_blocks` speichern. Erledigt als relationale Spiegelung beim Paket-Sync.
+   - Pakete verbinden Erlebnisbausteine relational statt nur im Payload. Teilweise erledigt; UI nutzt V1 noch Paket-Payload als Arbeitsquelle.
 
 3. Eigentümerobjekte und Agenturen trennen.
    - Eigentümerobjekte als `properties` remote speichern.

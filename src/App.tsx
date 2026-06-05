@@ -25,11 +25,13 @@ import {
   createStoredCommunicationEvent,
   createStoredSupportMessage,
   deleteStoredAdminTask,
+  deleteStoredExperienceProvider,
   deleteStoredLead,
   deleteStoredLocalPlace,
   deleteStoredPackage,
   fetchStoredAdminTasks,
   fetchStoredApprovedLocalPlaces,
+  fetchStoredExperienceProviders,
   fetchAdminProfile,
   fetchStoredCommunicationEvents,
   fetchStoredEmailEvents,
@@ -41,6 +43,7 @@ import {
   updateStoredLead,
   upsertStoredAdminTask,
   upsertStoredBooking,
+  upsertStoredExperienceProvider,
   upsertStoredLead,
   upsertStoredLocalPlace,
   upsertStoredPackage,
@@ -1024,6 +1027,19 @@ const initialExperienceProviders: ExperienceProviderProfile[] = [
     notes: 'Passt zu Couple Reset. Preislogik und verfügbare Slots klären.',
   },
 ]
+
+const normalizeExperienceProvider = (provider: Partial<ExperienceProviderProfile>, fallback?: ExperienceProviderProfile): ExperienceProviderProfile => ({
+  id: provider.id || fallback?.id || `provider-${crypto.randomUUID()}`,
+  name: provider.name || fallback?.name || 'Erlebnisanbieter',
+  contactName: provider.contactName || fallback?.contactName || '',
+  email: provider.email || fallback?.email || '',
+  phone: provider.phone || fallback?.phone || '',
+  location: provider.location || fallback?.location || 'Sankt Peter-Ording',
+  category: provider.category || fallback?.category || 'Erlebnisanbieter',
+  audienceFit: provider.audienceFit || fallback?.audienceFit || 'Beide',
+  status: provider.status || fallback?.status || 'lead',
+  notes: provider.notes || fallback?.notes || '',
+})
 
 const testLeads: StoredLead[] = [
   {
@@ -3935,6 +3951,26 @@ function AdminPage({
       return initialExperienceProviders
     }
   })
+  useEffect(() => {
+    if (authMode !== 'supabase') return
+
+    let cancelled = false
+
+    fetchStoredExperienceProviders<ExperienceProviderProfile>()
+      .then((remoteProviders) => {
+        if (cancelled || !remoteProviders || remoteProviders.length === 0) return
+        const normalizedProviders = remoteProviders.map((provider) => normalizeExperienceProvider(provider))
+        setExperienceProviders(normalizedProviders)
+        localStorage.setItem(adminExperienceProviderStorageKey, JSON.stringify(normalizedProviders))
+      })
+      .catch((error) => {
+        console.warn('Morrow backend experience provider sync failed. Falling back to local providers.', error)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [authMode])
   const [selectedExperienceProviderId, setSelectedExperienceProviderId] = useState<string | null>(null)
   const [ownerProperties, setOwnerProperties] = useState<OwnerPropertyProfile[]>(() => {
     try {
@@ -4239,8 +4275,21 @@ function AdminPage({
     setExperienceProviders(nextProviders)
     localStorage.setItem(adminExperienceProviderStorageKey, JSON.stringify(nextProviders))
   }
+  const syncExperienceProvider = (provider: ExperienceProviderProfile) => {
+    if (authMode !== 'supabase') return
+    void upsertStoredExperienceProvider(provider).catch((error) => {
+      console.warn('Morrow backend experience provider save failed. Local state was updated.', error)
+    })
+  }
   const updateExperienceProvider = (id: string, updates: Partial<ExperienceProviderProfile>) => {
-    saveExperienceProviders(experienceProviders.map((provider) => provider.id === id ? { ...provider, ...updates } : provider))
+    let changedProvider: ExperienceProviderProfile | null = null
+    const nextProviders = experienceProviders.map((provider) => {
+      if (provider.id !== id) return provider
+      changedProvider = normalizeExperienceProvider({ ...provider, ...updates }, provider)
+      return changedProvider
+    })
+    saveExperienceProviders(nextProviders)
+    if (changedProvider) syncExperienceProvider(changedProvider)
   }
   const createExperienceProvider = () => {
     const id = `provider-${crypto.randomUUID()}`
@@ -4258,6 +4307,7 @@ function AdminPage({
     }
 
     saveExperienceProviders([nextProvider, ...experienceProviders])
+    syncExperienceProvider(nextProvider)
     setSelectedExperienceProviderId(id)
   }
   const toggleExperienceProviderPaused = (id: string) => {
@@ -4275,6 +4325,11 @@ function AdminPage({
     const confirmed = window.confirm('Diesen Erlebnisanbieter wirklich entfernen? Das sollte nur für Dubletten oder Testdaten genutzt werden.')
     if (!confirmed) return
     saveExperienceProviders(experienceProviders.filter((item) => item.id !== id))
+    if (authMode === 'supabase') {
+      void deleteStoredExperienceProvider(id).catch((error) => {
+        console.warn('Morrow backend experience provider delete failed. Local state was updated.', error)
+      })
+    }
     setSelectedExperienceProviderId(null)
   }
   const importRawSpoExperienceProvider = (event: RawSpoEventCandidate) => {
@@ -4308,6 +4363,7 @@ function AdminPage({
     }
 
     saveExperienceProviders([nextProvider, ...experienceProviders])
+    syncExperienceProvider(nextProvider)
     setActiveSection('experienceProviders')
     setExperienceProviderStatusFilter('in-review')
     setSelectedExperienceProviderId(id)
@@ -4545,6 +4601,7 @@ function AdminPage({
     }
 
     saveExperienceProviders([nextProvider, ...experienceProviders])
+    syncExperienceProvider(nextProvider)
     onUpdateLead(lead.id, {
       status: lead.status === 'Neu' ? 'In Prüfung' : lead.status,
       internalNote: [lead.internalNote, 'Erlebnisanbieterprofil im Admin angelegt.'].filter(Boolean).join('\n'),

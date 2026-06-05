@@ -220,6 +220,20 @@ Naechster Schritt:
 - Nach Migration und Seed auf Live pruefen, ob Vor-Ort-Filter, Karte, Drawer und Veranstaltungen aus Supabase kommen.
 - Danach Erlebnisanbieter und Erlebnisbausteine nach Supabase migrieren.
 
+## Experience Providers / Blocks Sync V1 - 2026-06-05
+
+Umgesetzt im Code:
+- Erlebnisanbieter koennen aus `experience_providers` geladen werden.
+- Erstellen, Bearbeiten, Pausieren, Import aus Rohkalender und Loeschen synchronisiert nach Supabase, sobald Admin Auth aktiv ist.
+- Paket-Sync spiegelt Erlebnisbausteine aus `experienceItems` zusaetzlich nach `experience_blocks`.
+- Seed-Skript `npm run supabase:seed-experiences` schreibt Start-Anbieter und spiegelt Erlebnisbausteine aus bestehenden Supabase-Paketen.
+
+Bewusste Grenze:
+- Die Admin-UI arbeitet V1 weiter ueber die Auszeiten/Paket-Formulare. `experience_blocks` ist jetzt die relationale Spiegelung fuer naechste Ausbaustufen, noch nicht die alleinige Quelle der UI.
+
+Naechster Schritt:
+- Erlebnisbausteine spaeter direkt aus `experience_blocks` laden und bearbeiten, damit Auszeiten, Anbieter und Bausteine komplett relational arbeiten.
+
 ## Email Automation V1
 
 Umgesetzt:
