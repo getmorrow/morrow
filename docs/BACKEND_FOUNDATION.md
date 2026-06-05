@@ -234,6 +234,21 @@ Bewusste Grenze:
 Naechster Schritt:
 - Erlebnisbausteine spaeter direkt aus `experience_blocks` laden und bearbeiten, damit Auszeiten, Anbieter und Bausteine komplett relational arbeiten.
 
+## Owner Properties / Agencies Sync V1 - 2026-06-05
+
+Umgesetzt im Code:
+- Eigentümer-/Objektprofile können aus `properties` geladen werden.
+- Erstellen, Bearbeiten, Pausieren, Profilanlage aus Eigentümeranfrage und Löschen synchronisiert nach Supabase, sobald Admin Auth aktiv ist.
+- Agenturen sind als eigene Tabelle `agencies` ergänzt.
+- Agenturen können geladen, erstellt, bearbeitet, pausiert, mit Objekten verbunden und gelöscht werden.
+- Seed-Skript `npm run supabase:seed-owners-agencies` schreibt die Startobjekte und Startagenturen nach Supabase.
+
+Bewusste Grenze:
+- `properties` wird V1 sowohl für Unterkunftsdaten aus Auszeiten als auch für Objektprofile genutzt. Der vollständige Admin-Kontext liegt im Payload.
+
+Naechster Schritt:
+- Kunden und Buchungen als echte CRM-Daten aus Supabase lesen, nicht nur aus Leads ableiten.
+
 ## Email Automation V1
 
 Umgesetzt:

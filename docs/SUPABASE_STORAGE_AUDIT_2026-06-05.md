@@ -92,10 +92,10 @@ Soll-Zustand:
    - Erlebnisbausteine in `experience_blocks` speichern. Erledigt als relationale Spiegelung beim Paket-Sync.
    - Pakete verbinden Erlebnisbausteine relational statt nur im Payload. Teilweise erledigt; UI nutzt V1 noch Paket-Payload als Arbeitsquelle.
 
-3. Eigentümerobjekte und Agenturen trennen.
-   - Eigentümerobjekte als `properties` remote speichern.
-   - Agenturen als eigene Tabelle ergänzen.
-   - Agenturen können Objekte verwalten, ohne dass sie mit Eigentümern vermischt werden.
+3. Eigentümerobjekte und Agenturen trennen. Status: begonnen am 2026-06-05.
+   - Eigentümerobjekte als `properties` remote speichern. Erledigt im Code.
+   - Agenturen als eigene Tabelle ergänzen. Erledigt mit Migration `202606050002_agencies.sql`.
+   - Agenturen können Objekte verwalten, ohne dass sie mit Eigentümern vermischt werden. Erledigt im Code.
 
 4. Kunden und Buchungen stärken.
    - Kunden beim Übergang von Anfrage zu Buchung als `customers` anlegen.

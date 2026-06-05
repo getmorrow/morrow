@@ -11,6 +11,7 @@
     "supabase:seed-packages": "node scripts/seed-supabase-packages.mjs",
     "supabase:seed-local-places": "node scripts/seed-supabase-local-places.mjs",
     "supabase:seed-experiences": "node scripts/seed-supabase-experiences.mjs",
+    "supabase:seed-owners-agencies": "node scripts/seed-supabase-owners-agencies.mjs",
     "leads:discover": "node scripts/discover-leads.mjs",
     "instagram:dry-run": "node scripts/instagram-publisher.mjs dry-run next",
     "instagram:assets": "node scripts/instagram-publisher.mjs assets next",

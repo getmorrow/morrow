@@ -24,11 +24,14 @@ import {
   type AdminProfile,
   createStoredCommunicationEvent,
   createStoredSupportMessage,
+  deleteStoredAgency,
   deleteStoredAdminTask,
   deleteStoredExperienceProvider,
   deleteStoredLead,
   deleteStoredLocalPlace,
+  deleteStoredOwnerProperty,
   deleteStoredPackage,
+  fetchStoredAgencies,
   fetchStoredAdminTasks,
   fetchStoredApprovedLocalPlaces,
   fetchStoredExperienceProviders,
@@ -37,15 +40,18 @@ import {
   fetchStoredEmailEvents,
   fetchStoredLeads,
   fetchStoredLocalPlaces,
+  fetchStoredOwnerProperties,
   fetchStoredPackages,
   fetchGuestStayByAccess,
   sendLeadNotification,
   updateStoredLead,
   upsertStoredAdminTask,
+  upsertStoredAgency,
   upsertStoredBooking,
   upsertStoredExperienceProvider,
   upsertStoredLead,
   upsertStoredLocalPlace,
+  upsertStoredOwnerProperty,
   upsertStoredPackage,
 } from './lib/morrowBackend'
 import { isSupabaseConfigured, supabase, type SupabaseSession } from './lib/supabase'
@@ -1039,6 +1045,36 @@ const normalizeExperienceProvider = (provider: Partial<ExperienceProviderProfile
   audienceFit: provider.audienceFit || fallback?.audienceFit || 'Beide',
   status: provider.status || fallback?.status || 'lead',
   notes: provider.notes || fallback?.notes || '',
+})
+
+const normalizeOwnerProperty = (property: Partial<OwnerPropertyProfile>, fallback?: OwnerPropertyProfile): OwnerPropertyProfile => ({
+  id: property.id || fallback?.id || `property-${crypto.randomUUID()}`,
+  name: property.name || fallback?.name || 'Objekt',
+  ownerName: property.ownerName || fallback?.ownerName || '',
+  email: property.email || fallback?.email || '',
+  phone: property.phone || fallback?.phone || '',
+  location: property.location || fallback?.location || 'Sankt Peter-Ording',
+  propertyType: property.propertyType || fallback?.propertyType || 'Objekt',
+  sleeps: typeof property.sleeps === 'number' ? property.sleeps : fallback?.sleeps ?? 2,
+  status: property.status || fallback?.status || 'lead',
+  currentRental: property.currentRental || fallback?.currentRental || 'agency',
+  checkInType: property.checkInType || fallback?.checkInType || 'unknown',
+  latestArrival: property.latestArrival || fallback?.latestArrival || '',
+  notes: property.notes || fallback?.notes || '',
+})
+
+const normalizeAgency = (agency: Partial<AgencyProfile>, fallback?: AgencyProfile): AgencyProfile => ({
+  id: agency.id || fallback?.id || `agency-${crypto.randomUUID()}`,
+  name: agency.name || fallback?.name || 'Agentur',
+  contactName: agency.contactName || fallback?.contactName || '',
+  email: agency.email || fallback?.email || '',
+  phone: agency.phone || fallback?.phone || '',
+  location: agency.location || fallback?.location || 'Sankt Peter-Ording',
+  status: agency.status || fallback?.status || 'lead',
+  managedPropertyIds: Array.isArray(agency.managedPropertyIds) ? agency.managedPropertyIds : fallback?.managedPropertyIds ?? [],
+  responseDueDays: typeof agency.responseDueDays === 'number' ? agency.responseDueDays : fallback?.responseDueDays ?? 2,
+  availableDatesNote: agency.availableDatesNote || fallback?.availableDatesNote || '',
+  notes: agency.notes || fallback?.notes || '',
 })
 
 const testLeads: StoredLead[] = [
@@ -3980,6 +4016,26 @@ function AdminPage({
       return initialOwnerProperties
     }
   })
+  useEffect(() => {
+    if (authMode !== 'supabase') return
+
+    let cancelled = false
+
+    fetchStoredOwnerProperties<OwnerPropertyProfile>()
+      .then((remoteProperties) => {
+        if (cancelled || !remoteProperties || remoteProperties.length === 0) return
+        const normalizedProperties = remoteProperties.map((property) => normalizeOwnerProperty(property))
+        setOwnerProperties(normalizedProperties)
+        localStorage.setItem(adminOwnerPropertyStorageKey, JSON.stringify(normalizedProperties))
+      })
+      .catch((error) => {
+        console.warn('Morrow backend owner property sync failed. Falling back to local owner properties.', error)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [authMode])
   const [selectedOwnerPropertyId, setSelectedOwnerPropertyId] = useState<string | null>(null)
   const [ownerStatusFilter, setOwnerStatusFilter] = useState<OwnerPropertyStatusFilter>('all')
   const [adminTasks, setAdminTasks] = useState<AdminTask[]>(() => {
@@ -4017,6 +4073,26 @@ function AdminPage({
       return initialAgencies
     }
   })
+  useEffect(() => {
+    if (authMode !== 'supabase') return
+
+    let cancelled = false
+
+    fetchStoredAgencies<AgencyProfile>()
+      .then((remoteAgencies) => {
+        if (cancelled || !remoteAgencies || remoteAgencies.length === 0) return
+        const normalizedAgencies = remoteAgencies.map((agency) => normalizeAgency(agency))
+        setAgencies(normalizedAgencies)
+        localStorage.setItem(adminAgencyStorageKey, JSON.stringify(normalizedAgencies))
+      })
+      .catch((error) => {
+        console.warn('Morrow backend agency sync failed. Falling back to local agencies.', error)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [authMode])
   const [adminLocalPlaces, setAdminLocalPlaces] = useState<LocalPlaceCandidate[]>(() => {
     try {
       return getStoredLocalPlaceCandidates()
@@ -4476,8 +4552,21 @@ function AdminPage({
     setOwnerProperties(nextProperties)
     localStorage.setItem(adminOwnerPropertyStorageKey, JSON.stringify(nextProperties))
   }
+  const syncOwnerProperty = (property: OwnerPropertyProfile) => {
+    if (authMode !== 'supabase') return
+    void upsertStoredOwnerProperty(property).catch((error) => {
+      console.warn('Morrow backend owner property save failed. Local state was updated.', error)
+    })
+  }
   const updateOwnerProperty = (id: string, updates: Partial<OwnerPropertyProfile>) => {
-    saveOwnerProperties(ownerProperties.map((property) => property.id === id ? { ...property, ...updates } : property))
+    let changedProperty: OwnerPropertyProfile | null = null
+    const nextProperties = ownerProperties.map((property) => {
+      if (property.id !== id) return property
+      changedProperty = normalizeOwnerProperty({ ...property, ...updates }, property)
+      return changedProperty
+    })
+    saveOwnerProperties(nextProperties)
+    if (changedProperty) syncOwnerProperty(changedProperty)
   }
   const createOwnerProperty = () => {
     const id = `property-${crypto.randomUUID()}`
@@ -4498,6 +4587,7 @@ function AdminPage({
     }
 
     saveOwnerProperties([nextProperty, ...ownerProperties])
+    syncOwnerProperty(nextProperty)
     setSelectedOwnerPropertyId(id)
   }
   const openOrCreateOwnerPropertyFromLead = (lead: OwnerLead) => {
@@ -4539,6 +4629,7 @@ function AdminPage({
     }
 
     saveOwnerProperties([nextProperty, ...ownerProperties])
+    syncOwnerProperty(nextProperty)
     onUpdateLead(lead.id, {
       status: lead.status === 'Neu' ? 'In Prüfung' : lead.status,
       internalNote: [lead.internalNote, 'Objektprofil im Admin angelegt.'].filter(Boolean).join('\n'),
@@ -4562,10 +4653,17 @@ function AdminPage({
     const confirmed = window.confirm('Dieses Objekt wirklich entfernen? Das sollte nur für Dubletten oder Testdaten genutzt werden.')
     if (!confirmed) return
     saveOwnerProperties(ownerProperties.filter((item) => item.id !== id))
-    saveAgencies(agencies.map((agency) => ({
+    const nextAgencies = agencies.map((agency) => ({
       ...agency,
       managedPropertyIds: agency.managedPropertyIds.filter((propertyId) => propertyId !== id),
-    })))
+    }))
+    saveAgencies(nextAgencies)
+    nextAgencies.forEach(syncAgency)
+    if (authMode === 'supabase') {
+      void deleteStoredOwnerProperty(id).catch((error) => {
+        console.warn('Morrow backend owner property delete failed. Local state was updated.', error)
+      })
+    }
     setSelectedOwnerPropertyId(null)
   }
   const openOrCreateExperienceProviderFromLead = (lead: ExperienceLead) => {
@@ -4686,8 +4784,21 @@ function AdminPage({
     setAgencies(nextAgencies)
     localStorage.setItem(adminAgencyStorageKey, JSON.stringify(nextAgencies))
   }
+  const syncAgency = (agency: AgencyProfile) => {
+    if (authMode !== 'supabase') return
+    void upsertStoredAgency(agency).catch((error) => {
+      console.warn('Morrow backend agency save failed. Local state was updated.', error)
+    })
+  }
   const updateAgency = (id: string, updates: Partial<AgencyProfile>) => {
-    saveAgencies(agencies.map((agency) => agency.id === id ? { ...agency, ...updates } : agency))
+    let changedAgency: AgencyProfile | null = null
+    const nextAgencies = agencies.map((agency) => {
+      if (agency.id !== id) return agency
+      changedAgency = normalizeAgency({ ...agency, ...updates }, agency)
+      return changedAgency
+    })
+    saveAgencies(nextAgencies)
+    if (changedAgency) syncAgency(changedAgency)
   }
   const createAgency = () => {
     const id = `agency-${crypto.randomUUID()}`
@@ -4706,6 +4817,7 @@ function AdminPage({
     }
 
     saveAgencies([nextAgency, ...agencies])
+    syncAgency(nextAgency)
     setSelectedAgencyId(id)
   }
   const toggleAgencyPaused = (id: string) => {
@@ -4723,6 +4835,11 @@ function AdminPage({
     const confirmed = window.confirm('Diese Agentur wirklich entfernen? Das sollte nur für Dubletten oder Testdaten genutzt werden.')
     if (!confirmed) return
     saveAgencies(agencies.filter((item) => item.id !== id))
+    if (authMode === 'supabase') {
+      void deleteStoredAgency(id).catch((error) => {
+        console.warn('Morrow backend agency delete failed. Local state was updated.', error)
+      })
+    }
     setSelectedAgencyId(null)
   }
   const upcomingDates = adminPackages.map((pkg) => ({

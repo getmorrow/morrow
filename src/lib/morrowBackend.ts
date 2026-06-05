@@ -30,6 +30,7 @@ const communicationEventsTable = 'communication_events'
 const localPlacesTable = 'local_places'
 const experienceProvidersTable = 'experience_providers'
 const experienceBlocksTable = 'experience_blocks'
+const agenciesTable = 'agencies'
 
 export async function fetchStoredLeads<T extends StoredEntity>() {
   if (!isSupabaseConfigured || !supabase) return null
@@ -529,6 +530,109 @@ export async function deleteStoredExperienceProvider(id: string): Promise<Backen
 
   const { error } = await supabase
     .from(experienceProvidersTable)
+    .delete()
+    .eq('id', id)
+
+  if (error) return { ok: false, source: 'supabase', error: error.message }
+  return { ok: true, source: 'supabase' }
+}
+
+export async function fetchStoredOwnerProperties<T extends StoredEntity>() {
+  if (!isSupabaseConfigured || !supabase) return null
+
+  const { data, error } = await supabase
+    .from(propertiesTable)
+    .select('payload')
+    .order('updated_at', { ascending: false })
+
+  if (error) throw error
+
+  return (data ?? [])
+    .map((row) => row.payload)
+    .filter(Boolean) as T[]
+}
+
+export async function upsertStoredOwnerProperty<T extends StoredEntity>(property: T): Promise<BackendSaveResult> {
+  if (!isSupabaseConfigured || !supabase) return { ok: true, source: 'local' }
+  const payload = property as Record<string, unknown>
+
+  const { error } = await supabase
+    .from(propertiesTable)
+    .upsert({
+      id: property.id,
+      name: typeof payload.name === 'string' ? payload.name : 'Objekt',
+      location: typeof payload.location === 'string' ? payload.location : '',
+      sleeps: typeof payload.sleeps === 'number' ? payload.sleeps : null,
+      check_in_type: typeof payload.checkInType === 'string' ? payload.checkInType : null,
+      support_type: typeof payload.currentRental === 'string' ? payload.currentRental : null,
+      support_name: typeof payload.ownerName === 'string' ? payload.ownerName : null,
+      image_rights_confirmed: false,
+      status: typeof payload.status === 'string' ? payload.status : 'lead',
+      payload: property,
+      updated_at: new Date().toISOString(),
+    })
+
+  if (error) return { ok: false, source: 'supabase', error: error.message }
+  return { ok: true, source: 'supabase' }
+}
+
+export async function deleteStoredOwnerProperty(id: string): Promise<BackendSaveResult> {
+  if (!isSupabaseConfigured || !supabase) return { ok: true, source: 'local' }
+
+  const { error } = await supabase
+    .from(propertiesTable)
+    .delete()
+    .eq('id', id)
+
+  if (error) return { ok: false, source: 'supabase', error: error.message }
+  return { ok: true, source: 'supabase' }
+}
+
+export async function fetchStoredAgencies<T extends StoredEntity>() {
+  if (!isSupabaseConfigured || !supabase) return null
+
+  const { data, error } = await supabase
+    .from(agenciesTable)
+    .select('payload')
+    .order('updated_at', { ascending: false })
+
+  if (error) throw error
+
+  return (data ?? [])
+    .map((row) => row.payload)
+    .filter(Boolean) as T[]
+}
+
+export async function upsertStoredAgency<T extends StoredEntity>(agency: T): Promise<BackendSaveResult> {
+  if (!isSupabaseConfigured || !supabase) return { ok: true, source: 'local' }
+  const payload = agency as Record<string, unknown>
+
+  const { error } = await supabase
+    .from(agenciesTable)
+    .upsert({
+      id: agency.id,
+      name: typeof payload.name === 'string' ? payload.name : 'Agentur',
+      contact_name: typeof payload.contactName === 'string' ? payload.contactName : null,
+      email: typeof payload.email === 'string' ? payload.email : null,
+      phone: typeof payload.phone === 'string' ? payload.phone : null,
+      location: typeof payload.location === 'string' ? payload.location : null,
+      status: typeof payload.status === 'string' ? payload.status : 'lead',
+      managed_property_ids: Array.isArray(payload.managedPropertyIds) ? payload.managedPropertyIds : [],
+      response_due_days: typeof payload.responseDueDays === 'number' ? payload.responseDueDays : null,
+      available_dates_note: typeof payload.availableDatesNote === 'string' ? payload.availableDatesNote : null,
+      payload: agency,
+      updated_at: new Date().toISOString(),
+    })
+
+  if (error) return { ok: false, source: 'supabase', error: error.message }
+  return { ok: true, source: 'supabase' }
+}
+
+export async function deleteStoredAgency(id: string): Promise<BackendSaveResult> {
+  if (!isSupabaseConfigured || !supabase) return { ok: true, source: 'local' }
+
+  const { error } = await supabase
+    .from(agenciesTable)
     .delete()
     .eq('id', id)
 
