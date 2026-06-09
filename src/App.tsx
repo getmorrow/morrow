@@ -5055,6 +5055,19 @@ function AdminPage({
     saveAdminTasks([nextTask, ...adminTasks])
     syncAdminTask(nextTask)
   }
+  const createAdminTasks = (tasksToCreate: Array<Omit<AdminTask, 'id' | 'status' | 'createdAt'>>) => {
+    if (tasksToCreate.length === 0) return
+    const createdAt = new Date().toISOString()
+    const nextTasks = tasksToCreate.map((task) => ({
+      ...task,
+      id: `task-${crypto.randomUUID()}`,
+      status: 'open' as AdminTaskStatus,
+      createdAt,
+    }))
+
+    saveAdminTasks([...nextTasks, ...adminTasks])
+    nextTasks.forEach(syncAdminTask)
+  }
   const updateAdminTask = (id: string, updates: Partial<AdminTask>) => {
     let changedTask: AdminTask | null = null
     const nextTasks = adminTasks.map((task) => {
@@ -7922,6 +7935,7 @@ function AdminPage({
         tasks={selectedBookingLead ? adminTasks.filter((task) => task.referenceType === 'booking' && task.referenceId === selectedBookingLead.id) : []}
         onClose={() => setSelectedBookingId(null)}
         onCreateTask={createAdminTask}
+        onCreateTasks={createAdminTasks}
         onToggleTask={toggleAdminTaskStatus}
         onMoveTaskInProgress={moveAdminTaskInProgress}
         onUpdateLead={onUpdateLead}
@@ -8983,6 +8997,7 @@ function BookingDetailDrawer({
   tasks,
   onClose,
   onCreateTask,
+  onCreateTasks,
   onToggleTask,
   onMoveTaskInProgress,
   onUpdateLead,
@@ -8993,6 +9008,7 @@ function BookingDetailDrawer({
   tasks: AdminTask[]
   onClose: () => void
   onCreateTask: (task: Omit<AdminTask, 'id' | 'status' | 'createdAt'>) => void
+  onCreateTasks: (tasks: Array<Omit<AdminTask, 'id' | 'status' | 'createdAt'>>) => void
   onToggleTask: (id: string) => void
   onMoveTaskInProgress: (id: string) => void
   onUpdateLead: (id: string, updates: Partial<StoredLead>) => void
@@ -9074,6 +9090,7 @@ function BookingDetailDrawer({
   const bookingSupportTasks = tasks
     .filter((task) => isGuestSupportTask(task) && task.status !== 'done')
     .sort((a, b) => a.dueAt.localeCompare(b.dueAt))
+  const existingTaskKeys = new Set(tasks.map((task) => `${task.referenceId}:${task.title.toLowerCase()}`))
   const nextPreparationItem = missingPreparationItems[0]
   const nextOperationalTask = openOperationalTasks[0]
   const nextActionTitle = nextPreparationItem
@@ -9137,6 +9154,129 @@ function BookingDetailDrawer({
     await navigator.clipboard.writeText(guestAccessMessage(channel))
     setGuestMessageCopied(channel)
   }
+  const statusTaskTemplates = (status: BookingStatus): Array<Omit<AdminTask, 'id' | 'status' | 'createdAt'>> => {
+    const reference = {
+      referenceType: 'booking' as AdminTaskReferenceType,
+      referenceId: lead.id,
+      referenceLabel: `${lead.name} · ${lead.packageName}`,
+    }
+    const dueToday = todayIsoValue()
+    const dueFollowUp = draft.followUpAt || dueToday
+    const duePayment = draft.paymentDueAt || dueFollowUp
+    const dueReservation = draft.reservationExpiresAt || dueFollowUp
+
+    if (status === 'Reserviert') {
+      return [
+        {
+          ...reference,
+          title: 'Reservierung mit Unterkunft final bestätigen',
+          dueAt: dueReservation,
+          priority: 'high',
+          note: 'Termin, Objekt und Haltefrist prüfen. Danach klare Rückmeldung an den Gast geben.',
+        },
+        {
+          ...reference,
+          title: 'Zahlungs- und Buchungsbedingungen senden',
+          dueAt: duePayment,
+          priority: 'medium',
+          note: 'Zahlungsfrist, Buchungsbedingungen und nächsten Schritt sauber kommunizieren.',
+        },
+      ]
+    }
+
+    if (status === 'Bezahlt') {
+      return [
+        {
+          ...reference,
+          title: 'Check-in-Informationen vorbereiten',
+          dueAt: dueFollowUp,
+          priority: 'high',
+          note: 'Anreise, Schlüssel, Unterkunftsregeln und Support-Zuständigkeit für den Gästebereich prüfen.',
+        },
+        {
+          ...reference,
+          title: 'Erlebnis final bestätigen',
+          dueAt: dueFollowUp,
+          priority: 'high',
+          note: 'Enthaltenes Erlebnis, Anbieter, Uhrzeit, Kapazität und Schlechtwetterregel finalisieren.',
+        },
+        {
+          ...reference,
+          title: 'Gästebereich zur Auszeit prüfen',
+          dueAt: dueFollowUp,
+          priority: 'medium',
+          note: 'Private Gästeseite öffnen und prüfen, ob Anreise, Vor Ort, Buchung und Hilfe komfortabel wirken.',
+        },
+      ]
+    }
+
+    if (status === 'Vor Anreise') {
+      return [
+        {
+          ...reference,
+          title: 'Finale Vor-Anreise-Nachricht senden',
+          dueAt: dueToday,
+          priority: 'high',
+          note: 'Gästebereich, Zugangscode, Check-in und wichtigste Hinweise an den Gast senden.',
+        },
+        {
+          ...reference,
+          title: 'Vor-Ort-Empfehlungen final prüfen',
+          dueAt: dueToday,
+          priority: 'medium',
+          note: 'Restaurants, Wetter, Gezeiten, Veranstaltungen und Erlebnisinfos kurz auf Aktualität prüfen.',
+        },
+      ]
+    }
+
+    if (status === 'Aktiv') {
+      return [
+        {
+          ...reference,
+          title: 'Ankommen beim Gast prüfen',
+          dueAt: dueToday,
+          priority: 'medium',
+          note: 'Kurz prüfen, ob Anreise geklappt hat und ob offene Supportthemen bestehen.',
+        },
+      ]
+    }
+
+    if (status === 'Abgeschlossen') {
+      return [
+        {
+          ...reference,
+          title: 'Feedback nach Aufenthalt einholen',
+          dueAt: dueToday,
+          priority: 'medium',
+          note: 'Feedback, Wiederbuchungsimpuls und Learnings für Auszeit/Objekt/Erlebnis erfassen.',
+        },
+      ]
+    }
+
+    return []
+  }
+  const createStatusTasks = (status: BookingStatus) => {
+    const nextTasks = statusTaskTemplates(status).filter((task) => (
+      !existingTaskKeys.has(`${task.referenceId}:${task.title.toLowerCase()}`)
+    ))
+    onCreateTasks(nextTasks)
+    return nextTasks.length
+  }
+  const bookingStatusProgress = (status: BookingStatus) => {
+    const order: Record<BookingStatus, number> = {
+      Reserviert: 1,
+      Bezahlt: 2,
+      'Vor Anreise': 3,
+      Aktiv: 4,
+      Abgeschlossen: 5,
+      Storniert: 0,
+    }
+    return order[status] ?? 0
+  }
+  const isForwardStatusChange = draft.status !== lead.status && bookingStatusProgress(draft.status) > bookingStatusProgress(lead.status as BookingStatus)
+  const pendingStatusTasks = isForwardStatusChange
+    ? statusTaskTemplates(draft.status).filter((task) => !existingTaskKeys.has(`${task.referenceId}:${task.title.toLowerCase()}`))
+    : []
   const save = () => {
     onUpdateLead(lead.id, {
       status: draft.status,
@@ -9151,6 +9291,7 @@ function BookingDetailDrawer({
       internalNote: draft.internalNote,
       message: draft.message,
     } as Partial<StoredLead>)
+    if (isForwardStatusChange) createStatusTasks(draft.status)
     onClose()
   }
   const createTask = () => {
@@ -9419,6 +9560,16 @@ function BookingDetailDrawer({
             <label>Interne Notiz
               <textarea rows={5} value={draft.internalNote} onChange={(event) => updateDraft('internalNote', event.target.value)} />
             </label>
+            {draft.status !== lead.status && (
+              <div className="admin-drawer-note admin-drawer-form-wide">
+                <span>Automatische Aufgaben</span>
+                <p>
+                  {pendingStatusTasks.length > 0
+                    ? `${pendingStatusTasks.length} Aufgabe${pendingStatusTasks.length === 1 ? '' : 'n'} werden beim Speichern angelegt: ${pendingStatusTasks.map((task) => task.title).join(', ')}.`
+                    : 'Für diesen Statuswechsel gibt es keine neuen Aufgaben oder sie existieren bereits.'}
+                </p>
+              </div>
+            )}
           </section>
 
           <section className="admin-drawer-section" aria-label="Aufenthalt">

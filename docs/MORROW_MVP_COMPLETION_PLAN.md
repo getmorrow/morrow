@@ -47,7 +47,7 @@ Ziel: Intern muss Morrow eine Auszeit wirklich anlegen, pflegen, buchen und vorb
 | Medienverwaltung | Bilder liegen als Assets/URLs, keine echte Medienbibliothek | Pro Unterkunft und Auszeit Medien mit Rechten, Alt-Text, Reihenfolge | MVP-kritisch | Offen |
 | Erlebnisbausteine | Erlebnisanbieter und Erlebnisbausteine existieren, Supabase-Sync vorhanden; Preis, Kapazitaet, Verfuegbarkeit, Anbieter, Rolle, Bestätigung und Gastnotiz sind im Admin pflegbar und getestet | Spaeter staerker normalisieren und Anbieter-Verfuegbarkeiten separat pflegen | MVP-kritisch | Erledigt fuer MVP |
 | Buchungen | Kunden/Buchungen in Supabase, Statuslogik, Gaestebereich-Code getestet | Buchungsstatus, Zahlung, Vorbereitung, Aufgaben und Gaestebereich noch staerker miteinander koppeln | MVP-kritisch | Teilweise |
-| Aufgaben automatisch bei Buchungsstatus | Aufgaben manuell vorhanden, einige Vorbereitungschecks sichtbar | Automatische Aufgaben bei Reserviert/Bezahlt/Vor Anreise/Aktiv/Abgeschlossen | MVP-kritisch | Offen |
+| Aufgaben automatisch bei Buchungsstatus | Statuswechsel erzeugen deduplizierte Standardaufgaben fuer Reserviert, Bezahlt, Vor Anreise, Aktiv und Abgeschlossen; Vorschau im Buchungs-Drawer und Test mit Testbuchung bestanden | Spaeter je Auszeit-Typ und Saison feinere Templates ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Audit-Log | Kommunikationshistorie vorhanden, kein vollstaendiger Aenderungsverlauf | Wer hat Status, Buchung, Paket, Unterkunft, Erlebnis geaendert? | MVP-light | Offen |
 | Monitoring fehlender Daten | Zentrale Liste fehlender Pflichtdaten pro Auszeit, Buchung, Unterkunft und Erlebnis auf der Admin-Uebersicht vorhanden; direkte Sprungziele in Datensaetze getestet | Spaeter um lokale Orte, Partnerprofile und automatische Eskalation erweitern | MVP-kritisch | Erledigt fuer MVP |
 
@@ -156,6 +156,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 4. Monitoring fehlender Pflichtdaten bauen.
    - Stand 2026-06-05: Zentrales Pflichtdaten-Monitoring auf der Admin-Uebersicht gebaut; Build, Sichttest und Sprung in Datensatz bestanden.
 5. Automatische Aufgaben bei Buchungsstatus einfuehren.
+   - Stand 2026-06-09: Statusbasierte Standardaufgaben fuer Reserviert, Bezahlt, Vor Anreise, Aktiv und Abgeschlossen gebaut; Dedupe-Logik, Drawer-Vorschau, Build und Test mit Testbuchung bestanden.
 
 ### Sprint 2: Guest Comfort fertig machen
 
@@ -192,7 +193,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 - [x] Unterkunft mit Medien, Regeln, Check-in und Rechten im Admin pflegen.
 - [x] Erlebnis mit Anbieter, Preis/Kapazitaet/Verfuegbarkeit im Admin pflegen.
 - [x] Pflichtdaten-Monitoring auf Admin-Uebersicht zeigt Blocker und oeffnet Datensaetze.
-- [ ] Buchung erzeugt automatische Aufgaben.
+- [x] Buchung erzeugt automatische Aufgaben.
 - [ ] Gaestebereich zeigt Anreise, Schluessel und Regeln aus Admin-Daten.
 - [ ] Supportnachricht aus Gaestebereich landet als Admin-Thema.
 - [ ] Status-E-Mails fuer Reservierung/Bestaetigung/Vor Anreise getestet.
@@ -203,13 +204,13 @@ Diese Punkte bleiben bewusst nachgelagert:
 
 ## Naechster Konkreter Schritt
 
-Weiter mit Sprint 1, Punkt 5:
+Weiter mit Sprint 2, Punkt 1:
 
-`Automatische Aufgaben bei Buchungsstatus einfuehren`
+`Gaestebereich Meine Auszeit/Tagesplan bauen`
 
 Definition of Done:
 
-- Bei relevanten Statuswechseln entstehen passende interne Aufgaben.
-- Reserviert, Bezahlt, Vor Anreise, Aktiv und Abgeschlossen haben klare Standardaufgaben.
-- Keine doppelten Aufgaben bei wiederholtem Speichern.
-- Aufgaben sind im Admin direkt sichtbar und mit Buchung/Kunde verknuepft.
+- Der Gast sieht einen klaren Ablauf seiner Auszeit: Anreise, Unterkunft, Erlebnis, freie Zeit und wichtige Hinweise.
+- Inhalte kommen soweit moeglich aus Admin-/Supabase-Daten statt aus hartem Seiteninhalt.
+- Buchungsrelevante Details bleiben auf der Buchungsseite; die Startseite fuehrt emotional und aktuell.
+- Mobile Darstellung fuehlt sich app-artig, ruhig und einfach an.
