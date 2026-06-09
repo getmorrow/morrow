@@ -59,7 +59,7 @@ Ziel: Nach der Buchung fuehlt sich Morrow wie Komfort an, nicht wie eine lose E-
 | --- | --- | --- | --- | --- |
 | Gaestebereich | Live-Zugang per Buchungscode getestet, App-artige Struktur vorhanden | Login/Access-Flow finalisieren, Inhalte pro Buchung vollstaendig aus Admin-Daten speisen | MVP-kritisch | Teilweise |
 | Anreise, Schluessel, Unterkunftsregeln | Check-in-Daten am Paket/Objekt vorhanden | Im Gaestebereich klar anzeigen: Adresse, Schluessel, Safe/Agentur, Anreisefenster, Regeln, Check-out | MVP-kritisch | Teilweise |
-| Tagesplan / Meine Auszeit | Startseite im Gaestebereich, Rhythmus/Heute-Fokus vorhanden | Eigene Seite oder Bereich fuer Ablauf: Anreise, Erlebnis, freie Zeit, Empfehlungen, wichtige Hinweise | MVP-kritisch | Offen |
+| Tagesplan / Meine Auszeit | Eigener Bereich im Gaestebereich vorhanden; Ablaufpunkte sind pro Auszeit im Admin pflegbar und erscheinen als kompakte Timeline mit Detail-Drawer | Spaeter buchungsspezifische Abweichungen und echte Tageszeiten pro Buchung ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Kuratierte Karte | Karte, Filter, Pins, Drawer, Restaurants, Orte, Veranstaltungen vorhanden | Datenqualitaet weiter kuratieren, Kategorien finalisieren, Pin-/Drawer-UX fortlaufend testen | MVP-kritisch | Teilweise |
 | Live-Daten | Wetter, Gezeiten, Veranstaltungen integriert | Wetter/Gezeiten stabil beobachten, Quellen/Fehlerzustand sauber anzeigen | MVP-light | Teilweise |
 | Restaurant-Reservierungen | Reservierungs-/Website-/Speisekartenlinks als externe Links vorhanden | Pro Restaurant kuratierte Reservierungslinks, Bilder, Kueche, Preisgefuehl, Oeffnungszeiten, Bewertung | MVP-kritisch | Teilweise |
@@ -161,6 +161,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 ### Sprint 2: Guest Comfort fertig machen
 
 1. Gaestebereich `Meine Auszeit`/Tagesplan bauen.
+   - Stand 2026-06-09: Eigener Bereich gebaut, mobil entschlackt, Ablaufpunkte pro Auszeit im Admin pflegbar und im Gaestebereich getestet.
 2. Anreise, Schluessel, Unterkunftsregeln aus Admin-Daten anzeigen.
 3. Support-/Problem-Ticket-Flow finalisieren.
 4. Feedback nach Aufenthalt ergaenzen.
@@ -206,11 +207,11 @@ Diese Punkte bleiben bewusst nachgelagert:
 
 Weiter mit Sprint 2, Punkt 1:
 
-`Gaestebereich Meine Auszeit/Tagesplan bauen`
+`Anreise, Schluessel und Unterkunftsregeln aus Admin-Daten anzeigen`
 
 Definition of Done:
 
-- Der Gast sieht einen klaren Ablauf seiner Auszeit: Anreise, Unterkunft, Erlebnis, freie Zeit und wichtige Hinweise.
-- Inhalte kommen soweit moeglich aus Admin-/Supabase-Daten statt aus hartem Seiteninhalt.
-- Buchungsrelevante Details bleiben auf der Buchungsseite; die Startseite fuehrt emotional und aktuell.
-- Mobile Darstellung fuehlt sich app-artig, ruhig und einfach an.
+- Die Buchungsseite im Gaestebereich zeigt Adresse, Anreisefenster, Schluesselart, Schluesselhinweis und Check-out klar.
+- Objektregeln und Support-Zustaendigkeit kommen aus Unterkunft/Auszeit-Daten.
+- Bei Agentur/Hotel wird klar angezeigt, wann Morrow hilft und wann der Partner fuer Objektfragen zustaendig ist.
+- Fehlende Daten werden im Admin-Monitoring weiterhin sichtbar.

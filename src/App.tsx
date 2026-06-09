@@ -8430,6 +8430,7 @@ function GuestStayPage({
         : 'Anreise, Schlüssel und Unterkunftsregeln bleiben in der Buchung gebündelt, sobald alles final vorbereitet ist.',
       cta: 'Buchung öffnen',
       view: 'booking' as GuestAppView,
+      localFilter: undefined,
     },
     {
       step: '02',
@@ -8443,6 +8444,7 @@ function GuestStayPage({
         : 'Die Auszeit soll Abstand vom Alltag schaffen. Ihr bekommt einen vorbereiteten Rahmen, ohne dass jeder Moment festgelegt ist.',
       cta: 'Start ansehen',
       view: 'home' as GuestAppView,
+      localFilter: undefined,
     },
     {
       step: '03',
@@ -8452,6 +8454,7 @@ function GuestStayPage({
       detail: primaryExperience?.guestNotes ?? 'Das Erlebnis wird so eingebunden, dass es zum Aufenthalt passt und nicht wie ein zusätzlicher Termin wirkt.',
       cta: 'Erlebnis ansehen',
       view: 'local' as GuestAppView,
+      localFilter: 'experience' as LocalPlaceCategory,
     },
     {
       step: '04',
@@ -8461,9 +8464,31 @@ function GuestStayPage({
       detail: 'Vor Ort findet ihr nur ausgewählte Empfehlungen. Die Karte soll euch schnelle Entscheidungen ermöglichen, nicht eine neue Suche starten.',
       cta: 'Vor Ort öffnen',
       view: 'local' as GuestAppView,
+      localFilter: undefined,
     },
   ]
-  const selectedPlanMoment = selectedPlanMomentIndex === null ? null : planMoments[selectedPlanMomentIndex] ?? null
+  const editablePlanMoments = (packageItem?.itinerary?.length ? packageItem.itinerary : [])
+    .filter((item) => item.title.trim())
+    .map((item, index) => ({
+      step: String(index + 1).padStart(2, '0'),
+      label: item.label,
+      title: item.title,
+      copy: item.description,
+      detail: item.detail || item.description,
+      cta: item.target === 'booking'
+        ? 'Buchung öffnen'
+        : item.target === 'help'
+          ? 'Hilfe öffnen'
+          : item.localFilter === 'experience'
+            ? 'Erlebnis ansehen'
+            : item.target === 'local'
+              ? 'Vor Ort öffnen'
+              : 'Start ansehen',
+      view: (item.target ?? 'home') as GuestAppView,
+      localFilter: item.localFilter,
+    }))
+  const guestPlanMoments = editablePlanMoments.length > 0 ? editablePlanMoments : planMoments
+  const selectedPlanMoment = selectedPlanMomentIndex === null ? null : guestPlanMoments[selectedPlanMomentIndex] ?? null
   const planFreeMoments = [
     {
       title: 'Erster Abend',
@@ -8783,7 +8808,7 @@ function GuestStayPage({
                 <span>Nicht durchgetaktet</span>
               </div>
               <div className="guest-stay-timeline-list">
-                {planMoments.map((moment, index) => (
+                {guestPlanMoments.map((moment, index) => (
                   <button key={moment.step} type="button" onClick={() => setSelectedPlanMomentIndex(index)}>
                     <i>{moment.step}</i>
                     <span>{moment.label}</span>
@@ -8838,7 +8863,8 @@ function GuestStayPage({
                     <button type="button" onClick={() => {
                       setSelectedPlanMomentIndex(null)
                       setActiveView(selectedPlanMoment.view)
-                      if (selectedPlanMoment.view === 'local' && selectedPlanMoment.label === 'Erlebnis') selectLocalFilter('experience')
+                      if (selectedPlanMoment.view === 'local' && selectedPlanMoment.localFilter) selectLocalFilter(selectedPlanMoment.localFilter)
+                      else if (selectedPlanMoment.view === 'local' && selectedPlanMoment.label === 'Erlebnis') selectLocalFilter('experience')
                     }}>
                       {selectedPlanMoment.cta}
                     </button>
@@ -10057,6 +10083,7 @@ function PackageDetailDrawer({
   })
   const [experienceDrafts, setExperienceDrafts] = useState<MorrowPackage['experienceItems']>([])
   const [momentDrafts, setMomentDrafts] = useState<MorrowPackage['moments']>([])
+  const [itineraryDrafts, setItineraryDrafts] = useState<NonNullable<MorrowPackage['itinerary']>>([])
   const [recommendationDrafts, setRecommendationDrafts] = useState<MorrowPackage['recommendations']>([])
   const [faqDrafts, setFaqDrafts] = useState<MorrowPackage['faqs']>([])
 
@@ -10107,6 +10134,7 @@ function PackageDetailDrawer({
     })
     setExperienceDrafts(item.experienceItems)
     setMomentDrafts(item.moments)
+    setItineraryDrafts(item.itinerary ?? [])
     setRecommendationDrafts(item.recommendations)
     setFaqDrafts(item.faqs)
   }, [item])
@@ -10185,6 +10213,26 @@ function PackageDetailDrawer({
   }
   const removeMomentDraft = (index: number) => {
     setMomentDrafts((current) => current.filter((_, momentIndex) => momentIndex !== index))
+  }
+  const updateItineraryDraft = (index: number, key: keyof NonNullable<MorrowPackage['itinerary']>[number], value: string) => {
+    setItineraryDrafts((current) => current.map((itineraryItem, itineraryIndex) => (
+      itineraryIndex === index ? { ...itineraryItem, [key]: value || undefined } : itineraryItem
+    )))
+  }
+  const addItineraryDraft = () => {
+    setItineraryDrafts((current) => ([
+      ...current,
+      {
+        label: 'Moment',
+        title: 'Neuer Ablaufpunkt',
+        description: 'Kurzer Hinweis für den Gast.',
+        detail: 'Ausführlicher Hinweis, der im Gästebereich im Detail geöffnet wird.',
+        target: 'home',
+      },
+    ]))
+  }
+  const removeItineraryDraft = (index: number) => {
+    setItineraryDrafts((current) => current.filter((_, itineraryIndex) => itineraryIndex !== index))
   }
   const updateRecommendationDraft = (index: number, key: keyof MorrowPackage['recommendations'][number], value: string) => {
     setRecommendationDrafts((current) => current.map((recommendation, recommendationIndex) => (
@@ -10289,6 +10337,14 @@ function PackageDetailDrawer({
       included: nextIncluded.length > 0 ? nextIncluded : pkg.included,
       forWhom: nextForWhom.length > 0 ? nextForWhom : pkg.forWhom,
       moments: momentDrafts.filter((moment) => moment.title.trim()),
+      itinerary: itineraryDrafts
+        .filter((itineraryItem) => itineraryItem.title.trim())
+        .map((itineraryItem) => ({
+          ...itineraryItem,
+          detail: itineraryItem.detail?.trim() || undefined,
+          target: itineraryItem.target || 'home',
+          localFilter: itineraryItem.localFilter || undefined,
+        })),
       experienceDirections: nextExperienceDirections.length > 0 ? nextExperienceDirections : pkg.experienceDirections,
       experienceItems: experienceDrafts,
       recommendations: recommendationDrafts.filter((recommendation) => recommendation.title.trim()),
@@ -10606,6 +10662,53 @@ function PackageDetailDrawer({
                 </article>
               ))}
               {momentDrafts.length === 0 && <p className="admin-empty-note">Noch keine Momente angelegt.</p>}
+            </div>
+          </section>
+
+          <section className="admin-drawer-form admin-drawer-form-wide" aria-label="Gäste-Ablauf bearbeiten">
+            <div className="admin-drawer-heading-row">
+              <h3>Meine Auszeit / Ablauf</h3>
+              <button className="admin-row-action" type="button" onClick={addItineraryDraft}>Ablaufpunkt hinzufügen</button>
+            </div>
+            <p className="admin-panel-intro">Diese Punkte steuern den Bereich „Meine Auszeit“ im privaten Gästebereich. Kurztext erscheint in der Timeline, Detailtext im Drawer.</p>
+            <div className="admin-experience-editor">
+              {itineraryDrafts.map((itineraryItem, index) => (
+                <article key={`${itineraryItem.title}-${index}`}>
+                  <label>Label
+                    <input value={itineraryItem.label} onChange={(event) => updateItineraryDraft(index, 'label', event.target.value)} placeholder="z. B. Ankommen" />
+                  </label>
+                  <label>Titel
+                    <input value={itineraryItem.title} onChange={(event) => updateItineraryDraft(index, 'title', event.target.value)} />
+                  </label>
+                  <label>Ziel im Gästebereich
+                    <select value={itineraryItem.target ?? 'home'} onChange={(event) => updateItineraryDraft(index, 'target', event.target.value)}>
+                      <option value="home">Start</option>
+                      <option value="booking">Buchung</option>
+                      <option value="local">Vor Ort</option>
+                      <option value="help">Hilfe</option>
+                    </select>
+                  </label>
+                  <label>Vor-Ort-Filter
+                    <select value={itineraryItem.localFilter ?? ''} onChange={(event) => updateItineraryDraft(index, 'localFilter', event.target.value)}>
+                      <option value="">Kein Filter</option>
+                      <option value="experience">Erlebnis</option>
+                      <option value="beach">Strand</option>
+                      <option value="food">Essen</option>
+                      <option value="event">Veranstaltungen</option>
+                      <option value="weather">Wetter</option>
+                      <option value="tide">Gezeiten</option>
+                    </select>
+                  </label>
+                  <label>Kurztext
+                    <textarea rows={2} value={itineraryItem.description} onChange={(event) => updateItineraryDraft(index, 'description', event.target.value)} />
+                  </label>
+                  <label>Detailtext für Drawer
+                    <textarea rows={4} value={itineraryItem.detail ?? ''} onChange={(event) => updateItineraryDraft(index, 'detail', event.target.value)} />
+                  </label>
+                  <button className="admin-row-action danger-soft" type="button" onClick={() => removeItineraryDraft(index)}>Entfernen</button>
+                </article>
+              ))}
+              {itineraryDrafts.length === 0 && <p className="admin-empty-note">Noch kein Ablauf für den Gästebereich gepflegt. Dann nutzt Morrow automatisch den Fallback aus Unterkunft, Erlebnis und Vor-Ort-Daten.</p>}
             </div>
           </section>
 

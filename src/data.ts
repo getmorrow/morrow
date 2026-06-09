@@ -49,6 +49,15 @@ export type Moment = {
   illustration?: string
 }
 
+export type ItineraryItem = {
+  label: string
+  title: string
+  description: string
+  detail?: string
+  target?: 'home' | 'booking' | 'local' | 'help'
+  localFilter?: 'experience' | 'beach' | 'food' | 'event' | 'weather' | 'tide'
+}
+
 export type FaqItem = {
   question: string
   answer: string
@@ -82,6 +91,7 @@ export type MorrowPackage = {
   included: string[]
   forWhom: string[]
   moments: Moment[]
+  itinerary?: ItineraryItem[]
   experienceDirections: string[]
   experienceItems: ExperienceItem[]
   recommendations: Recommendation[]
@@ -196,6 +206,37 @@ export const packages: MorrowPackage[] = [
         title: 'Orientierung, ohne den Tag vollzupacken.',
         description: 'Strandideen, Wetteralternativen und ein entspannter Abend sind mitgedacht. Der Rest bleibt offen.',
         illustration: '/brand/illustrations/morrow-illu-open-time.svg',
+      },
+    ],
+    itinerary: [
+      {
+        label: 'Ankommen',
+        title: 'Erst landen, dann los.',
+        description: 'Anreise, Schlüssel und erster Abend liegen klar bereit.',
+        detail: 'Ihr startet ohne neue Recherche: Anreisefenster, Schlüsselhinweise und der erste Abend sind so vorbereitet, dass ihr nach der Fahrt nicht noch organisieren müsst.',
+        target: 'booking',
+      },
+      {
+        label: 'Familienzeit',
+        title: 'Zeit ohne Programm-Druck.',
+        description: 'Genug Rahmen für Orientierung, genug Freiheit für euren Rhythmus.',
+        detail: 'Family Escape soll sich nicht wie ein enger Ablaufplan anfühlen. Unterkunft, Ort und Empfehlungen geben Sicherheit, aber freie Zeit bleibt bewusst frei.',
+        target: 'home',
+      },
+      {
+        label: 'Erlebnis',
+        title: 'Naturzeit mit der Familie.',
+        description: 'Ein lokaler Moment, der zu Alter, Wetter und Termin passt.',
+        detail: 'Das enthaltene Erlebnis wird so abgestimmt, dass es für Kinder und Eltern funktioniert. Es soll den Aufenthalt tragen, nicht den Tag überfüllen.',
+        target: 'local',
+        localFilter: 'experience',
+      },
+      {
+        label: 'Vor Ort',
+        title: 'Kurz entscheiden, nicht lange suchen.',
+        description: 'Strand, Essen, Wetter und Gezeiten sind vorbereitet.',
+        detail: 'Vor Ort findet ihr nur ausgewählte Empfehlungen. Die Karte soll euch schnelle Entscheidungen ermöglichen, nicht eine neue Suche starten.',
+        target: 'local',
       },
     ],
     experienceDirections: ['Wattwandern', 'Reiten', 'Naturerlebnis', 'familienfreundliche Gastronomie'],
@@ -328,6 +369,37 @@ export const packages: MorrowPackage[] = [
         title: 'Ein paar Tage, die sich länger anfühlen.',
         description: 'Weniger Entscheidungen, mehr gute Momente am Wasser und genug Zeit füreinander.',
         illustration: '/brand/illustrations/morrow-illu-dinner.svg',
+      },
+    ],
+    itinerary: [
+      {
+        label: 'Ankommen',
+        title: 'Erst runterfahren.',
+        description: 'Anreise, Schlüssel und Rückzugsort liegen bereit.',
+        detail: 'Ihr müsst nicht erst vor Ort sortieren. Die wichtigsten Hinweise liegen in der Buchung, damit die Auszeit direkt ruhiger beginnt.',
+        target: 'booking',
+      },
+      {
+        label: 'Zweisamkeit',
+        title: 'Raus aus dem Alltag.',
+        description: 'Ein paar Tage, die weiter wirken dürfen als ein Kurztrip.',
+        detail: 'Couple Reset soll Abstand schaffen: wenige gute Entscheidungen, viel Raum füreinander und kein Gefühl von durchgetakteter Reise.',
+        target: 'home',
+      },
+      {
+        label: 'Erlebnis',
+        title: 'Wellness- oder Yoga-Zeit.',
+        description: 'Ein ruhiger Baustein, der nach Anlass und Termin passt.',
+        detail: 'Das Erlebnis wird nicht als Zusatzstress gedacht, sondern als Moment für Nähe, Ruhe und gemeinsames Ankommen.',
+        target: 'local',
+        localFilter: 'experience',
+      },
+      {
+        label: 'Vor Ort',
+        title: 'Dinner, Spaziergang, Wasser.',
+        description: 'Empfehlungen sind kuratiert, damit ihr nicht lange suchen müsst.',
+        detail: 'Vor Ort findet ihr ausgewählte Restaurants, Wege ans Wasser und Live-Infos wie Wetter und Gezeiten.',
+        target: 'local',
       },
     ],
     experienceDirections: ['Wellness', 'Yoga', 'gemeinsames Kochen', 'Dinner', 'ruhige Spaziergänge'],
