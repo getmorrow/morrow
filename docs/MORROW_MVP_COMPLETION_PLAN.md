@@ -65,7 +65,7 @@ Ziel: Nach der Buchung fuehlt sich Morrow wie Komfort an, nicht wie eine lose E-
 | Restaurant-Reservierungen | Reservierungs-/Website-/Speisekartenlinks als externe Links vorhanden | Pro Restaurant kuratierte Reservierungslinks, Bilder, Kueche, Preisgefuehl, Oeffnungszeiten, Bewertung | MVP-kritisch | Teilweise |
 | Support-Chat | Gaeste koennen im Bereich Hilfe eine Nachricht mit Kategorie und Dringlichkeit senden; Admin sieht sie als Supportfall mit Buchungsbezug | Spaeter echte Chat-Ansicht und Antwort aus Admin heraus ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Schadens-/Problem-Tickets | Objektproblem-Flow unterscheidet Morrow-Objektbetreuung von Agentur/Hotel-Partnerfaellen und priorisiert dringende Themen | Spaeter Partnerweiterleitung und Status pro Ticket weiter normalisieren | MVP-kritisch | Erledigt fuer MVP |
-| Feedback nach Aufenthalt | Feedback-Ansicht im Gaestebereich, Speicherung in `guest_feedback`, Kommunikationshistorie und automatische Resend-Edge-Function fuer faellige Feedback-Mails 1 Tag nach Abschluss sind live angelegt; Migration, Function-Deploy und Tabellen-Smoke-Test bestanden | Echten Abschlussfall mit realer Buchung zeitversetzt testen | MVP-light | Teilweise |
+| Feedback nach Aufenthalt | Feedback-Ansicht im Gaestebereich, Speicherung in `guest_feedback`, Kommunikationshistorie und automatische Resend-Edge-Function fuer faellige Feedback-Mails 1 Tag nach Abschluss sind live angelegt; Migration, Function-Deploy, Tabellen-Smoke-Test und Sofort-End-to-End-Test mit abgeschlossener Buchung bestanden | Echten 1-Tag-Zeitversatz mit temporärer Buchung morgen prüfen | MVP-light | Teilweise |
 | Wiederbuchung | Nicht umgesetzt | Nach Aufenthalt leichte Rueckkehr-CTA, Empfehlung fuer naechste Auszeit | MVP-light | Offen |
 
 ## Block 3: Communication
@@ -167,7 +167,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 3. Support-/Problem-Ticket-Flow finalisieren.
    - Stand 2026-06-09: Hilfe-Formular mit Kategorie und Dringlichkeit gebaut; Supportfall landet im Admin mit Buchungsbezug, Zuständigkeit, naechstem Schritt und Kommunikationshistorie; Objektproblem unterscheidet Morrow vs. Partner; Build und E2E-Test bestanden.
 4. Feedback nach Aufenthalt ergaenzen.
-   - Stand 2026-06-09: Feedback-Ansicht im Gaestebereich, Feedbackspeicherung, Kommunikationshistorie und automatische Resend-Function fuer 1 Tag nach Abschluss gebaut; Supabase-Migration und Function-Deploy erledigt; Tabellen- und Function-Smoke-Test bestanden; echter zeitversetzter Mail-Test steht noch aus.
+   - Stand 2026-06-09: Feedback-Ansicht im Gaestebereich, Feedbackspeicherung, Kommunikationshistorie und automatische Resend-Function fuer 1 Tag nach Abschluss gebaut; Supabase-Migration und Function-Deploy erledigt; Tabellen-/Function-Smoke-Test und Sofort-End-to-End-Test mit Feedback-Mail, Feedbackformular und Kommunikationshistorie bestanden; echter zeitversetzter Mail-Test ist fuer 2026-06-10 angelegt.
 
 ### Sprint 3: Kommunikation und Recht
 
@@ -201,7 +201,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 - [x] Gaestebereich zeigt Anreise, Schluessel und Regeln aus Admin-Daten.
 - [x] Supportnachricht aus Gaestebereich landet als Admin-Thema.
 - [x] Feedback nach Aufenthalt kann in Supabase gespeichert werden.
-- [ ] Feedback erzeugt live Kommunikationshistorie aus einem echten Gaestebereich-Test.
+- [x] Feedback erzeugt live Kommunikationshistorie aus einem echten Gaestebereich-Test.
 - [ ] Feedback-Mail wird 1 Tag nach Abschluss automatisch versendet.
 - [ ] Status-E-Mails fuer Reservierung/Bestaetigung/Vor Anreise getestet.
 - [ ] AGB/Buchungsbedingungen/Storno/Zahlung final verlinkt.
