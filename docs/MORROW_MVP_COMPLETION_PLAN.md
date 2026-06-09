@@ -57,7 +57,7 @@ Ziel: Nach der Buchung fuehlt sich Morrow wie Komfort an, nicht wie eine lose E-
 
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
-| Gaestebereich | Live-Zugang per Buchungscode getestet, App-artige Struktur vorhanden | Login/Access-Flow finalisieren, Inhalte pro Buchung vollstaendig aus Admin-Daten speisen | MVP-kritisch | Teilweise |
+| Gaestebereich | Live-Zugang per Buchungscode getestet, App-artige Struktur vorhanden; abgeschlossene Buchungen wechseln in reduzierten Nach-Aufenthalt-Modus mit Rückblick, Feedback und neuen Auszeiten | Inhalte pro Buchung weiter vollstaendig aus Admin-Daten speisen und echten 1-Tag-Feedback-Test abschliessen | MVP-kritisch | Teilweise |
 | Anreise, Schluessel, Unterkunftsregeln | Check-in-Daten, Adresse, Regeln, Check-out und Support-Zustaendigkeit sind am Paket/Objekt pflegbar; Buchungsseite im Gaestebereich zeigt die Infos klar aus Admin-Daten | Spaeter buchungsspezifische Sonderhinweise und echte Freigabezeitpunkte pro Buchung ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Tagesplan / Meine Auszeit | Eigener Bereich im Gaestebereich vorhanden; Ablaufpunkte sind pro Auszeit im Admin pflegbar und erscheinen als kompakte Timeline mit Detail-Drawer | Spaeter buchungsspezifische Abweichungen und echte Tageszeiten pro Buchung ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Kuratierte Karte | Karte, Filter, Pins, Drawer, Restaurants, Orte, Veranstaltungen vorhanden | Datenqualitaet weiter kuratieren, Kategorien finalisieren, Pin-/Drawer-UX fortlaufend testen | MVP-kritisch | Teilweise |
@@ -168,6 +168,8 @@ Diese Punkte bleiben bewusst nachgelagert:
    - Stand 2026-06-09: Hilfe-Formular mit Kategorie und Dringlichkeit gebaut; Supportfall landet im Admin mit Buchungsbezug, Zuständigkeit, naechstem Schritt und Kommunikationshistorie; Objektproblem unterscheidet Morrow vs. Partner; Build und E2E-Test bestanden.
 4. Feedback nach Aufenthalt ergaenzen.
    - Stand 2026-06-09: Feedback-Ansicht im Gaestebereich, Feedbackspeicherung, Kommunikationshistorie und automatische Resend-Function fuer 1 Tag nach Abschluss gebaut; Supabase-Migration und Function-Deploy erledigt; Tabellen-/Function-Smoke-Test und Sofort-End-to-End-Test mit Feedback-Mail, Feedbackformular und Kommunikationshistorie bestanden; echter zeitversetzter Mail-Test ist fuer 2026-06-10 angelegt.
+5. Nach-Aufenthalt-Modus im Gaestebereich.
+   - Stand 2026-06-09: Status `Abgeschlossen` zeigt reduzierte Navigation, Rückblick auf die alte Buchung, Feedback und neue Auszeiten statt operativer Vor-Ort-/Anreise-Logik; Build und Browser-Sichttest bestanden.
 
 ### Sprint 3: Kommunikation und Recht
 

@@ -214,8 +214,8 @@ function guestStayCountdownLabel(dateLabel: string) {
   return null
 }
 
-function guestCountLabel(value?: string) {
-  const trimmedValue = value?.trim()
+function guestCountLabel(value?: string | number) {
+  const trimmedValue = typeof value === 'number' ? String(value) : value?.trim()
   if (!trimmedValue) return '2 Personen'
   const parsedValue = Number.parseInt(trimmedValue, 10)
   if (Number.isFinite(parsedValue)) return `${parsedValue} ${parsedValue === 1 ? 'Person' : 'Personen'}`
@@ -321,7 +321,7 @@ type LeadSource = 'Meta Ads' | 'Google' | 'Ratgeber' | 'Direkt' | 'Empfehlung' |
 type LeadLossReason = 'Termin passt nicht' | 'Preis' | 'Unterkunft passt nicht' | 'Erlebnis passt nicht' | 'Keine Rückmeldung' | 'Anders gebucht' | 'Nicht qualifiziert' | 'Sonstiges'
 type AdminSection = 'overview' | 'leads' | 'tasks' | 'guestSupport' | 'customers' | 'bookings' | 'packages' | 'experiences' | 'localPlaces' | 'owners' | 'agencies' | 'experienceProviders'
 type BookingStatus = 'Reserviert' | 'Bezahlt' | 'Vor Anreise' | 'Aktiv' | 'Abgeschlossen' | 'Storniert'
-type GuestAppView = 'home' | 'plan' | 'booking' | 'local' | 'help' | 'feedback'
+type GuestAppView = 'home' | 'plan' | 'booking' | 'local' | 'help' | 'feedback' | 'again'
 type GuestSupportCategory = 'general' | 'arrival' | 'property' | 'experience' | 'local'
 type GuestSupportUrgency = 'normal' | 'soon' | 'urgent'
 type GuestFeedbackRating = '5' | '4' | '3' | '2' | '1' | ''
@@ -8548,6 +8548,7 @@ function GuestStayPage({
       : activeLead?.status === 'Abgeschlossen'
         ? 'after'
         : 'before'
+  const isPostStay = homePhase === 'after'
   const homeStep = homePhase === 'during'
     ? {
         kicker: 'Heute wichtig',
@@ -8564,9 +8565,9 @@ function GuestStayPage({
           copy: feedbackSubmitted
             ? 'Eure Rückmeldung hilft uns, kommende Aufenthalte noch besser vorzubereiten.'
             : 'Wenn ihr einen kurzen Moment habt, hilft uns eure Rückmeldung sehr.',
-          buttonLabel: feedbackSubmitted ? 'Buchung ansehen' : 'Feedback geben',
+          buttonLabel: feedbackSubmitted ? 'Neue Auszeit ansehen' : 'Feedback geben',
           icon: <HeartHandLine size={17} />,
-          view: feedbackSubmitted ? 'booking' as GuestAppView : 'feedback' as GuestAppView,
+          view: feedbackSubmitted ? 'again' as GuestAppView : 'feedback' as GuestAppView,
         }
         : {
           kicker: 'Jetzt wichtig',
@@ -8687,13 +8688,31 @@ function GuestStayPage({
   const bookingStay = packageItem?.stay
   const bookingSupport = guestPropertySupport(bookingStay)
   const bookingRules = guestHouseRules(bookingStay)
+  const activePackageSlug = activeLead?.packageSlug ?? ''
+  const postStayPackages = packages
+    .filter((item) => item.status === 'published')
+    .sort((a, b) => (a.slug === activePackageSlug ? 1 : b.slug === activePackageSlug ? -1 : 0))
   const guestNavigation: { id: GuestAppView; label: string; icon: ReactNode }[] = [
-    { id: 'home', label: 'Start', icon: <Home3Line size={19} /> },
-    { id: 'plan', label: 'Auszeit', icon: <SparklesLine size={19} /> },
-    { id: 'booking', label: 'Buchung', icon: <CalendarLine size={19} /> },
-    { id: 'local', label: 'Vor Ort', icon: <LocationLine size={19} /> },
-    { id: 'help', label: 'Hilfe', icon: <HeartHandLine size={19} /> },
+    ...(isPostStay
+      ? [
+          { id: 'home' as GuestAppView, label: 'Start', icon: <Home3Line size={19} /> },
+          { id: 'booking' as GuestAppView, label: 'Buchung', icon: <CalendarLine size={19} /> },
+          { id: 'feedback' as GuestAppView, label: 'Feedback', icon: <HeartHandLine size={19} /> },
+          { id: 'again' as GuestAppView, label: 'Auszeiten', icon: <SparklesLine size={19} /> },
+        ]
+      : [
+          { id: 'home' as GuestAppView, label: 'Start', icon: <Home3Line size={19} /> },
+          { id: 'plan' as GuestAppView, label: 'Auszeit', icon: <SparklesLine size={19} /> },
+          { id: 'booking' as GuestAppView, label: 'Buchung', icon: <CalendarLine size={19} /> },
+          { id: 'local' as GuestAppView, label: 'Vor Ort', icon: <LocationLine size={19} /> },
+          { id: 'help' as GuestAppView, label: 'Hilfe', icon: <HeartHandLine size={19} /> },
+        ]),
   ]
+  useEffect(() => {
+    if (!isPostStay) return
+    const allowedViews: GuestAppView[] = ['home', 'booking', 'feedback', 'again']
+    if (!allowedViews.includes(activeView)) setActiveView('home')
+  }, [activeView, isPostStay])
   useEffect(() => {
     const updateCompactNav = () => {
       const visualViewport = window.visualViewport
@@ -8901,7 +8920,7 @@ function GuestStayPage({
         <button className="guest-app-menu-button" type="button" aria-label="Menü öffnen"><MenuLine size={20} /></button>
       </header>
 
-      <nav className="guest-app-bottom-nav" aria-label="Gästebereich Navigation">
+      <nav className={`guest-app-bottom-nav${isPostStay ? ' is-post-stay' : ''}`} aria-label="Gästebereich Navigation">
         {guestNavigation.map((item) => (
           <button key={item.id} className={activeView === item.id ? 'active' : ''} type="button" onClick={() => setActiveView(item.id)}>
             {item.icon}
@@ -8915,12 +8934,14 @@ function GuestStayPage({
           <div className="guest-app-view">
             <section className="guest-app-hero">
               <div>
-                <p className="kicker">Moin {firstName || 'und willkommen'}</p>
-                <h1>Eure Auszeit beginnt hier.</h1>
+                <p className="kicker">{isPostStay ? 'Nach eurer Auszeit' : `Moin ${firstName || 'und willkommen'}`}</p>
+                <h1>{isPostStay ? 'Schön, dass ihr mit Morrow gereist seid.' : 'Eure Auszeit beginnt hier.'}</h1>
                 {countdownLabel && homePhase === 'before' && (
                   <p className="guest-home-countdown"><CalendarLine size={16} />{countdownLabel}</p>
                 )}
-                <p>Wir bereiten eure {activeLead.packageName} Schritt für Schritt vor. Ihr müsst nicht alles im Kopf behalten.</p>
+                <p>{isPostStay
+                  ? 'Eure Buchung bleibt als Rückblick erhalten. Wenn ihr mögt, teilt ihr euer Feedback oder findet die nächste passende Auszeit.'
+                  : `Wir bereiten eure ${activeLead.packageName} Schritt für Schritt vor. Ihr müsst nicht alles im Kopf behalten.`}</p>
               </div>
               <figure>
                 <img src={packageItem?.heroImage ?? '/brand/morrow-hero-home.jpg'} alt="" />
@@ -8953,53 +8974,84 @@ function GuestStayPage({
                 {homeStep.icon}
               </button>
             </section>
-            <div className="guest-home-section-title">
-              <h2>Heute für euch</h2>
-              <span>Leicht orientiert</span>
-            </div>
-            <section className="guest-home-insight-grid" aria-label="Aktuelle Orientierung">
-              <article>
-                <span><SunCloudyLine size={18} /></span>
-                <small>Wetter</small>
-                <strong>{liveWeatherTitle}</strong>
-                <p>{liveWeatherCopy}</p>
-              </article>
-              <article>
-                <span><WaveLine size={18} /></span>
-                <small>Gezeiten</small>
-                <strong>{liveTideTitle}</strong>
-                <p>{liveTideCopy}</p>
-              </article>
-              {homeRecommendation && (
-                <article>
-                  <span>{localPlaceIcon(homeRecommendation.category, 18)}</span>
-                  <small>Empfehlung</small>
-                  <strong>{homeRecommendation.title}</strong>
-                  <p>{homeRecommendation.description}</p>
-                </article>
-              )}
-            </section>
-            <section className="guest-home-rhythm" aria-label="Auszeit Rhythmus">
-              <p className="kicker">Euer Rhythmus</p>
-              <h2>So darf sich die Auszeit anfühlen.</h2>
-              <div>
-                <article>
-                  <span>01</span>
-                  <strong>Ankommen</strong>
-                  <p>Erst in Ruhe landen. Keine Liste, die direkt erledigt werden muss.</p>
-                </article>
-                <article>
-                  <span>02</span>
-                  <strong>Nordsee spüren</strong>
-                  <p>Wetter, Wasser und Wege geben euch den Takt, nicht ein voller Plan.</p>
-                </article>
-                <article>
-                  <span>03</span>
-                  <strong>Zeit teilen</strong>
-                  <p>Ein gutes Erlebnis, ein schöner Ort und genug Raum dazwischen.</p>
-                </article>
-              </div>
-            </section>
+            {isPostStay ? (
+              <>
+                <section className="guest-poststay-return-card">
+                  <div>
+                    <p className="kicker">Wiederkommen</p>
+                    <h2>Wenn es wieder Zeit für ein paar gute Tage ist.</h2>
+                    <p>Ihr kennt Morrow jetzt. Die nächste Auszeit darf noch leichter beginnen: mit einem Gefühl, das schon vertraut ist, und einem Ort, der wieder zu euch passt.</p>
+                  </div>
+                  <button className="button primary" type="button" onClick={() => setActiveView('again')}>Neue Auszeiten ansehen</button>
+                </section>
+                <section className="guest-poststay-memory-grid" aria-label="Rückblick">
+                  <article>
+                    <span><CalendarLine size={18} /></span>
+                    <small>Vergangene Buchung</small>
+                    <strong>{activeLead.packageName}</strong>
+                    <p>{activeLead.selectedDate}</p>
+                    <button type="button" onClick={() => setActiveView('booking')}>Buchung ansehen</button>
+                  </article>
+                  <article>
+                    <span><HeartHandLine size={18} /></span>
+                    <small>Feedback</small>
+                    <strong>{feedbackSubmitted ? 'Danke für eure Rückmeldung' : 'Wie war eure Auszeit?'}</strong>
+                    <p>{feedbackSubmitted ? 'Euer Feedback ist angekommen.' : 'Ein kurzer Eindruck hilft uns, Morrow weiter zu verbessern.'}</p>
+                    <button type="button" onClick={() => setActiveView('feedback')}>{feedbackSubmitted ? 'Feedback ansehen' : 'Feedback geben'}</button>
+                  </article>
+                </section>
+              </>
+            ) : (
+              <>
+                <div className="guest-home-section-title">
+                  <h2>Heute für euch</h2>
+                  <span>Leicht orientiert</span>
+                </div>
+                <section className="guest-home-insight-grid" aria-label="Aktuelle Orientierung">
+                  <article>
+                    <span><SunCloudyLine size={18} /></span>
+                    <small>Wetter</small>
+                    <strong>{liveWeatherTitle}</strong>
+                    <p>{liveWeatherCopy}</p>
+                  </article>
+                  <article>
+                    <span><WaveLine size={18} /></span>
+                    <small>Gezeiten</small>
+                    <strong>{liveTideTitle}</strong>
+                    <p>{liveTideCopy}</p>
+                  </article>
+                  {homeRecommendation && (
+                    <article>
+                      <span>{localPlaceIcon(homeRecommendation.category, 18)}</span>
+                      <small>Empfehlung</small>
+                      <strong>{homeRecommendation.title}</strong>
+                      <p>{homeRecommendation.description}</p>
+                    </article>
+                  )}
+                </section>
+                <section className="guest-home-rhythm" aria-label="Auszeit Rhythmus">
+                  <p className="kicker">Euer Rhythmus</p>
+                  <h2>So darf sich die Auszeit anfühlen.</h2>
+                  <div>
+                    <article>
+                      <span>01</span>
+                      <strong>Ankommen</strong>
+                      <p>Erst in Ruhe landen. Keine Liste, die direkt erledigt werden muss.</p>
+                    </article>
+                    <article>
+                      <span>02</span>
+                      <strong>Nordsee spüren</strong>
+                      <p>Wetter, Wasser und Wege geben euch den Takt, nicht ein voller Plan.</p>
+                    </article>
+                    <article>
+                      <span>03</span>
+                      <strong>Zeit teilen</strong>
+                      <p>Ein gutes Erlebnis, ein schöner Ort und genug Raum dazwischen.</p>
+                    </article>
+                  </div>
+                </section>
+              </>
+            )}
           </div>
         )}
 
@@ -9094,9 +9146,11 @@ function GuestStayPage({
         {activeView === 'booking' && (
           <div className="guest-app-view">
             <section className="guest-app-section-head guest-help-head">
-              <p className="kicker">Buchung</p>
-              <h1>Eure Auszeit im Überblick.</h1>
-              <p>Alles Wichtige zu Unterkunft, Anreise, Schlüssel und Erlebnis.</p>
+              <p className="kicker">{isPostStay ? 'Vergangene Buchung' : 'Buchung'}</p>
+              <h1>{isPostStay ? 'Eure letzte Auszeit bleibt sichtbar.' : 'Eure Auszeit im Überblick.'}</h1>
+              <p>{isPostStay
+                ? 'Hier findet ihr den Rückblick auf Unterkunft, Zeitraum und enthaltenes Erlebnis. Operative Anreise- und Schlüsselinfos sind nach Abschluss reduziert.'
+                : 'Alles Wichtige zu Unterkunft, Anreise, Schlüssel und Erlebnis.'}</p>
             </section>
             <section className="guest-booking-detail">
               <img src={packageItem?.stayImages[0] ?? packageItem?.images[0] ?? '/brand/generated/morrow-spo-interior.png'} alt="" />
@@ -9112,42 +9166,64 @@ function GuestStayPage({
                 </div>
               </div>
             </section>
-            <section className="guest-booking-hub" aria-label="Aufenthaltszentrale">
-              <article className="guest-booking-hub-primary">
-                <p className="kicker">Anreise & Schlüssel</p>
-                <h2>Alles, was ihr für den Start braucht.</h2>
-                <div className="guest-booking-hub-steps">
-                  <span><strong>01</strong> {guestStayAddress(bookingStay)}</span>
-                  <span><strong>02</strong> {arrivalWindowLabel(bookingStay)}</span>
-                  <span><strong>03</strong> {guestCheckInInstruction(bookingStay)}</span>
-                </div>
-              </article>
-              <article>
-                <span>Schlüssel</span>
-                <strong>{packageItem ? checkInTypeLabel(packageItem.stay.checkInType) : 'Wird vorbereitet'}</strong>
-                <p>{guestKeyCodeLabel(bookingStay)}</p>
-              </article>
-              <article>
-                <span>Abreise</span>
-                <strong>Bis {bookingStay?.checkOutTime ?? '10:00'} Uhr</strong>
-                <p>{bookingStay?.checkOutInstructions ?? 'Die genauen Rückgabehinweise findet ihr vor Anreise hier.'}</p>
-              </article>
-            </section>
-            <section className="guest-booking-info-grid" aria-label="Unterkunftsregeln und Betreuung">
-              <article className="guest-booking-rules-card">
-                <p className="kicker">Unterkunftsregeln</p>
-                <h2>Damit vor Ort nichts gesucht werden muss.</h2>
-                <ul>
-                  {bookingRules.map((rule) => <li key={rule}>{rule}</li>)}
-                </ul>
-              </article>
-              <article className="guest-booking-support-card">
-                <p className="kicker">Bei Fragen zur Unterkunft</p>
-                <h2>{bookingSupport.title}</h2>
-                <p>{bookingSupport.text}</p>
-                <button type="button" onClick={() => setActiveView('help')}>Hilfe öffnen</button>
-              </article>
-            </section>
+            {isPostStay ? (
+              <section className="guest-poststay-booking-summary" aria-label="Abgeschlossene Buchung">
+                <article>
+                  <span>Zeitraum</span>
+                  <strong>{activeLead.selectedDate}</strong>
+                  <p>Diese Auszeit ist abgeschlossen.</p>
+                </article>
+                <article>
+                  <span>Unterkunft</span>
+                  <strong>{packageItem?.stay.name ?? 'Ausgewählte Unterkunft'}</strong>
+                  <p>{packageItem?.location ?? 'Sankt Peter-Ording'}</p>
+                </article>
+                <article>
+                  <span>Erlebnis</span>
+                  <strong>{primaryExperience?.title ?? 'Lokales Erlebnis'}</strong>
+                  <p>{primaryExperience ? 'War Teil eurer Auszeit.' : 'War für eure Auszeit vorbereitet.'}</p>
+                </article>
+              </section>
+            ) : (
+              <>
+                <section className="guest-booking-hub" aria-label="Aufenthaltszentrale">
+                  <article className="guest-booking-hub-primary">
+                    <p className="kicker">Anreise & Schlüssel</p>
+                    <h2>Alles, was ihr für den Start braucht.</h2>
+                    <div className="guest-booking-hub-steps">
+                      <span><strong>01</strong> {guestStayAddress(bookingStay)}</span>
+                      <span><strong>02</strong> {arrivalWindowLabel(bookingStay)}</span>
+                      <span><strong>03</strong> {guestCheckInInstruction(bookingStay)}</span>
+                    </div>
+                  </article>
+                  <article>
+                    <span>Schlüssel</span>
+                    <strong>{packageItem ? checkInTypeLabel(packageItem.stay.checkInType) : 'Wird vorbereitet'}</strong>
+                    <p>{guestKeyCodeLabel(bookingStay)}</p>
+                  </article>
+                  <article>
+                    <span>Abreise</span>
+                    <strong>Bis {bookingStay?.checkOutTime ?? '10:00'} Uhr</strong>
+                    <p>{bookingStay?.checkOutInstructions ?? 'Die genauen Rückgabehinweise findet ihr vor Anreise hier.'}</p>
+                  </article>
+                </section>
+                <section className="guest-booking-info-grid" aria-label="Unterkunftsregeln und Betreuung">
+                  <article className="guest-booking-rules-card">
+                    <p className="kicker">Unterkunftsregeln</p>
+                    <h2>Damit vor Ort nichts gesucht werden muss.</h2>
+                    <ul>
+                      {bookingRules.map((rule) => <li key={rule}>{rule}</li>)}
+                    </ul>
+                  </article>
+                  <article className="guest-booking-support-card">
+                    <p className="kicker">Bei Fragen zur Unterkunft</p>
+                    <h2>{bookingSupport.title}</h2>
+                    <p>{bookingSupport.text}</p>
+                    <button type="button" onClick={() => setActiveView('help')}>Hilfe öffnen</button>
+                  </article>
+                </section>
+              </>
+            )}
             <section className="guest-booking-feature-card">
               <img src={packageItem?.experienceImage ?? '/brand/generated/morrow-spo-family-watt.png'} alt="" />
               <div>
@@ -9157,6 +9233,16 @@ function GuestStayPage({
                 <strong>{guestExperienceStatus(primaryExperience)}</strong>
               </div>
             </section>
+            {isPostStay && (
+              <section className="guest-poststay-return-card">
+                <div>
+                  <p className="kicker">Nächste Auszeit</p>
+                  <h2>Wenn ihr wieder raus möchtet, beginnt es hier.</h2>
+                  <p>Wir zeigen euch die Auszeiten, die aktuell als Morrow-Angebot vorbereitet sind.</p>
+                </div>
+                <button className="button primary" type="button" onClick={() => setActiveView('again')}>Auszeiten ansehen</button>
+              </section>
+            )}
           </div>
         )}
 
@@ -9546,6 +9632,32 @@ function GuestStayPage({
                   <button className="button primary" type="submit">Feedback senden</button>
                 </form>
               )}
+            </section>
+          </div>
+        )}
+        {activeView === 'again' && (
+          <div className="guest-app-view">
+            <section className="guest-app-section-head">
+              <p className="kicker">Neue Auszeiten</p>
+              <h1>Vielleicht ist bald wieder Zeit für ein paar gute Tage.</h1>
+              <p>Hier findet ihr die Morrow-Auszeiten, die aktuell vorbereitet sind. Keine endlose Suche, sondern wenige kuratierte Möglichkeiten.</p>
+            </section>
+            <section className="guest-repeat-grid" aria-label="Neue Auszeiten">
+              {postStayPackages.map((item) => (
+                <article key={item.id}>
+                  <img src={item.heroImage} alt="" />
+                  <div>
+                    <p className="kicker">{item.audience === 'families' ? 'Für Familien' : 'Für Paare'}</p>
+                    <h2>{item.name}</h2>
+                    <p>{item.shortPromise}</p>
+                    <div>
+                      <span>{item.location}</span>
+                      <span>{item.concretePrice || item.priceFrom}</span>
+                    </div>
+                    <a className="button primary" href={`/auszeiten/${item.slug}`}>Auszeit ansehen</a>
+                  </div>
+                </article>
+              ))}
             </section>
           </div>
         )}

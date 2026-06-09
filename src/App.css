@@ -7329,6 +7329,10 @@ textarea {
   backdrop-filter: none;
 }
 
+.guest-app-bottom-nav.is-post-stay {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .guest-app-bottom-nav button {
   min-width: 0;
   min-height: 36px;
@@ -7495,6 +7499,10 @@ textarea {
     backdrop-filter: blur(16px);
   }
 
+  .guest-app-bottom-nav.is-post-stay {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   .guest-app-bottom-nav button {
     min-height: 54px;
     display: grid;
@@ -7522,6 +7530,26 @@ textarea {
   .guest-app-page.is-locked .guest-app-login {
     min-height: auto;
     align-content: start;
+  }
+
+  .guest-poststay-return-card,
+  .guest-poststay-memory-grid,
+  .guest-poststay-booking-summary,
+  .guest-repeat-grid article {
+    grid-template-columns: 1fr;
+  }
+
+  .guest-poststay-return-card {
+    align-items: start;
+  }
+
+  .guest-poststay-return-card .button {
+    width: 100%;
+  }
+
+  .guest-repeat-grid img {
+    min-height: 220px;
+    aspect-ratio: 1.12;
   }
 }
 
@@ -7906,6 +7934,164 @@ textarea {
   color: rgba(24, 23, 21, 0.66);
   font-size: 15px;
   line-height: 1.5;
+}
+
+.guest-poststay-return-card,
+.guest-poststay-booking-summary,
+.guest-poststay-memory-grid,
+.guest-repeat-grid {
+  width: min(980px, 100%);
+}
+
+.guest-poststay-return-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 18px;
+  padding: clamp(22px, 4vw, 38px);
+  border-radius: 14px;
+  background: var(--offblack);
+  color: var(--offwhite);
+}
+
+.guest-poststay-return-card .kicker,
+.guest-poststay-return-card h2,
+.guest-poststay-return-card p {
+  color: var(--offwhite);
+}
+
+.guest-poststay-return-card h2 {
+  max-width: 660px;
+  margin: 0;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.02;
+}
+
+.guest-poststay-return-card p:not(.kicker) {
+  max-width: 680px;
+  margin: 10px 0 0;
+  color: rgba(255, 253, 248, 0.76);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.guest-poststay-memory-grid,
+.guest-poststay-booking-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.guest-poststay-booking-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.guest-poststay-memory-grid article,
+.guest-poststay-booking-summary article {
+  display: grid;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid rgba(24, 23, 21, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 253, 248, 0.62);
+}
+
+.guest-poststay-memory-grid span,
+.guest-poststay-booking-summary span {
+  color: rgba(24, 23, 21, 0.54);
+}
+
+.guest-poststay-memory-grid small,
+.guest-poststay-booking-summary span {
+  color: rgba(24, 23, 21, 0.5);
+  font-size: 11px;
+  font-weight: 840;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.guest-poststay-memory-grid strong,
+.guest-poststay-booking-summary strong {
+  color: var(--offblack);
+  font-size: 21px;
+  line-height: 1.1;
+}
+
+.guest-poststay-memory-grid p,
+.guest-poststay-booking-summary p {
+  margin: 0;
+  color: rgba(24, 23, 21, 0.64);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.guest-poststay-memory-grid button {
+  justify-self: start;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  padding: 0 0 2px;
+  background: transparent;
+  color: var(--sage);
+  font-size: 14px;
+  font-weight: 820;
+}
+
+.guest-repeat-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.guest-repeat-grid article {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.48fr) minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid rgba(24, 23, 21, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 253, 248, 0.68);
+}
+
+.guest-repeat-grid img {
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+  object-fit: cover;
+}
+
+.guest-repeat-grid article > div {
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  padding: clamp(20px, 4vw, 34px);
+}
+
+.guest-repeat-grid h2 {
+  margin: 0;
+  color: var(--offblack);
+  font-size: clamp(30px, 3.8vw, 46px);
+  line-height: 1.02;
+}
+
+.guest-repeat-grid p:not(.kicker) {
+  max-width: 620px;
+  margin: 0;
+  color: rgba(24, 23, 21, 0.66);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.guest-repeat-grid article > div > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.guest-repeat-grid article > div > div span {
+  border-radius: 999px;
+  padding: 8px 11px;
+  background: rgba(111, 104, 65, 0.1);
+  color: rgba(24, 23, 21, 0.66);
+  font-size: 13px;
+  font-weight: 780;
 }
 
 .guest-help-routes {
