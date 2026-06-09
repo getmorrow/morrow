@@ -5424,6 +5424,260 @@ textarea {
   line-height: 1.42;
 }
 
+.guest-plan-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 0.72fr);
+  overflow: hidden;
+  border: 1px solid rgba(24, 23, 21, 0.08);
+  border-radius: 18px;
+  background: #e5e5d9;
+  box-shadow: var(--soft-shadow);
+}
+
+.guest-plan-hero img {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  object-fit: cover;
+}
+
+.guest-plan-hero > div {
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  padding: clamp(26px, 4vw, 48px);
+}
+
+.guest-plan-hero h2,
+.guest-plan-anchor-card h2 {
+  max-width: 620px;
+  margin: 0;
+  color: var(--offblack);
+  font-size: clamp(25px, 2.8vw, 38px);
+  line-height: 1.03;
+}
+
+.guest-plan-hero p:not(.kicker),
+.guest-plan-anchor-card p:not(.kicker),
+.guest-plan-free-grid p {
+  margin: 0;
+  color: rgba(24, 23, 21, 0.64);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.guest-plan-anchor-card,
+.guest-plan-free-grid article {
+  display: grid;
+  gap: 12px;
+  padding: clamp(20px, 3vw, 30px);
+  border: 1px solid rgba(24, 23, 21, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 253, 248, 0.74);
+}
+
+.guest-plan-anchor-card {
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 0.7fr);
+  align-items: center;
+}
+
+.guest-plan-anchor-card > div:first-child {
+  display: grid;
+  gap: 10px;
+}
+
+.guest-plan-anchor-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.guest-plan-anchor-actions button {
+  min-height: 64px;
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  border: 1px solid rgba(24, 23, 21, 0.08);
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: rgba(229, 229, 217, 0.62);
+  color: var(--offblack);
+  font: inherit;
+  cursor: pointer;
+}
+
+.guest-plan-anchor-actions span {
+  color: var(--sage);
+  font-size: 11px;
+  font-weight: 880;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.guest-plan-anchor-actions strong {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 15px;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guest-plan-free-grid button {
+  width: fit-content;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(24, 23, 21, 0.1);
+  border-radius: 999px;
+  padding: 0 14px;
+  background: rgba(255, 253, 248, 0.8);
+  color: var(--offblack);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 840;
+  cursor: pointer;
+}
+
+.guest-plan-drawer footer button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 18px;
+  background: var(--sage);
+  color: var(--offwhite);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.guest-plan-free-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.guest-plan-free-grid span {
+  color: var(--sage);
+  font-size: 12px;
+  font-weight: 880;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+  .guest-plan-hero {
+    grid-template-columns: 1fr;
+    border-radius: 16px;
+    box-shadow: none;
+  }
+
+  .guest-plan-hero img {
+    min-height: 210px;
+    max-height: 240px;
+  }
+
+  .guest-plan-hero > div {
+    gap: 10px;
+    padding: 20px 18px;
+  }
+
+  .guest-plan-hero h2,
+  .guest-plan-anchor-card h2 {
+    font-size: 22px;
+    line-height: 1.08;
+  }
+
+  .guest-stay-timeline-list {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 0 2px 8px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .guest-stay-timeline-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .guest-stay-timeline-list button {
+    flex: 0 0 138px;
+    min-height: 132px;
+    gap: 7px;
+    padding: 14px;
+    scroll-snap-align: start;
+  }
+
+  .guest-stay-timeline-list i {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
+
+  .guest-stay-timeline-list span {
+    font-size: 10px;
+  }
+
+  .guest-stay-timeline-list strong {
+    font-size: 15px;
+    line-height: 1.08;
+  }
+
+  .guest-stay-timeline-list p {
+    display: none;
+  }
+
+  .guest-stay-timeline-list button::before {
+    display: none;
+  }
+
+  .guest-plan-anchor-card,
+  .guest-plan-free-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .guest-plan-anchor-card,
+  .guest-plan-free-grid article {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .guest-plan-anchor-actions {
+    gap: 8px;
+  }
+
+  .guest-plan-anchor-actions button {
+    min-height: 54px;
+    padding: 9px 15px;
+  }
+
+  .guest-plan-free-grid {
+    display: flex;
+    overflow-x: auto;
+    padding: 0 2px 8px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .guest-plan-free-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .guest-plan-free-grid article {
+    flex: 0 0 min(286px, 82vw);
+    scroll-snap-align: start;
+  }
+}
+
 .guest-app-quick-grid button,
 .guest-home-action-grid button {
   justify-items: start;
@@ -7027,7 +7281,7 @@ textarea {
   max-width: none;
   min-height: calc(72px + env(safe-area-inset-bottom));
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0;
   margin: 0;
   padding: 7px 14px max(10px, env(safe-area-inset-bottom));
@@ -7144,7 +7398,7 @@ textarea {
     width: calc(100vw - 18px);
     max-width: 720px;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 4px;
     margin: 0;
     padding: 7px;
@@ -9591,7 +9845,7 @@ textarea {
     width: calc(100vw - 18px);
     max-width: 720px;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 4px;
     padding: 7px;
     border: 0;
@@ -11528,9 +11782,10 @@ textarea {
 
   .guest-stay-timeline-list button {
     width: auto;
-    min-width: min(78vw, 310px);
-    max-width: min(78vw, 310px);
-    min-height: 238px;
+    min-width: 138px;
+    max-width: 138px;
+    min-height: 132px;
+    padding: 14px;
     scroll-snap-align: start;
   }
 

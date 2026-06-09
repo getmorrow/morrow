@@ -319,7 +319,7 @@ type LeadSource = 'Meta Ads' | 'Google' | 'Ratgeber' | 'Direkt' | 'Empfehlung' |
 type LeadLossReason = 'Termin passt nicht' | 'Preis' | 'Unterkunft passt nicht' | 'Erlebnis passt nicht' | 'Keine Rückmeldung' | 'Anders gebucht' | 'Nicht qualifiziert' | 'Sonstiges'
 type AdminSection = 'overview' | 'leads' | 'tasks' | 'guestSupport' | 'customers' | 'bookings' | 'packages' | 'experiences' | 'localPlaces' | 'owners' | 'agencies' | 'experienceProviders'
 type BookingStatus = 'Reserviert' | 'Bezahlt' | 'Vor Anreise' | 'Aktiv' | 'Abgeschlossen' | 'Storniert'
-type GuestAppView = 'home' | 'booking' | 'local' | 'help'
+type GuestAppView = 'home' | 'plan' | 'booking' | 'local' | 'help'
 type GuestSupportCategory = 'general' | 'arrival' | 'property' | 'experience' | 'local'
 type CustomerTypeFilter = CustomerProfile['guestType'] | 'all'
 type CustomerPhaseFilter = 'all' | 'request' | 'booking' | 'due'
@@ -8076,6 +8076,7 @@ function GuestStayPage({
   const [localAreaPlaceIds, setLocalAreaPlaceIds] = useState<string[]>([])
   const [localOverviewDrawerOpen, setLocalOverviewDrawerOpen] = useState(false)
   const [localPlaceDrawerOpen, setLocalPlaceDrawerOpen] = useState(false)
+  const [selectedPlanMomentIndex, setSelectedPlanMomentIndex] = useState<number | null>(null)
   const [compactGuestNav, setCompactGuestNav] = useState(false)
   const [remoteLead, setRemoteLead] = useState<GuestLead | null>(null)
   const [remotePackage, setRemotePackage] = useState<MorrowPackage | null>(null)
@@ -8408,16 +8409,100 @@ function GuestStayPage({
           icon: <HeartHandLine size={17} />,
           view: 'help' as GuestAppView,
         }
-      : {
+        : {
           kicker: 'Jetzt wichtig',
           title: 'Vorfreude statt Planung.',
-          copy: 'Bis zur Anreise bleibt es ruhig: Verbindliches liegt in der Buchung, alles für den Ort wächst im Vor-Ort-Bereich zusammen.',
-          buttonLabel: 'Buchung öffnen',
-          icon: <Key2Line size={17} />,
-          view: 'booking' as GuestAppView,
+          copy: 'Bis zur Anreise bleibt es ruhig: Der Ablauf ist vorbereitet, Verbindliches liegt in der Buchung und vor Ort wächst alles Wichtige zusammen.',
+          buttonLabel: 'Auszeit öffnen',
+          icon: <SparklesLine size={17} />,
+          view: 'plan' as GuestAppView,
         }
+  const planMoments = [
+    {
+      step: '01',
+      label: 'Ankommen',
+      title: 'Erst landen, dann los.',
+      copy: packageItem
+        ? `${arrivalWindowLabel(packageItem.stay)} ${formatGuestKeyInfo(packageItem.stay)}`
+        : 'Anreise, Schlüssel und erste Hinweise werden vor dem Aufenthalt klar zusammengelegt.',
+      detail: packageItem
+        ? `Anreise, Schlüssel und Unterkunftsregeln bleiben in der Buchung gebündelt. ${arrivalWindowLabel(packageItem.stay)} ${formatGuestKeyInfo(packageItem.stay)}`
+        : 'Anreise, Schlüssel und Unterkunftsregeln bleiben in der Buchung gebündelt, sobald alles final vorbereitet ist.',
+      cta: 'Buchung öffnen',
+      view: 'booking' as GuestAppView,
+    },
+    {
+      step: '02',
+      label: isFamily ? 'Familienzeit' : 'Zweisamkeit',
+      title: isFamily ? 'Zeit ohne Programm-Druck.' : 'Raus aus dem Alltag.',
+      copy: isFamily
+        ? 'Ein ruhiger Rahmen, in dem Kinder Raum haben und Eltern nicht jeden Tag neu organisieren müssen.'
+        : 'Ein paar Tage, die sich weiter anfühlen dürfen als ein normaler Kurztrip.',
+      detail: isFamily
+        ? 'Die Auszeit soll nicht wie ein enges Programm wirken. Unterkunft, Ort und Empfehlungen geben euch Orientierung, aber genug freie Zeit bleibt bewusst offen.'
+        : 'Die Auszeit soll Abstand vom Alltag schaffen. Ihr bekommt einen vorbereiteten Rahmen, ohne dass jeder Moment festgelegt ist.',
+      cta: 'Start ansehen',
+      view: 'home' as GuestAppView,
+    },
+    {
+      step: '03',
+      label: 'Erlebnis',
+      title: primaryExperience?.title ?? 'Ein lokales Erlebnis.',
+      copy: primaryExperience?.guestNotes ?? 'Das Erlebnis wird so eingebunden, dass es zum Aufenthalt passt und nicht wie ein zusätzlicher Termin wirkt.',
+      detail: primaryExperience?.guestNotes ?? 'Das Erlebnis wird so eingebunden, dass es zum Aufenthalt passt und nicht wie ein zusätzlicher Termin wirkt.',
+      cta: 'Erlebnis ansehen',
+      view: 'local' as GuestAppView,
+    },
+    {
+      step: '04',
+      label: 'Vor Ort',
+      title: 'Kurz entscheiden, nicht lange suchen.',
+      copy: 'Strand, Essen, Wetter, Gezeiten und Empfehlungen liegen kuratiert bereit, sobald ihr sie braucht.',
+      detail: 'Vor Ort findet ihr nur ausgewählte Empfehlungen. Die Karte soll euch schnelle Entscheidungen ermöglichen, nicht eine neue Suche starten.',
+      cta: 'Vor Ort öffnen',
+      view: 'local' as GuestAppView,
+    },
+  ]
+  const selectedPlanMoment = selectedPlanMomentIndex === null ? null : planMoments[selectedPlanMomentIndex] ?? null
+  const planFreeMoments = [
+    {
+      title: 'Erster Abend',
+      copy: homeRecommendation
+        ? `${homeRecommendation.title} ist als erste Orientierung hinterlegt, falls ihr nach der Anreise nicht mehr lange suchen wollt.`
+        : 'Eine einfache Essens- oder Spaziergangsidee hält den ersten Abend leicht.',
+      button: 'Empfehlung ansehen',
+      action: () => {
+        if (homeRecommendation) {
+          setActiveView('local')
+          selectLocalFilter(homeRecommendation.category)
+          setSelectedLocalPlaceId(homeRecommendation.id)
+          setLocalPlaceDrawerOpen(true)
+        } else {
+          setActiveView('local')
+        }
+      },
+    },
+    {
+      title: 'Strandrhythmus',
+      copy: beachLocalPlace
+        ? `${beachLocalPlace.title} ist als erster Wasser-Moment vorbereitet. Wetter und Gezeiten helfen euch beim richtigen Timing.`
+        : 'Wetter, Wind und Wasser bestimmen vor Ort den besten Moment für den Strand.',
+      button: 'Strand ansehen',
+      action: () => {
+        setActiveView('local')
+        selectLocalFilter('beach')
+      },
+    },
+    {
+      title: 'Wenn etwas offen ist',
+      copy: 'Wenn ihr vor Ort unsicher seid, schreibt ihr direkt aus dem Gästebereich. Wir ordnen es für euch ein.',
+      button: 'Hilfe öffnen',
+      action: () => setActiveView('help'),
+    },
+  ]
   const guestNavigation: { id: GuestAppView; label: string; icon: ReactNode }[] = [
     { id: 'home', label: 'Start', icon: <Home3Line size={19} /> },
+    { id: 'plan', label: 'Auszeit', icon: <SparklesLine size={19} /> },
     { id: 'booking', label: 'Buchung', icon: <CalendarLine size={19} /> },
     { id: 'local', label: 'Vor Ort', icon: <LocationLine size={19} /> },
     { id: 'help', label: 'Hilfe', icon: <HeartHandLine size={19} /> },
@@ -8623,6 +8708,9 @@ function GuestStayPage({
                 <h2>{homeStep.title}</h2>
                 <p>{homeStep.copy}</p>
               </div>
+              <button type="button" aria-label={homeStep.buttonLabel} onClick={() => setActiveView(homeStep.view)}>
+                {homeStep.icon}
+              </button>
             </section>
             <div className="guest-home-section-title">
               <h2>Heute für euch</h2>
@@ -8671,6 +8759,93 @@ function GuestStayPage({
                 </article>
               </div>
             </section>
+          </div>
+        )}
+
+        {activeView === 'plan' && (
+          <div className="guest-app-view">
+            <section className="guest-app-section-head guest-help-head">
+              <p className="kicker">Meine Auszeit</p>
+              <h1>Ein ruhiger Ablauf, der euch führt.</h1>
+              <p>Hier liegt nicht jeder Tag voll verplant. Ihr seht die wichtigen Momente, genug freie Zeit und die Stellen, an denen Morrow euch Orientierung gibt.</p>
+            </section>
+            <section className="guest-plan-hero">
+              <img src={packageItem?.experienceImage ?? packageItem?.heroImage ?? '/brand/generated/morrow-spo-family-watt.png'} alt="" />
+              <div>
+                <p className="kicker">{activeLead.selectedDate}</p>
+                <h2>{isFamily ? 'Gemeinsame Zeit, ohne jeden Tag neu zu planen.' : 'Ein paar Tage raus, ohne dass ihr vorher alles sortieren müsst.'}</h2>
+                <p>{packageItem?.shortPromise ?? 'Unterkunft, lokales Erlebnis und Empfehlungen sind bereits zusammen gedacht.'}</p>
+              </div>
+            </section>
+            <section className="guest-stay-timeline" aria-label="Ablauf der Auszeit">
+              <div className="guest-home-section-title">
+                <h2>Der rote Faden</h2>
+                <span>Nicht durchgetaktet</span>
+              </div>
+              <div className="guest-stay-timeline-list">
+                {planMoments.map((moment, index) => (
+                  <button key={moment.step} type="button" onClick={() => setSelectedPlanMomentIndex(index)}>
+                    <i>{moment.step}</i>
+                    <span>{moment.label}</span>
+                    <strong>{moment.title}</strong>
+                    <p>{moment.copy}</p>
+                  </button>
+                ))}
+              </div>
+            </section>
+            <section className="guest-plan-anchor-card">
+              <div>
+                <p className="kicker">Für euch vorbereitet</p>
+                <h2>Unterkunft und Erlebnis sind zusammen gedacht.</h2>
+                <p>Die Details liegen dort, wo ihr sie braucht: Verbindliches in der Buchung, Empfehlungen und Erlebnisbausteine vor Ort.</p>
+              </div>
+              <div className="guest-plan-anchor-actions">
+                <button type="button" onClick={() => setActiveView('booking')}>
+                  <span>Unterkunft</span>
+                  <strong>{packageItem?.stay.name ?? 'Rückzugsort'}</strong>
+                </button>
+                <button type="button" onClick={() => { setActiveView('local'); selectLocalFilter('experience') }}>
+                  <span>Erlebnis</span>
+                  <strong>{primaryExperience?.title ?? 'Lokaler Moment'}</strong>
+                </button>
+              </div>
+            </section>
+            <section className="guest-plan-free-grid" aria-label="Freie Zeit und Orientierung">
+              {planFreeMoments.map((moment) => (
+                <article key={moment.title}>
+                  <span>{moment.title}</span>
+                  <p>{moment.copy}</p>
+                  <button type="button" onClick={moment.action}>{moment.button}</button>
+                </article>
+              ))}
+            </section>
+            {selectedPlanMoment && (
+              <section className="guest-local-drawer-shell" aria-label="Auszeit Moment Details">
+                <button className="guest-local-drawer-backdrop" type="button" aria-label="Details schließen" onClick={() => setSelectedPlanMomentIndex(null)} />
+                <aside
+                  className="guest-local-drawer guest-plan-drawer"
+                >
+                  <div className="guest-local-drawer-handle" aria-hidden="true" />
+                  <header>
+                    <div>
+                      <p className="kicker">{selectedPlanMoment.label}</p>
+                      <h2>{selectedPlanMoment.title}</h2>
+                    </div>
+                    <button type="button" aria-label="Details schließen" onClick={() => setSelectedPlanMomentIndex(null)}><CloseLine size={18} /></button>
+                  </header>
+                  <p>{selectedPlanMoment.detail}</p>
+                  <footer>
+                    <button type="button" onClick={() => {
+                      setSelectedPlanMomentIndex(null)
+                      setActiveView(selectedPlanMoment.view)
+                      if (selectedPlanMoment.view === 'local' && selectedPlanMoment.label === 'Erlebnis') selectLocalFilter('experience')
+                    }}>
+                      {selectedPlanMoment.cta}
+                    </button>
+                  </footer>
+                </aside>
+              </section>
+            )}
           </div>
         )}
 
