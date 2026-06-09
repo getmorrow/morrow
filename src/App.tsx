@@ -1,5 +1,5 @@
-import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import type { FormEvent, ReactNode, TouchEvent } from 'react'
+import { Component, Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import type { ErrorInfo, FormEvent, ReactNode, TouchEvent } from 'react'
 import {
   ArrowRightLine,
   CalendarLine,
@@ -2048,16 +2048,18 @@ function App() {
       : undefined
 
     return (
-      <AdminPage
-        leads={leads}
-        onArchive={archiveLead}
-        onDelete={deleteLead}
-        onStatus={updateStatus}
-        onUpdateLead={updateLead}
-        adminEmail={adminProfile?.email ?? adminSession?.user.email}
-        authMode={isSupabaseConfigured && !adminDemoBypass ? 'supabase' : 'local'}
-        onSignOut={adminSignOut}
-      />
+      <AdminErrorBoundary>
+        <AdminPage
+          leads={leads}
+          onArchive={archiveLead}
+          onDelete={deleteLead}
+          onStatus={updateStatus}
+          onUpdateLead={updateLead}
+          adminEmail={adminProfile?.email ?? adminSession?.user.email}
+          authMode={isSupabaseConfigured && !adminDemoBypass ? 'supabase' : 'local'}
+          onSignOut={adminSignOut}
+        />
+      </AdminErrorBoundary>
     )
   }
 
@@ -3945,6 +3947,53 @@ function AdminAuthLoading() {
       </section>
     </main>
   )
+}
+
+function clearAdminLocalCache() {
+  const keysToClear: string[] = []
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index)
+    if (!key) continue
+    if (key.startsWith('morrow-admin-')) keysToClear.push(key)
+  }
+  keysToClear.forEach((key) => localStorage.removeItem(key))
+  window.location.reload()
+}
+
+class AdminErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('Morrow admin render failed.', error, info)
+  }
+
+  render() {
+    if (!this.state.hasError) return this.props.children
+
+    return (
+      <main className="admin-login-page">
+        <section className="admin-login-card">
+          <img src="/brand/logos/wordmark/morrow-logomark-offblack.svg" alt="Morrow" />
+          <p className="kicker">Admin CRM</p>
+          <h1>Adminbereich konnte nicht geladen werden.</h1>
+          <p>Wahrscheinlich liegen in diesem Browser noch alte lokale Admin-Zwischendaten. Die Live-Daten in Supabase bleiben erhalten.</p>
+          <button className="admin-action primary" type="button" onClick={clearAdminLocalCache}>
+            Lokale Zwischendaten bereinigen
+          </button>
+          <button className="admin-row-action" type="button" onClick={() => window.location.reload()}>
+            Seite neu laden
+          </button>
+        </section>
+      </main>
+    )
+  }
 }
 
 function AdminLogin() {
