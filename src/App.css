@@ -6087,6 +6087,87 @@ textarea {
   font-size: 12px;
 }
 
+.guest-booking-info-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
+  gap: 12px;
+}
+
+.guest-booking-rules-card,
+.guest-booking-support-card {
+  display: grid;
+  align-content: start;
+  gap: 15px;
+  padding: clamp(20px, 3.4vw, 34px);
+  border: 1px solid rgba(24, 23, 21, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 253, 248, 0.78);
+}
+
+.guest-booking-rules-card {
+  background: #f7f4ec;
+}
+
+.guest-booking-support-card {
+  background: linear-gradient(135deg, rgba(111, 104, 65, 0.18), rgba(255, 253, 248, 0.82));
+}
+
+.guest-booking-rules-card h2,
+.guest-booking-support-card h2 {
+  margin: 0;
+  color: var(--offblack);
+  font-size: clamp(24px, 2.4vw, 34px);
+  line-height: 1.04;
+}
+
+.guest-booking-rules-card ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guest-booking-rules-card li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: rgba(24, 23, 21, 0.7);
+  font-size: 15px;
+  font-weight: 720;
+  line-height: 1.42;
+}
+
+.guest-booking-rules-card li::before {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  margin-top: 7px;
+  border-radius: 999px;
+  background: var(--sage);
+  content: '';
+}
+
+.guest-booking-support-card p:not(.kicker) {
+  margin: 0;
+  color: rgba(24, 23, 21, 0.64);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.guest-booking-support-card button {
+  min-height: 44px;
+  justify-self: start;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sage);
+  color: var(--offwhite);
+  font-size: 13px;
+  font-weight: 860;
+  cursor: pointer;
+}
+
 .guest-booking-prep {
   grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
   align-items: start;
@@ -9743,6 +9824,7 @@ textarea {
   .guest-app-service-card,
   .guest-booking-detail,
   .guest-booking-feature-card,
+  .guest-booking-info-grid,
   .guest-booking-card-grid,
   .guest-local-spot-list,
   .guest-login,
@@ -11794,16 +11876,21 @@ textarea {
   }
 
   .guest-booking-hub,
+  .guest-booking-info-grid,
   .guest-booking-prep {
     grid-template-columns: 1fr !important;
   }
 
   .guest-booking-hub article,
+  .guest-booking-rules-card,
+  .guest-booking-support-card,
   .guest-booking-prep {
     padding: 18px;
   }
 
   .guest-booking-hub h2,
+  .guest-booking-rules-card h2,
+  .guest-booking-support-card h2,
   .guest-booking-prep h2 {
     font-size: 25px;
     line-height: 1.04;

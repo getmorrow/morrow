@@ -410,6 +410,7 @@ type OwnerPropertyProfile = {
   sleeps: number
   bedrooms: number
   bathrooms: number
+  address: string
   status: OwnerPropertyStatus
   currentRental: OwnerLead['currentRental']
   checkInType: Stay['checkInType']
@@ -1147,6 +1148,7 @@ const initialOwnerProperties: OwnerPropertyProfile[] = [
     email: 'clara.jensen@example.com',
     phone: '+49 170 2222222',
     location: 'Sankt Peter-Ording',
+    address: 'Sankt Peter-Ording. Die genaue Adresse liegt nach Bestätigung im Gästebereich bereit.',
     propertyType: 'Ferienhaus',
     sleeps: 4,
     bedrooms: 2,
@@ -1175,6 +1177,7 @@ const initialOwnerProperties: OwnerPropertyProfile[] = [
     email: 'mika.hansen@example.com',
     phone: '+49 171 3333333',
     location: 'Sankt Peter-Ording Bad',
+    address: 'Sankt Peter-Ording Bad. Die genaue Adresse liegt nach Bestätigung im Gästebereich bereit.',
     propertyType: 'Apartment',
     sleeps: 2,
     bedrooms: 1,
@@ -1244,6 +1247,7 @@ const normalizeOwnerProperty = (property: Partial<OwnerPropertyProfile>, fallbac
   ownerName: property.ownerName || fallback?.ownerName || '',
   email: property.email || fallback?.email || '',
   phone: property.phone || fallback?.phone || '',
+  address: property.address || fallback?.address || '',
   location: property.location || fallback?.location || 'Sankt Peter-Ording',
   propertyType: property.propertyType || fallback?.propertyType || 'Objekt',
   sleeps: typeof property.sleeps === 'number' ? property.sleeps : fallback?.sleeps ?? 2,
@@ -2330,6 +2334,47 @@ function formatGuestKeyInfo(stay: Stay) {
   }
 
   return keyInfo[stay.checkInType]
+}
+
+function guestStayAddress(stay?: Stay) {
+  return stay?.address?.trim() || stay?.locationNote?.trim() || 'Die genaue Adresse wird vor Anreise ergänzt.'
+}
+
+function guestCheckInInstruction(stay?: Stay) {
+  if (!stay) return 'Schlüsselhinweise werden vorbereitet.'
+  return stay.checkInInstructions?.trim() || formatGuestKeyInfo(stay)
+}
+
+function guestKeyCodeLabel(stay?: Stay) {
+  if (!stay) return 'Wird vorbereitet'
+  if (stay.keySafeCode?.trim()) return stay.keySafeCode.trim()
+  if (stay.checkInType === 'key_safe' || stay.checkInType === 'smartlock') return 'Wird vor Anreise freigegeben'
+  return 'Nicht erforderlich'
+}
+
+function guestHouseRules(stay?: Stay) {
+  if (stay?.houseRules && stay.houseRules.length > 0) return stay.houseRules
+  return ['Nichtraucherobjekt', 'Rücksicht auf die Umgebung', 'Details werden vor Anreise ergänzt']
+}
+
+function guestPropertySupport(stay?: Stay) {
+  const supportName = stay?.propertySupportName?.trim()
+  if (stay?.propertySupportType === 'agency') {
+    return {
+      title: supportName || 'Partneragentur vor Ort',
+      text: 'Bei objektbezogenen Fragen wie Schlüssel, Ausstattung oder technischen Dingen ist die Partneragentur zuständig. Morrow bleibt euer Orientierungspunkt und hilft, wenn etwas unklar ist.',
+    }
+  }
+  if (stay?.propertySupportType === 'hotel') {
+    return {
+      title: supportName || 'Gastgeber vor Ort',
+      text: 'Bei objektbezogenen Fragen unterstützt euch der Gastgeber vor Ort. Morrow bleibt für eure Auszeit, Empfehlungen und nächsten Schritte ansprechbar.',
+    }
+  }
+  return {
+    title: supportName || 'Morrow',
+    text: 'Bei Fragen zur Unterkunft, Anreise oder vor Ort begleitet euch Morrow direkt und bündelt die nächsten Schritte für euch.',
+  }
 }
 
 function guestExperienceStatus(experience?: MorrowPackage['experienceItems'][number]) {
@@ -4276,7 +4321,9 @@ function AdminPage({
   const [ownerProperties, setOwnerProperties] = useState<OwnerPropertyProfile[]>(() => {
     try {
       const saved = localStorage.getItem(adminOwnerPropertyStorageKey)
-      return saved ? JSON.parse(saved) as OwnerPropertyProfile[] : initialOwnerProperties
+      return saved
+        ? (JSON.parse(saved) as Partial<OwnerPropertyProfile>[]).map((property) => normalizeOwnerProperty(property))
+        : initialOwnerProperties
     } catch {
       return initialOwnerProperties
     }
@@ -4902,6 +4949,7 @@ function AdminPage({
       ownerName: '',
       email: '',
       phone: '',
+      address: '',
       location: 'Sankt Peter-Ording',
       propertyType: 'Objekttyp ergänzen',
       sleeps: 2,
@@ -4953,6 +5001,7 @@ function AdminPage({
       ownerName: lead.name,
       email: lead.email,
       phone: lead.phone,
+      address: '',
       location: lead.propertyLocation || 'Sankt Peter-Ording',
       propertyType: lead.propertyType || 'Objekttyp ergänzen',
       sleeps: Number.isNaN(sleeps) ? 2 : sleeps,
@@ -5855,7 +5904,14 @@ function AdminPage({
     if (!pkg.concretePrice.trim() || !pkg.priceFrom.trim() || !pkg.priceNote.trim()) issues.push('Preis')
     if (pkg.dates.length === 0 || pkg.dates.some((date) => date.toLowerCase().includes('ergänzen'))) issues.push('Termine')
     if (!linkedProperty) issues.push('Unterkunft')
-    if (!pkg.stay.description.trim() || pkg.stay.checkInType === 'unknown' || !pkg.stay.imageRightsConfirmed) issues.push('Unterkunftsdaten')
+    if (
+      !pkg.stay.description.trim()
+      || !pkg.stay.address?.trim()
+      || pkg.stay.checkInType === 'unknown'
+      || !pkg.stay.checkInInstructions?.trim()
+      || (pkg.stay.houseRules?.length ?? 0) < 2
+      || !pkg.stay.imageRightsConfirmed
+    ) issues.push('Unterkunftsdaten')
     if (!pkg.heroImage.trim() || pkg.images.length < 2 || pkg.stayImages.length === 0) issues.push('Medien')
     if (pkg.included.length < 3 || pkg.forWhom.length < 2 || pkg.recommendations.length === 0 || pkg.faqs.length < 2) issues.push('Seiteninhalte')
     if (pkg.experienceItems.filter((experience) => experience.role === 'included').length === 0) issues.push('Enthaltenes Erlebnis')
@@ -8525,6 +8581,9 @@ function GuestStayPage({
       action: () => setActiveView('help'),
     },
   ]
+  const bookingStay = packageItem?.stay
+  const bookingSupport = guestPropertySupport(bookingStay)
+  const bookingRules = guestHouseRules(bookingStay)
   const guestNavigation: { id: GuestAppView; label: string; icon: ReactNode }[] = [
     { id: 'home', label: 'Start', icon: <Home3Line size={19} /> },
     { id: 'plan', label: 'Auszeit', icon: <SparklesLine size={19} /> },
@@ -8901,20 +8960,35 @@ function GuestStayPage({
                 <p className="kicker">Anreise & Schlüssel</p>
                 <h2>Alles, was ihr für den Start braucht.</h2>
                 <div className="guest-booking-hub-steps">
-                  <span><strong>01</strong> {arrivalWindowLabel(packageItem?.stay)}</span>
-                  <span><strong>02</strong> {packageItem ? formatGuestKeyInfo(packageItem.stay) : 'Schlüsselhinweise werden vorbereitet.'}</span>
-                  <span><strong>03</strong> Abreise bis {packageItem?.stay.checkOutTime ?? '10:00'} Uhr</span>
+                  <span><strong>01</strong> {guestStayAddress(bookingStay)}</span>
+                  <span><strong>02</strong> {arrivalWindowLabel(bookingStay)}</span>
+                  <span><strong>03</strong> {guestCheckInInstruction(bookingStay)}</span>
                 </div>
               </article>
               <article>
-                <span>Termin</span>
-                <strong>{activeLead.selectedDate}</strong>
-                <p>Die Auszeit ist für diesen Zeitraum vorbereitet.</p>
+                <span>Schlüssel</span>
+                <strong>{packageItem ? checkInTypeLabel(packageItem.stay.checkInType) : 'Wird vorbereitet'}</strong>
+                <p>{guestKeyCodeLabel(bookingStay)}</p>
               </article>
               <article>
-                <span>Lage</span>
-                <strong>{packageItem?.stay.locationNote ?? 'Sankt Peter-Ording'}</strong>
-                <p>{packageItem?.stay.features.slice(0, 3).join(' · ') ?? 'WLAN · Küche · Rückzugsort'}</p>
+                <span>Abreise</span>
+                <strong>Bis {bookingStay?.checkOutTime ?? '10:00'} Uhr</strong>
+                <p>{bookingStay?.checkOutInstructions ?? 'Die genauen Rückgabehinweise findet ihr vor Anreise hier.'}</p>
+              </article>
+            </section>
+            <section className="guest-booking-info-grid" aria-label="Unterkunftsregeln und Betreuung">
+              <article className="guest-booking-rules-card">
+                <p className="kicker">Unterkunftsregeln</p>
+                <h2>Damit vor Ort nichts gesucht werden muss.</h2>
+                <ul>
+                  {bookingRules.map((rule) => <li key={rule}>{rule}</li>)}
+                </ul>
+              </article>
+              <article className="guest-booking-support-card">
+                <p className="kicker">Bei Fragen zur Unterkunft</p>
+                <h2>{bookingSupport.title}</h2>
+                <p>{bookingSupport.text}</p>
+                <button type="button" onClick={() => setActiveView('help')}>Hilfe öffnen</button>
               </article>
             </section>
             <section className="guest-booking-feature-card">
@@ -10059,8 +10133,13 @@ function PackageDetailDrawer({
     propertyId: '',
     stayName: '',
     stayDescription: '',
+    stayAddress: '',
     stayLocationNote: '',
     stayFeatures: '',
+    checkInInstructions: '',
+    keySafeCode: '',
+    houseRules: '',
+    checkOutInstructions: '',
     imageRightsConfirmed: false,
     sleeps: '',
     bedrooms: '',
@@ -10110,8 +10189,13 @@ function PackageDetailDrawer({
       propertyId: item.propertyId,
       stayName: item.stay.name,
       stayDescription: item.stay.description,
+      stayAddress: item.stay.address ?? '',
       stayLocationNote: item.stay.locationNote,
       stayFeatures: item.stay.features.join('\n'),
+      checkInInstructions: item.stay.checkInInstructions ?? '',
+      keySafeCode: item.stay.keySafeCode ?? '',
+      houseRules: item.stay.houseRules?.join('\n') ?? '',
+      checkOutInstructions: item.stay.checkOutInstructions ?? '',
       imageRightsConfirmed: item.stay.imageRightsConfirmed,
       sleeps: String(item.stay.sleeps),
       bedrooms: String(item.stay.bedrooms),
@@ -10163,7 +10247,10 @@ function PackageDetailDrawer({
     if (splitLines(draft.dates).length === 0) issues.push('Termine fehlen')
     if (!draft.propertyId.trim()) issues.push('Unterkunft nicht verbunden')
     if (!draft.stayName.trim() || !draft.stayDescription.trim()) issues.push('Unterkunft unvollständig')
+    if (!draft.stayAddress.trim()) issues.push('Adresse fehlt')
     if (!draft.checkInType || draft.checkInType === 'unknown') issues.push('Schlüsselinfo fehlt')
+    if (!draft.checkInInstructions.trim()) issues.push('Check-in-Hinweis fehlt')
+    if (splitLines(draft.houseRules).length < 2) issues.push('Unterkunftsregeln fehlen')
     if (!draft.imageRightsConfirmed) issues.push('Bildrechte offen')
     if (!draft.heroImage.trim()) issues.push('Hero-Bild fehlt')
     if (splitLines(draft.images).length < 2) issues.push('Galerie braucht Bilder')
@@ -10265,10 +10352,15 @@ function PackageDetailDrawer({
       propertyId,
       stayName: property.name,
       stayDescription: property.description || property.notes || current.stayDescription,
+      stayAddress: property.address || current.stayAddress,
       stayLocationNote: property.location,
       stayFeatures: property.amenities.length > 0
         ? property.amenities.join('\n')
         : [property.propertyType, `${property.sleeps} Schlafplätze`].filter(Boolean).join('\n'),
+      checkInInstructions: property.checkInInstructions,
+      keySafeCode: property.keySafeCode,
+      houseRules: property.houseRules.join('\n'),
+      checkOutInstructions: current.checkOutInstructions || `Check-out bis ${property.checkOutTime || '10:00'} Uhr.`,
       imageRightsConfirmed: property.imageRightsConfirmed,
       sleeps: String(property.sleeps),
       bedrooms: String(property.bedrooms),
@@ -10353,8 +10445,13 @@ function PackageDetailDrawer({
         ...pkg.stay,
         name: draft.stayName,
         description: draft.stayDescription,
+        address: draft.stayAddress,
         locationNote: draft.stayLocationNote,
         features: nextStayFeatures.length > 0 ? nextStayFeatures : pkg.stay.features,
+        checkInInstructions: draft.checkInInstructions,
+        keySafeCode: draft.keySafeCode || undefined,
+        houseRules: splitLines(draft.houseRules),
+        checkOutInstructions: draft.checkOutInstructions || undefined,
         imageRightsConfirmed: draft.imageRightsConfirmed,
         sleeps: Number.isNaN(sleeps) ? pkg.stay.sleeps : sleeps,
         bedrooms: Number.isNaN(bedrooms) ? pkg.stay.bedrooms : bedrooms,
@@ -10539,8 +10636,23 @@ function PackageDetailDrawer({
             <label>Unterkunftsbeschreibung
               <textarea rows={4} value={draft.stayDescription} onChange={(event) => updateDraft('stayDescription', event.target.value)} />
             </label>
+            <label>Adresse für Gästebereich
+              <textarea rows={2} value={draft.stayAddress} onChange={(event) => updateDraft('stayAddress', event.target.value)} />
+            </label>
             <label>Lagehinweis
               <textarea rows={3} value={draft.stayLocationNote} onChange={(event) => updateDraft('stayLocationNote', event.target.value)} />
+            </label>
+            <label>Check-in-Hinweis für Gäste
+              <textarea rows={4} value={draft.checkInInstructions} onChange={(event) => updateDraft('checkInInstructions', event.target.value)} />
+            </label>
+            <label>Schlüsselcode / Smartlock
+              <input value={draft.keySafeCode} onChange={(event) => updateDraft('keySafeCode', event.target.value)} placeholder="Erst nach Zahlung freigeben" />
+            </label>
+            <label>Check-out-Hinweis
+              <textarea rows={3} value={draft.checkOutInstructions} onChange={(event) => updateDraft('checkOutInstructions', event.target.value)} />
+            </label>
+            <label>Unterkunftsregeln
+              <textarea rows={5} value={draft.houseRules} onChange={(event) => updateDraft('houseRules', event.target.value)} placeholder="Eine Regel pro Zeile" />
             </label>
             <label>Ausstattung / Merkmale
               <textarea rows={5} value={draft.stayFeatures} onChange={(event) => updateDraft('stayFeatures', event.target.value)} placeholder="Ein Merkmal pro Zeile" />
@@ -11097,6 +11209,7 @@ function OwnerPropertyDrawer({
     ownerName: '',
     email: '',
     phone: '',
+    address: '',
     location: '',
     propertyType: '',
     sleeps: '',
@@ -11127,6 +11240,7 @@ function OwnerPropertyDrawer({
       ownerName: property.ownerName,
       email: property.email,
       phone: property.phone,
+      address: property.address,
       location: property.location,
       propertyType: property.propertyType,
       sleeps: String(property.sleeps),
@@ -11160,6 +11274,7 @@ function OwnerPropertyDrawer({
     const issues: string[] = []
     if (!draft.name.trim()) issues.push('Objektname fehlt')
     if (!draft.location.trim()) issues.push('Ort fehlt')
+    if (!draft.address.trim()) issues.push('Adresse fehlt')
     if (!draft.propertyType.trim()) issues.push('Objekttyp fehlt')
     if (!draft.ownerName.trim() || !draft.email.trim()) issues.push('Eigentümerkontakt unvollständig')
     if (!draft.description.trim()) issues.push('Beschreibung fehlt')
@@ -11183,6 +11298,7 @@ function OwnerPropertyDrawer({
       ownerName: draft.ownerName,
       email: draft.email,
       phone: draft.phone,
+      address: draft.address,
       location: draft.location,
       propertyType: draft.propertyType,
       sleeps: Number.isNaN(sleeps) ? property.sleeps : sleeps,
@@ -11255,6 +11371,9 @@ function OwnerPropertyDrawer({
             </label>
             <label>Telefon
               <input type="tel" value={draft.phone} onChange={(event) => updateDraft('phone', event.target.value)} />
+            </label>
+            <label>Adresse für Gästebereich
+              <input value={draft.address} onChange={(event) => updateDraft('address', event.target.value)} />
             </label>
             <label>Ort
               <input value={draft.location} onChange={(event) => updateDraft('location', event.target.value)} />

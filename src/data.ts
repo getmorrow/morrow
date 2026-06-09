@@ -10,10 +10,15 @@ export type Stay = {
   sleeps: number
   bedrooms: number
   bathrooms: number
+  address?: string
   locationNote: string
   features: string[]
   imageRightsConfirmed: boolean
   checkInType: 'key_safe' | 'agency_pickup' | 'personal_handover' | 'smartlock' | 'unknown'
+  keySafeCode?: string
+  checkInInstructions?: string
+  houseRules?: string[]
+  checkOutInstructions?: string
   propertySupportType: 'morrow' | 'agency' | 'hotel'
   propertySupportName?: string
   earliestArrival: string
@@ -121,10 +126,14 @@ const familyStay: Stay = {
   sleeps: 4,
   bedrooms: 2,
   bathrooms: 1,
+  address: 'Sankt Peter-Ording. Die genaue Adresse liegt nach Bestätigung im Gästebereich bereit.',
   locationNote: 'Sankt Peter-Ording, wenige Minuten Richtung Strand und Ortsleben.',
   features: ['2 Schlafzimmer', 'Wohnbereich', 'Küche', 'Terrasse', 'familienfreundlich', 'WLAN'],
   imageRightsConfirmed: true,
   checkInType: 'agency_pickup',
+  checkInInstructions: 'Schlüsselabholung bei der Partneragentur. Abholadresse und finaler Hinweis werden vor Anreise hier bereitgestellt.',
+  houseRules: ['Nichtraucherobjekt', 'Ruhezeiten vor Ort beachten', 'Hund nur nach Bestätigung', 'Abreise besenrein und mit geschlossenem Fenster'],
+  checkOutInstructions: 'Bitte bis 10:00 Uhr auschecken. Schlüsselrückgabe erfolgt nach Hinweis der Partneragentur.',
   propertySupportType: 'agency',
   propertySupportName: 'die Partneragentur',
   earliestArrival: '16:00',
@@ -140,10 +149,15 @@ const coupleStay: Stay = {
   sleeps: 2,
   bedrooms: 1,
   bathrooms: 1,
+  address: 'Sankt Peter-Ording Bad. Die genaue Adresse liegt nach Bestätigung im Gästebereich bereit.',
   locationNote: 'Sankt Peter-Ording, ruhig gelegen mit guter Verbindung zum Wasser.',
   features: ['1 Schlafzimmer', 'ruhiger Wohnbereich', 'Küche', 'WLAN', 'Dinner-nahe Lage'],
   imageRightsConfirmed: true,
   checkInType: 'key_safe',
+  keySafeCode: 'wird vor Anreise freigegeben',
+  checkInInstructions: 'Schlüsselsafe am Objekt. Den Code findet ihr hier, sobald er vor Anreise freigegeben ist.',
+  houseRules: ['Nichtraucherobjekt', 'Rücksicht auf Nachbarn', 'Hund nur nach Bestätigung'],
+  checkOutInstructions: 'Check-out bis 10:00 Uhr. Schlüssel bitte wieder im Safe hinterlegen.',
   propertySupportType: 'morrow',
   earliestArrival: '15:00',
   latestArrival: '22:00',

@@ -58,7 +58,7 @@ Ziel: Nach der Buchung fuehlt sich Morrow wie Komfort an, nicht wie eine lose E-
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
 | Gaestebereich | Live-Zugang per Buchungscode getestet, App-artige Struktur vorhanden | Login/Access-Flow finalisieren, Inhalte pro Buchung vollstaendig aus Admin-Daten speisen | MVP-kritisch | Teilweise |
-| Anreise, Schluessel, Unterkunftsregeln | Check-in-Daten am Paket/Objekt vorhanden | Im Gaestebereich klar anzeigen: Adresse, Schluessel, Safe/Agentur, Anreisefenster, Regeln, Check-out | MVP-kritisch | Teilweise |
+| Anreise, Schluessel, Unterkunftsregeln | Check-in-Daten, Adresse, Regeln, Check-out und Support-Zustaendigkeit sind am Paket/Objekt pflegbar; Buchungsseite im Gaestebereich zeigt die Infos klar aus Admin-Daten | Spaeter buchungsspezifische Sonderhinweise und echte Freigabezeitpunkte pro Buchung ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Tagesplan / Meine Auszeit | Eigener Bereich im Gaestebereich vorhanden; Ablaufpunkte sind pro Auszeit im Admin pflegbar und erscheinen als kompakte Timeline mit Detail-Drawer | Spaeter buchungsspezifische Abweichungen und echte Tageszeiten pro Buchung ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Kuratierte Karte | Karte, Filter, Pins, Drawer, Restaurants, Orte, Veranstaltungen vorhanden | Datenqualitaet weiter kuratieren, Kategorien finalisieren, Pin-/Drawer-UX fortlaufend testen | MVP-kritisch | Teilweise |
 | Live-Daten | Wetter, Gezeiten, Veranstaltungen integriert | Wetter/Gezeiten stabil beobachten, Quellen/Fehlerzustand sauber anzeigen | MVP-light | Teilweise |
@@ -163,6 +163,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 1. Gaestebereich `Meine Auszeit`/Tagesplan bauen.
    - Stand 2026-06-09: Eigener Bereich gebaut, mobil entschlackt, Ablaufpunkte pro Auszeit im Admin pflegbar und im Gaestebereich getestet.
 2. Anreise, Schluessel, Unterkunftsregeln aus Admin-Daten anzeigen.
+   - Stand 2026-06-09: Adresse, Anreisefenster, Schluesselart, Schluesselhinweis, Check-out, Regeln und Objekt-Support aus Auszeit/Objekt-Daten im Gaestebereich angezeigt; Paket-Builder und Monitoring erweitert; Build und Sichttest bestanden.
 3. Support-/Problem-Ticket-Flow finalisieren.
 4. Feedback nach Aufenthalt ergaenzen.
 
@@ -195,7 +196,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 - [x] Erlebnis mit Anbieter, Preis/Kapazitaet/Verfuegbarkeit im Admin pflegen.
 - [x] Pflichtdaten-Monitoring auf Admin-Uebersicht zeigt Blocker und oeffnet Datensaetze.
 - [x] Buchung erzeugt automatische Aufgaben.
-- [ ] Gaestebereich zeigt Anreise, Schluessel und Regeln aus Admin-Daten.
+- [x] Gaestebereich zeigt Anreise, Schluessel und Regeln aus Admin-Daten.
 - [ ] Supportnachricht aus Gaestebereich landet als Admin-Thema.
 - [ ] Status-E-Mails fuer Reservierung/Bestaetigung/Vor Anreise getestet.
 - [ ] AGB/Buchungsbedingungen/Storno/Zahlung final verlinkt.
@@ -205,13 +206,13 @@ Diese Punkte bleiben bewusst nachgelagert:
 
 ## Naechster Konkreter Schritt
 
-Weiter mit Sprint 2, Punkt 1:
+Weiter mit Sprint 2, Punkt 3:
 
-`Anreise, Schluessel und Unterkunftsregeln aus Admin-Daten anzeigen`
+`Support-/Problem-Ticket-Flow finalisieren`
 
 Definition of Done:
 
-- Die Buchungsseite im Gaestebereich zeigt Adresse, Anreisefenster, Schluesselart, Schluesselhinweis und Check-out klar.
-- Objektregeln und Support-Zustaendigkeit kommen aus Unterkunft/Auszeit-Daten.
-- Bei Agentur/Hotel wird klar angezeigt, wann Morrow hilft und wann der Partner fuer Objektfragen zustaendig ist.
-- Fehlende Daten werden im Admin-Monitoring weiterhin sichtbar.
+- Gaeste koennen aus dem Bereich Hilfe eine Nachricht mit Kategorie, Dringlichkeit und Buchungsbezug senden.
+- Objektproblem unterscheidet nach Support-Typ: Morrow, Agentur oder Hotel/Gastgeber.
+- Die Nachricht landet als Admin-Supportthema mit Historie an Kunde/Buchung.
+- Der Gast sieht eine klare Bestaetigung und naechsten Schritt.
