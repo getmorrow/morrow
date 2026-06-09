@@ -63,8 +63,8 @@ Ziel: Nach der Buchung fuehlt sich Morrow wie Komfort an, nicht wie eine lose E-
 | Kuratierte Karte | Karte, Filter, Pins, Drawer, Restaurants, Orte, Veranstaltungen vorhanden | Datenqualitaet weiter kuratieren, Kategorien finalisieren, Pin-/Drawer-UX fortlaufend testen | MVP-kritisch | Teilweise |
 | Live-Daten | Wetter, Gezeiten, Veranstaltungen integriert | Wetter/Gezeiten stabil beobachten, Quellen/Fehlerzustand sauber anzeigen | MVP-light | Teilweise |
 | Restaurant-Reservierungen | Reservierungs-/Website-/Speisekartenlinks als externe Links vorhanden | Pro Restaurant kuratierte Reservierungslinks, Bilder, Kueche, Preisgefuehl, Oeffnungszeiten, Bewertung | MVP-kritisch | Teilweise |
-| Support-Chat | Supportnachricht/Supporttask-Grundlage vorhanden | Gaeste koennen im Bereich Nachricht senden; Admin sieht sie als Supportthema | MVP-kritisch | Teilweise |
-| Schadens-/Problem-Tickets | Supportkategorien vorhanden | Spezifischer Flow fuer Objektproblem, je nach Support-Typ Morrow/Agentur/Hotel | MVP-kritisch | Teilweise |
+| Support-Chat | Gaeste koennen im Bereich Hilfe eine Nachricht mit Kategorie und Dringlichkeit senden; Admin sieht sie als Supportfall mit Buchungsbezug | Spaeter echte Chat-Ansicht und Antwort aus Admin heraus ergaenzen | MVP-kritisch | Erledigt fuer MVP |
+| Schadens-/Problem-Tickets | Objektproblem-Flow unterscheidet Morrow-Objektbetreuung von Agentur/Hotel-Partnerfaellen und priorisiert dringende Themen | Spaeter Partnerweiterleitung und Status pro Ticket weiter normalisieren | MVP-kritisch | Erledigt fuer MVP |
 | Feedback nach Aufenthalt | Nicht umgesetzt | Feedbackformular oder E-Mail nach Abreise, Wiederbuchungsimpuls | MVP-light | Offen |
 | Wiederbuchung | Nicht umgesetzt | Nach Aufenthalt leichte Rueckkehr-CTA, Empfehlung fuer naechste Auszeit | MVP-light | Offen |
 
@@ -165,6 +165,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 2. Anreise, Schluessel, Unterkunftsregeln aus Admin-Daten anzeigen.
    - Stand 2026-06-09: Adresse, Anreisefenster, Schluesselart, Schluesselhinweis, Check-out, Regeln und Objekt-Support aus Auszeit/Objekt-Daten im Gaestebereich angezeigt; Paket-Builder und Monitoring erweitert; Build und Sichttest bestanden.
 3. Support-/Problem-Ticket-Flow finalisieren.
+   - Stand 2026-06-09: Hilfe-Formular mit Kategorie und Dringlichkeit gebaut; Supportfall landet im Admin mit Buchungsbezug, Zuständigkeit, naechstem Schritt und Kommunikationshistorie; Objektproblem unterscheidet Morrow vs. Partner; Build und E2E-Test bestanden.
 4. Feedback nach Aufenthalt ergaenzen.
 
 ### Sprint 3: Kommunikation und Recht
@@ -197,7 +198,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 - [x] Pflichtdaten-Monitoring auf Admin-Uebersicht zeigt Blocker und oeffnet Datensaetze.
 - [x] Buchung erzeugt automatische Aufgaben.
 - [x] Gaestebereich zeigt Anreise, Schluessel und Regeln aus Admin-Daten.
-- [ ] Supportnachricht aus Gaestebereich landet als Admin-Thema.
+- [x] Supportnachricht aus Gaestebereich landet als Admin-Thema.
 - [ ] Status-E-Mails fuer Reservierung/Bestaetigung/Vor Anreise getestet.
 - [ ] AGB/Buchungsbedingungen/Storno/Zahlung final verlinkt.
 - [ ] Datenschutz/WhatsApp/Tracking rechtlich geprueft.
@@ -206,13 +207,13 @@ Diese Punkte bleiben bewusst nachgelagert:
 
 ## Naechster Konkreter Schritt
 
-Weiter mit Sprint 2, Punkt 3:
+Weiter mit Sprint 2, Punkt 4:
 
-`Support-/Problem-Ticket-Flow finalisieren`
+`Feedback nach Aufenthalt ergaenzen`
 
 Definition of Done:
 
-- Gaeste koennen aus dem Bereich Hilfe eine Nachricht mit Kategorie, Dringlichkeit und Buchungsbezug senden.
-- Objektproblem unterscheidet nach Support-Typ: Morrow, Agentur oder Hotel/Gastgeber.
-- Die Nachricht landet als Admin-Supportthema mit Historie an Kunde/Buchung.
-- Der Gast sieht eine klare Bestaetigung und naechsten Schritt.
+- Nach abgeschlossenem Aufenthalt kann Feedback gesammelt werden.
+- Feedback ist mit Kunde/Buchung verbunden.
+- Admin sieht Bewertung, Freitext und moeglichen Wiederbuchungsimpuls.
+- Gast bekommt eine ruhige Abschluss- oder Danke-Ansicht.

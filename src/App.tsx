@@ -321,6 +321,7 @@ type AdminSection = 'overview' | 'leads' | 'tasks' | 'guestSupport' | 'customers
 type BookingStatus = 'Reserviert' | 'Bezahlt' | 'Vor Anreise' | 'Aktiv' | 'Abgeschlossen' | 'Storniert'
 type GuestAppView = 'home' | 'plan' | 'booking' | 'local' | 'help'
 type GuestSupportCategory = 'general' | 'arrival' | 'property' | 'experience' | 'local'
+type GuestSupportUrgency = 'normal' | 'soon' | 'urgent'
 type CustomerTypeFilter = CustomerProfile['guestType'] | 'all'
 type CustomerPhaseFilter = 'all' | 'request' | 'booking' | 'due'
 type BookingStatusFilter = BookingStatus | 'all'
@@ -808,6 +809,22 @@ const guestSupportCategoryLabel = (category: GuestSupportCategory) => {
 const guestSupportPriority = (category: GuestSupportCategory): AdminTaskPriority => (
   category === 'property' || category === 'arrival' ? 'high' : 'medium'
 )
+
+const guestSupportUrgencyLabel = (urgency: GuestSupportUrgency) => {
+  const labels: Record<GuestSupportUrgency, string> = {
+    normal: 'Hat Zeit',
+    soon: 'Heute klären',
+    urgent: 'Dringend',
+  }
+
+  return labels[urgency]
+}
+
+const guestSupportPriorityFromUrgency = (category: GuestSupportCategory, urgency: GuestSupportUrgency): AdminTaskPriority => {
+  if (urgency === 'urgent') return 'high'
+  if (urgency === 'soon') return category === 'local' || category === 'general' ? 'medium' : 'high'
+  return guestSupportPriority(category)
+}
 
 const localPlaceIcon = (category: LocalPlaceCategory, size = 18) => {
   if (category === 'food') return <ForkKnifeLine size={size} />
@@ -1672,6 +1689,8 @@ const isGuestSupportTask = (task: AdminTask) => (
 
 const guestSupportCaseType = (task: AdminTask) => {
   const content = `${task.title} ${task.note ?? ''}`.toLowerCase()
+  if (content.includes('zuständigkeit: morrow') || content.includes('zustaendigkeit: morrow')) return 'Morrow Objektbetreuung'
+  if (content.includes('objektzuständigkeit:') || content.includes('objektzustaendigkeit:')) return 'Unterkunft / Partner'
   if (content.includes('unterkunft') || content.includes('kaputt') || content.includes('defekt') || content.includes('heizung') || content.includes('wasser')) return 'Unterkunft / Partner'
   if (content.includes('anreise') || content.includes('schlüssel') || content.includes('schluessel') || content.includes('safe') || content.includes('code')) return 'Morrow Operations'
   if (content.includes('erlebnis') || content.includes('termin') || content.includes('yoga') || content.includes('watt')) return 'Erlebnispartner'
@@ -1682,6 +1701,7 @@ const guestSupportCaseType = (task: AdminTask) => {
 const guestSupportNextStep = (task: AdminTask) => {
   const type = guestSupportCaseType(task)
   if (task.status === 'done') return 'Fall dokumentiert'
+  if (type === 'Morrow Objektbetreuung') return 'Direkt lösen und Gast informieren'
   if (type === 'Unterkunft / Partner') return 'Partner prüfen und Gast einordnen'
   if (type === 'Erlebnispartner') return 'Erlebnispartner klären'
   if (type === 'Morrow Operations') return 'Direkt operativ lösen'
@@ -1980,7 +2000,12 @@ function App() {
     saveLeads(nextLeads)
     if (changedLead) syncAdminLeadUpdate(changedLead)
   }
-  const createSupportTask = (lead: GuestLead, category: GuestSupportCategory, message: string) => {
+  const createSupportTask = (
+    lead: GuestLead,
+    category: GuestSupportCategory,
+    message: string,
+    urgency: GuestSupportUrgency = 'normal',
+  ) => {
     let currentTasks: AdminTask[]
     try {
       const savedTasks = localStorage.getItem(adminTaskStorageKey)
@@ -1989,6 +2014,18 @@ function App() {
       currentTasks = initialAdminTasks
     }
     const taskId = `task-${crypto.randomUUID()}`
+    const packageItem = packages.find((pkg) => pkg.slug === lead.packageSlug || pkg.name === lead.packageName) ?? null
+    const support = guestPropertySupport(packageItem?.stay)
+    const isPropertyPartnerCase = category === 'property' && packageItem?.stay.propertySupportType !== 'morrow'
+    const supportContext = isPropertyPartnerCase
+      ? `Objektzuständigkeit: ${support.title}. Morrow einordnen und bei Bedarf an Partner weiterleiten.`
+      : `Zuständigkeit: ${support.title}.`
+    const note = [
+      `Dringlichkeit: ${guestSupportUrgencyLabel(urgency)}`,
+      supportContext,
+      '',
+      message,
+    ].join('\n')
     const nextTask: AdminTask = {
       id: taskId,
       title: `Support: ${guestSupportCategoryLabel(category)}`,
@@ -1997,8 +2034,8 @@ function App() {
       referenceLabel: `${lead.name} · ${lead.packageName}`,
       dueAt: todayIsoValue(),
       status: 'open',
-      priority: guestSupportPriority(category),
-      note: message,
+      priority: guestSupportPriorityFromUrgency(category, urgency),
+      note,
       createdAt: new Date().toISOString(),
     }
 
@@ -2008,10 +2045,41 @@ function App() {
       leadId: lead.id,
       taskId,
       category,
+      urgency,
       message,
+      supportType: packageItem?.stay.propertySupportType ?? 'morrow',
+      supportName: support.title,
       createdAt: nextTask.createdAt,
     }).catch((error) => {
       console.warn('Morrow backend support message save failed. Local task is still available.', error)
+    })
+    void createStoredCommunicationEvent({
+      id: crypto.randomUUID(),
+      lead_id: lead.id,
+      leadId: lead.id,
+      booking_id: lead.id,
+      bookingId: lead.id,
+      channel: 'support',
+      direction: 'inbound',
+      event_type: 'guest_support_message',
+      eventType: 'guest_support_message',
+      subject: `${guestSupportCategoryLabel(category)} · ${guestSupportUrgencyLabel(urgency)}`,
+      body: message,
+      recipient: 'support@getmorrow.de',
+      actor: lead.name,
+      status: 'received',
+      created_at: nextTask.createdAt,
+      updated_at: nextTask.createdAt,
+      payload: {
+        source: 'guest_area',
+        taskId,
+        category,
+        urgency,
+        supportType: packageItem?.stay.propertySupportType ?? 'morrow',
+        supportName: support.title,
+      },
+    }).catch((error) => {
+      console.warn('Morrow backend support communication event save failed. Local task is still available.', error)
     })
   }
   const archiveLead = (id: string) => {
@@ -6627,8 +6695,12 @@ function AdminPage({
                   <span>Nächster Schritt</span>
                   <strong>{guestSupportNextStep(task)}</strong>
                 </article>
+                <article>
+                  <span>Buchung</span>
+                  <strong>{task.referenceId}</strong>
+                </article>
               </div>
-              {task.note && <p>{task.note}</p>}
+              {task.note && <p className="admin-support-message">{task.note}</p>}
               <div className="admin-support-meta">
                 <span><strong>Eingang</strong>{formatFollowUpDate(task.createdAt.slice(0, 10))}</span>
                 <span><strong>Fällig</strong>{task.dueAt ? formatFollowUpDate(task.dueAt) : 'Offen'}</span>
@@ -8116,7 +8188,7 @@ function GuestStayPage({
 }: {
   lead: GuestLead | null
   accessCode: string
-  onCreateSupportTask: (lead: GuestLead, category: GuestSupportCategory, message: string) => void
+  onCreateSupportTask: (lead: GuestLead, category: GuestSupportCategory, message: string, urgency?: GuestSupportUrgency) => void
 }) {
   const [emailDraft, setEmailDraft] = useState('')
   const [codeDraft, setCodeDraft] = useState('')
@@ -8124,6 +8196,7 @@ function GuestStayPage({
   const [accessError, setAccessError] = useState('')
   const [supportMessage, setSupportMessage] = useState('')
   const [supportCategory, setSupportCategory] = useState<GuestSupportCategory>('general')
+  const [supportUrgency, setSupportUrgency] = useState<GuestSupportUrgency>('normal')
   const [supportSent, setSupportSent] = useState(false)
   const [activeView, setActiveView] = useState<GuestAppView>('home')
   const [localFilter, setLocalFilter] = useState<LocalPlaceCategory>('all')
@@ -8641,10 +8714,11 @@ function GuestStayPage({
   const sendSupport = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!activeLead || !supportMessage.trim()) return
-    onCreateSupportTask(activeLead, supportCategory, supportMessage.trim())
+    onCreateSupportTask(activeLead, supportCategory, supportMessage.trim(), supportUrgency)
     setSupportSent(true)
     setSupportMessage('')
     setSupportCategory('general')
+    setSupportUrgency('normal')
   }
 
   if (!remoteAccessChecked) {
@@ -9283,6 +9357,23 @@ function GuestStayPage({
               <p>Wählt kurz aus, worum es geht. Wir kümmern uns um eure Auszeit und helfen euch beim Einordnen.</p>
             </section>
             <section className="guest-help-panel">
+              <div className="guest-help-routes" aria-label="Schnelle Einordnung">
+                <article className={supportCategory === 'arrival' ? 'active' : ''}>
+                  <Key2Line size={20} />
+                  <span>Anreise</span>
+                  <p>Schlüssel, Code oder Ankunftszeit.</p>
+                </article>
+                <article className={supportCategory === 'property' ? 'active' : ''}>
+                  <Home3Line size={20} />
+                  <span>Unterkunft</span>
+                  <p>Etwas funktioniert nicht oder ist unklar.</p>
+                </article>
+                <article className={supportCategory === 'experience' ? 'active' : ''}>
+                  <SparklesLine size={20} />
+                  <span>Erlebnis</span>
+                  <p>Termin, Treffpunkt oder Vorbereitung.</p>
+                </article>
+              </div>
               <form className="guest-support-form" onSubmit={sendSupport}>
                 <label>Worum geht es?
                   <select value={supportCategory} onChange={(event) => setSupportCategory(event.target.value as GuestSupportCategory)}>
@@ -9293,17 +9384,34 @@ function GuestStayPage({
                     <option value="local">Empfehlung vor Ort</option>
                   </select>
                 </label>
+                <label>Wie dringend ist es?
+                  <select value={supportUrgency} onChange={(event) => setSupportUrgency(event.target.value as GuestSupportUrgency)}>
+                    <option value="normal">Hat Zeit</option>
+                    <option value="soon">Heute klären</option>
+                    <option value="urgent">Dringend</option>
+                  </select>
+                </label>
                 <label>Nachricht an Morrow
                   <textarea rows={3} value={supportMessage} onChange={(event) => setSupportMessage(event.target.value)} placeholder="Was können wir für euch klären?" />
                 </label>
                 {supportCategory === 'property' && (
                   <p className="guest-support-context-note">
                     {propertyIsMorrowHandled
-                      ? 'Beschreibt kurz, was nicht funktioniert und seit wann es auffällt.'
-                      : `Bei Unterkunftsthemen ist ${propertySupportName} der direkte Ansprechpartner. Morrow hilft euch hier, wenn ihr unsicher seid oder etwas zur Auszeit einordnen möchtet.`}
+                      ? 'Beschreibt kurz, was nicht funktioniert, wo es auffällt und ob ihr gerade vor Ort seid.'
+                      : `Bei objektbezogenen Themen ist ${propertySupportName} zuständig. Schreibt uns trotzdem, wenn ihr Hilfe beim Einordnen braucht oder wir den nächsten Schritt für euch bündeln sollen.`}
                   </p>
                 )}
-                {supportSent && <p className="guest-success-note">Danke, wir haben eure Nachricht aufgenommen.</p>}
+                {supportCategory === 'arrival' && (
+                  <p className="guest-support-context-note">
+                    Nennt kurz, ob es um Ankunftszeit, Schlüssel, Code oder die genaue Adresse geht.
+                  </p>
+                )}
+                {supportUrgency === 'urgent' && (
+                  <p className="guest-support-context-note is-urgent">
+                    Dringende Nachrichten werden im Admin priorisiert. Für unmittelbare Notfälle bitte die örtlichen Notruf- oder Bereitschaftsstellen nutzen.
+                  </p>
+                )}
+                {supportSent && <p className="guest-success-note">Danke, eure Nachricht ist bei Morrow angekommen und der Buchung zugeordnet.</p>}
                 <button className="button primary" type="submit">Nachricht senden</button>
               </form>
             </section>

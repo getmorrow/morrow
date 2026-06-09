@@ -4853,9 +4853,13 @@ textarea {
   line-height: 1.48;
 }
 
+.admin-support-message {
+  white-space: pre-line;
+}
+
 .admin-support-routing {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -7825,7 +7829,7 @@ textarea {
 .guest-help-panel {
   display: grid;
   grid-template-columns: minmax(0, 760px);
-  gap: 0;
+  gap: 12px;
   align-items: start;
   width: min(820px, 100%);
   padding: clamp(16px, 2.6vw, 24px);
@@ -7840,37 +7844,51 @@ textarea {
 
 .guest-help-routes {
   display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
 .guest-help-routes article {
   display: grid;
-  grid-template-columns: 32px 1fr;
-  gap: 12px;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 5px 10px;
   align-items: start;
-  padding: 14px;
+  min-height: 104px;
+  padding: 13px;
   border: 1px solid rgba(24, 23, 21, 0.08);
-  border-radius: 10px;
-  background: rgba(255, 253, 248, 0.56);
+  border-radius: 12px;
+  background: rgba(255, 253, 248, 0.58);
+}
+
+.guest-help-routes article.active {
+  border-color: rgba(111, 104, 65, 0.26);
+  background: rgba(111, 104, 65, 0.12);
 }
 
 .guest-help-routes svg {
-  margin-top: 2px;
+  grid-row: span 2;
+  margin-top: 1px;
   color: var(--sage);
 }
 
-.guest-help-routes strong {
-  display: block;
+.guest-help-routes span {
   color: var(--offblack);
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 860;
   line-height: 1.15;
 }
 
 .guest-help-routes p {
-  margin: 5px 0 0;
+  grid-column: 2;
+  margin: 0;
   color: rgba(24, 23, 21, 0.62);
-  font-size: 14px;
-  line-height: 1.42;
+  font-size: 12px;
+  line-height: 1.36;
+}
+
+.guest-support-context-note.is-urgent {
+  background: rgba(170, 91, 59, 0.12);
+  color: rgba(95, 48, 30, 0.84);
 }
 
 .guest-whatsapp-card {
@@ -11921,10 +11939,13 @@ textarea {
   }
 
   .guest-help-routes {
+    grid-template-columns: 1fr;
     gap: 8px;
   }
 
   .guest-help-routes article {
+    grid-template-columns: 24px minmax(0, 1fr);
+    min-height: 0;
     padding: 12px;
   }
 }
