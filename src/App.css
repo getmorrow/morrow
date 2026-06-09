@@ -12201,3 +12201,94 @@ textarea {
     padding: 12px;
   }
 }
+
+@media (max-width: 1180px) {
+  .guest-app-page.has-bottom-nav .guest-app-bottom-nav.is-post-stay {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .guest-app-page.has-bottom-nav .guest-app-shell {
+    width: min(100% - 34px, 1180px);
+    padding-bottom: calc(132px + env(safe-area-inset-bottom));
+  }
+
+  .guest-app-page.has-bottom-nav .guest-app-bottom-nav {
+    min-height: calc(70px + env(safe-area-inset-bottom));
+    padding: 6px 12px max(9px, env(safe-area-inset-bottom));
+  }
+
+  .guest-app-page.has-bottom-nav .guest-app-bottom-nav.is-post-stay {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .guest-app-page.has-bottom-nav .guest-app-bottom-nav button {
+    min-height: 45px;
+    gap: 1px;
+    font-size: 10px;
+  }
+
+  .guest-poststay-return-card,
+  .guest-poststay-memory-grid,
+  .guest-poststay-booking-summary,
+  .guest-repeat-grid article {
+    width: 100%;
+    grid-template-columns: 1fr !important;
+  }
+
+  .guest-poststay-return-card {
+    align-items: start;
+    gap: 20px;
+    padding: 24px 20px;
+  }
+
+  .guest-poststay-return-card h2 {
+    font-size: clamp(27px, 8vw, 34px);
+  }
+
+  .guest-poststay-return-card .button {
+    width: 100%;
+  }
+
+  .guest-poststay-memory-grid,
+  .guest-poststay-booking-summary,
+  .guest-repeat-grid {
+    gap: 10px;
+  }
+
+  .guest-poststay-memory-grid article,
+  .guest-poststay-booking-summary article {
+    padding: 17px;
+  }
+
+  .guest-repeat-grid article {
+    overflow: hidden;
+    border-radius: 16px;
+  }
+
+  .guest-repeat-grid img {
+    width: 100%;
+    height: clamp(210px, 48vw, 290px);
+    min-height: 0;
+    object-fit: cover;
+  }
+
+  .guest-feedback-panel,
+  .guest-poststay-return-card,
+  .guest-repeat-grid {
+    margin-bottom: 18px;
+  }
+
+  .guest-repeat-grid article > div {
+    padding: 20px 18px 22px;
+  }
+
+  .guest-repeat-grid h2 {
+    font-size: clamp(27px, 8vw, 34px);
+  }
+
+  .guest-repeat-grid .button {
+    width: 100%;
+  }
+}
