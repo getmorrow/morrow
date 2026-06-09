@@ -65,7 +65,7 @@ Ziel: Nach der Buchung fuehlt sich Morrow wie Komfort an, nicht wie eine lose E-
 | Restaurant-Reservierungen | Reservierungs-/Website-/Speisekartenlinks als externe Links vorhanden | Pro Restaurant kuratierte Reservierungslinks, Bilder, Kueche, Preisgefuehl, Oeffnungszeiten, Bewertung | MVP-kritisch | Teilweise |
 | Support-Chat | Gaeste koennen im Bereich Hilfe eine Nachricht mit Kategorie und Dringlichkeit senden; Admin sieht sie als Supportfall mit Buchungsbezug | Spaeter echte Chat-Ansicht und Antwort aus Admin heraus ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Schadens-/Problem-Tickets | Objektproblem-Flow unterscheidet Morrow-Objektbetreuung von Agentur/Hotel-Partnerfaellen und priorisiert dringende Themen | Spaeter Partnerweiterleitung und Status pro Ticket weiter normalisieren | MVP-kritisch | Erledigt fuer MVP |
-| Feedback nach Aufenthalt | Nicht umgesetzt | Feedbackformular oder E-Mail nach Abreise, Wiederbuchungsimpuls | MVP-light | Offen |
+| Feedback nach Aufenthalt | Feedback-Ansicht im Gaestebereich, Speicherung in `guest_feedback`, Kommunikationshistorie und automatische Resend-Edge-Function fuer faellige Feedback-Mails 1 Tag nach Abschluss sind im Code angelegt | Supabase-Migration ausfuehren, Edge Function deployen und live mit abgeschlossener Buchung testen | MVP-light | Teilweise |
 | Wiederbuchung | Nicht umgesetzt | Nach Aufenthalt leichte Rueckkehr-CTA, Empfehlung fuer naechste Auszeit | MVP-light | Offen |
 
 ## Block 3: Communication
@@ -167,6 +167,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 3. Support-/Problem-Ticket-Flow finalisieren.
    - Stand 2026-06-09: Hilfe-Formular mit Kategorie und Dringlichkeit gebaut; Supportfall landet im Admin mit Buchungsbezug, Zuständigkeit, naechstem Schritt und Kommunikationshistorie; Objektproblem unterscheidet Morrow vs. Partner; Build und E2E-Test bestanden.
 4. Feedback nach Aufenthalt ergaenzen.
+   - Stand 2026-06-09: Feedback-Ansicht im Gaestebereich, Feedbackspeicherung, Kommunikationshistorie und automatische Resend-Function fuer 1 Tag nach Abschluss gebaut; Migration/Function-Deploy und Live-Test stehen noch aus.
 
 ### Sprint 3: Kommunikation und Recht
 
@@ -199,6 +200,8 @@ Diese Punkte bleiben bewusst nachgelagert:
 - [x] Buchung erzeugt automatische Aufgaben.
 - [x] Gaestebereich zeigt Anreise, Schluessel und Regeln aus Admin-Daten.
 - [x] Supportnachricht aus Gaestebereich landet als Admin-Thema.
+- [ ] Feedback nach Aufenthalt landet in Supabase und erzeugt Kommunikationshistorie.
+- [ ] Feedback-Mail wird 1 Tag nach Abschluss automatisch versendet.
 - [ ] Status-E-Mails fuer Reservierung/Bestaetigung/Vor Anreise getestet.
 - [ ] AGB/Buchungsbedingungen/Storno/Zahlung final verlinkt.
 - [ ] Datenschutz/WhatsApp/Tracking rechtlich geprueft.
@@ -207,13 +210,16 @@ Diese Punkte bleiben bewusst nachgelagert:
 
 ## Naechster Konkreter Schritt
 
-Weiter mit Sprint 2, Punkt 4:
+Weiter mit Sprint 2, Punkt 4 finalisieren:
 
 `Feedback nach Aufenthalt ergaenzen`
 
 Definition of Done:
 
+- Supabase-Migration `202606090001_guest_feedback.sql` ist live ausgefuehrt.
+- Edge Function `post-stay-feedback` ist deployed.
 - Nach abgeschlossenem Aufenthalt kann Feedback gesammelt werden.
 - Feedback ist mit Kunde/Buchung verbunden.
-- Admin sieht Bewertung, Freitext und moeglichen Wiederbuchungsimpuls.
+- Admin sieht Bewertung, Freitext und moeglichen Wiederbuchungsimpuls in der Kommunikationshistorie.
 - Gast bekommt eine ruhige Abschluss- oder Danke-Ansicht.
+- Automatische Feedback-Mail wird 1 Tag nach Abschluss nur einmal gesendet.

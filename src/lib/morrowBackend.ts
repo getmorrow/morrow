@@ -28,6 +28,7 @@ const packageDatesTable = 'package_dates'
 const propertiesTable = 'properties'
 const emailEventsTable = 'email_events'
 const communicationEventsTable = 'communication_events'
+const guestFeedbackTable = 'guest_feedback'
 const localPlacesTable = 'local_places'
 const experienceProvidersTable = 'experience_providers'
 const experienceBlocksTable = 'experience_blocks'
@@ -105,9 +106,9 @@ export async function createStoredCommunicationEvent<T extends StoredEntity>(
     .from(communicationEventsTable)
     .insert({
       id: event.id,
-      lead_id: typeof payload.leadId === 'string' ? payload.leadId : null,
-      booking_id: typeof payload.bookingId === 'string' ? payload.bookingId : null,
-      customer_id: typeof payload.customerId === 'string' ? payload.customerId : null,
+      lead_id: isUuid(payload.leadId) ? payload.leadId : null,
+      booking_id: isUuid(payload.bookingId) ? payload.bookingId : null,
+      customer_id: isUuid(payload.customerId) ? payload.customerId : null,
       channel: typeof payload.channel === 'string' ? payload.channel : 'note',
       direction: typeof payload.direction === 'string' ? payload.direction : 'internal',
       event_type: typeof payload.eventType === 'string' ? payload.eventType : 'note',
@@ -152,6 +153,21 @@ export async function sendLeadNotification<T extends StoredEntity>(lead: T): Pro
 
   const { error } = await supabase.functions.invoke('lead-notification', {
     body: { lead },
+  })
+
+  if (error) return { ok: false, source: 'supabase', error: error.message }
+  return { ok: true, source: 'supabase' }
+}
+
+export async function sendDuePostStayFeedbackEmails<T extends StoredEntity>(
+  leads: T[],
+  baseUrl: string,
+  daysAfter = 1,
+): Promise<BackendSaveResult> {
+  if (!emailAutomationEnabled || !isSupabaseConfigured || !supabase) return { ok: true, source: 'local' }
+
+  const { error } = await supabase.functions.invoke('post-stay-feedback', {
+    body: { leads, baseUrl, daysAfter },
   })
 
   if (error) return { ok: false, source: 'supabase', error: error.message }
@@ -208,6 +224,27 @@ export async function createStoredSupportMessage<T extends StoredEntity>(
       category: typeof payload.category === 'string' ? payload.category : 'general',
       message: typeof payload.message === 'string' ? payload.message : '',
       payload: message,
+    })
+
+  if (error) return { ok: false, source: 'supabase', error: error.message }
+  return { ok: true, source: 'supabase' }
+}
+
+export async function createStoredGuestFeedback<T extends StoredEntity>(
+  feedback: T,
+): Promise<BackendSaveResult> {
+  if (!isSupabaseConfigured || !supabase) return { ok: true, source: 'local' }
+  const payload = feedback as Record<string, unknown>
+
+  const { error } = await supabase
+    .from(guestFeedbackTable)
+    .insert({
+      id: feedback.id,
+      lead_id: isUuid(payload.leadId) ? payload.leadId : null,
+      booking_id: isUuid(payload.bookingId) ? payload.bookingId : null,
+      rating: typeof payload.rating === 'number' ? payload.rating : null,
+      return_interest: typeof payload.returnInterest === 'string' ? payload.returnInterest : null,
+      payload: feedback,
     })
 
   if (error) return { ok: false, source: 'supabase', error: error.message }

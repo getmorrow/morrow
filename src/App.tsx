@@ -23,6 +23,7 @@ import type { Audience, ExperienceRole, LeadStatus, MorrowPackage, PackageStatus
 import {
   type AdminProfile,
   createStoredCommunicationEvent,
+  createStoredGuestFeedback,
   createStoredSupportMessage,
   deleteStoredAgency,
   deleteStoredAdminTask,
@@ -46,6 +47,7 @@ import {
   fetchStoredPackages,
   fetchGuestStayByAccess,
   sendLeadNotification,
+  sendDuePostStayFeedbackEmails,
   updateStoredLead,
   upsertStoredAdminTask,
   upsertStoredAgency,
@@ -319,9 +321,11 @@ type LeadSource = 'Meta Ads' | 'Google' | 'Ratgeber' | 'Direkt' | 'Empfehlung' |
 type LeadLossReason = 'Termin passt nicht' | 'Preis' | 'Unterkunft passt nicht' | 'Erlebnis passt nicht' | 'Keine Rückmeldung' | 'Anders gebucht' | 'Nicht qualifiziert' | 'Sonstiges'
 type AdminSection = 'overview' | 'leads' | 'tasks' | 'guestSupport' | 'customers' | 'bookings' | 'packages' | 'experiences' | 'localPlaces' | 'owners' | 'agencies' | 'experienceProviders'
 type BookingStatus = 'Reserviert' | 'Bezahlt' | 'Vor Anreise' | 'Aktiv' | 'Abgeschlossen' | 'Storniert'
-type GuestAppView = 'home' | 'plan' | 'booking' | 'local' | 'help'
+type GuestAppView = 'home' | 'plan' | 'booking' | 'local' | 'help' | 'feedback'
 type GuestSupportCategory = 'general' | 'arrival' | 'property' | 'experience' | 'local'
 type GuestSupportUrgency = 'normal' | 'soon' | 'urgent'
+type GuestFeedbackRating = '5' | '4' | '3' | '2' | '1' | ''
+type GuestFeedbackReturnInterest = 'yes' | 'maybe' | 'no' | ''
 type CustomerTypeFilter = CustomerProfile['guestType'] | 'all'
 type CustomerPhaseFilter = 'all' | 'request' | 'booking' | 'due'
 type BookingStatusFilter = BookingStatus | 'all'
@@ -1624,6 +1628,7 @@ const emailEventTypeLabel = (eventType: string) => {
   const labels: Record<string, string> = {
     lead_confirmation: 'Bestätigung an Kontakt',
     internal_lead_notification: 'Interne Benachrichtigung',
+    post_stay_feedback_request: 'Feedback-Anfrage',
   }
   return labels[eventType] ?? eventType
 }
@@ -4293,6 +4298,7 @@ function AdminPage({
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null)
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null)
+  const feedbackEmailRunRef = useRef(false)
   const [leadScope, setLeadScope] = useState<LeadScopeFilter>('active')
   const [leadTypeFilter, setLeadTypeFilter] = useState<LeadTypeFilter>('all')
   const [leadStatusFilter, setLeadStatusFilter] = useState<LeadStatus | 'all'>('all')
@@ -4575,6 +4581,16 @@ function AdminPage({
     }
   }, [adminPackages, authMode, leads])
   const leadIdsForEmailEvents = useMemo(() => leads.map((lead) => lead.id).sort().join('|'), [leads])
+  useEffect(() => {
+    if (feedbackEmailRunRef.current || authMode !== 'supabase') return
+    const guestLeads = leads.filter((lead): lead is GuestLead => lead.type === 'guest')
+    if (guestLeads.length === 0) return
+
+    feedbackEmailRunRef.current = true
+    void sendDuePostStayFeedbackEmails(guestLeads, window.location.origin, 1).catch((error) => {
+      console.warn('Morrow post-stay feedback email check failed.', error)
+    })
+  }, [authMode, leads])
   useEffect(() => {
     if (authMode !== 'supabase') {
       setEmailEvents([])
@@ -8198,7 +8214,14 @@ function GuestStayPage({
   const [supportCategory, setSupportCategory] = useState<GuestSupportCategory>('general')
   const [supportUrgency, setSupportUrgency] = useState<GuestSupportUrgency>('normal')
   const [supportSent, setSupportSent] = useState(false)
-  const [activeView, setActiveView] = useState<GuestAppView>('home')
+  const [activeView, setActiveView] = useState<GuestAppView>(() => (
+    new URLSearchParams(window.location.search).get('view') === 'feedback' ? 'feedback' : 'home'
+  ))
+  const [feedbackRating, setFeedbackRating] = useState<GuestFeedbackRating>('')
+  const [feedbackLoved, setFeedbackLoved] = useState('')
+  const [feedbackImprove, setFeedbackImprove] = useState('')
+  const [feedbackReturnInterest, setFeedbackReturnInterest] = useState<GuestFeedbackReturnInterest>('')
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
   const [localFilter, setLocalFilter] = useState<LocalPlaceCategory>('all')
   const [weatherForecastRange, setWeatherForecastRange] = useState<'today' | '3' | '14'>('3')
   const [selectedLocalPlaceId, setSelectedLocalPlaceId] = useState('stay')
@@ -8267,6 +8290,7 @@ function GuestStayPage({
 
   const activeLead = lead ?? remoteLead
   const packageItem = activeLead ? remotePackage ?? packages.find((pkg) => pkg.slug === activeLead.packageSlug) ?? null : null
+  const feedbackStorageKey = activeLead ? `morrow-feedback-submitted-${activeLead.id}` : ''
   const propertySupportType = packageItem?.stay.propertySupportType ?? 'morrow'
   const propertySupportName = packageItem?.stay.propertySupportName ?? (propertySupportType === 'hotel' ? 'das Hotel' : 'die Partneragentur')
   const propertyIsMorrowHandled = propertySupportType === 'morrow'
@@ -8297,6 +8321,10 @@ function GuestStayPage({
   const visibleLocalPlaces = localFilter === 'experience'
     ? [...rawVisibleLocalPlaces].sort((a, b) => localExperienceAccessRank(a) - localExperienceAccessRank(b))
     : rawVisibleLocalPlaces
+  useEffect(() => {
+    if (!feedbackStorageKey) return
+    setFeedbackSubmitted(localStorage.getItem(feedbackStorageKey) === 'true')
+  }, [feedbackStorageKey])
   const stayLocalPlace = guestLocalPlaces.find((place) => place.id === 'stay')
   const mappableLocalPlaces = visibleLocalPlaces.filter((place) => place.category !== 'emergency' || Boolean(place.address))
   const visibleMapPlaces = localFilter === 'all'
@@ -8532,11 +8560,13 @@ function GuestStayPage({
     : homePhase === 'after'
       ? {
           kicker: 'Nach der Auszeit',
-          title: 'Alles bleibt griffbereit.',
-          copy: 'Ihr findet eure Buchungsdetails weiterhin hier und könnt uns bei Rückfragen direkt erreichen.',
-          buttonLabel: 'Hilfe öffnen',
+          title: feedbackSubmitted ? 'Danke für euer Feedback.' : 'Wie war eure Auszeit?',
+          copy: feedbackSubmitted
+            ? 'Eure Rückmeldung hilft uns, kommende Aufenthalte noch besser vorzubereiten.'
+            : 'Wenn ihr einen kurzen Moment habt, hilft uns eure Rückmeldung sehr.',
+          buttonLabel: feedbackSubmitted ? 'Buchung ansehen' : 'Feedback geben',
           icon: <HeartHandLine size={17} />,
-          view: 'help' as GuestAppView,
+          view: feedbackSubmitted ? 'booking' as GuestAppView : 'feedback' as GuestAppView,
         }
         : {
           kicker: 'Jetzt wichtig',
@@ -8719,6 +8749,59 @@ function GuestStayPage({
     setSupportMessage('')
     setSupportCategory('general')
     setSupportUrgency('normal')
+  }
+  const sendFeedback = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!activeLead || !feedbackRating) return
+
+    const now = new Date().toISOString()
+    const rating = Number.parseInt(feedbackRating, 10)
+    const feedback = {
+      id: `feedback-${crypto.randomUUID()}`,
+      leadId: activeLead.id,
+      bookingId: activeLead.id,
+      packageName: activeLead.packageName,
+      packageSlug: activeLead.packageSlug,
+      selectedDate: activeLead.selectedDate,
+      guestName: activeLead.name,
+      email: activeLead.email,
+      rating,
+      loved: feedbackLoved.trim(),
+      improve: feedbackImprove.trim(),
+      returnInterest: feedbackReturnInterest || undefined,
+      createdAt: now,
+    }
+
+    void createStoredGuestFeedback(feedback).catch((error) => {
+      console.warn('Morrow guest feedback save failed. Local confirmation is still shown.', error)
+    })
+    void createStoredCommunicationEvent({
+      id: crypto.randomUUID(),
+      lead_id: activeLead.id,
+      leadId: activeLead.id,
+      booking_id: activeLead.id,
+      bookingId: activeLead.id,
+      channel: 'note',
+      direction: 'inbound',
+      event_type: 'guest_feedback',
+      eventType: 'guest_feedback',
+      subject: `Feedback · ${rating}/5`,
+      body: [
+        feedback.loved ? `Gut: ${feedback.loved}` : '',
+        feedback.improve ? `Verbessern: ${feedback.improve}` : '',
+        feedback.returnInterest ? `Wiederkommen: ${feedback.returnInterest}` : '',
+      ].filter(Boolean).join('\n'),
+      actor: activeLead.name,
+      status: 'received',
+      created_at: now,
+      updated_at: now,
+      payload: feedback,
+    }).catch((error) => {
+      console.warn('Morrow guest feedback communication event save failed.', error)
+    })
+
+    if (feedbackStorageKey) localStorage.setItem(feedbackStorageKey, 'true')
+    setFeedbackSubmitted(true)
   }
 
   if (!remoteAccessChecked) {
@@ -9414,6 +9497,55 @@ function GuestStayPage({
                 {supportSent && <p className="guest-success-note">Danke, eure Nachricht ist bei Morrow angekommen und der Buchung zugeordnet.</p>}
                 <button className="button primary" type="submit">Nachricht senden</button>
               </form>
+            </section>
+          </div>
+        )}
+        {activeView === 'feedback' && (
+          <div className="guest-app-view">
+            <section className="guest-app-section-head">
+              <p className="kicker">Feedback</p>
+              <h1>{feedbackSubmitted ? 'Danke für eure Rückmeldung.' : 'Wie hat sich eure Auszeit angefühlt?'}</h1>
+              <p>{feedbackSubmitted
+                ? 'Eure Antwort ist angekommen. Wir nehmen sie mit in die nächsten Aufenthalte.'
+                : 'Ein paar ehrliche Sätze helfen uns sehr: für bessere Auszeiten, bessere Partner und mehr Ruhe vor Ort.'}</p>
+            </section>
+            <section className="guest-feedback-panel">
+              {feedbackSubmitted ? (
+                <article className="guest-feedback-thanks">
+                  <HeartHandLine size={28} />
+                  <h2>Das hilft uns wirklich.</h2>
+                  <p>Danke, dass ihr euch die Zeit genommen habt. Wenn ihr später noch etwas ergänzen möchtet, erreicht ihr uns weiterhin über Hilfe.</p>
+                  <button className="button primary" type="button" onClick={() => setActiveView('booking')}>Buchung ansehen</button>
+                </article>
+              ) : (
+                <form className="guest-feedback-form" onSubmit={sendFeedback}>
+                  <label>Wie würdet ihr die Auszeit bewerten?
+                    <select required value={feedbackRating} onChange={(event) => setFeedbackRating(event.target.value as GuestFeedbackRating)}>
+                      <option value="">Bitte wählen</option>
+                      <option value="5">5 · Sehr gut</option>
+                      <option value="4">4 · Gut</option>
+                      <option value="3">3 · Gemischt</option>
+                      <option value="2">2 · Nicht rund</option>
+                      <option value="1">1 · Enttäuschend</option>
+                    </select>
+                  </label>
+                  <label>Was hat euch besonders gutgetan?
+                    <textarea rows={3} value={feedbackLoved} onChange={(event) => setFeedbackLoved(event.target.value)} placeholder="Ein Moment, eine Empfehlung, die Unterkunft, die Ruhe..." />
+                  </label>
+                  <label>Was sollten wir besser vorbereiten?
+                    <textarea rows={3} value={feedbackImprove} onChange={(event) => setFeedbackImprove(event.target.value)} placeholder="Alles, was den Aufenthalt leichter gemacht hätte." />
+                  </label>
+                  <label>Dürfen wir euch später wieder zu passenden Auszeiten informieren?
+                    <select value={feedbackReturnInterest} onChange={(event) => setFeedbackReturnInterest(event.target.value as GuestFeedbackReturnInterest)}>
+                      <option value="">Noch offen</option>
+                      <option value="yes">Ja, gerne</option>
+                      <option value="maybe">Vielleicht später</option>
+                      <option value="no">Nein, danke</option>
+                    </select>
+                  </label>
+                  <button className="button primary" type="submit">Feedback senden</button>
+                </form>
+              )}
             </section>
           </div>
         )}
