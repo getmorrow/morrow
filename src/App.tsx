@@ -365,6 +365,7 @@ type ExperienceRoleFilter = 'all' | ExperienceRole
 type ExperienceConfirmationFilter = 'all' | MorrowPackage['experienceItems'][number]['confirmationStatus']
 type ExperiencePackageFilter = 'all' | MorrowPackage['id']
 type ExperienceProviderFilter = 'all' | 'none' | ExperienceProviderProfile['id']
+type ExperienceReadinessFilter = 'all' | 'ready' | 'missingData' | 'unlinked'
 type ExperienceProviderStatusFilter = ExperienceProviderStatus | 'all'
 type LocalPlaceCategoryFilter = LocalPlaceCategory | 'all'
 type LocalPlaceStatusFilter = LocalPlaceStatus | 'all'
@@ -4467,6 +4468,7 @@ function AdminPage({
   const [experienceRoleFilter, setExperienceRoleFilter] = useState<ExperienceRoleFilter>('all')
   const [experienceConfirmationFilter, setExperienceConfirmationFilter] = useState<ExperienceConfirmationFilter>('all')
   const [experienceProviderFilter, setExperienceProviderFilter] = useState<ExperienceProviderFilter>('all')
+  const [experienceReadinessFilter, setExperienceReadinessFilter] = useState<ExperienceReadinessFilter>('all')
   const [experienceProviderStatusFilter, setExperienceProviderStatusFilter] = useState<ExperienceProviderStatusFilter>('all')
   const [selectedExperience, setSelectedExperience] = useState<{ packageId: string; experienceId: string } | null>(null)
   const [localPlaceCategoryFilter, setLocalPlaceCategoryFilter] = useState<LocalPlaceCategoryFilter>('all')
@@ -5843,6 +5845,23 @@ function AdminPage({
     packageAudience: pkg.audience,
     providerProfile: providerForExperience(item),
   })))
+  const experienceOpenItems = (experience: typeof experienceRows[number]) => {
+    const issues: string[] = []
+
+    if (!experience.providerProfile && !experience.providerName?.trim()) issues.push('Anbieter')
+    if (!experience.priceNote?.trim()) issues.push('Preis')
+    if (!experience.capacityNote?.trim()) issues.push('Kapazität')
+    if (!experience.availabilityNote?.trim()) issues.push('Verfügbarkeit')
+    if (!experience.guestNotes.trim()) issues.push('Gastnotiz')
+    if (experience.role === 'included' && experience.confirmationStatus !== 'confirmed') issues.push('Bestätigung')
+
+    return issues
+  }
+  const experienceIsPackageReady = (experience: typeof experienceRows[number]) => (
+    experience.confirmationStatus === 'confirmed'
+    && Boolean(experience.providerProfile || experience.providerName?.trim())
+    && experienceOpenItems(experience).length === 0
+  )
   const filteredExperienceRows = experienceRows
     .filter((item) => experiencePackageFilter === 'all' || item.packageId === experiencePackageFilter)
     .filter((item) => experienceRoleFilter === 'all' || item.role === experienceRoleFilter)
@@ -5851,6 +5870,12 @@ function AdminPage({
       if (experienceProviderFilter === 'all') return true
       if (experienceProviderFilter === 'none') return !item.providerId && !item.providerName
       return item.providerProfile?.id === experienceProviderFilter
+    })
+    .filter((item) => {
+      if (experienceReadinessFilter === 'all') return true
+      if (experienceReadinessFilter === 'ready') return experienceIsPackageReady(item)
+      if (experienceReadinessFilter === 'unlinked') return !item.providerProfile && !item.providerName?.trim()
+      return experienceOpenItems(item).length > 0
     })
     .sort((a, b) => {
       const score = (item: typeof experienceRows[number]) => {
@@ -6198,15 +6223,9 @@ function AdminPage({
     return Array.from(new Set(issues))
   }
   const experienceMonitoringIssues = (experience: typeof experienceRows[number]) => {
-    const issues: string[] = []
+    const issues = experienceOpenItems(experience)
     if (!experience.title.trim()) issues.push('Titel')
-    if (!experience.providerId && !experience.providerName?.trim()) issues.push('Anbieter')
-    if (!experience.priceNote?.trim()) issues.push('Preis')
-    if (!experience.capacityNote?.trim()) issues.push('Kapazität')
-    if (!experience.availabilityNote?.trim()) issues.push('Verfügbarkeit')
-    if (!experience.guestNotes.trim()) issues.push('Gastnotiz')
-    if (experience.role === 'included' && experience.confirmationStatus !== 'confirmed') issues.push('Bestätigung')
-    return issues
+    return Array.from(new Set(issues))
   }
   const monitoringItems = [
     ...adminPackages.map((pkg) => {
@@ -7537,15 +7556,10 @@ function AdminPage({
     <div className="admin-experience-cards">
       {filteredExperienceRows.length === 0 && <p className="admin-empty-note">Kein Erlebnis passt zu den aktuellen Filtern.</p>}
       {filteredExperienceRows.map((item) => {
-        const detailIssues = [
-          !item.priceNote?.trim() ? 'Preis fehlt' : '',
-          !item.capacityNote?.trim() ? 'Kapazität fehlt' : '',
-          !item.availabilityNote?.trim() ? 'Verfügbarkeit fehlt' : '',
-          !item.guestNotes.trim() ? 'Gastnotiz fehlt' : '',
-        ].filter(Boolean)
+        const detailIssues = experienceOpenItems(item)
 
         return (
-        <article key={`${item.packageId}-${item.id}`} className={`admin-experience-card ${item.confirmationStatus !== 'confirmed' || detailIssues.length > 0 ? 'is-open' : 'is-ready'}`}>
+        <article key={`${item.packageId}-${item.id}`} className={`admin-experience-card ${detailIssues.length > 0 ? 'is-open' : 'is-ready'}`}>
           <header className="admin-experience-card-header">
             <div>
               <span className="admin-package-kicker">{item.packageName} · {audienceLabel(item.packageAudience)}</span>
@@ -7581,7 +7595,7 @@ function AdminPage({
             </div>
           )}
           <footer className="admin-package-card-footer">
-            <span>{detailIssues.length > 0 ? 'Operative Erlebnisdaten ergänzen' : item.confirmationStatus === 'confirmed' ? 'Für diese Auszeit bestätigt' : item.providerProfile || item.providerName ? 'Bestätigung klären' : 'Passenden Anbieter auswählen'}</span>
+            <span>{detailIssues.length > 0 ? `${detailIssues.length} Punkt${detailIssues.length === 1 ? '' : 'e'} im Erlebnis offen` : 'Erlebnis ist paketbereit'}</span>
             <div className="admin-package-actions">
               {item.providerProfile && (
                 <button className="admin-row-action" type="button" onClick={() => item.providerProfile && setSelectedExperienceProviderId(item.providerProfile.id)}>Anbieter öffnen</button>
@@ -7596,7 +7610,8 @@ function AdminPage({
   const renderExperiences = () => {
     const unlinkedExperiences = experienceRows.filter((item) => !item.providerProfile && !item.providerName)
     const requestedExperiences = experienceRows.filter((item) => item.confirmationStatus === 'requested' || item.confirmationStatus === 'planned')
-    const confirmedExperiences = experienceRows.filter((item) => item.confirmationStatus === 'confirmed')
+    const packageReadyExperiences = experienceRows.filter(experienceIsPackageReady)
+    const incompleteExperiences = experienceRows.filter((item) => experienceOpenItems(item).length > 0)
 
     return (
       <section className="admin-leads-layout">
@@ -7618,6 +7633,7 @@ function AdminPage({
                 setExperienceProviderFilter('none')
                 setExperienceConfirmationFilter('all')
                 setExperienceRoleFilter('all')
+                setExperienceReadinessFilter('unlinked')
               },
             )}
             {renderExperienceLane(
@@ -7629,17 +7645,31 @@ function AdminPage({
                 setExperienceProviderFilter('all')
                 setExperienceConfirmationFilter('requested')
                 setExperienceRoleFilter('all')
+                setExperienceReadinessFilter('all')
               },
             )}
             {renderExperienceLane(
-              'Bestätigt',
-              'Bausteine, die für Auszeiten belastbar genutzt werden können.',
-              confirmedExperiences,
-              'Noch kein Erlebnis ist bestätigt.',
+              'Paketbereit',
+              'Bausteine mit Anbieter, Daten und bestätigter Nutzung.',
+              packageReadyExperiences,
+              'Noch kein Erlebnis ist vollständig paketbereit.',
               () => {
                 setExperienceProviderFilter('all')
                 setExperienceConfirmationFilter('confirmed')
                 setExperienceRoleFilter('all')
+                setExperienceReadinessFilter('ready')
+              },
+            )}
+            {renderExperienceLane(
+              'Daten offen',
+              'Erlebnisse, bei denen Preis, Kapazität, Verfügbarkeit oder Gastnotiz fehlen.',
+              incompleteExperiences,
+              'Alle Erlebnisdaten sind vollständig.',
+              () => {
+                setExperienceProviderFilter('all')
+                setExperienceConfirmationFilter('all')
+                setExperienceRoleFilter('all')
+                setExperienceReadinessFilter('missingData')
               },
             )}
           </section>
@@ -7675,6 +7705,14 @@ function AdminPage({
                 <option value="all">Alle</option>
                 <option value="none">Ohne Anbieter</option>
                 {experienceProviders.map((provider) => <option key={provider.id} value={provider.id}>{provider.name}</option>)}
+              </select>
+            </label>
+            <label>Arbeitsstand
+              <select value={experienceReadinessFilter} onChange={(event) => setExperienceReadinessFilter(event.target.value as ExperienceReadinessFilter)}>
+                <option value="all">Alle</option>
+                <option value="ready">Paketbereit</option>
+                <option value="missingData">Daten offen</option>
+                <option value="unlinked">Ohne Anbieter</option>
               </select>
             </label>
           </div>
