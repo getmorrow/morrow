@@ -360,6 +360,7 @@ type LeadScopeFilter = 'active' | 'archived'
 type LeadWorkFilter = 'all' | 'due' | 'new' | 'review'
 type PackageAudienceFilter = 'all' | Audience
 type PackageStatusFilter = 'all' | PackageStatus
+type PackageReadinessFilter = 'all' | 'ready' | 'objectFit' | 'open'
 type ExperienceRoleFilter = 'all' | ExperienceRole
 type ExperienceConfirmationFilter = 'all' | MorrowPackage['experienceItems'][number]['confirmationStatus']
 type ExperiencePackageFilter = 'all' | MorrowPackage['id']
@@ -4459,6 +4460,7 @@ function AdminPage({
   }, [authMode])
   const [packageAudienceFilter, setPackageAudienceFilter] = useState<PackageAudienceFilter>('all')
   const [packageStatusFilter, setPackageStatusFilter] = useState<PackageStatusFilter>('all')
+  const [packageReadinessFilter, setPackageReadinessFilter] = useState<PackageReadinessFilter>('all')
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null)
   const [experiencePackageFilter, setExperiencePackageFilter] = useState<ExperiencePackageFilter>('all')
   const [experienceRoleFilter, setExperienceRoleFilter] = useState<ExperienceRoleFilter>('all')
@@ -5897,9 +5899,59 @@ function AdminPage({
   const eventNeedsCuration = eventCandidates.filter((place) => place.status === 'candidate' && localPlaceReviewIssues(place).length > 0)
   const rawBookableExperienceCount = rawSpoEvents.filter((event) => rawSpoImportKind(event) === 'bookable-experience').length
   const rawPublicEventCount = rawSpoEvents.length - rawBookableExperienceCount
+  const packageHasUsableDates = (pkg: MorrowPackage) => pkg.dates.some((date) => !date.toLowerCase().includes('ergänzen'))
+  const packageObjectFit = (pkg: MorrowPackage) => {
+    const linkedProperty = ownerProperties.find((property) => property.id === pkg.propertyId)
+    const expectedWorlds = expectedExperienceWorldsForPackage({ audience: pkg.audience, slug: pkg.slug, name: pkg.name })
+    const matchingWorlds = linkedProperty
+      ? expectedWorlds.filter((world) => linkedProperty.experienceWorlds.includes(world))
+      : []
+    const missingWorlds = linkedProperty
+      ? expectedWorlds.filter((world) => !linkedProperty.experienceWorlds.includes(world))
+      : expectedWorlds
+
+    return {
+      linkedProperty,
+      expectedWorlds,
+      matchingWorlds,
+      missingWorlds,
+      isReady: Boolean(linkedProperty) && expectedWorlds.length > 0 && missingWorlds.length === 0,
+    }
+  }
+  const packageOpenItems = (pkg: MorrowPackage) => {
+    const fit = packageObjectFit(pkg)
+    const issues: string[] = []
+
+    if (!fit.linkedProperty) issues.push('Objekt verbinden')
+    if (fit.linkedProperty && fit.missingWorlds.length > 0) issues.push('Objekt-Fit prüfen')
+    if (fit.linkedProperty && fit.linkedProperty.attributes.length < 2) issues.push('Objektattribute')
+    if (!pkg.headline.trim() || !pkg.shortPromise.trim() || !pkg.cta.trim()) issues.push('Copy')
+    if (!pkg.concretePrice.trim() || !pkg.priceNote.trim()) issues.push('Preis')
+    if (!pkg.dates.some((date) => !date.toLowerCase().includes('ergänzen'))) issues.push('Termine')
+    if (!pkg.heroImage.trim() || pkg.images.length < 2 || pkg.stayImages.length === 0) issues.push('Medien')
+    if (pkg.experienceItems.filter((experience) => experience.role === 'included').length === 0) issues.push('Enthaltenes Erlebnis')
+    if (pkg.experienceItems.some((experience) => experience.confirmationStatus !== 'confirmed')) issues.push('Erlebnisbestätigung')
+
+    return Array.from(new Set(issues))
+  }
+  const packageIsLiveReady = (pkg: MorrowPackage) => (
+    pkg.status === 'published'
+    && packageHasUsableDates(pkg)
+    && packageObjectFit(pkg).isReady
+    && packageOpenItems(pkg).length === 0
+  )
   const filteredPackages = adminPackages
     .filter((pkg) => packageAudienceFilter === 'all' || pkg.audience === packageAudienceFilter)
     .filter((pkg) => packageStatusFilter === 'all' || pkg.status === packageStatusFilter)
+    .filter((pkg) => {
+      if (packageReadinessFilter === 'all') return true
+      if (packageReadinessFilter === 'ready') return packageIsLiveReady(pkg)
+      if (packageReadinessFilter === 'objectFit') {
+        const fit = packageObjectFit(pkg)
+        return !fit.linkedProperty || fit.missingWorlds.length > 0 || fit.linkedProperty.attributes.length < 2
+      }
+      return packageOpenItems(pkg).length > 0
+    })
   const filteredOwnerProperties = ownerProperties.filter((property) => (
     ownerStatusFilter === 'all' || property.status === ownerStatusFilter
   ))
@@ -6088,12 +6140,15 @@ function AdminPage({
     .sort((a, b) => b.issues.length - a.issues.length || a.place.title.localeCompare(b.place.title))
   const packageMonitoringIssues = (pkg: MorrowPackage) => {
     const linkedProperty = ownerProperties.find((property) => property.id === pkg.propertyId)
+    const fit = packageObjectFit(pkg)
     const issues: string[] = []
     if (!pkg.name.trim() || !pkg.slug.trim()) issues.push('Basisdaten')
     if (!pkg.headline.trim() || !pkg.subline.trim() || !pkg.shortPromise.trim() || !pkg.cta.trim()) issues.push('Copy')
     if (!pkg.concretePrice.trim() || !pkg.priceFrom.trim() || !pkg.priceNote.trim()) issues.push('Preis')
     if (pkg.dates.length === 0 || pkg.dates.some((date) => date.toLowerCase().includes('ergänzen'))) issues.push('Termine')
     if (!linkedProperty) issues.push('Unterkunft')
+    if (linkedProperty && fit.missingWorlds.length > 0) issues.push('Objekt-Fit')
+    if (linkedProperty && linkedProperty.attributes.length < 2) issues.push('Objektattribute')
     if (
       !pkg.stay.description.trim()
       || !pkg.stay.address?.trim()
@@ -6266,16 +6321,16 @@ function AdminPage({
     <div className="admin-package-cards">
       {filteredPackages.length === 0 && <p className="admin-empty-note">Keine Auszeit passt zu den aktuellen Filtern.</p>}
       {filteredPackages.map((pkg) => {
-        const includedItems = pkg.experienceItems.filter((item) => item.role === 'included')
-        const optionalItems = pkg.experienceItems.filter((item) => item.role !== 'included')
         const plannedItems = pkg.experienceItems.filter((item) => item.confirmationStatus !== 'confirmed')
         const guestCapacity = pkg.fixedGuests ? `${pkg.fixedGuests} Personen` : `bis ${pkg.maxGuests ?? pkg.stay.sleeps} Personen`
-        const linkedProperty = ownerProperties.find((property) => property.id === pkg.propertyId)
+        const objectFit = packageObjectFit(pkg)
+        const linkedProperty = objectFit.linkedProperty
+        const openItems = packageOpenItems(pkg)
         const packageRequests = guestLeads.filter((lead) => lead.packageSlug === pkg.slug || lead.packageName === pkg.name).length
         const hasUsableDates = pkg.dates.some((date) => !date.toLowerCase().includes('ergänzen'))
 
         return (
-          <article key={pkg.id} className="admin-package-card">
+          <article key={pkg.id} className={`admin-package-card ${openItems.length > 0 ? 'is-open' : 'is-ready'}`}>
             <header className="admin-package-card-header">
               <div>
                 <span className="admin-package-kicker">{audienceLabel(pkg.audience)} · {pkg.location}</span>
@@ -6289,6 +6344,9 @@ function AdminPage({
             <div className="admin-package-readiness" aria-label={`${pkg.name} Arbeitsstatus`}>
               <span className={linkedProperty ? 'is-ready' : 'is-open'}>
                 <strong>Objekt</strong>{linkedProperty ? 'verbunden' : 'offen'}
+              </span>
+              <span className={objectFit.isReady ? 'is-ready' : 'is-open'}>
+                <strong>Objekt-Fit</strong>{objectFit.isReady ? 'passt' : objectFit.missingWorlds.length > 0 ? `${objectFit.missingWorlds.length} Welt offen` : 'prüfen'}
               </span>
               <span className={plannedItems.length === 0 ? 'is-ready' : 'is-open'}>
                 <strong>Erlebnis</strong>{plannedItems.length === 0 ? 'bestätigt' : `${plannedItems.length} offen`}
@@ -6305,7 +6363,7 @@ function AdminPage({
               <span><strong>Preis</strong>{pkg.concretePrice}<small>{pkg.priceNote}</small></span>
               <span><strong>Termine</strong>{pkg.dates.length} aktiv<small>{pkg.dates.join(' / ')}</small></span>
               <span><strong>Unterkunft</strong>{pkg.stay.name}<small>{guestCapacity}{pkg.dogOptional ? ' · Hund optional' : ''}</small></span>
-              <span><strong>Erlebnis</strong>{includedItems.length} enthalten<small>{optionalItems.length} optional/Empfehlung</small></span>
+              <span><strong>Objektprofil</strong>{linkedProperty?.experienceWorlds.length ? linkedProperty.experienceWorlds.map(experienceWorldLabel).slice(0, 2).join(', ') : 'Welten offen'}<small>{linkedProperty?.attributes.length ? linkedProperty.attributes.map(propertyAttributeLabel).slice(0, 2).join(', ') : 'Attribute offen'}</small></span>
             </div>
 
             <div className="admin-package-detail-grid">
@@ -6327,9 +6385,14 @@ function AdminPage({
                 </ul>
               </section>
             </div>
+            {openItems.length > 0 && (
+              <div className="admin-review-issues" aria-label={`${pkg.name} offene Auszeitdaten`}>
+                {openItems.slice(0, 6).map((issue) => <span key={issue}>{issue}</span>)}
+              </div>
+            )}
 
             <footer className="admin-package-card-footer">
-              <span>{plannedItems.length > 0 ? `${plannedItems.length} Erlebnisbausteine noch zu bestätigen` : 'Alle Erlebnisbausteine bestätigt'}</span>
+              <span>{openItems.length > 0 ? `${openItems.length} Punkt${openItems.length === 1 ? '' : 'e'} vor Veröffentlichung prüfen` : 'Auszeit operativ prüfbar'}</span>
               <div className="admin-package-actions">
                 <button className="admin-row-action" type="button" onClick={() => setSelectedPackageId(pkg.id)}>Bearbeiten</button>
                 <button className="admin-row-action" type="button" onClick={() => duplicatePackage(pkg)}>Duplizieren</button>
@@ -7025,7 +7088,6 @@ function AdminPage({
   const packageOpenExperienceItems = (pkg: MorrowPackage) => (
     pkg.experienceItems.filter((experience) => experience.confirmationStatus !== 'confirmed')
   )
-  const packageHasUsableDates = (pkg: MorrowPackage) => pkg.dates.some((date) => !date.toLowerCase().includes('ergänzen'))
   const renderPackageLane = (
     title: string,
     description: string,
@@ -7349,12 +7411,12 @@ function AdminPage({
     )
   }
   const renderPackages = () => {
-    const liveReadyPackages = adminPackages.filter((pkg) => (
-      pkg.status === 'published'
-      && packageHasUsableDates(pkg)
-      && ownerProperties.some((property) => property.id === pkg.propertyId)
-    ))
+    const liveReadyPackages = adminPackages.filter(packageIsLiveReady)
     const packagesWithOpenExperience = adminPackages.filter((pkg) => packageOpenExperienceItems(pkg).length > 0)
+    const packagesWithObjectFitOpen = adminPackages.filter((pkg) => {
+      const fit = packageObjectFit(pkg)
+      return !fit.linkedProperty || fit.missingWorlds.length > 0 || fit.linkedProperty.attributes.length < 2
+    })
     const draftPackages = adminPackages.filter((pkg) => pkg.status !== 'published' || !packageHasUsableDates(pkg))
 
     return (
@@ -7379,6 +7441,18 @@ function AdminPage({
               () => {
                 setPackageAudienceFilter('all')
                 setPackageStatusFilter('published')
+                setPackageReadinessFilter('ready')
+              },
+            )}
+            {renderPackageLane(
+              'Objekt-Fit prüfen',
+              'Auszeiten, deren Unterkunft noch keine passende Erlebniswelt oder Attribute trägt.',
+              packagesWithObjectFitOpen,
+              'Alle Auszeiten passen zu ihren Objektprofilen.',
+              () => {
+                setPackageAudienceFilter('all')
+                setPackageStatusFilter('all')
+                setPackageReadinessFilter('objectFit')
               },
             )}
             {renderPackageLane(
@@ -7389,6 +7463,7 @@ function AdminPage({
               () => {
                 setPackageAudienceFilter('all')
                 setPackageStatusFilter('all')
+                setPackageReadinessFilter('open')
               },
             )}
             {renderPackageLane(
@@ -7399,6 +7474,7 @@ function AdminPage({
               () => {
                 setPackageAudienceFilter('all')
                 setPackageStatusFilter('draft')
+                setPackageReadinessFilter('all')
               },
             )}
           </section>
@@ -7422,6 +7498,14 @@ function AdminPage({
                 <option value="published">Live</option>
                 <option value="draft">Entwurf</option>
                 <option value="paused">Pausiert</option>
+              </select>
+            </label>
+            <label>Arbeitsstand
+              <select value={packageReadinessFilter} onChange={(event) => setPackageReadinessFilter(event.target.value as PackageReadinessFilter)}>
+                <option value="all">Alle</option>
+                <option value="ready">Live-prüfbar</option>
+                <option value="objectFit">Objekt-Fit prüfen</option>
+                <option value="open">Offene Punkte</option>
               </select>
             </label>
           </div>

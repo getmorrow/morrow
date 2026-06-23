@@ -4475,7 +4475,7 @@ textarea {
 
 .admin-task-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
 }
 
@@ -9739,6 +9739,14 @@ textarea {
   background: rgba(255, 253, 248, 0.62);
 }
 
+.admin-package-card.is-open {
+  border-color: rgba(120, 95, 42, 0.14);
+}
+
+.admin-package-card.is-ready {
+  border-color: rgba(70, 92, 75, 0.14);
+}
+
 .admin-package-card-header,
 .admin-package-card-footer,
 .admin-experience-card-header {
@@ -10060,7 +10068,7 @@ textarea {
 
 .admin-package-readiness {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
