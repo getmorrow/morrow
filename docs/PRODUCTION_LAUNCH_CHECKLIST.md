@@ -67,6 +67,7 @@ Vor dem ersten zahlenden Gast muessen die MVP-kritischen Punkte aus `docs/MORROW
 - Gaestebereich zeigt Anreise, Schluessel und Unterkunftsregeln aus Admin-Daten.
 - Support-/Problem-Ticket-Flow landet im Admin.
 - Statusbasierte E-Mails mindestens fuer Anfrage, Reservierung/Bestaetigung und Vor-Anreise.
+- Feedback-Mail nach abgeschlossenem Aufenthalt laeuft ueber serverseitigen Supabase-Cron.
 - AGB, Buchungsbedingungen, Stornobedingungen und Zahlungsbedingungen final verlinkt.
 - WhatsApp-/Marketing-Einwilligung rechtlich geprueft.
 - Conversion-Tracking fuer Anfragefluss getestet.

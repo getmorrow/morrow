@@ -47,7 +47,6 @@ import {
   fetchStoredPackages,
   fetchGuestStayByAccess,
   sendLeadNotification,
-  sendDuePostStayFeedbackEmails,
   updateStoredLead,
   upsertStoredAdminTask,
   upsertStoredAgency,
@@ -4298,7 +4297,6 @@ function AdminPage({
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null)
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null)
-  const feedbackEmailRunRef = useRef(false)
   const [leadScope, setLeadScope] = useState<LeadScopeFilter>('active')
   const [leadTypeFilter, setLeadTypeFilter] = useState<LeadTypeFilter>('all')
   const [leadStatusFilter, setLeadStatusFilter] = useState<LeadStatus | 'all'>('all')
@@ -4581,16 +4579,6 @@ function AdminPage({
     }
   }, [adminPackages, authMode, leads])
   const leadIdsForEmailEvents = useMemo(() => leads.map((lead) => lead.id).sort().join('|'), [leads])
-  useEffect(() => {
-    if (feedbackEmailRunRef.current || authMode !== 'supabase') return
-    const guestLeads = leads.filter((lead): lead is GuestLead => lead.type === 'guest')
-    if (guestLeads.length === 0) return
-
-    feedbackEmailRunRef.current = true
-    void sendDuePostStayFeedbackEmails(guestLeads, window.location.origin, 1).catch((error) => {
-      console.warn('Morrow post-stay feedback email check failed.', error)
-    })
-  }, [authMode, leads])
   useEffect(() => {
     if (authMode !== 'supabase') {
       setEmailEvents([])

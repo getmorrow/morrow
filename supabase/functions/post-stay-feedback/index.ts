@@ -6,12 +6,28 @@ type GuestLeadPayload = {
   status: string
   name: string
   email: string
+  phone?: string
   packageName?: string
   packageSlug?: string
   selectedDate?: string
   createdAt?: string
   updatedAt?: string
   isTest?: boolean
+  bookingId?: string
+  customerId?: string
+}
+
+type StoredLeadRow = {
+  id: string
+  type: string
+  status: string
+  name: string | null
+  email: string | null
+  phone: string | null
+  package_slug: string | null
+  payload: Record<string, unknown> | null
+  created_at: string
+  updated_at: string
 }
 
 const corsHeaders = {
@@ -24,6 +40,8 @@ const fromEmail = Deno.env.get('MORROW_EMAIL_FROM') ?? 'Morrow <hello@morrow.loc
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 const defaultSiteUrl = Deno.env.get('MORROW_PUBLIC_SITE_URL') ?? 'https://www.getmorrow.de'
+const defaultBatchLimit = Number.parseInt(Deno.env.get('MORROW_FEEDBACK_BATCH_LIMIT') ?? '50', 10)
+const automationSecret = Deno.env.get('MORROW_AUTOMATION_SECRET') ?? ''
 
 const supabase = supabaseUrl && serviceRoleKey
   ? createClient(supabaseUrl, serviceRoleKey)
@@ -125,6 +143,25 @@ async function logEmailEvent(lead: GuestLeadPayload, recipient: string, status: 
   })
 }
 
+async function logCommunicationEvent(lead: GuestLeadPayload, recipient: string, subject: string, body: string, payload: Record<string, unknown>) {
+  if (!supabase || !isUuid(lead.id)) return
+  await supabase.from('communication_events').insert({
+    lead_id: lead.id,
+    booking_id: isUuid(lead.bookingId) ? lead.bookingId : null,
+    customer_id: isUuid(lead.customerId) ? lead.customerId : null,
+    channel: 'email',
+    direction: 'outbound',
+    event_type: 'post_stay_feedback_request',
+    subject,
+    body,
+    recipient,
+    actor: 'Morrow Automation',
+    status: 'sent',
+    provider: 'resend',
+    payload,
+  })
+}
+
 async function alreadySent(leadId: string) {
   if (!supabase || !isUuid(leadId)) return false
   const { data, error } = await supabase
@@ -132,7 +169,7 @@ async function alreadySent(leadId: string) {
     .select('id')
     .eq('lead_id', leadId)
     .eq('event_type', 'post_stay_feedback_request')
-    .in('status', ['sent', 'queued'])
+    .eq('status', 'sent')
     .limit(1)
 
   if (error) throw error
@@ -142,6 +179,7 @@ async function alreadySent(leadId: string) {
 async function sendFeedbackEmail(lead: GuestLeadPayload, baseUrl: string) {
   const url = feedbackUrl(lead, baseUrl)
   const subject = 'Wie war eure Auszeit mit Morrow?'
+  const text = feedbackText(lead, url)
 
   if (!resendApiKey) {
     await logEmailEvent(lead, lead.email, 'skipped', { subject, reason: 'missing_resend_api_key', feedbackUrl: url })
@@ -160,7 +198,7 @@ async function sendFeedbackEmail(lead: GuestLeadPayload, baseUrl: string) {
       from: fromEmail,
       to: lead.email,
       subject,
-      text: feedbackText(lead, url),
+      text,
       html: feedbackHtml(lead, url),
     }),
   })
@@ -173,11 +211,12 @@ async function sendFeedbackEmail(lead: GuestLeadPayload, baseUrl: string) {
   }
 
   await logEmailEvent(lead, lead.email, 'sent', { subject, feedbackUrl: url, result })
+  await logCommunicationEvent(lead, lead.email, subject, text, { subject, feedbackUrl: url, result })
   return 'sent'
 }
 
-const isDue = (lead: GuestLeadPayload, daysAfter: number) => {
-  if (lead.status !== 'Abgeschlossen' || lead.isTest) return false
+const isDue = (lead: GuestLeadPayload, daysAfter: number, includeTest = false) => {
+  if (lead.status !== 'Abgeschlossen' || (!includeTest && lead.isTest)) return false
   const referenceValue = lead.updatedAt ?? lead.createdAt
   if (!referenceValue) return false
   const referenceDate = new Date(referenceValue)
@@ -186,30 +225,95 @@ const isDue = (lead: GuestLeadPayload, daysAfter: number) => {
   return Date.now() >= dueAt
 }
 
+const stringValue = (value: unknown) => (typeof value === 'string' ? value : undefined)
+
+const booleanValue = (value: unknown) => (typeof value === 'boolean' ? value : undefined)
+
+const normalizeStoredLead = (row: StoredLeadRow): GuestLeadPayload | null => {
+  const payload = row.payload ?? {}
+  const name = row.name ?? stringValue(payload.name)
+  const email = row.email ?? stringValue(payload.email)
+
+  if (!name || !email) return null
+
+  return {
+    id: row.id,
+    type: 'guest',
+    status: row.status,
+    name,
+    email,
+    phone: row.phone ?? stringValue(payload.phone),
+    packageName: stringValue(payload.packageName),
+    packageSlug: row.package_slug ?? stringValue(payload.packageSlug),
+    selectedDate: stringValue(payload.selectedDate),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    isTest: booleanValue(payload.isTest) ?? false,
+    bookingId: stringValue(payload.bookingId),
+    customerId: stringValue(payload.customerId),
+  }
+}
+
+async function fetchDueLeads(daysAfter: number, limit: number, includeTest = false) {
+  if (!supabase) throw new Error('Missing Supabase service client')
+
+  const cutoff = new Date(Date.now() - daysAfter * 24 * 60 * 60 * 1000).toISOString()
+  const safeLimit = Number.isFinite(limit) && limit > 0 ? Math.min(Math.floor(limit), 200) : defaultBatchLimit
+
+  const { data, error } = await supabase
+    .from('leads')
+    .select('id,type,status,name,email,phone,package_slug,payload,created_at,updated_at')
+    .eq('type', 'guest')
+    .eq('status', 'Abgeschlossen')
+    .is('archived_at', null)
+    .lte('updated_at', cutoff)
+    .order('updated_at', { ascending: true })
+    .limit(safeLimit)
+
+  if (error) throw error
+
+  return ((data ?? []) as StoredLeadRow[])
+    .map(normalizeStoredLead)
+    .filter((lead): lead is GuestLeadPayload => Boolean(lead))
+    .filter((lead) => isDue(lead, daysAfter, includeTest))
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (request.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: corsHeaders })
+  if (automationSecret && request.headers.get('x-morrow-automation-secret') !== automationSecret) {
+    return new Response(JSON.stringify({ error: 'Unauthorized automation request' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
 
   try {
-    const { leads = [], baseUrl = defaultSiteUrl, daysAfter = 1 } = await request.json() as {
+    const body = await request.json().catch(() => ({})) as {
       leads?: GuestLeadPayload[]
       baseUrl?: string
       daysAfter?: number
+      limit?: number
+      includeTest?: boolean
     }
 
-    const dueLeads = leads.filter((lead) => lead?.id && lead?.email && lead?.name && isDue(lead, daysAfter))
-    const results: Array<{ id: string; status: string }> = []
+    const { leads, baseUrl = defaultSiteUrl, daysAfter = 1, limit = defaultBatchLimit, includeTest = false } = body
+    const sourceLeads = Array.isArray(leads) && leads.length > 0
+      ? leads
+      : await fetchDueLeads(daysAfter, limit, includeTest)
+    const dueLeads = sourceLeads.filter((lead) => lead?.id && lead?.email && lead?.name && isDue(lead, daysAfter, includeTest))
+    const results: Array<{ id: string; email: string; status: string }> = []
 
     for (const lead of dueLeads) {
       if (await alreadySent(lead.id)) {
-        results.push({ id: lead.id, status: 'already_sent' })
+        results.push({ id: lead.id, email: lead.email, status: 'already_sent' })
         continue
       }
       const status = await sendFeedbackEmail(lead, baseUrl)
-      results.push({ id: lead.id, status })
+      results.push({ id: lead.id, email: lead.email, status })
     }
 
-    return new Response(JSON.stringify({ ok: true, checked: leads.length, sent: results }), {
+    return new Response(JSON.stringify({ ok: true, checked: sourceLeads.length, due: dueLeads.length, sent: results }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {

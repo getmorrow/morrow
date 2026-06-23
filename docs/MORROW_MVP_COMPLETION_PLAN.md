@@ -65,7 +65,7 @@ Ziel: Nach der Buchung fuehlt sich Morrow wie Komfort an, nicht wie eine lose E-
 | Restaurant-Reservierungen | Reservierungs-/Website-/Speisekartenlinks als externe Links vorhanden | Pro Restaurant kuratierte Reservierungslinks, Bilder, Kueche, Preisgefuehl, Oeffnungszeiten, Bewertung | MVP-kritisch | Teilweise |
 | Support-Chat | Gaeste koennen im Bereich Hilfe eine Nachricht mit Kategorie und Dringlichkeit senden; Admin sieht sie als Supportfall mit Buchungsbezug | Spaeter echte Chat-Ansicht und Antwort aus Admin heraus ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Schadens-/Problem-Tickets | Objektproblem-Flow unterscheidet Morrow-Objektbetreuung von Agentur/Hotel-Partnerfaellen und priorisiert dringende Themen | Spaeter Partnerweiterleitung und Status pro Ticket weiter normalisieren | MVP-kritisch | Erledigt fuer MVP |
-| Feedback nach Aufenthalt | Feedback-Ansicht im Gaestebereich, Speicherung in `guest_feedback`, Kommunikationshistorie und automatische Resend-Edge-Function fuer faellige Feedback-Mails 1 Tag nach Abschluss sind live angelegt; Migration, Function-Deploy, Tabellen-Smoke-Test und Sofort-End-to-End-Test mit abgeschlossener Buchung bestanden | Echten 1-Tag-Zeitversatz mit temporärer Buchung morgen prüfen | MVP-light | Teilweise |
+| Feedback nach Aufenthalt | Feedback-Ansicht im Gaestebereich, Speicherung in `guest_feedback`, Kommunikationshistorie und automatische Resend-Edge-Function fuer faellige Feedback-Mails 1 Tag nach Abschluss sind live; serverseitiger Supabase-Cron `morrow-post-stay-feedback-daily` ruft die Function taeglich um 07:15 UTC mit Vault-Secrets und eigenem Automation-Secret auf; Live-Function, Dedupe, gesicherter Cron-Pfad und `pg_net`-Response wurden am 2026-06-23 getestet | Spaeter Feedback-Auswertung im Admin und Wiederbuchungsimpulse vertiefen | MVP-light | Erledigt fuer MVP |
 | Wiederbuchung | Nicht umgesetzt | Nach Aufenthalt leichte Rueckkehr-CTA, Empfehlung fuer naechste Auszeit | MVP-light | Offen |
 
 ## Block 3: Communication
@@ -74,7 +74,7 @@ Ziel: Kommunikation ist nachvollziehbar, persoenlich und nicht verteilt ueber pr
 
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
-| E-Mail-Automation | Resend/Supabase Edge Function getestet, Lead-Mails funktionieren | Statusbasierte Mails: Anfrage, Reservierung, Zahlung/Bestaetigung, Vor Anreise, Nach Aufenthalt | MVP-kritisch | Teilweise |
+| E-Mail-Automation | Resend/Supabase Edge Function getestet, Lead-Mails funktionieren; Feedback-Mail nach Aufenthalt laeuft serverseitig ueber Supabase-Cron | Statusbasierte Mails: Reservierung, Zahlung/Bestaetigung und Vor Anreise | MVP-kritisch | Teilweise |
 | Kommunikationshistorie | `communication_events` vorhanden, Lead-Drawer hat Historie | E-Mail aus Anfrage/Buchung heraus senden, manuelle Notizen, Supporteintraege konsistent verbinden | MVP-kritisch | Teilweise |
 | WhatsApp-Opt-in | Formularabfrage/Opt-in vorhanden | Zustimmung sauber speichern, Texte/Einwilligung rechtlich pruefen, manuelle WhatsApp-Nutzung dokumentieren | MVP-kritisch | Teilweise |
 | WhatsApp-Templates | Nicht umgesetzt | V2 oder MVP-light: vorbereitete Textbausteine, noch manuell versenden | MVP-light | Offen |
@@ -204,7 +204,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 - [x] Supportnachricht aus Gaestebereich landet als Admin-Thema.
 - [x] Feedback nach Aufenthalt kann in Supabase gespeichert werden.
 - [x] Feedback erzeugt live Kommunikationshistorie aus einem echten Gaestebereich-Test.
-- [ ] Feedback-Mail wird 1 Tag nach Abschluss automatisch versendet.
+- [x] Feedback-Mail wird 1 Tag nach Abschluss automatisch versendet.
 - [ ] Status-E-Mails fuer Reservierung/Bestaetigung/Vor Anreise getestet.
 - [ ] AGB/Buchungsbedingungen/Storno/Zahlung final verlinkt.
 - [ ] Datenschutz/WhatsApp/Tracking rechtlich geprueft.
@@ -213,16 +213,15 @@ Diese Punkte bleiben bewusst nachgelagert:
 
 ## Naechster Konkreter Schritt
 
-Weiter mit Sprint 2, Punkt 4 finalisieren:
+Weiter mit Sprint 3, Punkt 1:
 
-`Feedback nach Aufenthalt ergaenzen`
+`Statusbasierte E-Mails definieren und umsetzen`
 
 Definition of Done:
 
-- Supabase-Migration `202606090001_guest_feedback.sql` ist live ausgefuehrt.
-- Edge Function `post-stay-feedback` ist deployed.
-- Nach abgeschlossenem Aufenthalt kann Feedback gesammelt werden.
-- Feedback ist mit Kunde/Buchung verbunden.
-- Admin sieht Bewertung, Freitext und moeglichen Wiederbuchungsimpuls in der Kommunikationshistorie.
-- Gast bekommt eine ruhige Abschluss- oder Danke-Ansicht.
-- Automatische Feedback-Mail wird 1 Tag nach Abschluss nur einmal gesendet.
+- Reservierung/Option sendet eine ruhige Mail mit Frist, naechstem Schritt und Ansprechpartner.
+- Zahlung/Bestaetigung sendet Buchungsbestaetigung und Gaestebereich-Link.
+- Vor Anreise sendet Check-in, Schluessel, Unterkunftsregeln und wichtigste Links.
+- Jede Status-Mail wird in `email_events` und `communication_events` protokolliert.
+- Jede Status-Mail wird dedupliziert und kann nicht versehentlich mehrfach rausgehen.
+- Admin sieht pro Anfrage/Buchung, welche automatische Mail gesendet wurde.
