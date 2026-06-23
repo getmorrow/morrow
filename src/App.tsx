@@ -1590,6 +1590,22 @@ const experienceWorldLabel = (value: ExperienceWorldKey) => (
   experienceWorldOptions.find((option) => option.value === value)?.label ?? value
 )
 
+const expectedExperienceWorldsForPackage = (packageItem: Pick<MorrowPackage, 'audience' | 'slug' | 'name'>): ExperienceWorldKey[] => {
+  const normalized = `${packageItem.slug} ${packageItem.name}`.toLowerCase()
+  const worlds: ExperienceWorldKey[] = []
+
+  if (packageItem.audience === 'families' || normalized.includes('family')) worlds.push('family_escape')
+  if (packageItem.audience === 'couples' || normalized.includes('couple') || normalized.includes('paar')) worlds.push('couple_reset')
+  if (normalized.includes('wellness')) worlds.push('wellness_escape')
+  if (normalized.includes('hund')) worlds.push('dog_holiday')
+  if (normalized.includes('kamin')) worlds.push('fireplace_season')
+  if (normalized.includes('workation')) worlds.push('workation')
+  if (normalized.includes('last')) worlds.push('last_minute')
+  if (normalized.includes('nebensaison')) worlds.push('offseason_nordsee')
+
+  return Array.from(new Set(worlds))
+}
+
 const packageStatusLabel = (status: MorrowPackage['status']) => {
   const labels: Record<MorrowPackage['status'], string> = {
     draft: 'Entwurf',
@@ -10929,6 +10945,14 @@ function PackageDetailDrawer({
   }
   const issues = packageIssues()
   const selectedProperty = properties.find((property) => property.id === draft.propertyId)
+  const expectedWorlds = expectedExperienceWorldsForPackage({ audience: draft.audience, slug: draft.slug, name: draft.name })
+  const matchingWorlds = selectedProperty
+    ? expectedWorlds.filter((world) => selectedProperty.experienceWorlds.includes(world))
+    : []
+  const missingWorlds = selectedProperty
+    ? expectedWorlds.filter((world) => !selectedProperty.experienceWorlds.includes(world))
+    : expectedWorlds
+  const selectedPropertyAttributes = selectedProperty?.attributes ?? []
 
   return (
     <aside className="admin-drawer-shell" aria-label="Auszeit bearbeiten">
@@ -11037,10 +11061,42 @@ function PackageDetailDrawer({
               </select>
             </label>
             {selectedProperty && (
-              <div className="admin-drawer-note admin-drawer-form-wide">
-                <span>Objekt verbunden</span>
-                <p>{selectedProperty.name} · {selectedProperty.location}. Änderungen hier pflegen die Auszeit-Kopie, das Objektprofil bleibt separat steuerbar.</p>
-              </div>
+              <section className="admin-property-fit-panel admin-drawer-form-wide" aria-label="Objekt-Fit für diese Auszeit">
+                <header>
+                  <div>
+                    <span>Objekt-Fit</span>
+                    <h4>{selectedProperty.name} · {selectedProperty.location}</h4>
+                    <p>Änderungen hier pflegen die Auszeit-Kopie. Attribute und Erlebniswelten kommen aus dem Objektprofil.</p>
+                  </div>
+                  <strong className={missingWorlds.length === 0 && expectedWorlds.length > 0 ? 'is-ready' : 'is-open'}>
+                    {missingWorlds.length === 0 && expectedWorlds.length > 0 ? 'Passend' : 'Prüfen'}
+                  </strong>
+                </header>
+                <div className="admin-property-fit-grid">
+                  <article>
+                    <span>Erwartete Welten</span>
+                    <p>{expectedWorlds.length > 0 ? expectedWorlds.map(experienceWorldLabel).join(', ') : 'Aus Zielgruppe ableiten oder im Namen schärfen'}</p>
+                  </article>
+                  <article>
+                    <span>Treffer</span>
+                    <p>{matchingWorlds.length > 0 ? matchingWorlds.map(experienceWorldLabel).join(', ') : 'Noch keine direkte Überschneidung'}</p>
+                  </article>
+                  <article>
+                    <span>Objektwelten</span>
+                    <p>{selectedProperty.experienceWorlds.length > 0 ? selectedProperty.experienceWorlds.map(experienceWorldLabel).join(', ') : 'Im Objektprofil ergänzen'}</p>
+                  </article>
+                  <article>
+                    <span>Attribute</span>
+                    <p>{selectedPropertyAttributes.length > 0 ? selectedPropertyAttributes.map(propertyAttributeLabel).join(', ') : 'Im Objektprofil ergänzen'}</p>
+                  </article>
+                </div>
+                {missingWorlds.length > 0 && (
+                  <p className="admin-property-fit-warning">
+                    Fehlende Welt im Objektprofil: {missingWorlds.map(experienceWorldLabel).join(', ')}.
+                    Entweder Objektprofil ergänzen oder prüfen, ob diese Auszeit wirklich zum Objekt passt.
+                  </p>
+                )}
+              </section>
             )}
             <label>Unterkunft
               <input value={draft.stayName} onChange={(event) => updateDraft('stayName', event.target.value)} />
