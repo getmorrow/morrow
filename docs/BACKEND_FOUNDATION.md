@@ -234,6 +234,18 @@ Bewusste Grenze:
 Naechster Schritt:
 - Erlebnisbausteine spaeter direkt aus `experience_blocks` laden und bearbeiten, damit Auszeiten, Anbieter und Bausteine komplett relational arbeiten.
 
+## Admin Audit Log V1 - 2026-06-23
+
+Umgesetzt im Code:
+- Migration `202606230003_admin_audit_logs.sql` ergänzt.
+- Neue Tabelle `admin_audit_logs` protokolliert Admin-Aktionen mit Actor, Aktion, Entität, Label, Payload und Zeitstempel.
+- RLS erlaubt Lesen und Schreiben nur für freigegebene Morrow-Admins über `is_morrow_admin()`.
+- Admin-Speicheraktionen schreiben Audit-Einträge für Leads, Buchungen, Auszeiten, Objektprofile, Erlebnisanbieter, lokale Orte, Aufgaben und Agenturen.
+
+Bewusste Grenze:
+- Audit-Log ist zunächst Backend-Grundlage. Eine eigene Admin-Timeline/Activity-Ansicht folgt später.
+- Die Migration muss im verknüpften Supabase-Projekt ausgeführt werden, bevor Live-Audit-Einträge gespeichert werden.
+
 ## Owner Properties / Agencies Sync V1 - 2026-06-05
 
 Umgesetzt im Code:

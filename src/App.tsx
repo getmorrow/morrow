@@ -22,6 +22,7 @@ import { articles, navItems, packages } from './data'
 import type { Audience, ExperienceRole, LeadStatus, MorrowPackage, PackageStatus, Stay } from './data'
 import {
   type AdminProfile,
+  createAdminAuditLog,
   createStoredCommunicationEvent,
   createStoredGuestFeedback,
   createStoredSupportMessage,
@@ -2054,17 +2055,49 @@ function App() {
 
   const syncAdminLeadUpdate = (lead: StoredLead) => {
     if (!adminProfile || adminDemoBypass || localQaBypass) return
-    void updateStoredLead(lead).catch((error) => {
-      console.warn('Morrow backend lead update failed. Local state was updated.', error)
-    })
+    const leadPackageSlug = lead.type === 'guest' ? lead.packageSlug : undefined
+    void updateStoredLead(lead)
+      .then((result) => {
+        if (result.ok) {
+          void createAdminAuditLog({
+            actorEmail: adminProfile.email,
+            action: 'upsert',
+            entityType: 'lead',
+            entityId: lead.id,
+            entityLabel: lead.name,
+            payload: { status: lead.status, type: lead.type, packageSlug: leadPackageSlug },
+          }).catch((error) => {
+            console.warn('Morrow backend lead audit log failed. Lead update was still saved.', error)
+          })
+        }
+      })
+      .catch((error) => {
+        console.warn('Morrow backend lead update failed. Local state was updated.', error)
+      })
     if (shouldSyncBookingFromLead(lead)) {
       const packageItem = packages.find((pkg) => pkg.slug === lead.packageSlug || pkg.name === lead.packageName) ?? null
       void upsertStoredCustomer(customerPayloadFromLead(lead)).catch((error) => {
         console.warn('Morrow backend customer sync failed. Lead state was updated.', error)
       })
-      void upsertStoredBooking(bookingPayloadFromLead(lead, packageItem)).catch((error) => {
-        console.warn('Morrow backend booking sync failed. Lead state was updated.', error)
-      })
+      const bookingPayload = bookingPayloadFromLead(lead, packageItem)
+      void upsertStoredBooking(bookingPayload)
+        .then((result) => {
+          if (result.ok) {
+            void createAdminAuditLog({
+              actorEmail: adminProfile.email,
+              action: 'upsert',
+              entityType: 'booking',
+              entityId: bookingPayload.id,
+              entityLabel: lead.name,
+              payload: { status: bookingPayload.status, paymentStatus: bookingPayload.paymentStatus, packageSlug: lead.packageSlug },
+            }).catch((error) => {
+              console.warn('Morrow backend booking audit log failed. Booking update was still saved.', error)
+            })
+          }
+        })
+        .catch((error) => {
+          console.warn('Morrow backend booking sync failed. Lead state was updated.', error)
+        })
     }
   }
 
@@ -2181,11 +2214,27 @@ function App() {
     if (changedLead) syncAdminLeadUpdate(changedLead)
   }
   const deleteLead = (id: string) => {
+    const lead = leads.find((item) => item.id === id)
     saveLeads(leads.filter((lead) => lead.id !== id))
     if (!adminProfile || adminDemoBypass || localQaBypass) return
-    void deleteStoredLead(id).catch((error) => {
-      console.warn('Morrow backend lead delete failed. Local state was updated.', error)
-    })
+    void deleteStoredLead(id)
+      .then((result) => {
+        if (result.ok) {
+          void createAdminAuditLog({
+            actorEmail: adminProfile.email,
+            action: 'delete',
+            entityType: 'lead',
+            entityId: id,
+            entityLabel: lead?.name,
+            payload: { status: lead?.status, type: lead?.type },
+          }).catch((error) => {
+            console.warn('Morrow backend lead delete audit log failed. Lead delete was still saved.', error)
+          })
+        }
+      })
+      .catch((error) => {
+        console.warn('Morrow backend lead delete failed. Local state was updated.', error)
+      })
   }
 
   if (isAdmin) {
@@ -4826,15 +4875,38 @@ function AdminPage({
     return 'Erlebnisanbieteranfrage'
   }
   const leadReferenceLabel = (lead: StoredLead) => `${leadTypeLabel(lead)} · ${leadLabel(lead)}`
+  const logAdminAudit = (
+    action: string,
+    entityType: string,
+    entityId: string,
+    entityLabel?: string,
+    payload: Record<string, unknown> = {},
+  ) => {
+    if (authMode !== 'supabase') return
+    void createAdminAuditLog({
+      actorEmail: adminEmail,
+      action,
+      entityType,
+      entityId,
+      entityLabel,
+      payload,
+    }).catch((error) => {
+      console.warn('Morrow backend audit log failed. Admin action was still saved.', error)
+    })
+  }
   const saveAdminPackages = (nextPackages: MorrowPackage[]) => {
     setAdminPackages(nextPackages)
     localStorage.setItem(adminPackageStorageKey, JSON.stringify(nextPackages))
   }
   const syncAdminPackage = (packageItem: MorrowPackage) => {
     if (authMode !== 'supabase') return
-    void upsertStoredPackage(packageItem).catch((error) => {
-      console.warn('Morrow backend package save failed. Local state was updated.', error)
-    })
+    void upsertStoredPackage(packageItem)
+      .then((result) => {
+        if (result.ok) logAdminAudit('upsert', 'package', packageItem.id, packageItem.name, { status: packageItem.status, slug: packageItem.slug })
+      })
+      .catch((error) => {
+        console.warn('Morrow backend package save failed. Local state was updated.', error)
+      })
   }
   const updatePackage = (id: string, updater: (pkg: MorrowPackage) => MorrowPackage) => {
     let changedPackage: MorrowPackage | null = null
@@ -4905,9 +4977,13 @@ function AdminPage({
     if (!confirmed) return
     saveAdminPackages(adminPackages.filter((item) => item.id !== id))
     if (authMode === 'supabase') {
-      void deleteStoredPackage(id).catch((error) => {
-        console.warn('Morrow backend package delete failed. Local state was updated.', error)
-      })
+      void deleteStoredPackage(id)
+        .then((result) => {
+          if (result.ok) logAdminAudit('delete', 'package', id, pkg.name, { slug: pkg.slug })
+        })
+        .catch((error) => {
+          console.warn('Morrow backend package delete failed. Local state was updated.', error)
+        })
     }
     setSelectedPackageId(null)
   }
@@ -4917,9 +4993,13 @@ function AdminPage({
   }
   const syncExperienceProvider = (provider: ExperienceProviderProfile) => {
     if (authMode !== 'supabase') return
-    void upsertStoredExperienceProvider(provider).catch((error) => {
-      console.warn('Morrow backend experience provider save failed. Local state was updated.', error)
-    })
+    void upsertStoredExperienceProvider(provider)
+      .then((result) => {
+        if (result.ok) logAdminAudit('upsert', 'experience_provider', provider.id, provider.name, { status: provider.status, category: provider.category })
+      })
+      .catch((error) => {
+        console.warn('Morrow backend experience provider save failed. Local state was updated.', error)
+      })
   }
   const updateExperienceProvider = (id: string, updates: Partial<ExperienceProviderProfile>) => {
     let changedProvider: ExperienceProviderProfile | null = null
@@ -4966,9 +5046,13 @@ function AdminPage({
     if (!confirmed) return
     saveExperienceProviders(experienceProviders.filter((item) => item.id !== id))
     if (authMode === 'supabase') {
-      void deleteStoredExperienceProvider(id).catch((error) => {
-        console.warn('Morrow backend experience provider delete failed. Local state was updated.', error)
-      })
+      void deleteStoredExperienceProvider(id)
+        .then((result) => {
+          if (result.ok) logAdminAudit('delete', 'experience_provider', id, provider.name, { status: provider.status })
+        })
+        .catch((error) => {
+          console.warn('Morrow backend experience provider delete failed. Local state was updated.', error)
+        })
     }
     setSelectedExperienceProviderId(null)
   }
@@ -5014,9 +5098,13 @@ function AdminPage({
   }
   const syncAdminLocalPlace = (place: LocalPlaceCandidate) => {
     if (authMode !== 'supabase') return
-    void upsertStoredLocalPlace(place).catch((error) => {
-      console.warn('Morrow backend local place save failed. Local state was updated.', error)
-    })
+    void upsertStoredLocalPlace(place)
+      .then((result) => {
+        if (result.ok) logAdminAudit('upsert', 'local_place', place.id, place.title, { status: place.status, category: place.category })
+      })
+      .catch((error) => {
+        console.warn('Morrow backend local place save failed. Local state was updated.', error)
+      })
   }
   const updateLocalPlaceCandidate = (id: string, updates: Partial<LocalPlaceCandidate>) => {
     let changedPlace: LocalPlaceCandidate | null = null
@@ -5106,9 +5194,13 @@ function AdminPage({
     if (!confirmed) return
     saveAdminLocalPlaces(adminLocalPlaces.filter((item) => item.id !== id))
     if (authMode === 'supabase') {
-      void deleteStoredLocalPlace(id).catch((error) => {
-        console.warn('Morrow backend local place delete failed. Local state was updated.', error)
-      })
+      void deleteStoredLocalPlace(id)
+        .then((result) => {
+          if (result.ok) logAdminAudit('delete', 'local_place', id, place.title, { category: place.category, status: place.status })
+        })
+        .catch((error) => {
+          console.warn('Morrow backend local place delete failed. Local state was updated.', error)
+        })
     }
     setSelectedLocalPlaceCandidateId(null)
   }
@@ -5118,9 +5210,13 @@ function AdminPage({
   }
   const syncOwnerProperty = (property: OwnerPropertyProfile) => {
     if (authMode !== 'supabase') return
-    void upsertStoredOwnerProperty(property).catch((error) => {
-      console.warn('Morrow backend owner property save failed. Local state was updated.', error)
-    })
+    void upsertStoredOwnerProperty(property)
+      .then((result) => {
+        if (result.ok) logAdminAudit('upsert', 'property', property.id, property.name, { status: property.status, location: property.location })
+      })
+      .catch((error) => {
+        console.warn('Morrow backend owner property save failed. Local state was updated.', error)
+      })
   }
   const updateOwnerProperty = (id: string, updates: Partial<OwnerPropertyProfile>) => {
     let changedProperty: OwnerPropertyProfile | null = null
@@ -5256,9 +5352,13 @@ function AdminPage({
     saveAgencies(nextAgencies)
     nextAgencies.forEach(syncAgency)
     if (authMode === 'supabase') {
-      void deleteStoredOwnerProperty(id).catch((error) => {
-        console.warn('Morrow backend owner property delete failed. Local state was updated.', error)
-      })
+      void deleteStoredOwnerProperty(id)
+        .then((result) => {
+          if (result.ok) logAdminAudit('delete', 'property', id, property.name, { status: property.status, location: property.location })
+        })
+        .catch((error) => {
+          console.warn('Morrow backend owner property delete failed. Local state was updated.', error)
+        })
     }
     setSelectedOwnerPropertyId(null)
   }
@@ -5334,9 +5434,13 @@ function AdminPage({
   }
   const syncAdminTask = (task: AdminTask) => {
     if (authMode !== 'supabase') return
-    void upsertStoredAdminTask(task).catch((error) => {
-      console.warn('Morrow backend task save failed. Local state was updated.', error)
-    })
+    void upsertStoredAdminTask(task)
+      .then((result) => {
+        if (result.ok) logAdminAudit('upsert', 'admin_task', task.id, task.title, { status: task.status, referenceType: task.referenceType, referenceId: task.referenceId })
+      })
+      .catch((error) => {
+        console.warn('Morrow backend task save failed. Local state was updated.', error)
+      })
   }
   const createAdminTask = (task: Omit<AdminTask, 'id' | 'status' | 'createdAt'>) => {
     const nextTask: AdminTask = {
@@ -5373,11 +5477,16 @@ function AdminPage({
     if (changedTask) syncAdminTask(changedTask)
   }
   const deleteAdminTask = (id: string) => {
+    const task = adminTasks.find((item) => item.id === id)
     saveAdminTasks(adminTasks.filter((task) => task.id !== id))
     if (authMode !== 'supabase') return
-    void deleteStoredAdminTask(id).catch((error) => {
-      console.warn('Morrow backend task delete failed. Local state was updated.', error)
-    })
+    void deleteStoredAdminTask(id)
+      .then((result) => {
+        if (result.ok) logAdminAudit('delete', 'admin_task', id, task?.title ?? 'Aufgabe', { referenceType: task?.referenceType, referenceId: task?.referenceId })
+      })
+      .catch((error) => {
+        console.warn('Morrow backend task delete failed. Local state was updated.', error)
+      })
   }
   const toggleAdminTaskStatus = (id: string) => {
     const currentTask = adminTasks.find((task) => task.id === id)
@@ -5395,9 +5504,13 @@ function AdminPage({
   }
   const syncAgency = (agency: AgencyProfile) => {
     if (authMode !== 'supabase') return
-    void upsertStoredAgency(agency).catch((error) => {
-      console.warn('Morrow backend agency save failed. Local state was updated.', error)
-    })
+    void upsertStoredAgency(agency)
+      .then((result) => {
+        if (result.ok) logAdminAudit('upsert', 'agency', agency.id, agency.name, { status: agency.status, location: agency.location })
+      })
+      .catch((error) => {
+        console.warn('Morrow backend agency save failed. Local state was updated.', error)
+      })
   }
   const updateAgency = (id: string, updates: Partial<AgencyProfile>) => {
     let changedAgency: AgencyProfile | null = null
@@ -5445,9 +5558,13 @@ function AdminPage({
     if (!confirmed) return
     saveAgencies(agencies.filter((item) => item.id !== id))
     if (authMode === 'supabase') {
-      void deleteStoredAgency(id).catch((error) => {
-        console.warn('Morrow backend agency delete failed. Local state was updated.', error)
-      })
+      void deleteStoredAgency(id)
+        .then((result) => {
+          if (result.ok) logAdminAudit('delete', 'agency', id, agency.name, { status: agency.status, location: agency.location })
+        })
+        .catch((error) => {
+          console.warn('Morrow backend agency delete failed. Local state was updated.', error)
+        })
     }
     setSelectedAgencyId(null)
   }

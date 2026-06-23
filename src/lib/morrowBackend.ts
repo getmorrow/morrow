@@ -33,10 +33,38 @@ const localPlacesTable = 'local_places'
 const experienceProvidersTable = 'experience_providers'
 const experienceBlocksTable = 'experience_blocks'
 const agenciesTable = 'agencies'
+const adminAuditLogsTable = 'admin_audit_logs'
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 const isUuid = (value: unknown): value is string => typeof value === 'string' && uuidPattern.test(value)
+
+export type AdminAuditLogInput = {
+  actorEmail?: string | null
+  action: string
+  entityType: string
+  entityId: string
+  entityLabel?: string | null
+  payload?: Record<string, unknown>
+}
+
+export async function createAdminAuditLog(event: AdminAuditLogInput): Promise<BackendSaveResult> {
+  if (!isSupabaseConfigured || !supabase) return { ok: true, source: 'local' }
+
+  const { error } = await supabase
+    .from(adminAuditLogsTable)
+    .insert({
+      actor_email: event.actorEmail ?? null,
+      action: event.action,
+      entity_type: event.entityType,
+      entity_id: event.entityId,
+      entity_label: event.entityLabel ?? null,
+      payload: event.payload ?? {},
+    })
+
+  if (error) return { ok: false, source: 'supabase', error: error.message }
+  return { ok: true, source: 'supabase' }
+}
 
 export async function fetchStoredLeads<T extends StoredEntity>() {
   if (!isSupabaseConfigured || !supabase) return null
