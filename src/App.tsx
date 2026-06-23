@@ -2222,6 +2222,7 @@ function HomePage() {
             </div>
             <div className="hero-actions">
               <a className="button primary" href="#auszeiten">Auszeit planen <ArrowRightLine size={18} /></a>
+              <a className="button secondary" href="/eigentuemer">Für Eigentümer</a>
             </div>
           </div>
           <div className="hero-media">
@@ -2252,12 +2253,12 @@ function HomePage() {
         <section className="section intro-grid brand-panel" id="ort">
           <div>
             <p className="kicker">Warum Morrow</p>
-            <h2>Urlaub soll nicht mit Sucharbeit beginnen.</h2>
+            <h2>Eine Plattform, die Auszeiten vorbereitet statt nur Unterkünfte zu listen.</h2>
           </div>
           <div className="principles">
-            <Principle icon={<Home3Line />} title="Eine Unterkunft, die wirklich passt" text="Ihr seht ein konkretes Objekt, das zu eurer Auszeit passt. Nicht irgendeine Ferienwohnung aus einer langen Liste." />
-            <Principle icon={<SparklesLine />} title="Ein Erlebnis, das dazugehört" text="Ein lokaler Moment ist bereits mitgedacht, damit aus ein paar Tagen am Meer mehr wird als eine Übernachtung." />
-            <Principle icon={<HeartHandLine />} title="Ein Aufenthalt, der begleitet wird" text="Nach eurer Anfrage prüfen wir Termin, Unterkunft und Erlebnis und melden uns persönlich mit dem nächsten Schritt." />
+            <Principle icon={<Home3Line />} title="Kuratiert für Gäste" text="Ihr seht konkrete Auszeiten mit Unterkunft, Erlebnis und Orientierung. Nicht hunderte Optionen, die ihr selbst zusammensuchen müsst." />
+            <Principle icon={<SparklesLine />} title="Aktiv für Eigentümer" text="Gute Objekte werden nicht nur gelistet, sondern nach Zielgruppe, Reiseanlass und freier Zeit stärker positioniert." />
+            <Principle icon={<HeartHandLine />} title="Geführt durch Morrow" text="Anfragen, Aufenthalte und lokale Empfehlungen werden persönlich geprüft, damit aus Interesse ein stimmiger Aufenthalt wird." />
           </div>
         </section>
 
@@ -2308,22 +2309,46 @@ function HomePage() {
           </div>
         </section>
 
+        <section className="section platform-paths">
+          <div className="section-heading">
+            <p className="kicker">Zwei Wege</p>
+            <h2>Eine Marke für vorbereitete Aufenthalte und bessere Vermietung.</h2>
+            <p>Morrow verbindet Gäste, die eine besondere Auszeit suchen, mit Eigentümern, deren Objekt aktiver und passender vermarktet werden soll.</p>
+          </div>
+          <div className="platform-path-grid">
+            <article>
+              <span><SparklesLine size={22} /></span>
+              <p className="kicker">Für Gäste</p>
+              <h3>Auszeiten, die Orientierung geben.</h3>
+              <p>Unterkunft, Erlebnis und lokale Hinweise sind bereits zusammen gedacht, damit ihr mit weniger Planung und mehr Vorfreude ankommt.</p>
+              <a className="text-link" href="/#auszeiten">Auszeiten ansehen <ArrowRightLine size={16} /></a>
+            </article>
+            <article>
+              <span><Home3Line size={22} /></span>
+              <p className="kicker">Für Eigentümer</p>
+              <h3>Ein aktiverer Weg für Ferienimmobilien.</h3>
+              <p>Wir prüfen, welche Zielgruppen, Reiseanlässe und freien Zeiträume zu deinem Objekt passen und wie daraus mehr Ertrag entstehen kann.</p>
+              <a className="text-link" href="/eigentuemer">Ertragspotenzial prüfen <ArrowRightLine size={16} /></a>
+            </article>
+          </div>
+        </section>
+
         <section className="section owner-teaser">
           <div>
             <p className="kicker">Für Eigentümer</p>
-            <h2>Ein gutes Objekt verdient mehr als eine Liste.</h2>
+            <h2>Klassische Agenturen listen. Morrow vermarktet aktiver.</h2>
           </div>
           <div>
             <p>
-              Morrow positioniert passende Unterkünfte als Teil kuratierter Aufenthalte:
-              mit klarer Zielgruppe, besserer Geschichte und persönlicherem Gästeerlebnis.
+              Wir prüfen, welche Reiseanlässe zu deinem Objekt passen, wie freie Zeiträume besser sichtbar werden
+              und welcher nächste Schritt zu mehr Nettoertrag führen kann.
             </p>
             <div className="owner-points" aria-label="Vorteile für Eigentümer">
-              <span>Premium-Positionierung</span>
-              <span>Passende Zielgruppen</span>
-              <span>Persönliche Betreuung</span>
+              <span>Aktive Vermarktung</span>
+              <span>Ertragspotenzial</span>
+              <span>Transparenz</span>
             </div>
-            <a className="button primary" href="/eigentuemer">Immobilie vorstellen</a>
+            <a className="button primary" href="/eigentuemer">Ertragspotenzial prüfen</a>
           </div>
         </section>
 
@@ -3717,53 +3742,53 @@ function OwnerPage({ onLead }: { onLead: (lead: StoredLead) => void }) {
         <section className="owner-hero">
           <div className="owner-hero-copy">
             <p className="kicker">Für Eigentümer</p>
-            <h1>Deine Ferienimmobilie als Teil einer kuratierten Auszeit.</h1>
+            <h1>Mehr Ertrag aus deiner Ferienimmobilie. Ohne Blackbox.</h1>
             <p>
-              Morrow sucht ausgewählte Objekte in Orten am Wasser und verbindet sie mit lokaler
-              Orientierung, passenden Erlebnissen und einer hochwertigeren Geschichte für Gäste.
+              Morrow verbindet kuratierte Auszeiten für Gäste mit einem moderneren Vermietungsmodell:
+              aktive Vermarktung, klare Objektpositionierung und transparente nächste Schritte statt passivem Listing.
             </p>
-            <a className="button primary" href="#immobilie-vorstellen">Immobilie vorstellen <ArrowRightLine size={18} /></a>
+            <a className="button primary" href="#ertragspotenzial">Ertragspotenzial prüfen <ArrowRightLine size={18} /></a>
           </div>
           <div className="owner-hero-media">
             <img src="/brand/generated/morrow-spo-interior.png" alt="Ruhige Ferienunterkunft mit Blick in die Dünen" />
             <div className="owner-hero-note">
-              <span>Nicht nur gelistet</span>
-              <p>Als Unterkunft sichtbar werden, die zu einer bestimmten Auszeit und Zielgruppe passt.</p>
+              <span>Nicht nur verwaltet</span>
+              <p>Wir prüfen, welche Reiseanlässe, Zielgruppen und freien Zeiträume dein Objekt stärker machen können.</p>
             </div>
           </div>
         </section>
 
         <section className="section b2b-strip">
-          <Principle icon={<Home3Line />} title="Passende Positionierung" text="Dein Objekt wird als Teil eines stimmigen Aufenthalts erzählt, nicht als austauschbare Unterkunft." />
-          <Principle icon={<GroupLine />} title="Klare Zielgruppen" text="Wir denken Familien und Paare getrennt, damit Angebot, Tonalität und Aufenthalt zusammenpassen." />
-          <Principle icon={<HeartHandLine />} title="Persönlicher Einstieg" text="Am Anfang steht ein Gespräch und eine kuratierte Prüfung, keine anonyme Selbstregistrierung." />
+          <Principle icon={<Home3Line />} title="Aktive Vermarktung statt Listing" text="Dein Objekt soll nicht nur online stehen, sondern für passende Zielgruppen und Reiseanlässe sichtbar werden." />
+          <Principle icon={<SparklesLine />} title="Erlebniswelten aus Objektstärken" text="Sauna, Hund, Kamin, Familie oder Nebensaison werden zu konkreten Aufenthaltsanlässen statt zu losen Ausstattungsmerkmalen." />
+          <Principle icon={<HeartHandLine />} title="Transparenz für den nächsten Schritt" text="Wir starten mit einer Einschätzung, wo Potenzial liegt und welches Modell für dein Objekt sinnvoll sein kann." />
         </section>
 
         <section className="owner-value-section">
           <div>
             <p className="kicker">Warum Morrow</p>
-            <h2>Mehr Wert entsteht nicht nur über den Preis.</h2>
+            <h2>Der Unterschied liegt im Betrieb, nicht nur in der Provision.</h2>
             <p>
               Viele gute Ferienimmobilien werden online wie austauschbare Unterkünfte gezeigt.
-              Morrow denkt zuerst darüber nach, für wen ein Objekt wirklich passt und welcher Aufenthalt daraus entstehen kann.
+              Morrow denkt zuerst darüber nach, wie ein Objekt mehr Nachfrage, bessere Auslastung und klarere Gästeerwartungen erzeugen kann.
             </p>
           </div>
           <div className="owner-value-grid">
             <article>
-              <h3>Hochwertiger erzählt</h3>
-              <p>Das Objekt wird nicht nur nach Betten und Quadratmetern beschrieben, sondern als Teil eines Aufenthalts mit Gefühl, Zielgruppe und Ort.</p>
+              <h3>Mehr Nettoertrag als Ziel</h3>
+              <p>Es geht nicht nur um Belegung, sondern darum, freie Zeiträume, Preise und Nachfrage so zu steuern, dass am Ende mehr übrig bleibt.</p>
             </article>
             <article>
-              <h3>Passendere Gäste</h3>
-              <p>Familien und Paare kommen mit klarerer Erwartung, weil Unterkunft, Erlebnis und Rahmen bereits zusammen gedacht sind.</p>
+              <h3>Lücken sichtbar machen</h3>
+              <p>Freie Zeiträume sollen nicht einfach stehen bleiben, sondern als Anlass für passende Angebote und Kampagnen genutzt werden.</p>
             </article>
             <article>
-              <h3>Weniger operative Reibung</h3>
-              <p>Anfragen werden persönlich geprüft. Ziel ist nicht Masse, sondern Aufenthalte, die zum Objekt und zur Verfügbarkeit passen.</p>
+              <h3>Ein Objekt, mehrere Anlässe</h3>
+              <p>Aus demselben Objekt können Familienurlaub, Paar-Auszeit, Hundeurlaub oder Nebensaison-Angebote entstehen, wenn die Attribute stimmen.</p>
             </article>
             <article>
-              <h3>Mehr Perspektive</h3>
-              <p>Aus einem einzelnen Objekt kann langfristig ein professionell geführtes Hospitality-Asset mit besserer Positionierung werden.</p>
+              <h3>Transparenter arbeiten</h3>
+              <p>Langfristig sollen Eigentümer sehen, was passiert: Buchungen, Maßnahmen, Lücken, Objektstatus und Auszahlung nachvollziehbar an einem Ort.</p>
             </article>
           </div>
         </section>
@@ -3771,27 +3796,27 @@ function OwnerPage({ onLead }: { onLead: (lead: StoredLead) => void }) {
         <section className="owner-model-section">
           <div>
             <p className="kicker">Morrow Modell</p>
-            <h2>Aus einem Objekt wird ein klarer Aufenthalt.</h2>
+            <h2>Aus Objektstärken werden buchbare Anlässe.</h2>
             <p>
-              Wir arbeiten bewusst kuratiert: Wir prüfen, ob Objekt, Zielgruppe, Ort,
-              Verfügbarkeit und Auszeitidee zusammenpassen. Erst dann wird daraus ein Angebot.
+              Wir arbeiten nicht mit generischen Inseraten als Endpunkt. Wir erfassen, was ein Objekt besonders macht,
+              verbinden es mit passenden Erlebniswelten und bauen daraus konkrete Aufenthaltsangebote.
             </p>
           </div>
           <div className="owner-model-steps">
             <article>
               <span>01</span>
-              <h3>Objekt verstehen</h3>
-              <p>Lage, Ausstattung, Atmosphäre und Zielgruppe werden nicht getrennt betrachtet.</p>
+              <h3>Attribute erfassen</h3>
+              <p>Lage, Ausstattung, Atmosphäre, Regeln, Verfügbarkeiten und Zielgruppen werden strukturiert betrachtet.</p>
             </article>
             <article>
               <span>02</span>
-              <h3>Auszeit kuratieren</h3>
-              <p>Unterkunft, Erlebnis und Empfehlungen werden zu einem stimmigen Aufenthalt verbunden.</p>
+              <h3>Erlebniswelten ableiten</h3>
+              <p>Aus den Stärken entstehen passende Anlässe wie Familienzeit, Paar-Auszeit, Hundeurlaub oder Nebensaison am Meer.</p>
             </article>
             <article>
               <span>03</span>
-              <h3>Anfrage persönlich prüfen</h3>
-              <p>Gäste fragen an, Morrow prüft die Passung und begleitet den nächsten Schritt.</p>
+              <h3>Aktiv vermarkten</h3>
+              <p>Auszeit, Zielgruppe und freie Zeiträume werden so erzählt, dass Gäste schneller verstehen, warum genau dieses Objekt passt.</p>
             </article>
           </div>
         </section>
@@ -3800,15 +3825,15 @@ function OwnerPage({ onLead }: { onLead: (lead: StoredLead) => void }) {
           <img src="/brand/generated/morrow-spo-family-arrival.png" alt="Gäste kommen an einer vorbereiteten Unterkunft in Sankt Peter-Ording an" />
           <div>
             <p className="kicker">Zusammenarbeit</p>
-            <h2>Der Einstieg bleibt bewusst persönlich.</h2>
+            <h2>Starte mit einer Ertragspotenzial-Analyse.</h2>
             <p>
-              Zum Start braucht es keine komplexe Integration. Entscheidend ist, ob Objekt,
-              freie Termine und Auszeitidee zusammenpassen. Daraus kann ein erster kuratierter Aufenthalt entstehen.
+              Zum Start braucht es keine komplexe Integration. Wir schauen auf Objekt, aktuelle Vermietung,
+              freie Zeiträume und mögliche Reiseanlässe. Danach ist klarer, welcher nächste Schritt sinnvoll ist.
             </p>
             <div className="owner-start-points" aria-label="Einstieg in die Zusammenarbeit">
-              <span><strong>01</strong> Objekt vorstellen</span>
-              <span><strong>02</strong> Passung gemeinsam prüfen</span>
-              <span><strong>03</strong> Erste Auszeit testen</span>
+              <span><strong>01</strong> Objekt und aktuelle Vermietung ansehen</span>
+              <span><strong>02</strong> Reiseanlässe und Lücken erkennen</span>
+              <span><strong>03</strong> Pilot-Auszeit oder Vermietungsmodell prüfen</span>
             </div>
           </div>
         </section>
@@ -3837,16 +3862,24 @@ function OwnerPage({ onLead }: { onLead: (lead: StoredLead) => void }) {
               <p>Zu Beginn arbeiten wir mit festen verfügbaren Zeiträumen. Preise, Verfügbarkeit und Auszeitrahmen werden vor Veröffentlichung persönlich abgestimmt.</p>
             </details>
             <details>
+              <summary>Was ist die Ertragspotenzial-Analyse?</summary>
+              <p>Eine erste Einschätzung, welche Zielgruppen, Reiseanlässe, freien Zeiträume und Objektstärken für Morrow relevant sein könnten. Daraus entsteht noch keine Verpflichtung.</p>
+            </details>
+            <details>
+              <summary>Ersetzt Morrow sofort meine bestehende Agentur?</summary>
+              <p>Nicht zwingend. In Phase 1 kann ein Einstieg auch über ausgewählte freie Zeiträume oder ein Pilotangebot erfolgen. Langfristig kann Morrow direkter operativer Partner werden, wenn es für beide Seiten sinnvoll ist.</p>
+            </details>
+            <details>
               <summary>Was passiert nach dem Formular?</summary>
-              <p>Wir prüfen die Angaben, schauen auf Lage, Objektart und mögliche Passung und melden uns persönlich mit einer ersten Einschätzung.</p>
+              <p>Wir prüfen die Angaben, schauen auf Lage, Objektart, aktuelle Vermietung und mögliche Potenziale und melden uns persönlich mit einer ersten Einschätzung.</p>
             </details>
           </div>
         </section>
 
-        <section className="request-section single" id="immobilie-vorstellen">
+        <section className="request-section single" id="ertragspotenzial">
           <div>
-            <h2>Immobilie vorstellen</h2>
-            <p>Erzähle uns kurz, welches Objekt du hast und wie es aktuell vermietet wird. Wir melden uns persönlich, wenn es grundsätzlich zu Morrow passen könnte.</p>
+            <h2>Ertragspotenzial prüfen</h2>
+            <p>Erzähle uns kurz, welches Objekt du hast und wie es aktuell vermietet wird. Die erste Einschätzung ist kostenlos und zeigt, ob dein Objekt grundsätzlich zu Morrow passen könnte.</p>
           </div>
           <form className="form-panel" onSubmit={submit}>
             <label>Name<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
@@ -3863,7 +3896,7 @@ function OwnerPage({ onLead }: { onLead: (lead: StoredLead) => void }) {
             </select></label>
             <label>Link zum Objekt optional<input value={form.listingUrl} onChange={(e) => setForm({ ...form, listingUrl: e.target.value })} /></label>
             <label className="wide">Nachricht optional<textarea rows={5} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} /></label>
-            <button className="button primary wide" type="submit">Immobilie vorstellen <ArrowRightLine size={18} /></button>
+            <button className="button primary wide" type="submit">Ertragspotenzial anfordern <ArrowRightLine size={18} /></button>
             {sent && <p className="success-message">Danke. Wir melden uns persönlich per E-Mail.</p>}
           </form>
         </section>
