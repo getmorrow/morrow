@@ -390,6 +390,28 @@ type RawSpoEventCandidate = {
 type ExperienceProviderStatus = 'lead' | 'in-review' | 'partner' | 'paused'
 type OwnerPropertyStatusFilter = OwnerPropertyStatus | 'all'
 type AgencyStatusFilter = AgencyStatus | 'all'
+type PropertyAttributeKey =
+  | 'sea_near'
+  | 'quiet_location'
+  | 'family_friendly'
+  | 'couple_retreat'
+  | 'dog_allowed'
+  | 'sauna'
+  | 'fireplace'
+  | 'garden'
+  | 'terrace'
+  | 'workation'
+  | 'premium_interior'
+  | 'bad_weather_ready'
+type ExperienceWorldKey =
+  | 'family_escape'
+  | 'couple_reset'
+  | 'dog_holiday'
+  | 'wellness_escape'
+  | 'fireplace_season'
+  | 'workation'
+  | 'last_minute'
+  | 'offseason_nordsee'
 type ExperienceProviderProfile = {
   id: string
   name: string
@@ -425,6 +447,8 @@ type OwnerPropertyProfile = {
   keySafeCode: string
   checkInInstructions: string
   amenities: string[]
+  attributes: PropertyAttributeKey[]
+  experienceWorlds: ExperienceWorldKey[]
   houseRules: string[]
   media: string[]
   imageRightsConfirmed: boolean
@@ -1183,6 +1207,8 @@ const initialOwnerProperties: OwnerPropertyProfile[] = [
     keySafeCode: '',
     checkInInstructions: 'Schlüsselabholung bei der Partneragentur. Genaue Adresse und Hinweise nach Buchungsbestätigung bereitstellen.',
     amenities: ['2 Schlafzimmer', 'Wohnbereich', 'Küche', 'Terrasse', 'familienfreundlich', 'WLAN'],
+    attributes: ['sea_near', 'family_friendly', 'terrace', 'bad_weather_ready'],
+    experienceWorlds: ['family_escape', 'offseason_nordsee'],
     houseRules: ['Nichtraucherobjekt', 'Ruhezeiten beachten', 'Haustiere nur nach Bestätigung'],
     media: ['/images/family-stay-living-room.png', '/images/family-stay-bedroom.png', '/images/family-stay-dining.png'],
     imageRightsConfirmed: true,
@@ -1212,6 +1238,8 @@ const initialOwnerProperties: OwnerPropertyProfile[] = [
     keySafeCode: 'nach Buchung eintragen',
     checkInInstructions: 'Schlüsselsafe am Objekt. Code erst nach verbindlicher Buchung im Gästebereich freigeben.',
     amenities: ['1 Schlafzimmer', 'ruhiger Wohnbereich', 'Küche', 'WLAN', 'Dinner-nahe Lage'],
+    attributes: ['sea_near', 'quiet_location', 'couple_retreat', 'premium_interior', 'dog_allowed'],
+    experienceWorlds: ['couple_reset', 'wellness_escape', 'offseason_nordsee'],
     houseRules: ['Nichtraucherobjekt', 'Rücksicht auf Nachbarn', 'Hund nur nach Bestätigung'],
     media: ['/images/couple-stay-bedroom.png', '/images/couple-stay-living.png', '/images/couple-stay-detail.png'],
     imageRightsConfirmed: true,
@@ -1283,6 +1311,8 @@ const normalizeOwnerProperty = (property: Partial<OwnerPropertyProfile>, fallbac
   keySafeCode: property.keySafeCode || fallback?.keySafeCode || '',
   checkInInstructions: property.checkInInstructions || fallback?.checkInInstructions || '',
   amenities: Array.isArray(property.amenities) ? property.amenities : fallback?.amenities ?? [],
+  attributes: Array.isArray(property.attributes) ? property.attributes : fallback?.attributes ?? [],
+  experienceWorlds: Array.isArray(property.experienceWorlds) ? property.experienceWorlds : fallback?.experienceWorlds ?? [],
   houseRules: Array.isArray(property.houseRules) ? property.houseRules : fallback?.houseRules ?? [],
   media: Array.isArray(property.media) ? property.media : fallback?.media ?? [],
   imageRightsConfirmed: typeof property.imageRightsConfirmed === 'boolean' ? property.imageRightsConfirmed : fallback?.imageRightsConfirmed ?? false,
@@ -1525,6 +1555,40 @@ const leadLossReasons: LeadLossReason[] = [
   'Nicht qualifiziert',
   'Sonstiges',
 ]
+
+const propertyAttributeOptions: Array<{ value: PropertyAttributeKey; label: string }> = [
+  { value: 'sea_near', label: 'Nähe zum Wasser' },
+  { value: 'quiet_location', label: 'Ruhige Lage' },
+  { value: 'family_friendly', label: 'Familienfreundlich' },
+  { value: 'couple_retreat', label: 'Rückzug für Paare' },
+  { value: 'dog_allowed', label: 'Hund möglich' },
+  { value: 'sauna', label: 'Sauna' },
+  { value: 'fireplace', label: 'Kamin' },
+  { value: 'garden', label: 'Garten' },
+  { value: 'terrace', label: 'Terrasse' },
+  { value: 'workation', label: 'Workation-tauglich' },
+  { value: 'premium_interior', label: 'Hochwertige Einrichtung' },
+  { value: 'bad_weather_ready', label: 'Stark bei Schietwetter' },
+]
+
+const experienceWorldOptions: Array<{ value: ExperienceWorldKey; label: string }> = [
+  { value: 'family_escape', label: 'Family Escape' },
+  { value: 'couple_reset', label: 'Couple Reset' },
+  { value: 'dog_holiday', label: 'Hundeurlaub' },
+  { value: 'wellness_escape', label: 'Wellness-Auszeit' },
+  { value: 'fireplace_season', label: 'Kaminzeit' },
+  { value: 'workation', label: 'Workation am Meer' },
+  { value: 'last_minute', label: 'Last Minute' },
+  { value: 'offseason_nordsee', label: 'Nebensaison Nordsee' },
+]
+
+const propertyAttributeLabel = (value: PropertyAttributeKey) => (
+  propertyAttributeOptions.find((option) => option.value === value)?.label ?? value
+)
+
+const experienceWorldLabel = (value: ExperienceWorldKey) => (
+  experienceWorldOptions.find((option) => option.value === value)?.label ?? value
+)
 
 const packageStatusLabel = (status: MorrowPackage['status']) => {
   const labels: Record<MorrowPackage['status'], string> = {
@@ -5070,6 +5134,8 @@ function AdminPage({
       keySafeCode: '',
       checkInInstructions: '',
       amenities: [],
+      attributes: [],
+      experienceWorlds: [],
       houseRules: [],
       media: [],
       imageRightsConfirmed: false,
@@ -5122,6 +5188,8 @@ function AdminPage({
       keySafeCode: '',
       checkInInstructions: '',
       amenities: [],
+      attributes: [],
+      experienceWorlds: [],
       houseRules: [],
       media: [],
       imageRightsConfirmed: false,
@@ -6032,6 +6100,8 @@ function AdminPage({
     if (property.checkInType === 'unknown' || !property.checkInInstructions.trim()) issues.push('Check-in')
     if (!property.earliestArrival.trim() || !property.latestArrival.trim() || !property.checkOutTime.trim()) issues.push('Anreise/Abreise')
     if (property.amenities.length < 3) issues.push('Ausstattung')
+    if (property.attributes.length < 2) issues.push('Objektattribute')
+    if (property.experienceWorlds.length === 0) issues.push('Erlebniswelten')
     if (property.houseRules.length < 2) issues.push('Regeln')
     if (property.media.length === 0 || !property.imageRightsConfirmed) issues.push('Medien/Rechte')
     if (!property.propertySupportName.trim()) issues.push('Support')
@@ -7560,6 +7630,7 @@ function AdminPage({
             const mediaReady = property.imageRightsConfirmed && property.media.length > 0
             const opsReady = property.checkInType !== 'unknown' && property.earliestArrival && property.latestArrival && property.checkOutTime
             const rulesReady = property.amenities.length >= 3 && property.houseRules.length >= 2
+            const worldsReady = property.experienceWorlds.length > 0
 
             return (
             <article key={property.id} className="admin-provider-card">
@@ -7587,6 +7658,9 @@ function AdminPage({
                 <span className={rulesReady ? 'is-ready' : 'is-open'}>
                   <strong>Regeln</strong>{rulesReady ? 'gepflegt' : 'offen'}
                 </span>
+                <span className={worldsReady ? 'is-ready' : 'is-open'}>
+                  <strong>Erlebniswelten</strong>{worldsReady ? property.experienceWorlds.length : 'offen'}
+                </span>
               </div>
               <div className="admin-experience-card-facts">
                 <span><strong>Eigentümer</strong>{property.ownerName}</span>
@@ -7594,6 +7668,8 @@ function AdminPage({
                 <span><strong>Anreise</strong>{opsReady ? `${property.earliestArrival}-${property.latestArrival}` : 'offen'} · Check-out {property.checkOutTime || 'offen'}</span>
                 <span><strong>Vermietung</strong>{currentRentalLabel(property.currentRental)}</span>
                 <span><strong>Support</strong>{property.propertySupportName || propertySupportLabel(property.propertySupportType)}</span>
+                <span><strong>Attribute</strong>{property.attributes.length > 0 ? property.attributes.map(propertyAttributeLabel).slice(0, 3).join(', ') : 'offen'}</span>
+                <span><strong>Welten</strong>{property.experienceWorlds.length > 0 ? property.experienceWorlds.map(experienceWorldLabel).slice(0, 3).join(', ') : 'offen'}</span>
               </div>
               <div className="admin-contact-links">
                 <a href={`mailto:${property.email}`}>{property.email}</a>
@@ -11609,6 +11685,8 @@ function OwnerPropertyDrawer({
     keySafeCode: '',
     checkInInstructions: '',
     amenities: '',
+    attributes: [] as PropertyAttributeKey[],
+    experienceWorlds: [] as ExperienceWorldKey[],
     houseRules: '',
     media: '',
     imageRightsConfirmed: 'no',
@@ -11640,6 +11718,8 @@ function OwnerPropertyDrawer({
       keySafeCode: property.keySafeCode,
       checkInInstructions: property.checkInInstructions,
       amenities: property.amenities.join('\n'),
+      attributes: property.attributes,
+      experienceWorlds: property.experienceWorlds,
       houseRules: property.houseRules.join('\n'),
       media: property.media.join('\n'),
       imageRightsConfirmed: property.imageRightsConfirmed ? 'yes' : 'no',
@@ -11654,6 +11734,22 @@ function OwnerPropertyDrawer({
   const updateDraft = (key: keyof typeof draft, value: string) => {
     setDraft((current) => ({ ...current, [key]: value }))
   }
+  const toggleAttribute = (value: PropertyAttributeKey) => {
+    setDraft((current) => ({
+      ...current,
+      attributes: current.attributes.includes(value)
+        ? current.attributes.filter((item) => item !== value)
+        : [...current.attributes, value],
+    }))
+  }
+  const toggleExperienceWorld = (value: ExperienceWorldKey) => {
+    setDraft((current) => ({
+      ...current,
+      experienceWorlds: current.experienceWorlds.includes(value)
+        ? current.experienceWorlds.filter((item) => item !== value)
+        : [...current.experienceWorlds, value],
+    }))
+  }
   const splitLines = (value: string) => value.split('\n').map((line) => line.trim()).filter(Boolean)
   const propertyIssues = () => {
     const issues: string[] = []
@@ -11667,6 +11763,8 @@ function OwnerPropertyDrawer({
     if (!draft.earliestArrival.trim() || !draft.latestArrival.trim() || !draft.checkOutTime.trim()) issues.push('Anreise/Abreise unvollständig')
     if (!draft.checkInInstructions.trim()) issues.push('Check-in-Hinweise fehlen')
     if (splitLines(draft.amenities).length < 3) issues.push('Ausstattung ergänzen')
+    if (draft.attributes.length < 2) issues.push('Objektattribute ergänzen')
+    if (draft.experienceWorlds.length === 0) issues.push('Erlebniswelten ergänzen')
     if (splitLines(draft.houseRules).length < 2) issues.push('Regeln ergänzen')
     if (splitLines(draft.media).length === 0) issues.push('Medien fehlen')
     if (draft.imageRightsConfirmed !== 'yes') issues.push('Bildrechte offen')
@@ -11698,6 +11796,8 @@ function OwnerPropertyDrawer({
       keySafeCode: draft.keySafeCode,
       checkInInstructions: draft.checkInInstructions,
       amenities: splitLines(draft.amenities),
+      attributes: draft.attributes,
+      experienceWorlds: draft.experienceWorlds,
       houseRules: splitLines(draft.houseRules),
       media: splitLines(draft.media),
       imageRightsConfirmed: draft.imageRightsConfirmed === 'yes',
@@ -11826,6 +11926,38 @@ function OwnerPropertyDrawer({
             <label>Ausstattung
               <textarea rows={5} value={draft.amenities} onChange={(event) => updateDraft('amenities', event.target.value)} placeholder="Ein Merkmal pro Zeile" />
             </label>
+            <section className="admin-drawer-section admin-drawer-form-wide" aria-label="Objektattribute">
+              <h3>Objektattribute</h3>
+              <p className="admin-panel-intro">Diese Merkmale steuern später Erlebniswelten, Landingpages, Lückenmarketing und Eigentümer-Insights.</p>
+              <div className="admin-checkbox-list">
+                {propertyAttributeOptions.map((option) => (
+                  <label key={option.value}>
+                    <input
+                      type="checkbox"
+                      checked={draft.attributes.includes(option.value)}
+                      onChange={() => toggleAttribute(option.value)}
+                    />
+                    {option.label}
+                  </label>
+                ))}
+              </div>
+            </section>
+            <section className="admin-drawer-section admin-drawer-form-wide" aria-label="Erlebniswelten">
+              <h3>Erlebniswelten</h3>
+              <p className="admin-panel-intro">Hier wird sichtbar, welche buchbaren Reiseanlässe aus dem Objekt entstehen können.</p>
+              <div className="admin-checkbox-list">
+                {experienceWorldOptions.map((option) => (
+                  <label key={option.value}>
+                    <input
+                      type="checkbox"
+                      checked={draft.experienceWorlds.includes(option.value)}
+                      onChange={() => toggleExperienceWorld(option.value)}
+                    />
+                    {option.label}
+                  </label>
+                ))}
+              </div>
+            </section>
             <label>Hausregeln
               <textarea rows={5} value={draft.houseRules} onChange={(event) => updateDraft('houseRules', event.target.value)} placeholder="Eine Regel pro Zeile" />
             </label>

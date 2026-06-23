@@ -9243,10 +9243,27 @@ textarea {
   align-items: flex-start;
 }
 
+.admin-drawer-form .admin-checkbox-list label {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  color: rgba(24, 23, 21, 0.64);
+  font-size: 13px;
+  line-height: 1.25;
+}
+
 .admin-checkbox-list input {
   width: auto;
   margin-top: 2px;
   accent-color: var(--offblack);
+}
+
+.admin-drawer-form .admin-checkbox-list input[type='checkbox'] {
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  margin: 0;
 }
 
 .admin-checkbox-list strong {
