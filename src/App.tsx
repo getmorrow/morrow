@@ -369,6 +369,7 @@ type ExperienceProviderStatusFilter = ExperienceProviderStatus | 'all'
 type LocalPlaceCategoryFilter = LocalPlaceCategory | 'all'
 type LocalPlaceStatusFilter = LocalPlaceStatus | 'all'
 type LocalPlaceReviewFilter = 'all' | 'needsReview' | 'ready' | 'visible' | 'rejected'
+type OwnerPropertyReadinessFilter = 'all' | 'ready' | 'missingProfile' | 'unlinked'
 type RawSpoImportKind = 'event' | 'bookable-experience'
 type RawSpoEventCandidate = {
   id: string
@@ -4477,6 +4478,7 @@ function AdminPage({
   const [eventImportTown, setEventImportTown] = useState('all')
   const [eventImportDateFrom, setEventImportDateFrom] = useState('')
   const [eventImportDateTo, setEventImportDateTo] = useState('')
+  const [ownerReadinessFilter, setOwnerReadinessFilter] = useState<OwnerPropertyReadinessFilter>('all')
   const [experienceProviders, setExperienceProviders] = useState<ExperienceProviderProfile[]>(() => {
     try {
       const saved = localStorage.getItem(adminExperienceProviderStorageKey)
@@ -5952,9 +5954,37 @@ function AdminPage({
       }
       return packageOpenItems(pkg).length > 0
     })
-  const filteredOwnerProperties = ownerProperties.filter((property) => (
-    ownerStatusFilter === 'all' || property.status === ownerStatusFilter
-  ))
+  const linkedPackageCount = (propertyId: string) => adminPackages.filter((pkg) => pkg.propertyId === propertyId).length
+  const propertyOpenItems = (property: OwnerPropertyProfile) => {
+    const issues: string[] = []
+
+    if (!property.name.trim() || !property.location.trim() || !property.propertyType.trim()) issues.push('Basisdaten')
+    if (!property.description.trim()) issues.push('Beschreibung')
+    if (property.checkInType === 'unknown' || !property.checkInInstructions.trim()) issues.push('Check-in')
+    if (!property.earliestArrival.trim() || !property.latestArrival.trim() || !property.checkOutTime.trim()) issues.push('Anreise')
+    if (property.amenities.length < 3) issues.push('Ausstattung')
+    if (property.attributes.length < 2) issues.push('Objektattribute')
+    if (property.experienceWorlds.length === 0) issues.push('Erlebniswelten')
+    if (property.houseRules.length < 2) issues.push('Regeln')
+    if (property.media.length === 0 || !property.imageRightsConfirmed) issues.push('Medien/Rechte')
+    if (!property.propertySupportName.trim()) issues.push('Support')
+    if (linkedPackageCount(property.id) === 0) issues.push('Auszeit-Verknüpfung')
+
+    return Array.from(new Set(issues))
+  }
+  const propertyIsReadyForPackages = (property: OwnerPropertyProfile) => (
+    property.status === 'active'
+    && linkedPackageCount(property.id) > 0
+    && propertyOpenItems(property).length === 0
+  )
+  const filteredOwnerProperties = ownerProperties
+    .filter((property) => ownerStatusFilter === 'all' || property.status === ownerStatusFilter)
+    .filter((property) => {
+      if (ownerReadinessFilter === 'all') return true
+      if (ownerReadinessFilter === 'ready') return propertyIsReadyForPackages(property)
+      if (ownerReadinessFilter === 'unlinked') return linkedPackageCount(property.id) === 0
+      return propertyOpenItems(property).length > 0
+    })
   const filteredAgencies = agencies.filter((agency) => agencyStatusFilter === 'all' || agency.status === agencyStatusFilter)
   const agencyForProperty = (propertyId: string) => agencies.find((agency) => agency.managedPropertyIds.includes(propertyId))
   const formatLeadDate = (value: string) => new Intl.DateTimeFormat('de-DE', {
@@ -6113,7 +6143,6 @@ function AdminPage({
     || !item.guestNotes.trim()
   )).length
   const linkedExperienceCount = (providerId: string) => experienceRows.filter((item) => item.providerProfile?.id === providerId).length
-  const linkedPackageCount = (propertyId: string) => adminPackages.filter((pkg) => pkg.propertyId === propertyId).length
   const ownerLeadHasProfile = (lead: OwnerLead) => ownerProperties.some((property) => (
     property.email.toLowerCase() === lead.email.toLowerCase()
     || (
@@ -6164,19 +6193,9 @@ function AdminPage({
     return Array.from(new Set(issues))
   }
   const propertyMonitoringIssues = (property: OwnerPropertyProfile) => {
-    const issues: string[] = []
-    if (!property.name.trim() || !property.location.trim() || !property.propertyType.trim()) issues.push('Basisdaten')
+    const issues = propertyOpenItems(property)
     if (!property.ownerName.trim() || !property.email.trim()) issues.push('Eigentümerkontakt')
-    if (!property.description.trim()) issues.push('Beschreibung')
-    if (property.checkInType === 'unknown' || !property.checkInInstructions.trim()) issues.push('Check-in')
-    if (!property.earliestArrival.trim() || !property.latestArrival.trim() || !property.checkOutTime.trim()) issues.push('Anreise/Abreise')
-    if (property.amenities.length < 3) issues.push('Ausstattung')
-    if (property.attributes.length < 2) issues.push('Objektattribute')
-    if (property.experienceWorlds.length === 0) issues.push('Erlebniswelten')
-    if (property.houseRules.length < 2) issues.push('Regeln')
-    if (property.media.length === 0 || !property.imageRightsConfirmed) issues.push('Medien/Rechte')
-    if (!property.propertySupportName.trim()) issues.push('Support')
-    return issues
+    return Array.from(new Set(issues))
   }
   const experienceMonitoringIssues = (experience: typeof experienceRows[number]) => {
     const issues: string[] = []
@@ -7668,6 +7687,8 @@ function AdminPage({
     const reviewProperties = ownerProperties.filter((property) => property.status === 'lead' || property.status === 'in-review')
     const activeProperties = ownerProperties.filter((property) => property.status === 'active')
     const linkedProperties = ownerProperties.filter((property) => linkedPackageCount(property.id) > 0)
+    const incompleteProperties = ownerProperties.filter((property) => propertyOpenItems(property).length > 0)
+    const readyProperties = ownerProperties.filter(propertyIsReadyForPackages)
 
     return (
       <section className="admin-leads-layout">
@@ -7675,7 +7696,7 @@ function AdminPage({
           <article><span>{ownerProperties.length}</span><p>Objektprofile</p></article>
           <article><span>{activeProperties.length}</span><p>Aktiv</p></article>
           <article><span>{ownerProperties.reduce((sum, property) => sum + linkedPackageCount(property.id), 0)}</span><p>Verknüpfte Auszeiten</p></article>
-          <article><span>{reviewProperties.length}</span><p>In Prüfung</p></article>
+          <article><span>{readyProperties.length}</span><p>Auszeitbereit</p></article>
         </section>
         <AdminPanel title="Objektarbeit">
           <div className="admin-panel-heading">
@@ -7688,21 +7709,40 @@ function AdminPage({
               'Neue oder noch nicht final freigegebene Objektprofile.',
               reviewProperties,
               'Keine Objektprüfung offen.',
-              () => setOwnerStatusFilter('in-review'),
+              () => {
+                setOwnerStatusFilter('in-review')
+                setOwnerReadinessFilter('all')
+              },
             )}
             {renderOwnerLane(
-              'Aktive Objekte',
-              'Unterkünfte, die grundsätzlich für Auszeiten nutzbar sind.',
-              activeProperties,
-              'Noch kein Objekt ist aktiv.',
-              () => setOwnerStatusFilter('active'),
+              'Profil offen',
+              'Objekte mit fehlenden Daten für Auszeit, Gästebereich oder Betrieb.',
+              incompleteProperties,
+              'Alle Objektprofile sind vollständig gepflegt.',
+              () => {
+                setOwnerStatusFilter('all')
+                setOwnerReadinessFilter('missingProfile')
+              },
             )}
             {renderOwnerLane(
               'Mit Auszeiten',
               'Objekte, die bereits mit konkreten Morrow-Auszeiten verbunden sind.',
               linkedProperties,
               'Noch kein Objekt ist mit einer Auszeit verbunden.',
-              () => setOwnerStatusFilter('all'),
+              () => {
+                setOwnerStatusFilter('all')
+                setOwnerReadinessFilter('all')
+              },
+            )}
+            {renderOwnerLane(
+              'Auszeitbereit',
+              'Aktive Objekte ohne offene Pflichtdaten.',
+              readyProperties,
+              'Noch kein Objekt ist vollständig auszeitbereit.',
+              () => {
+                setOwnerStatusFilter('all')
+                setOwnerReadinessFilter('ready')
+              },
             )}
           </section>
         </AdminPanel>
@@ -7721,19 +7761,28 @@ function AdminPage({
               <option value="paused">Pausiert</option>
             </select>
           </label>
+          <label>Profilreife
+            <select value={ownerReadinessFilter} onChange={(event) => setOwnerReadinessFilter(event.target.value as OwnerPropertyReadinessFilter)}>
+              <option value="all">Alle</option>
+              <option value="ready">Auszeitbereit</option>
+              <option value="missingProfile">Daten offen</option>
+              <option value="unlinked">Ohne Auszeit</option>
+            </select>
+          </label>
         </div>
         <div className="admin-provider-grid">
           {filteredOwnerProperties.length === 0 && <p className="admin-empty-note">Kein Objekt passt zu den aktuellen Filtern.</p>}
           {filteredOwnerProperties.map((property) => {
             const agency = agencyForProperty(property.id)
             const packageCount = linkedPackageCount(property.id)
+            const openItems = propertyOpenItems(property)
             const mediaReady = property.imageRightsConfirmed && property.media.length > 0
             const opsReady = property.checkInType !== 'unknown' && property.earliestArrival && property.latestArrival && property.checkOutTime
             const rulesReady = property.amenities.length >= 3 && property.houseRules.length >= 2
             const worldsReady = property.experienceWorlds.length > 0
 
             return (
-            <article key={property.id} className="admin-provider-card">
+            <article key={property.id} className={`admin-provider-card ${openItems.length > 0 ? 'is-open' : 'is-ready'}`}>
               <header>
                 <div>
                   <span className="admin-package-kicker">{property.propertyType} · {property.location}</span>
@@ -7771,12 +7820,17 @@ function AdminPage({
                 <span><strong>Attribute</strong>{property.attributes.length > 0 ? property.attributes.map(propertyAttributeLabel).slice(0, 3).join(', ') : 'offen'}</span>
                 <span><strong>Welten</strong>{property.experienceWorlds.length > 0 ? property.experienceWorlds.map(experienceWorldLabel).slice(0, 3).join(', ') : 'offen'}</span>
               </div>
+              {openItems.length > 0 && (
+                <div className="admin-review-issues" aria-label={`${property.name} offene Objektdaten`}>
+                  {openItems.slice(0, 7).map((issue) => <span key={issue}>{issue}</span>)}
+                </div>
+              )}
               <div className="admin-contact-links">
                 <a href={`mailto:${property.email}`}>{property.email}</a>
                 <a href={`tel:${property.phone.replace(/\s/g, '')}`}>{property.phone}</a>
               </div>
               <footer className="admin-package-card-footer">
-                <span>{packageCount > 0 ? 'Objekt ist operativ mit einer Auszeit verbunden' : 'Noch keiner Auszeit zugeordnet'}</span>
+                <span>{openItems.length === 0 ? 'Objekt ist auszeitbereit' : `${openItems.length} Punkt${openItems.length === 1 ? '' : 'e'} im Objektprofil offen`}</span>
                 <div className="admin-package-actions">
                   {agency && <button className="admin-row-action" type="button" onClick={() => setSelectedAgencyId(agency.id)}>Agentur öffnen</button>}
                   <button className="admin-row-action" type="button" onClick={() => setSelectedOwnerPropertyId(property.id)}>Bearbeiten</button>
