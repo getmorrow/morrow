@@ -159,15 +159,16 @@ export async function sendLeadNotification<T extends StoredEntity>(lead: T): Pro
   return { ok: true, source: 'supabase' }
 }
 
-export async function sendDuePostStayFeedbackEmails<T extends StoredEntity>(
-  leads: T[],
+export async function sendBookingStatusEmail<T extends StoredEntity>(
+  lead: T,
+  status: string,
+  packageItem: unknown,
   baseUrl: string,
-  daysAfter = 1,
 ): Promise<BackendSaveResult> {
   if (!emailAutomationEnabled || !isSupabaseConfigured || !supabase) return { ok: true, source: 'local' }
 
-  const { error } = await supabase.functions.invoke('post-stay-feedback', {
-    body: { leads, baseUrl, daysAfter },
+  const { error } = await supabase.functions.invoke('booking-status-email', {
+    body: { lead, status, packageItem, baseUrl },
   })
 
   if (error) return { ok: false, source: 'supabase', error: error.message }

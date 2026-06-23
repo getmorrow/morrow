@@ -74,7 +74,7 @@ Ziel: Kommunikation ist nachvollziehbar, persoenlich und nicht verteilt ueber pr
 
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
-| E-Mail-Automation | Resend/Supabase Edge Function getestet, Lead-Mails funktionieren; Feedback-Mail nach Aufenthalt laeuft serverseitig ueber Supabase-Cron | Statusbasierte Mails: Reservierung, Zahlung/Bestaetigung und Vor Anreise | MVP-kritisch | Teilweise |
+| E-Mail-Automation | Resend/Supabase Edge Functions getestet; Lead-Mails funktionieren; Feedback-Mail nach Aufenthalt laeuft serverseitig ueber Supabase-Cron; Statusmails fuer Reservierung, Zahlung/Bestaetigung und Vor Anreise sind als Admin-getriggerte Function live, dedupliziert und mit Kommunikationshistorie getestet | Spaeter weitere Statusmails, manuelle E-Mail-Komposition und bessere Template-Verwaltung | MVP-kritisch | Erledigt fuer MVP |
 | Kommunikationshistorie | `communication_events` vorhanden, Lead-Drawer hat Historie | E-Mail aus Anfrage/Buchung heraus senden, manuelle Notizen, Supporteintraege konsistent verbinden | MVP-kritisch | Teilweise |
 | WhatsApp-Opt-in | Formularabfrage/Opt-in vorhanden | Zustimmung sauber speichern, Texte/Einwilligung rechtlich pruefen, manuelle WhatsApp-Nutzung dokumentieren | MVP-kritisch | Teilweise |
 | WhatsApp-Templates | Nicht umgesetzt | V2 oder MVP-light: vorbereitete Textbausteine, noch manuell versenden | MVP-light | Offen |
@@ -205,7 +205,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 - [x] Feedback nach Aufenthalt kann in Supabase gespeichert werden.
 - [x] Feedback erzeugt live Kommunikationshistorie aus einem echten Gaestebereich-Test.
 - [x] Feedback-Mail wird 1 Tag nach Abschluss automatisch versendet.
-- [ ] Status-E-Mails fuer Reservierung/Bestaetigung/Vor Anreise getestet.
+- [x] Status-E-Mails fuer Reservierung/Bestaetigung/Vor Anreise getestet.
 - [ ] AGB/Buchungsbedingungen/Storno/Zahlung final verlinkt.
 - [ ] Datenschutz/WhatsApp/Tracking rechtlich geprueft.
 - [ ] Conversion-Tracking fuer Anfrage getestet.
@@ -213,15 +213,14 @@ Diese Punkte bleiben bewusst nachgelagert:
 
 ## Naechster Konkreter Schritt
 
-Weiter mit Sprint 3, Punkt 1:
+Weiter mit Sprint 3, Punkt 4:
 
-`Statusbasierte E-Mails definieren und umsetzen`
+`AGB, Buchungs-, Storno- und Zahlungsbedingungen sichtbar einbinden`
 
 Definition of Done:
 
-- Reservierung/Option sendet eine ruhige Mail mit Frist, naechstem Schritt und Ansprechpartner.
-- Zahlung/Bestaetigung sendet Buchungsbestaetigung und Gaestebereich-Link.
-- Vor Anreise sendet Check-in, Schluessel, Unterkunftsregeln und wichtigste Links.
-- Jede Status-Mail wird in `email_events` und `communication_events` protokolliert.
-- Jede Status-Mail wird dedupliziert und kann nicht versehentlich mehrfach rausgehen.
-- Admin sieht pro Anfrage/Buchung, welche automatische Mail gesendet wurde.
+- Rechtstexte sind als eigene Seiten oder klar verlinkte Dokumente vorhanden.
+- Anfrage- und Buchungsflow verweisen auf die relevanten Bedingungen.
+- Zahlungs- und Stornoregeln sind vor verbindlicher Buchung sichtbar.
+- Datenschutz, WhatsApp-Opt-in und spaeteres Tracking sind sauber getrennt.
+- Footer und Formulare enthalten die passenden Links.

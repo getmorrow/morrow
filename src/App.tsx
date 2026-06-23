@@ -46,6 +46,7 @@ import {
   fetchStoredOwnerProperties,
   fetchStoredPackages,
   fetchGuestStayByAccess,
+  sendBookingStatusEmail,
   sendLeadNotification,
   updateStoredLead,
   upsertStoredAdminTask,
@@ -9942,7 +9943,7 @@ function BookingDetailDrawer({
     ? statusTaskTemplates(draft.status).filter((task) => !existingTaskKeys.has(`${task.referenceId}:${task.title.toLowerCase()}`))
     : []
   const save = () => {
-    onUpdateLead(lead.id, {
+    const leadUpdates = {
       status: draft.status,
       selectedDate: draft.selectedDate,
       guests: draft.guests,
@@ -9954,8 +9955,19 @@ function BookingDetailDrawer({
       experienceStatus: draft.experienceStatus,
       internalNote: draft.internalNote,
       message: draft.message,
-    } as Partial<StoredLead>)
+    } as Partial<StoredLead>
+    onUpdateLead(lead.id, leadUpdates)
     if (isForwardStatusChange) createStatusTasks(draft.status)
+    if (isForwardStatusChange && ['Reserviert', 'Bezahlt', 'Vor Anreise'].includes(draft.status)) {
+      void sendBookingStatusEmail(
+        { ...lead, ...leadUpdates },
+        draft.status,
+        packageItem,
+        window.location.origin,
+      ).catch((error) => {
+        console.warn('Morrow booking status email failed.', error)
+      })
+    }
     onClose()
   }
   const createTask = () => {
