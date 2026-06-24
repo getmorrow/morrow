@@ -124,6 +124,20 @@ export async function fetchStoredCommunicationEvents<T>(leadIds: string[] = []) 
   return (data ?? []) as T[]
 }
 
+export async function fetchAdminAuditLogs<T>(limit = 120) {
+  if (!isSupabaseConfigured || !supabase) return null
+
+  const { data, error } = await supabase
+    .from(adminAuditLogsTable)
+    .select('id, actor_email, action, entity_type, entity_id, entity_label, payload, created_at')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  if (error) throw error
+
+  return (data ?? []) as T[]
+}
+
 export async function createStoredCommunicationEvent<T extends StoredEntity>(
   event: T,
 ): Promise<BackendSaveResult> {

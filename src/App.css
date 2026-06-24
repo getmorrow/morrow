@@ -4695,6 +4695,64 @@ textarea {
   line-height: 1.32;
 }
 
+.admin-activity-list {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-activity-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.34fr);
+  gap: 16px;
+  align-items: center;
+  padding: 13px 14px;
+  border: 1px solid rgba(24, 23, 21, 0.07);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.64);
+}
+
+.admin-activity-item.is-delete {
+  border-color: rgba(139, 57, 39, 0.16);
+  background: rgba(139, 57, 39, 0.05);
+}
+
+.admin-activity-item div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.admin-activity-item div:last-child {
+  justify-items: end;
+  text-align: right;
+}
+
+.admin-activity-item span {
+  color: rgba(24, 23, 21, 0.5);
+  font-size: 11px;
+  font-weight: 880;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.admin-activity-item strong {
+  overflow: hidden;
+  color: var(--offblack);
+  font-size: 14px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-activity-item p,
+.admin-activity-item small {
+  margin: 0;
+  color: rgba(24, 23, 21, 0.58);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
 .lead-table,
 .admin-panel {
   display: grid;
@@ -11485,6 +11543,15 @@ textarea {
   .admin-overview-worklist button {
     grid-template-columns: 1fr;
     gap: 4px;
+  }
+
+  .admin-activity-item {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-activity-item div:last-child {
+    justify-items: start;
+    text-align: left;
   }
 
   .admin-package-row {

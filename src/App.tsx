@@ -34,6 +34,7 @@ import {
   deleteStoredOwnerProperty,
   deleteStoredPackage,
   fetchStoredAgencies,
+  fetchAdminAuditLogs,
   fetchStoredAdminTasks,
   fetchStoredApprovedLocalPlaces,
   fetchStoredBookings,
@@ -320,7 +321,7 @@ type ExperienceLead = {
 type StoredLead = GuestLead | OwnerLead | ExperienceLead
 type LeadSource = 'Meta Ads' | 'Google' | 'Ratgeber' | 'Direkt' | 'Empfehlung' | 'Partner' | 'Sonstiges'
 type LeadLossReason = 'Termin passt nicht' | 'Preis' | 'Unterkunft passt nicht' | 'Erlebnis passt nicht' | 'Keine Rückmeldung' | 'Anders gebucht' | 'Nicht qualifiziert' | 'Sonstiges'
-type AdminSection = 'overview' | 'leads' | 'tasks' | 'guestSupport' | 'customers' | 'bookings' | 'packages' | 'experiences' | 'localPlaces' | 'owners' | 'agencies' | 'experienceProviders'
+type AdminSection = 'overview' | 'leads' | 'tasks' | 'guestSupport' | 'customers' | 'bookings' | 'packages' | 'experiences' | 'localPlaces' | 'owners' | 'agencies' | 'experienceProviders' | 'activity'
 type BookingStatus = 'Reserviert' | 'Bezahlt' | 'Vor Anreise' | 'Aktiv' | 'Abgeschlossen' | 'Storniert'
 type GuestAppView = 'home' | 'plan' | 'booking' | 'local' | 'help' | 'feedback' | 'again'
 type GuestSupportCategory = 'general' | 'arrival' | 'property' | 'experience' | 'local'
@@ -531,6 +532,17 @@ type EmailEvent = {
   recipient: string
   status: string
   error_message?: string | null
+  created_at: string
+}
+
+type AdminAuditLog = {
+  id: string
+  actor_email: string | null
+  action: string
+  entity_type: string
+  entity_id: string
+  entity_label: string | null
+  payload: Record<string, unknown> | null
   created_at: string
 }
 
@@ -4460,6 +4472,7 @@ function AdminPage({
   const [activeSection, setActiveSection] = useState<AdminSection>('overview')
   const [emailEvents, setEmailEvents] = useState<EmailEvent[]>([])
   const [communicationEvents, setCommunicationEvents] = useState<CommunicationEvent[]>([])
+  const [adminAuditLogs, setAdminAuditLogs] = useState<AdminAuditLog[]>([])
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null)
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null)
@@ -4802,6 +4815,28 @@ function AdminPage({
       cancelled = true
     }
   }, [authMode, leadIdsForEmailEvents])
+  useEffect(() => {
+    if (authMode !== 'supabase') {
+      setAdminAuditLogs([])
+      return
+    }
+
+    let cancelled = false
+
+    fetchAdminAuditLogs<AdminAuditLog>()
+      .then((logs) => {
+        if (cancelled) return
+        setAdminAuditLogs(logs ?? [])
+      })
+      .catch((error) => {
+        console.warn('Morrow backend audit log sync failed.', error)
+        if (!cancelled) setAdminAuditLogs([])
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [authMode])
   const activeLeads = leads.filter((lead) => !lead.archivedAt)
   const realActiveLeads = activeLeads.filter((lead) => !lead.isTest)
   const archivedLeads = leads.filter((lead) => lead.archivedAt)
@@ -4875,6 +4910,16 @@ function AdminPage({
     return 'Erlebnisanbieteranfrage'
   }
   const leadReferenceLabel = (lead: StoredLead) => `${leadTypeLabel(lead)} · ${leadLabel(lead)}`
+  const refreshAdminAuditLogs = () => {
+    if (authMode !== 'supabase') return
+    void fetchAdminAuditLogs<AdminAuditLog>()
+      .then((remoteLogs) => {
+        if (remoteLogs) setAdminAuditLogs(remoteLogs)
+      })
+      .catch((error) => {
+        console.warn('Morrow backend audit log fetch failed.', error)
+      })
+  }
   const logAdminAudit = (
     action: string,
     entityType: string,
@@ -4890,9 +4935,13 @@ function AdminPage({
       entityId,
       entityLabel,
       payload,
-    }).catch((error) => {
-      console.warn('Morrow backend audit log failed. Admin action was still saved.', error)
     })
+      .then((result) => {
+        if (result.ok) refreshAdminAuditLogs()
+      })
+      .catch((error) => {
+        console.warn('Morrow backend audit log failed. Admin action was still saved.', error)
+      })
   }
   const saveAdminPackages = (nextPackages: MorrowPackage[]) => {
     setAdminPackages(nextPackages)
@@ -6139,6 +6188,55 @@ function AdminPage({
     day: '2-digit',
     month: 'long',
   }).format(new Date(`${value}T12:00:00`))
+  const formatAuditDate = (value: string) => new Intl.DateTimeFormat('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value))
+  const auditActionLabel = (action: string) => {
+    if (action === 'delete') return 'Gelöscht'
+    if (action === 'upsert') return 'Gespeichert'
+    return action
+  }
+  const auditEntityLabel = (entityType: string) => {
+    const labels: Record<string, string> = {
+      lead: 'Anfrage',
+      booking: 'Buchung',
+      package: 'Auszeit',
+      property: 'Objekt',
+      experience_provider: 'Erlebnisanbieter',
+      local_place: 'Vor Ort',
+      admin_task: 'Aufgabe',
+      agency: 'Agentur',
+    }
+    return labels[entityType] ?? entityType
+  }
+  const auditPayloadSummary = (payload: Record<string, unknown> | null) => {
+    if (!payload) return 'Keine Detaildaten'
+    const keyLabels: Record<string, string> = {
+      status: 'Status',
+      type: 'Typ',
+      packageSlug: 'Auszeit',
+      paymentStatus: 'Zahlung',
+      referenceType: 'Bezugstyp',
+      referenceId: 'Bezug',
+      location: 'Ort',
+      category: 'Kategorie',
+      slug: 'Slug',
+    }
+    const valueLabel = (key: string, value: unknown) => {
+      const text = String(value)
+      if (key.toLowerCase().includes('id') && text.length > 18) return `${text.slice(0, 8)}...`
+      return text
+    }
+    const entries = Object.entries(payload)
+      .filter(([, value]) => value !== undefined && value !== null && value !== '')
+      .slice(0, 4)
+
+    if (entries.length === 0) return 'Keine Detaildaten'
+    return entries.map(([key, value]) => `${keyLabels[key] ?? key}: ${valueLabel(key, value)}`).join(' · ')
+  }
   const adminSections: { id: AdminSection; label: string }[] = [
     { id: 'overview', label: 'Übersicht' },
     { id: 'leads', label: 'Anfragen' },
@@ -6152,6 +6250,7 @@ function AdminPage({
     { id: 'owners', label: 'Eigentümer' },
     { id: 'agencies', label: 'Agenturen' },
     { id: 'experienceProviders', label: 'Erlebnisanbieter' },
+    { id: 'activity', label: 'Aktivität' },
   ]
   const sectionIntro: Record<AdminSection, { title: string; text: string }> = {
     overview: {
@@ -6201,6 +6300,10 @@ function AdminPage({
     experienceProviders: {
       title: 'Erlebnisanbieter',
       text: 'Anbieterprofile pflegen und sehen, welche lokalen Erlebnisse bereits mit Auszeiten verbunden sind.',
+    },
+    activity: {
+      title: 'Aktivität',
+      text: 'Nachvollziehen, welche Admin-Aktionen zuletzt gespeichert, geändert oder gelöscht wurden.',
     },
   }
   const renderLeadTable = (items: StoredLead[], emptyText: string) => (
@@ -8451,6 +8554,46 @@ function AdminPage({
       </AdminPanel>
     </section>
   )
+  const renderActivity = () => {
+    const upsertCount = adminAuditLogs.filter((log) => log.action === 'upsert').length
+    const deleteCount = adminAuditLogs.filter((log) => log.action === 'delete').length
+    const actorCount = new Set(adminAuditLogs.map((log) => log.actor_email).filter(Boolean)).size
+
+    return (
+      <section className="admin-leads-layout">
+        <section className="admin-command-strip admin-package-metrics" aria-label="Aktivität Kennzahlen">
+          <article><span>{adminAuditLogs.length}</span><p>Einträge</p></article>
+          <article><span>{upsertCount}</span><p>Gespeichert</p></article>
+          <article><span>{deleteCount}</span><p>Gelöscht</p></article>
+          <article><span>{actorCount}</span><p>Aktive Nutzer</p></article>
+        </section>
+        <AdminPanel title="Letzte Aktivitäten">
+          <div className="admin-panel-heading">
+            <p className="admin-panel-intro">Audit-Log aus Supabase. Hier siehst du, welche internen Änderungen zuletzt gespeichert wurden.</p>
+            <button className="admin-row-action" type="button" onClick={refreshAdminAuditLogs}>Aktualisieren</button>
+          </div>
+          <div className="admin-activity-list">
+            {authMode !== 'supabase' && <p className="admin-empty-note">Aktivität wird nur mit Supabase-Admin-Login geladen.</p>}
+            {authMode === 'supabase' && adminAuditLogs.length === 0 && <p className="admin-empty-note">Noch keine Aktivität gespeichert.</p>}
+            {adminAuditLogs.map((log) => (
+              <article key={log.id} className={`admin-activity-item is-${log.action}`}>
+                <div>
+                  <span>{auditEntityLabel(log.entity_type)}</span>
+                  <strong>{log.entity_label || log.entity_id}</strong>
+                  <p>{auditPayloadSummary(log.payload)}</p>
+                </div>
+                <div>
+                  <strong>{auditActionLabel(log.action)}</strong>
+                  <span>{log.actor_email ?? 'Unbekannt'}</span>
+                  <small>{formatAuditDate(log.created_at)}</small>
+                </div>
+              </article>
+            ))}
+          </div>
+        </AdminPanel>
+      </section>
+    )
+  }
   const renderAdminContent = () => {
     if (activeSection === 'leads') return renderLeads()
     if (activeSection === 'tasks') return renderTasks()
@@ -8463,6 +8606,7 @@ function AdminPage({
     if (activeSection === 'owners') return renderOwners()
     if (activeSection === 'agencies') return renderAgencies()
     if (activeSection === 'experienceProviders') return renderExperienceProviders()
+    if (activeSection === 'activity') return renderActivity()
     return renderOverview()
   }
 
