@@ -17,7 +17,10 @@ export function Button({
     variant === "primary" ? "button-primary" : "button-secondary";
 
   return (
-    <a className={["button", variantClass, className].filter(Boolean).join(" ")} {...props}>
+    <a
+      className={["button", variantClass, className].filter(Boolean).join(" ")}
+      {...props}
+    >
       {children}
     </a>
   );

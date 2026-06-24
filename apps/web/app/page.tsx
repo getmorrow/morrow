@@ -1,74 +1,146 @@
-import { publicRoutes } from "@morrow/domain";
-import { Button } from "@morrow/ui";
+import {
+  guideArticles,
+  homePageContent,
+  publicRoutes,
+  stayTemplates,
+} from "@morrow/domain";
+import { Button, Card, Container, Eyebrow, SectionHeader } from "@morrow/ui";
+import { SiteHeader } from "./_components/SiteHeader";
 
 export default function HomePage() {
   return (
     <main className="site-shell">
-      <header className="site-header">
-        <a aria-label="Morrow Startseite" href="/">
-          <img alt="morrow" src="/brand/morrow-wordmark-offblack.svg" />
-        </a>
-        <nav aria-label="Hauptnavigation" className="site-nav">
-          <a href={publicRoutes.stays}>Auszeiten</a>
-          <a href={publicRoutes.guides}>Ratgeber</a>
-          <a href={publicRoutes.owners}>Für Eigentümer</a>
-          <a className="header-cta" href="#anfrage">
-            Auszeit planen
-          </a>
-        </nav>
-      </header>
+      <SiteHeader />
 
-      <section className="hero">
-        <div>
-          <p className="eyebrow">Sankt Peter-Ording · Familien & Paare</p>
-          <h1>Auszeiten, die vorbereitet statt beliebig wirken.</h1>
-          <p className="hero-copy">
-            Ausgewählte Unterkunft, lokales Erlebnis und persönliche Betreuung.
-            Damit aus wenigen Tagen an der Nordsee eine ruhige, stimmige Zeit
-            wird.
-          </p>
-          <div className="hero-actions">
-            <Button href="#anfrage" variant="primary">
-              Auszeit planen
-            </Button>
-            <Button href={publicRoutes.stays} variant="secondary">
-              Auszeiten ansehen
-            </Button>
-          </div>
-        </div>
-
-        <aside aria-label="Morrow Fokus" className="hero-panel">
-          <p className="eyebrow">Neues Fundament</p>
-          <h2>SEO-Website zuerst.</h2>
-          <p>
-            Diese Next.js-App ist der Startpunkt für die neue öffentliche
-            Website. Der bestehende Vite-Prototyp bleibt Funktionsreferenz.
-          </p>
-          <div className="proof-row">
-            <div className="proof-card">
-              <strong>01</strong>
-              <span>crawlbares HTML</span>
+      <section className="hero" id="top">
+        <Container className="hero-grid">
+          <div className="hero-copy">
+            <Eyebrow>{homePageContent.hero.kicker}</Eyebrow>
+            <h1>{homePageContent.hero.title}</h1>
+            <p>{homePageContent.hero.lead}</p>
+            <div className="hero-cues" aria-label="Was Morrow vorbereitet">
+              {homePageContent.hero.cues.map((cue) => (
+                <span key={cue}>{cue}</span>
+              ))}
             </div>
-            <div className="proof-card">
-              <strong>02</strong>
-              <span>klare Domainmodelle</span>
-            </div>
-            <div className="proof-card">
-              <strong>03</strong>
-              <span>Supabase als Quelle</span>
+            <div className="hero-actions">
+              <Button href="#auszeiten">Auszeit planen</Button>
+              <Button href={publicRoutes.owners} variant="secondary">
+                Für Eigentümer
+              </Button>
             </div>
           </div>
-        </aside>
+
+          <div className="hero-media">
+            <img
+              alt={homePageContent.hero.imageAlt}
+              className="hero-photo-main"
+              src={homePageContent.hero.image}
+            />
+            <div className="hero-picks" aria-label="Auszeit-Einstiege">
+              {stayTemplates.map((stay) => (
+                <a href={stay.href} key={stay.slug}>
+                  <span>{stay.shortTitle}</span>
+                  <strong>{stay.title}</strong>
+                  <small>{stay.promise}</small>
+                </a>
+              ))}
+            </div>
+          </div>
+        </Container>
       </section>
 
-      <section className="section" id="anfrage">
-        <p className="eyebrow">Migrationsschnitt</p>
-        <h2>Der Prototyp bleibt sichtbar, die Produktion wird neu gebaut.</h2>
-        <p>
-          Als Nächstes migrieren wir die öffentliche Website Abschnitt für
-          Abschnitt: Startseite, Auszeiten, Eigentümerseite und Ratgeber. Alles,
-          was SEO-relevant ist, wird statisch oder serverseitig gerendert.
-        </p>
+      <section className="section brand-panel">
+        <Container className="intro-grid">
+          <SectionHeader
+            eyebrow={homePageContent.why.kicker}
+            title={homePageContent.why.title}
+          />
+          <div className="principles">
+            {homePageContent.why.items.map((item) => (
+              <Card className="principle-card" key={item.title}>
+                <span aria-hidden="true" className="card-marker" />
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </Card>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      <section className="section package-band" id="auszeiten">
+        <Container>
+          <SectionHeader
+            eyebrow={homePageContent.stays.kicker}
+            text={homePageContent.stays.text}
+            title={homePageContent.stays.title}
+          />
+          <div className="package-grid">
+            {stayTemplates.map((stay) => (
+              <a className="stay-card" href={stay.href} key={stay.slug}>
+                <img alt="" src={stay.image} />
+                <div>
+                  <Eyebrow>{stay.shortTitle}</Eyebrow>
+                  <h3>{stay.title}</h3>
+                  <p>{stay.lead}</p>
+                  <span>Auszeit ansehen</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      <section className="editorial-split">
+        <Container className="editorial-grid">
+          <img
+            alt={homePageContent.local.imageAlt}
+            src={homePageContent.local.image}
+          />
+          <div>
+            <Eyebrow>{homePageContent.local.kicker}</Eyebrow>
+            <h2>{homePageContent.local.title}</h2>
+            <p>{homePageContent.local.text}</p>
+            <Button href={publicRoutes.guides} variant="secondary">
+              Ratgeber lesen
+            </Button>
+          </div>
+        </Container>
+      </section>
+
+      <section className="section guide-teaser">
+        <Container>
+          <SectionHeader
+            eyebrow="Ratgeber"
+            text="Unsere Ratgeber sind keine beliebigen Reisetipps. Sie helfen euch zu verstehen, welche Art von Zeit in SPO zu euch passt."
+            title="Erst Orientierung. Dann Vorfreude."
+          />
+          <div className="article-grid">
+            {guideArticles.map((article) => (
+              <a className="article-card" href={article.href} key={article.slug}>
+                <img alt="" src={article.image} />
+                <div>
+                  <Eyebrow>{article.category}</Eyebrow>
+                  <h3>{article.title}</h3>
+                  <p>{article.excerpt}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      <section className="section owner-teaser">
+        <Container className="owner-grid">
+          <SectionHeader
+            eyebrow={homePageContent.owners.kicker}
+            title={homePageContent.owners.title}
+          />
+          <div>
+            <p>{homePageContent.owners.text}</p>
+            <Button href={publicRoutes.owners}>Immobilie vorstellen</Button>
+          </div>
+        </Container>
       </section>
     </main>
   );
