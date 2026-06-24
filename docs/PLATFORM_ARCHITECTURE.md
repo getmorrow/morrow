@@ -42,6 +42,15 @@ Arbeitsregel:
 - Oeffentliche Website-Entscheidungen muessen ab jetzt SEO-/SSR-/SSG-faehig gedacht werden.
 - Admin bleibt Quelle der Wahrheit; Web, Guest und Owner lesen gezielte Ausschnitte aus Supabase/domain-Modellen.
 
+Umsetzungsstand 2026-06-24:
+
+- Das npm-Workspace-Monorepo ist angelegt.
+- `apps/web` ist als erste Next.js-App aktiv und erzeugt statische Seiten inklusive `sitemap.xml` und `robots.txt`.
+- `apps/guest`, `apps/admin` und `apps/owner` existieren bewusst als Platzhalter-Workspaces.
+- `packages/ui`, `packages/domain` und `packages/supabase` existieren als erste Shared-Packages.
+- Der bisherige Vite-Code bleibt unveraendert als Prototyp im Root und wird ueber `prototype:*` Scripts betrieben.
+- Die naechste produktive Arbeit ist die Migration der oeffentlichen Website nach `apps/web`.
+
 ## Grundentscheidung
 
 Morrow besteht nicht aus einer einzigen Website mit ein paar Unterseiten.

@@ -1,11 +1,21 @@
 {
-  "name": "new-project",
+  "name": "morrow-platform",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "npm run prototype:dev",
+    "build": "npm run prototype:build",
+    "prototype:dev": "vite",
+    "prototype:build": "tsc -b && vite build",
+    "web:dev": "npm run dev -w @morrow/web",
+    "web:build": "npm run build -w @morrow/web",
+    "web:start": "npm run start -w @morrow/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "db:build": "bash scripts/build-database.sh",
     "events:scrape": "node scripts/scrape-spo-events.mjs",
     "supabase:seed-packages": "node scripts/seed-supabase-packages.mjs",

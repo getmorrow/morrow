@@ -1,0 +1,15 @@
+{
+  "name": "@morrow/supabase",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.107.0"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2"
+  }
+}

@@ -1,0 +1,201 @@
+:root {
+  --morrow-ink: #171715;
+  --morrow-muted: #67645d;
+  --morrow-cream: #f3efe3;
+  --morrow-soft: #fbf8f0;
+  --morrow-olive: #77723e;
+  --morrow-line: rgba(23, 23, 21, 0.14);
+}
+
+@font-face {
+  font-family: "Hanken Grotesk";
+  src: url("/fonts/HankenGrotesk-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--morrow-cream);
+  color: var(--morrow-ink);
+  font-family: "Hanken Grotesk", Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--morrow-cream);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.site-shell {
+  min-height: 100vh;
+}
+
+.site-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 24px clamp(20px, 5vw, 72px);
+}
+
+.site-header img {
+  display: block;
+  height: auto;
+  width: 146px;
+}
+
+.site-nav {
+  align-items: center;
+  display: none;
+  gap: 28px;
+  color: var(--morrow-muted);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.header-cta {
+  background: var(--morrow-ink);
+  border-radius: 999px;
+  color: var(--morrow-soft);
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 750;
+  padding: 13px 18px;
+}
+
+.hero {
+  display: grid;
+  gap: 28px;
+  padding: 40px clamp(20px, 5vw, 72px) 72px;
+}
+
+.eyebrow {
+  color: var(--morrow-muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin: 0 0 14px;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  font-size: clamp(48px, 8vw, 112px);
+  letter-spacing: 0;
+  line-height: 0.92;
+  margin: 0;
+  max-width: 980px;
+}
+
+.hero-copy {
+  color: var(--morrow-muted);
+  font-size: clamp(20px, 2.2vw, 28px);
+  line-height: 1.45;
+  margin: 24px 0 0;
+  max-width: 760px;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.button {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 15px;
+  font-weight: 800;
+  min-height: 48px;
+  padding: 0 20px;
+}
+
+.button-primary {
+  background: var(--morrow-olive);
+  color: white;
+}
+
+.button-secondary {
+  border: 1px solid var(--morrow-line);
+  color: var(--morrow-ink);
+}
+
+.hero-panel {
+  background: var(--morrow-soft);
+  border: 1px solid var(--morrow-line);
+  border-radius: 18px;
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+}
+
+.hero-panel h2 {
+  font-size: 28px;
+  line-height: 1;
+  margin: 0;
+}
+
+.hero-panel p {
+  color: var(--morrow-muted);
+  font-size: 17px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.proof-row {
+  display: grid;
+  gap: 12px;
+}
+
+.proof-card {
+  border-top: 1px solid var(--morrow-line);
+  padding-top: 16px;
+}
+
+.proof-card strong {
+  display: block;
+  font-size: 22px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.section {
+  padding: 72px clamp(20px, 5vw, 72px);
+}
+
+.section h2 {
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1;
+  margin: 0;
+  max-width: 780px;
+}
+
+.section p {
+  color: var(--morrow-muted);
+  font-size: 19px;
+  line-height: 1.55;
+  max-width: 720px;
+}
+
+@media (min-width: 860px) {
+  .site-nav {
+    display: flex;
+  }
+
+  .hero {
+    align-items: end;
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+
+  .proof-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
