@@ -6,6 +6,7 @@ Verbindliche Markenregel:
 Vor jeder sichtbaren Website-, Produkt-, Content- oder UI-Aenderung muessen der Morrow Styleguide und `docs/STYLEGUIDE_OPERATING_RULES.md` gelesen werden. Der Styleguide ist kein Moodboard, sondern ein Abnahmekriterium.
 
 Zusatzquellen:
+- `docs/STRATEGIC_FOUNDATION_MORROW.md` definiert die strategische Marktchance, Eigentuemer-/Ertragslogik, Proof-Ziele und MVP-Prioritaeten fuer Morrow als moderne Ferienvermietungsplattform in SPO.
 - `docs/TIDE_BRAINSTORM_SYNTHESIS.md` enthaelt die Auswertung des fruehen TIDE-Brand-Sprint-Brainstormings.
 - `docs/BRAND_ASSET_REGISTRY.md` enthaelt Styleguide-, Logo-, Font- und Farbregeln.
 - `docs/STYLEGUIDE_OPERATING_RULES.md` übersetzt den Styleguide in verbindliche Abnahmeregeln.
@@ -14,6 +15,7 @@ Zusatzquellen:
 - `docs/SEO_GEO_KEYWORD_PLAN.md` definiert Keyword-, Suchintention- und GEO-Regeln fuer Ratgeberartikel.
 - `docs/PHASE1_INFORMATION_ARCHITECTURE.md` enthaelt die Seitenstruktur fuer Phase 1.
 - `docs/MORROW_MVP_COMPLETION_PLAN.md` ist die operative Abschlussliste fuer den echten MVP-Start mit ersten zahlenden Gaesten.
+- `docs/PLATFORM_ARCHITECTURE.md` definiert die Zielarchitektur als oeffentliche Website plus Gaeste-App, Eigentuemer-App und Admin-App.
 - `docs/PLATFORM_MODEL_PHASE2.md` enthaelt das spaetere Plattformmodell mit Rollen, Modulen, Admin, Partnern und Portalen.
 - `docs/WIREFRAMES_PHASE1.md` enthaelt die strukturellen Wireframes vor UI-Design.
 - `docs/COMPETITOR_ANALYSIS_SPO.md` enthaelt die Konkurrenzanalyse zu Golde SPO und Koch + Co.
@@ -25,12 +27,22 @@ Zusatzquellen:
 
 Wichtig: TIDE war ein frueher Working Title. Der aktuelle Markenname ist Morrow. Ideen aus dem TIDE-Brainstorming sind Orientierung, aber nicht automatisch Phase-1-Scope.
 
+Verbindliche Architekturregel ab 2026-06-24:
+- Das aktuelle Vite/React-Projekt ist Prototyp und Funktionsbasis, nicht mehr finale Produktionsarchitektur fuer die oeffentliche Website.
+- Neue Produktionsbasis wird ein Next.js/React-Monorepo mit Supabase.
+- Zielstruktur: `apps/web`, `apps/guest`, `apps/owner`, `apps/admin`, `packages/ui`, `packages/domain`, `packages/supabase`.
+- Prioritaet: Prototyp einfrieren, nur kritische Fixes; danach neues Fundament; zuerst oeffentliche Website migrieren; danach Gaeste-App und Admin-App; Eigentuemer-App erst nach stabilen Admin-/Objekt-/Buchungsdaten.
+- Alle oeffentlichen Website-Entscheidungen muessen SEO-, SSG-/SSR-, Sitemap-, `robots.txt`- und Schema.org-faehig gedacht werden.
+
 ## 1. Kernidee
 
 Morrow ist eine kuratierte Hospitality-Plattform fuer hochwertige Ferienaufenthalte.
 
 Aktueller One-Liner:
 Morrow kuratiert Auszeiten in besonderen Kuestenorten: ausgewaehlte Unterkuenfte, lokale Erlebnisse und persoenliche Betreuung in einem Aufenthalt.
+
+Strategische Erweiterung:
+Morrow ist zugleich ein digitales Ertrags-, Eigentuemer- und Operationssystem fuer Ferienimmobilien. Fuer Gaeste entsteht daraus eine kuratierte Auszeit; fuer Eigentuemer entsteht daraus ein aktiveres, transparenteres und ertragsorientierteres Vermietungsmodell als bei klassischen Agenturen.
 
 Wording-Regel:
 - Oeffentlich sprechen wir von `Auszeit` und `Auszeiten`, nicht von `Paket` oder `Pakete`.
@@ -59,6 +71,8 @@ Zentraler Markt-Insight:
 - Das klassische Agentur-/Vermietungsmodell wirkt fuer viele nicht mehr ausreichend.
 - Gesucht wird ein umfassender Aufenthalt: Unterkunft, Erlebnis, Empfehlungen, Betreuung und das Gefuehl, dass jemand mitgedacht hat.
 - Morrow verkauft eine schoene Zeit, nicht nur Naechte.
+- Fuer Eigentuemer liegt die Marktchance darin, dass klassische Agenturen haeufig passiv, manuell und wenig transparent arbeiten.
+- Morrow soll beweisen, dass aktive Vermarktung, Lueckenmarketing, digitale Prozesse und transparente Steuerung zu hoeherem Nettoerloes fuehren koennen.
 
 ## 2. Positionierung
 
@@ -69,6 +83,8 @@ Morrow ist:
 - lokaler Experience-Layer
 - Tourismusguide fuer kuratierte Regionen
 - Digitalisierungspartner fuer lokale Anbieter
+- digitales Ertrags- und Operationssystem fuer Ferienimmobilien
+- moderne Eigentuemer- und Vermietungsmarke in SPO
 - spaeter Operating-System fuer hochwertige Ferienaufenthalte
 
 Morrow ist nicht:
