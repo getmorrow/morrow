@@ -404,6 +404,139 @@ export const staysPageContent = {
   },
 } as const;
 
+export const ownersPageContent = {
+  hero: {
+    kicker: "Für Eigentümer",
+    title: "Mehr Ertrag aus deiner Ferienimmobilie. Ohne Blackbox.",
+    text:
+      "Morrow verbindet kuratierte Auszeiten für Gäste mit einem moderneren Vermietungsmodell: aktive Vermarktung, klare Objektpositionierung und transparente nächste Schritte statt passivem Listing.",
+    image: "/brand/generated/morrow-spo-interior.png",
+    imageAlt: "Ruhige Ferienunterkunft mit Blick in die Dünen",
+    note:
+      "Wir prüfen, welche Reiseanlässe, Zielgruppen und freien Zeiträume dein Objekt stärker machen können.",
+  },
+  principles: [
+    {
+      title: "Aktive Vermarktung statt Listing",
+      text:
+        "Dein Objekt soll nicht nur online stehen, sondern für passende Zielgruppen und Reiseanlässe sichtbar werden.",
+    },
+    {
+      title: "Erlebniswelten aus Objektstärken",
+      text:
+        "Sauna, Hund, Kamin, Familie oder Nebensaison werden zu konkreten Aufenthaltsanlässen statt zu losen Ausstattungsmerkmalen.",
+    },
+    {
+      title: "Transparenz für den nächsten Schritt",
+      text:
+        "Wir starten mit einer Einschätzung, wo Potenzial liegt und welches Modell für dein Objekt sinnvoll sein kann.",
+    },
+  ],
+  value: {
+    kicker: "Warum Morrow",
+    title: "Der Unterschied liegt im Betrieb, nicht nur in der Provision.",
+    text:
+      "Viele gute Ferienimmobilien werden online wie austauschbare Unterkünfte gezeigt. Morrow denkt zuerst darüber nach, wie ein Objekt mehr Nachfrage, bessere Auslastung und klarere Gästeerwartungen erzeugen kann.",
+    items: [
+      {
+        title: "Mehr Nettoertrag als Ziel",
+        text:
+          "Es geht nicht nur um Belegung, sondern darum, freie Zeiträume, Preise und Nachfrage so zu steuern, dass am Ende mehr übrig bleibt.",
+      },
+      {
+        title: "Lücken sichtbar machen",
+        text:
+          "Freie Zeiträume sollen nicht einfach stehen bleiben, sondern als Anlass für passende Angebote und Kampagnen genutzt werden.",
+      },
+      {
+        title: "Ein Objekt, mehrere Anlässe",
+        text:
+          "Aus demselben Objekt können Familienurlaub, Paar-Auszeit, Hundeurlaub oder Nebensaison-Angebote entstehen, wenn die Attribute stimmen.",
+      },
+      {
+        title: "Transparenter arbeiten",
+        text:
+          "Langfristig sollen Eigentümer sehen, was passiert: Buchungen, Maßnahmen, Lücken, Objektstatus und Auszahlung nachvollziehbar an einem Ort.",
+      },
+    ],
+  },
+  model: {
+    kicker: "Morrow Modell",
+    title: "Aus Objektstärken werden buchbare Anlässe.",
+    text:
+      "Wir arbeiten nicht mit generischen Inseraten als Endpunkt. Wir erfassen, was ein Objekt besonders macht, verbinden es mit passenden Erlebniswelten und bauen daraus konkrete Aufenthaltsangebote.",
+    steps: [
+      {
+        title: "Attribute erfassen",
+        text:
+          "Lage, Ausstattung, Atmosphäre, Regeln, Verfügbarkeiten und Zielgruppen werden strukturiert betrachtet.",
+      },
+      {
+        title: "Erlebniswelten ableiten",
+        text:
+          "Aus den Stärken entstehen passende Anlässe wie Familienzeit, Paar-Auszeit, Hundeurlaub oder Nebensaison am Meer.",
+      },
+      {
+        title: "Aktiv vermarkten",
+        text:
+          "Auszeit, Zielgruppe und freie Zeiträume werden so erzählt, dass Gäste schneller verstehen, warum genau dieses Objekt passt.",
+      },
+    ],
+  },
+  start: {
+    kicker: "Zusammenarbeit",
+    title: "Starte mit einer Ertragspotenzial-Analyse.",
+    text:
+      "Zum Start braucht es keine komplexe Integration. Wir schauen auf Objekt, aktuelle Vermietung, freie Zeiträume und mögliche Reiseanlässe. Danach ist klarer, welcher nächste Schritt sinnvoll ist.",
+    image: "/brand/generated/morrow-spo-family-arrival.png",
+    imageAlt: "Gäste kommen an einer vorbereiteten Unterkunft in Sankt Peter-Ording an",
+    points: [
+      "Objekt und aktuelle Vermietung ansehen",
+      "Reiseanlässe und Lücken erkennen",
+      "Pilot-Auszeit oder Vermietungsmodell prüfen",
+    ],
+  },
+  request: {
+    kicker: "Ertragspotenzial",
+    title: "Ertragspotenzial prüfen",
+    text:
+      "Erzähle uns kurz, welches Objekt du hast und wie es aktuell vermietet wird. Die erste Einschätzung ist kostenlos und zeigt, ob dein Objekt grundsätzlich zu Morrow passen könnte.",
+    fields: [
+      "Name",
+      "E-Mail",
+      "Telefon",
+      "Ort der Immobilie",
+      "Art der Immobilie",
+      "Anzahl Schlafplätze",
+      "aktuelle Vermietung",
+      "Link zum Objekt optional",
+      "Nachricht optional",
+    ],
+  },
+  faqs: [
+    {
+      question: "Muss ich exklusiv mit Morrow arbeiten?",
+      answer:
+        "Für den ersten Einstieg nicht zwingend. Wichtig ist, dass Verfügbarkeit, Qualität und Gästeerlebnis für eine konkrete Auszeit zuverlässig abgestimmt werden können.",
+    },
+    {
+      question: "Welche Objekte sucht Morrow?",
+      answer:
+        "Objekte in Orten am Wasser, die zu Familien oder Paaren passen: gute Atmosphäre, klare Lage, verlässliche Ausstattung und genug Qualität, um Teil einer kuratierten Auszeit zu werden.",
+    },
+    {
+      question: "Wer betreut die Gäste?",
+      answer:
+        "Morrow übernimmt die kuratierende Kommunikation rund um die Auszeit. Operative Details hängen davon ab, ob das Objekt über eine Agentur, selbst oder später direkt mit Morrow betreut wird.",
+    },
+    {
+      question: "Was passiert nach der Anfrage?",
+      answer:
+        "Wir prüfen die Angaben, schauen auf Lage, Objektart, aktuelle Vermietung und mögliche Potenziale und melden uns persönlich mit einer ersten Einschätzung.",
+    },
+  ],
+} as const;
+
 export const guideArticles: GuideArticle[] = [
   {
     slug: "sankt-peter-ording-mit-kindern",
