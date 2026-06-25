@@ -24,6 +24,59 @@ export type StayTemplate = {
   image: string;
 };
 
+export type StayDetail = StayTemplate & {
+  heroTitle: string;
+  heroLead: string;
+  price: string;
+  priceNote: string;
+  dates: string[];
+  maxGuests: number;
+  dogOptional: boolean;
+  heroGallery: {
+    src: string;
+    alt: string;
+    label?: string;
+  }[];
+  included: string[];
+  story: {
+    kicker: string;
+    title: string;
+    text: string;
+    cues: string[];
+    image: string;
+    imageAlt: string;
+  };
+  property: {
+    kicker: string;
+    title: string;
+    text: string;
+    facts: string[];
+    image: string;
+    imageAlt: string;
+  };
+  experience: {
+    kicker: string;
+    title: string;
+    text: string;
+    image: string;
+    imageAlt: string;
+    items: string[];
+  };
+  recommendations: {
+    title: string;
+    text: string;
+  }[];
+  request: {
+    title: string;
+    text: string;
+    fields: string[];
+  };
+  faqs: {
+    question: string;
+    answer: string;
+  }[];
+};
+
 export type GuideArticle = {
   slug: string;
   title: string;
@@ -70,6 +123,129 @@ export const stayTemplates: StayTemplate[] = [
     image: "/brand/generated/morrow-spo-couple.png",
   },
 ];
+
+export const stayDetails: Record<string, StayDetail> = {
+  "family-escape": {
+    ...stayTemplates[0],
+    heroTitle: "Vier Tage Nordsee, die sich nach echter Familienzeit anfühlen.",
+    heroLead:
+      "Unterkunft, Naturerlebnis und Orientierung vor Ort sind vorbereitet, damit ihr ankommt und nicht erst planen müsst.",
+    price: "1.190 EUR",
+    priceNote: "pro Aufenthalt, bis 4 Personen",
+    dates: ["12.-16. August", "19.-23. August"],
+    maxGuests: 4,
+    dogOptional: true,
+    heroGallery: [
+      {
+        src: "/brand/generated/morrow-spo-family.png",
+        alt: "Familie geht gemeinsam durch die Dünen in Sankt Peter-Ording",
+        label: "Familienzeit",
+      },
+      {
+        src: "/brand/generated/morrow-spo-family-arrival.png",
+        alt: "Familie kommt in einer vorbereiteten Unterkunft an",
+        label: "Ankommen",
+      },
+      {
+        src: "/brand/generated/morrow-spo-family-watt.png",
+        alt: "Familie erlebt Watt, Wind und Weite an der Nordsee",
+        label: "Naturmoment",
+      },
+    ],
+    included: [
+      "4 Nächte in einer ausgewählten Unterkunft",
+      "1 lokales Erlebnis für die Familie",
+      "kuratierte Empfehlungen für SPO",
+      "persönlicher Ansprechpartner vor Ort",
+      "Vorbereitung der wichtigsten Aufenthaltsinfos",
+    ],
+    story: {
+      kicker: "Das Gefühl",
+      title: "Ein paar Tage, die sich leichter anfühlen.",
+      text:
+        "Nicht alles suchen. Nicht alles abstimmen. Einfach wissen, dass Unterkunft, erster Naturmoment und Orientierung vor Ort zusammenpassen.",
+      cues: ["Ankommen ohne Sucherei", "Raus ans Meer", "Zeit füreinander"],
+      image: "/brand/generated/morrow-spo-family-plan-boardwalk.png",
+      imageAlt: "Familie auf dem Weg durch die Dünen in Sankt Peter-Ording",
+    },
+    property: {
+      kicker: "Unterkunft",
+      title: "Euer Rückzugsort in SPO.",
+      text:
+        "Die Unterkunft ist bewusst als Basis für diese Auszeit gewählt: hell, ruhig und nah genug an Strand und Ortsleben, damit ihr nicht jeden Weg neu planen müsst.",
+      facts: ["bis 4 Personen", "2 Schlafzimmer", "WLAN", "Hund optional"],
+      image: "/brand/generated/morrow-spo-interior.png",
+      imageAlt: "Heller Wohnbereich einer vorbereiteten Unterkunft",
+    },
+    experience: {
+      kicker: "Erlebnis",
+      title: "Ein Naturmoment, der zu euch passt.",
+      text:
+        "Wir planen keinen vollen Stundenplan. Zur Auszeit gehört ein bewusst ausgewählter Moment draußen: Watt, Wind, Weite und genug Ruhe, damit Kinder entdecken können und Eltern nicht organisieren müssen.",
+      image: "/brand/generated/morrow-spo-final-boardwalk.png",
+      imageAlt: "Blick durch die Dünen auf Strand und Pfahlbau in Sankt Peter-Ording",
+      items: [
+        "Wattwandern oder Naturzeit",
+        "altersgerecht abgestimmt",
+        "wetter- und terminabhängig geprüft",
+      ],
+    },
+    recommendations: [
+      {
+        title: "Strandzeit ohne langes Suchen",
+        text:
+          "Wir geben euch eine passende Strandidee für euren Familientag: mit Blick auf Wege, Wind, Pausen und das Alter der Kinder.",
+      },
+      {
+        title: "Plan B für raues Wetter",
+        text:
+          "Wenn der Nordseetag anders wird als gedacht, habt ihr keine neue Recherche vor euch, sondern vorbereitete Alternativen.",
+      },
+      {
+        title: "Ein entspannter Abend",
+        text:
+          "Eine familienfreundliche Idee für den Abend, damit niemand nach der Anreise noch lange vergleichen oder diskutieren muss.",
+      },
+    ],
+    request: {
+      title: "Erst anfragen. Dann in Ruhe entscheiden.",
+      text:
+        "Erzählt uns kurz, welcher Termin zu euch passt. Wir schauen, ob Unterkunft, Erlebnis und eure Familie gut zusammenfinden.",
+      fields: [
+        "Name",
+        "E-Mail",
+        "Telefonnummer",
+        "gewünschter Termin",
+        "Erwachsene",
+        "Kinder und Alter",
+        "Hund optional",
+        "WhatsApp-Zustimmung optional",
+      ],
+    },
+    faqs: [
+      {
+        question: "Ist die Auszeit direkt buchbar?",
+        answer:
+          "Nein. Ihr fragt euren Wunschtermin an. Danach gleichen wir Unterkunft, Erlebnis und Verfügbarkeit persönlich ab, bevor ihr euch verbindlich entscheidet.",
+      },
+      {
+        question: "Welche Unterkunft ist enthalten?",
+        answer:
+          "Die Unterkunft wird auf der Auszeit-Seite gezeigt. Wir wählen nur Objekte aus, die zum Gefühl der Auszeit passen und vorab terminlich geklärt sind.",
+      },
+      {
+        question: "Was ist beim Erlebnis vorbereitet?",
+        answer:
+          "Das Erlebnis ist Teil der Auszeit. Vor der Zusage stimmen wir es passend zu Termin, Alter der Kinder und Verfügbarkeit des Anbieters ab.",
+      },
+      {
+        question: "Kann ein Hund mitkommen?",
+        answer:
+          "Vielleicht. Gebt es einfach in der Anfrage an. Ob es passt, hängt von der Unterkunft und den Bedingungen vor Ort ab.",
+      },
+    ],
+  },
+};
 
 export const guideArticles: GuideArticle[] = [
   {
