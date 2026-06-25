@@ -537,6 +537,128 @@ export const ownersPageContent = {
   ],
 } as const;
 
+export const experiencePartnersPageContent = {
+  hero: {
+    kicker: "Für Erlebnispartner",
+    title: "Lokale Erlebnisse, die aus Aufenthalten echte Auszeiten machen.",
+    text:
+      "Morrow sucht ausgewählte Anbieter in Sankt Peter-Ording und Umgebung, deren Erlebnisse zu Familien, Paaren und dem Gefühl von gut vorbereiteter Zeit am Meer passen.",
+    image: "/brand/generated/morrow-spo-local-orientation.png",
+    imageAlt: "Lokaler Orientierungsmoment in Sankt Peter-Ording",
+    note:
+      "Nicht jedes Angebot muss groß sein. Wichtig ist, dass es persönlich, verlässlich und passend zum Ort ist.",
+  },
+  principles: [
+    {
+      title: "Kuratiert statt beliebig",
+      text:
+        "Wir nehmen nicht jede Aktivität auf, sondern wählen Erlebnisse aus, die zu einer konkreten Auszeit passen.",
+    },
+    {
+      title: "Passend für Familien oder Paare",
+      text:
+        "Ein Erlebnis soll helfen, dass Gäste leichter ankommen, weniger planen müssen und den Ort intensiver erleben.",
+    },
+    {
+      title: "Persönlich vorbereitet",
+      text:
+        "Termine, Kapazitäten, Ablauf und Erwartungen sollen klar sein, bevor Gäste vor Ort sind.",
+    },
+  ],
+  fit: {
+    kicker: "Was zu Morrow passt",
+    title: "Wir suchen keine Masse. Wir suchen verlässliche Momente.",
+    text:
+      "Morrow verbindet Unterkunft, Erlebnis und Orientierung. Dafür brauchen wir lokale Partner, die nicht nur eine Leistung anbieten, sondern ein gutes Aufenthaltsgefühl mittragen.",
+    items: [
+      {
+        title: "Natur und Küste",
+        text:
+          "Watt, Strand, Dünen, Wind und Weite: Erlebnisse, die den Ort spürbar machen.",
+      },
+      {
+        title: "Ruhe und Wohlgefühl",
+        text:
+          "Yoga, Wellness, Kochen, kleine Rituale oder besondere Abende für bewusste Paarzeit.",
+      },
+      {
+        title: "Familienfreundliche Erlebnisse",
+        text:
+          "Angebote, die Kinder einbeziehen und Eltern entlasten, ohne den Tag zu überladen.",
+      },
+      {
+        title: "Gastronomie und Genuss",
+        text:
+          "Restaurants, Cafés und Gastgeber, die zu einem vorbereiteten Abend oder besonderen Moment passen.",
+      },
+    ],
+  },
+  collaboration: {
+    kicker: "Zusammenarbeit",
+    title: "Ein Erlebnis wird bei Morrow Teil einer Auszeit.",
+    text:
+      "Wir denken Erlebnisse nicht als lose Empfehlung, sondern als passenden Baustein für einen Aufenthalt. Deshalb schauen wir gemeinsam, für welche Zielgruppe, welchen Anlass und welche Saison dein Angebot sinnvoll ist.",
+    image: "/brand/generated/morrow-spo-hero-people-table.png",
+    imageAlt: "Menschen teilen einen ruhigen Moment an einem Tisch",
+    steps: [
+      {
+        title: "Angebot verstehen",
+        text:
+          "Was bietest du an, für wen passt es und welche Voraussetzungen braucht es vor Ort?",
+      },
+      {
+        title: "Auszeit zuordnen",
+        text:
+          "Wir prüfen, ob dein Erlebnis eher zu Familien, Paaren, Nebensaison oder besonderen Anlässen passt.",
+      },
+      {
+        title: "Verlässlich einbinden",
+        text:
+          "Wenn es passt, klären wir Ablauf, Kontaktweg, Kapazität und die wichtigsten Informationen für Gäste.",
+      },
+    ],
+  },
+  request: {
+    kicker: "Kooperation",
+    title: "Erlebnis oder Ort vorschlagen",
+    text:
+      "Erzähl uns kurz, was du anbietest und warum es zu einer Auszeit in Sankt Peter-Ording passen könnte. Wir melden uns persönlich, wenn wir eine sinnvolle Verbindung sehen.",
+    fields: [
+      "Name",
+      "E-Mail",
+      "Telefon",
+      "Name des Angebots",
+      "Kategorie",
+      "Ort",
+      "Website oder Profil optional",
+      "Für wen geeignet?",
+      "Nachricht optional",
+    ],
+  },
+  faqs: [
+    {
+      question: "Muss mein Angebot buchbar sein?",
+      answer:
+        "Nicht zwingend. Manche Partner sind feste Erlebnisbausteine, andere werden als kuratierte Empfehlung vor Ort sichtbar. Wichtig ist, dass die Informationen verlässlich sind.",
+    },
+    {
+      question: "Ist Morrow eine klassische Vermittlungsplattform?",
+      answer:
+        "Nein. Morrow kuratiert Auszeiten. Ein Erlebnis wird nur aufgenommen, wenn es zu Zielgruppe, Ort, Saison und Aufenthaltsgefühl passt.",
+    },
+    {
+      question: "Welche Anbieter passen besonders gut?",
+      answer:
+        "Lokale Anbieter mit persönlicher Qualität: Natur, Familienmomente, Paarzeit, Wellness, Gastronomie, kleine besondere Orte und verlässliche Services.",
+    },
+    {
+      question: "Was passiert nach meiner Nachricht?",
+      answer:
+        "Wir schauen uns dein Angebot an und melden uns persönlich, wenn es für eine bestehende oder kommende Auszeit interessant ist.",
+    },
+  ],
+} as const;
+
 export const guideArticles: GuideArticle[] = [
   {
     slug: "sankt-peter-ording-mit-kindern",
