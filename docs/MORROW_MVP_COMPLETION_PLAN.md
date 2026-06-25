@@ -153,11 +153,12 @@ Stand: 2026-06-25
 - Die Eigentuemer-App liest kuenftig eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - Die Migration muss noch remote in Supabase angewendet werden, sobald `SUPABASE_ACCESS_TOKEN` oder Datenbankpasswort lokal verfuegbar ist.
 - `apps/admin` und `apps/guest` sind noch nicht produktiv nach Next migriert; sie bleiben der naechste grosse Architekturblock.
+- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login erste operative Supabase-Daten lesen sowie Anfrage- und Buchungsstatus aus der Uebersicht aktualisieren.
 
 Naechste technische Prioritaet:
 
 1. Supabase Owner-Migration live anwenden und ersten echten Owner-Zugang testen.
-2. Admin-App als Next-App aufsetzen, weil Admin die Quelle der Wahrheit fuer Owner-, Guest- und Website-Ausschnitte bleibt.
+2. Admin-App weiter ausbauen: Detail-Drawer fuer Anfragen/Buchungen, Kommunikationshistorie, Aufgaben und Monitoring.
 3. Guest-App danach aus dem Prototyp in `apps/guest` migrieren.
 4. Erst danach Owner-App weiter vertiefen: Abrechnung, Dokumente, Operationsstatus und Eigentuemer-Kommunikation.
 

@@ -15,6 +15,10 @@ type LeadRow = {
   id: string;
   type: "guest" | "owner" | "experience";
   status: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  package_slug: string | null;
   created_at: string;
   payload: Record<string, unknown>;
 };
@@ -30,6 +34,7 @@ type BookingRow = {
 type SimpleRow = {
   id: string;
   name?: string;
+  slug?: string;
   status?: string;
 };
 
@@ -55,6 +60,15 @@ type LoadState =
   | { status: "ready"; data: DashboardData }
   | { status: "error"; message: string };
 
+const leadQuickStatuses = ["In Prüfung", "Kontaktiert", "Kein Interesse"] as const;
+const bookingStatuses = ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen", "Storniert"] as const;
+
+function paymentStatusForBooking(status: string) {
+  return ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen"].includes(status)
+    ? "bezahlt"
+    : "offen";
+}
+
 function getPayloadText(payload: Record<string, unknown>, keys: string[]) {
   for (const key of keys) {
     const value = payload[key];
@@ -75,6 +89,22 @@ function formatDate(value: string) {
 
 function getOpenLeads(leads: LeadRow[]) {
   return leads.filter((lead) => !["Bezahlt", "Abgeschlossen", "Kein Interesse"].includes(lead.status));
+}
+
+function getLeadLabel(lead: LeadRow) {
+  return (
+    lead.name ||
+    getPayloadText(lead.payload, ["name", "fullName", "email"]) ||
+    lead.email ||
+    lead.type
+  );
+}
+
+function getBookingLabel(booking: BookingRow) {
+  return (
+    getPayloadText(booking.payload, ["packageName", "stayName", "guestName", "customerName"]) ||
+    booking.status
+  );
 }
 
 export function AdminDashboardClient() {
@@ -106,7 +136,7 @@ export function AdminDashboardClient() {
           await Promise.all([
             supabase
               .from("leads")
-              .select("id,type,status,created_at,payload")
+              .select("id,type,status,name,email,phone,package_slug,created_at,payload")
               .order("created_at", { ascending: false })
               .limit(30),
             supabase
@@ -114,7 +144,7 @@ export function AdminDashboardClient() {
               .select("id,status,payment_status,created_at,payload")
               .order("created_at", { ascending: false })
               .limit(30),
-            supabase.from("packages").select("id,name,status").order("name"),
+            supabase.from("packages").select("id,name,slug,status").order("name"),
             supabase.from("properties").select("id,name,status").order("name"),
             supabase
               .from("support_messages")
@@ -202,16 +232,232 @@ export function AdminDashboardClient() {
 }
 
 function AdminDashboardView({
-  data,
+  data: initialData,
   onLogout,
 }: {
   data: DashboardData;
   onLogout: () => void;
 }) {
+  const [dataState, setDataState] = useState(initialData);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const data = dataState;
   const openLeads = useMemo(() => getOpenLeads(data.leads), [data.leads]);
   const paidBookings = data.bookings.filter((booking) => booking.payment_status === "bezahlt");
   const openSupport = data.supportMessages.filter((message) => message.status !== "closed");
   const displayName = data.profile.name || data.profile.email;
+
+  async function writeAuditLog({
+    action,
+    entityType,
+    entityId,
+    entityLabel,
+    payload,
+  }: {
+    action: string;
+    entityType: string;
+    entityId: string;
+    entityLabel: string;
+    payload: Record<string, unknown>;
+  }) {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.from("admin_audit_logs").insert({
+      actor_email: data.profile.email,
+      action,
+      entity_type: entityType,
+      entity_id: entityId,
+      entity_label: entityLabel,
+      payload,
+    });
+  }
+
+  async function updateLeadStatus(lead: LeadRow, status: string) {
+    const actionKey = `lead-${lead.id}-${status}`;
+    setPendingAction(actionKey);
+    setActionMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const payload = {
+        ...lead.payload,
+        status,
+        updatedAt: new Date().toISOString(),
+      };
+      const { error } = await supabase
+        .from("leads")
+        .update({
+          status,
+          payload,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", lead.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        leads: current.leads.map((item) =>
+          item.id === lead.id ? { ...item, status, payload } : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "lead_status_updated",
+        entityType: "lead",
+        entityId: lead.id,
+        entityLabel: getLeadLabel(lead),
+        payload: { from: lead.status, to: status },
+      });
+
+      setActionMessage("Anfrage aktualisiert.");
+    } catch {
+      setActionMessage("Die Anfrage konnte nicht aktualisiert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function reserveLead(lead: LeadRow) {
+    const actionKey = `lead-${lead.id}-reserve`;
+    setPendingAction(actionKey);
+    setActionMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const packageItem = data.packages.find(
+        (item) => item.slug === lead.package_slug || item.id === lead.package_slug,
+      );
+      const now = new Date().toISOString();
+      const leadPayload = {
+        ...lead.payload,
+        status: "Reserviert",
+        updatedAt: now,
+      };
+      const bookingPayload = {
+        ...lead.payload,
+        id: lead.id,
+        leadId: lead.id,
+        customerName: getLeadLabel(lead),
+        email: lead.email,
+        phone: lead.phone,
+        packageId: packageItem?.id ?? lead.package_slug,
+        packageSlug: packageItem?.slug ?? lead.package_slug,
+        packageName: packageItem?.name ?? lead.package_slug ?? "Auszeit",
+        status: "Reserviert",
+        paymentStatus: "offen",
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      const leadResult = await supabase
+        .from("leads")
+        .update({
+          status: "Reserviert",
+          payload: leadPayload,
+          updated_at: now,
+        })
+        .eq("id", lead.id);
+
+      if (leadResult.error) throw leadResult.error;
+
+      const bookingResult = await supabase.from("bookings").upsert({
+        id: lead.id,
+        lead_id: lead.id,
+        package_id: packageItem?.id ?? lead.package_slug,
+        status: "Reserviert",
+        payment_status: "offen",
+        payload: bookingPayload,
+        updated_at: now,
+      });
+
+      if (bookingResult.error) throw bookingResult.error;
+
+      setDataState((current) => {
+        const bookingRow: BookingRow = {
+          id: lead.id,
+          status: "Reserviert",
+          payment_status: "offen",
+          created_at: now,
+          payload: bookingPayload,
+        };
+
+        return {
+          ...current,
+          leads: current.leads.map((item) =>
+            item.id === lead.id ? { ...item, status: "Reserviert", payload: leadPayload } : item,
+          ),
+          bookings: current.bookings.some((booking) => booking.id === lead.id)
+            ? current.bookings.map((booking) => (booking.id === lead.id ? bookingRow : booking))
+            : [bookingRow, ...current.bookings],
+        };
+      });
+
+      await writeAuditLog({
+        action: "lead_reserved",
+        entityType: "booking",
+        entityId: lead.id,
+        entityLabel: getLeadLabel(lead),
+        payload: { leadId: lead.id, packageId: packageItem?.id ?? lead.package_slug },
+      });
+
+      setActionMessage("Reservierung angelegt.");
+    } catch {
+      setActionMessage("Die Reservierung konnte nicht angelegt werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function updateBookingStatus(booking: BookingRow, status: string) {
+    const actionKey = `booking-${booking.id}-${status}`;
+    setPendingAction(actionKey);
+    setActionMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const paymentStatus = paymentStatusForBooking(status);
+      const payload = {
+        ...booking.payload,
+        status,
+        paymentStatus,
+        updatedAt: new Date().toISOString(),
+      };
+      const { error } = await supabase
+        .from("bookings")
+        .update({
+          status,
+          payment_status: paymentStatus,
+          payload,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", booking.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        bookings: current.bookings.map((item) =>
+          item.id === booking.id
+            ? { ...item, status, payment_status: paymentStatus, payload }
+            : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "booking_status_updated",
+        entityType: "booking",
+        entityId: booking.id,
+        entityLabel: getBookingLabel(booking),
+        payload: { from: booking.status, to: status, paymentStatus },
+      });
+
+      setActionMessage("Buchung aktualisiert.");
+    } catch {
+      setActionMessage("Die Buchung konnte nicht aktualisiert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
 
   return (
     <main className="admin-shell admin-dashboard">
@@ -236,6 +482,7 @@ function AdminDashboardView({
           Diese Next-Version bildet den neuen operativen Kern ab: erst lesen,
           dann Schritt für Schritt die geprüften Prototyp-Funktionen migrieren.
         </p>
+        {actionMessage ? <p className="admin-action-message">{actionMessage}</p> : null}
       </section>
 
       <section className="admin-metrics" aria-label="Kennzahlen">
@@ -267,11 +514,34 @@ function AdminDashboardView({
           <h2>Neueste Kontakte</h2>
           <div className="admin-list">
             {data.leads.slice(0, 8).map((lead) => (
-              <span key={lead.id}>
-                <small>{formatDate(lead.created_at)}</small>
-                <strong>{getPayloadText(lead.payload, ["name", "fullName", "email"]) || lead.type}</strong>
-                <em>{lead.status}</em>
-              </span>
+              <article className="admin-list-item" key={lead.id}>
+                <div>
+                  <small>{formatDate(lead.created_at)}</small>
+                  <strong>{getLeadLabel(lead)}</strong>
+                  <em>{lead.status}</em>
+                </div>
+                <div className="admin-row-actions">
+                  {leadQuickStatuses.map((status) => (
+                    <button
+                      disabled={pendingAction === `lead-${lead.id}-${status}`}
+                      key={status}
+                      onClick={() => updateLeadStatus(lead, status)}
+                      type="button"
+                    >
+                      {status}
+                    </button>
+                  ))}
+                  {lead.type === "guest" ? (
+                    <button
+                      disabled={pendingAction === `lead-${lead.id}-reserve`}
+                      onClick={() => reserveLead(lead)}
+                      type="button"
+                    >
+                      Reservieren
+                    </button>
+                  ) : null}
+                </div>
+              </article>
             ))}
           </div>
         </article>
@@ -281,14 +551,27 @@ function AdminDashboardView({
           <h2>Aktuelle Aufenthalte</h2>
           <div className="admin-list">
             {data.bookings.slice(0, 8).map((booking) => (
-              <span key={booking.id}>
-                <small>{formatDate(booking.created_at)}</small>
-                <strong>
-                  {getPayloadText(booking.payload, ["packageName", "stayName", "guestName"]) ||
-                    booking.status}
-                </strong>
-                <em>{booking.payment_status}</em>
-              </span>
+              <article className="admin-list-item" key={booking.id}>
+                <div>
+                  <small>{formatDate(booking.created_at)}</small>
+                  <strong>{getBookingLabel(booking)}</strong>
+                  <em>
+                    {booking.status} · {booking.payment_status}
+                  </em>
+                </div>
+                <div className="admin-row-actions">
+                  {bookingStatuses.map((status) => (
+                    <button
+                      disabled={pendingAction === `booking-${booking.id}-${status}`}
+                      key={status}
+                      onClick={() => updateBookingStatus(booking, status)}
+                      type="button"
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              </article>
             ))}
           </div>
         </article>

@@ -284,7 +284,8 @@ input {
   gap: 10px;
 }
 
-.admin-list span {
+.admin-list span,
+.admin-list-item {
   align-items: center;
   background: rgba(236, 230, 214, 0.56);
   border-radius: 8px;
@@ -304,6 +305,50 @@ input {
 .admin-list strong {
   font-size: 16px;
   font-weight: 860;
+}
+
+.admin-list-item {
+  align-items: stretch;
+  gap: 12px;
+}
+
+.admin-list-item > div:first-child {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-row-actions button {
+  background: rgba(255, 253, 248, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 820;
+  min-height: 34px;
+  padding: 0 10px;
+}
+
+.admin-row-actions button:disabled {
+  cursor: wait;
+  opacity: 0.52;
+}
+
+.admin-action-message {
+  background: rgba(112, 107, 63, 0.12);
+  border: 1px solid rgba(112, 107, 63, 0.2);
+  border-radius: 8px;
+  color: rgba(24, 23, 21, 0.76);
+  font-size: 15px;
+  font-weight: 760;
+  margin-top: 18px;
+  max-width: 520px;
+  padding: 12px 14px;
 }
 
 @media (min-width: 760px) {
