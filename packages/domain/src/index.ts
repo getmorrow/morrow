@@ -245,6 +245,123 @@ export const stayDetails: Record<string, StayDetail> = {
       },
     ],
   },
+  "couple-reset": {
+    ...stayTemplates[1],
+    heroTitle: "Ein paar Tage raus aus dem Alltag. Nur ihr zwei und die Nordsee.",
+    heroLead:
+      "Unterkunft, ruhiger Erlebnisbaustein und gute Empfehlungen sind vorbereitet, damit aus wenigen Tagen echte Paarzeit werden kann.",
+    price: "890 EUR",
+    priceNote: "pro Aufenthalt für 2 Personen",
+    dates: ["12.-16. August", "19.-23. August"],
+    maxGuests: 2,
+    dogOptional: true,
+    heroGallery: [
+      {
+        src: "/brand/generated/morrow-spo-couple.png",
+        alt: "Paar sitzt bei Sonnenuntergang mit Blick auf die Nordsee",
+        label: "Paarzeit",
+      },
+      {
+        src: "/brand/generated/morrow-article-couple-arrival-detail.png",
+        alt: "Ruhiger Ankommensmoment für eine Paar-Auszeit",
+        label: "Ankommen",
+      },
+      {
+        src: "/brand/generated/morrow-article-couple-table-moment.png",
+        alt: "Paar teilt einen ruhigen Moment am Tisch",
+        label: "Zeit zu zweit",
+      },
+    ],
+    included: [
+      "ruhige Unterkunft für 2 Personen",
+      "1 Erlebnisbaustein für gemeinsame Zeit",
+      "Dinner- und Spaziergangsempfehlungen",
+      "persönliche Abstimmung vor Anreise",
+      "vorbereitete Check-in-Informationen nach Buchung",
+    ],
+    story: {
+      kicker: "Das Gefühl",
+      title: "Kurz weg. Und trotzdem länger bei euch ankommen.",
+      text:
+        "Nicht noch eine Reise organisieren. Sondern Abstand bekommen, durchatmen und wieder spüren, wie gut gemeinsame Zeit sein kann.",
+      cues: ["Abstand vom Alltag", "Zeit zu zweit", "Ruhig vorbereitet"],
+      image: "/brand/generated/morrow-article-couple-beach-walk.png",
+      imageAlt: "Paar läuft gemeinsam am Strand von Sankt Peter-Ording",
+    },
+    property: {
+      kicker: "Unterkunft",
+      title: "Ein ruhiger Rückzugsort für zwei.",
+      text:
+        "Die Unterkunft ist bewusst als ruhige Basis gewählt: nah am Wasser, reduziert im Gefühl und passend für zwei Menschen, die ein paar Tage Abstand suchen.",
+      facts: ["2 Personen", "1 Schlafzimmer", "WLAN", "Hund optional"],
+      image: "/brand/generated/morrow-spo-interior.png",
+      imageAlt: "Ruhiger Wohnbereich einer vorbereiteten Unterkunft für zwei",
+    },
+    experience: {
+      kicker: "Erlebnis",
+      title: "Ein ruhiger Baustein, der euch näher ankommen lässt.",
+      text:
+        "Wellness, Yoga, gemeinsames Kochen oder ein besonderer Abend sollen nicht euren Aufenthalt füllen. Sie geben euch einen Anlass, bewusst Zeit miteinander zu verbringen.",
+      image: "/brand/generated/morrow-article-couple-dunes-rest.png",
+      imageAlt: "Paar ruht gemeinsam in den Dünen nahe der Nordsee",
+      items: [
+        "Wellness oder Yoga",
+        "Dinner zu zweit",
+        "nach Anlass und Termin abgestimmt",
+      ],
+    },
+    recommendations: [
+      {
+        title: "Sonnenuntergangsspaziergang",
+        text: "Ein ruhiger Weg am Wasser für Ankommen und Abstand.",
+      },
+      {
+        title: "Dinner zu zweit",
+        text: "Eine kuratierte Adresse für einen besonderen Abend ohne lange Recherche.",
+      },
+      {
+        title: "Wellness-Zeit",
+        text: "Eine Option für Entspannung, wenn sie zum Termin und zu eurem Anlass passt.",
+      },
+    ],
+    request: {
+      title: "Erst anfragen. Dann gemeinsam entscheiden.",
+      text:
+        "Erzählt uns kurz, welcher Termin und welcher Anlass zu euch passt. Wir schauen, ob Unterkunft, Erlebnis und euer Wunsch gut zusammenfinden.",
+      fields: [
+        "Name",
+        "E-Mail",
+        "Telefonnummer",
+        "gewünschter Termin",
+        "Anlass optional",
+        "Hund optional",
+        "WhatsApp-Zustimmung optional",
+        "besondere Wünsche",
+      ],
+    },
+    faqs: [
+      {
+        question: "Ist Couple Reset immer für zwei Personen?",
+        answer:
+          "Ja. Diese Auszeit ist auf zwei Personen ausgelegt. Hund ist je nach Unterkunft optional möglich.",
+      },
+      {
+        question: "Kann die Auszeit ein Geschenk sein?",
+        answer:
+          "Ja. Ihr könnt den Anlass nennen, zum Beispiel Geburtstag, Jahrestag oder Überraschung.",
+      },
+      {
+        question: "Welche Erlebnisse sind möglich?",
+        answer:
+          "Wir denken an ruhige Bausteine wie Wellness, Yoga, gemeinsames Kochen oder Dinner. Vor finaler Zusage prüfen wir, was zum Termin passt.",
+      },
+      {
+        question: "Warum gibt es keinen direkten Checkout?",
+        answer:
+          "Weil diese Auszeit nicht aus einzelnen Bausteinen besteht. Wir prüfen persönlich, ob Termin, Unterkunft und Erlebnis zusammenpassen.",
+      },
+    ],
+  },
 };
 
 export const guideArticles: GuideArticle[] = [
