@@ -6,6 +6,7 @@ import {
   createSupabaseBrowserClient,
   type OwnerDashboardData,
   type OwnerDashboardBooking,
+  type OwnerDashboardDate,
   type OwnerDashboardProperty,
 } from "@morrow/supabase";
 
@@ -30,6 +31,20 @@ function formatDateRange(booking: OwnerDashboardBooking) {
   return `${formatter.format(start)} - ${formatter.format(end)}`;
 }
 
+function formatDate(date: OwnerDashboardDate) {
+  if (date.label) return date.label;
+  if (!date.startsOn || !date.endsOn) return "Termin wird ergänzt";
+
+  const start = new Date(`${date.startsOn}T00:00:00`);
+  const end = new Date(`${date.endsOn}T00:00:00`);
+  const formatter = new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "long",
+  });
+
+  return `${formatter.format(start)} - ${formatter.format(end)}`;
+}
+
 function getNextBookings(bookings: OwnerDashboardBooking[]) {
   return [...bookings]
     .filter((booking) => booking.status !== "Abgeschlossen")
@@ -39,6 +54,17 @@ function getNextBookings(bookings: OwnerDashboardBooking[]) {
       return aDate - bDate;
     })
     .slice(0, 4);
+}
+
+function getUpcomingDates(dates: OwnerDashboardDate[]) {
+  return [...dates]
+    .filter((date) => date.status !== "archived")
+    .sort((a, b) => {
+      const aDate = a.startsOn ? new Date(a.startsOn).getTime() : Number.MAX_SAFE_INTEGER;
+      const bDate = b.startsOn ? new Date(b.startsOn).getTime() : Number.MAX_SAFE_INTEGER;
+      return aDate - bDate;
+    })
+    .slice(0, 5);
 }
 
 function getOpenPropertyNotes(properties: OwnerDashboardProperty[]) {
@@ -163,6 +189,7 @@ function OwnerDashboardView({
   onLogout: () => void;
 }) {
   const nextBookings = useMemo(() => getNextBookings(data.bookings), [data.bookings]);
+  const upcomingDates = useMemo(() => getUpcomingDates(data.dates ?? []), [data.dates]);
   const openNotes = useMemo(() => getOpenPropertyNotes(data.properties), [data.properties]);
   const activePackages = data.packages.filter((packageItem) => packageItem.status === "active");
   const paidBookings = data.bookings.filter((booking) => booking.paymentStatus === "bezahlt");
@@ -207,14 +234,14 @@ function OwnerDashboardView({
             <p>aktiv verbunden</p>
           </article>
           <article className="owner-metric-card">
-            <span>Buchungen</span>
-            <strong>{data.bookings.length}</strong>
-            <p>gesamt sichtbar</p>
+            <span>Termine</span>
+            <strong>{upcomingDates.length}</strong>
+            <p>kommende Zeiträume</p>
           </article>
           <article className="owner-metric-card">
-            <span>Bezahlt</span>
-            <strong>{paidBookings.length}</strong>
-            <p>aktuell markiert</p>
+            <span>Buchungen</span>
+            <strong>{data.bookings.length}</strong>
+            <p>{paidBookings.length} bezahlt</p>
           </article>
         </section>
 
@@ -263,8 +290,25 @@ function OwnerDashboardView({
 
         <section className="owner-section owner-dashboard-grid" id="buchungen">
           <article className="owner-card">
+            <p className="eyebrow">Zeiträume</p>
+            <h2>Kommende Verfügbarkeiten</h2>
+            <div className="owner-status-list">
+              {upcomingDates.length ? (
+                upcomingDates.map((date) => (
+                  <span key={date.id}>
+                    {formatDate(date)}
+                    <strong>{date.packageName || date.status}</strong>
+                  </span>
+                ))
+              ) : (
+                <p>Noch keine kommenden Zeiträume sichtbar.</p>
+              )}
+            </div>
+          </article>
+
+          <article className="owner-card">
             <p className="eyebrow">Buchungen</p>
-            <h2>Kommende Zeiträume</h2>
+            <h2>Aktuelle Buchungen</h2>
             <div className="owner-status-list">
               {nextBookings.length ? (
                 nextBookings.map((booking) => (
@@ -274,12 +318,14 @@ function OwnerDashboardView({
                   </span>
                 ))
               ) : (
-                <p>Noch keine kommenden Buchungen sichtbar.</p>
+                <p>Noch keine aktiven Buchungen sichtbar.</p>
               )}
             </div>
           </article>
+        </section>
 
-          <article className="owner-card" id="vermarktung">
+        <section className="owner-section owner-dashboard-grid" id="vermarktung">
+          <article className="owner-card">
             <p className="eyebrow">Vermarktung</p>
             <h2>Welche Auszeiten verbunden sind</h2>
             <div className="owner-status-list">
@@ -294,6 +340,16 @@ function OwnerDashboardView({
                 <p>Noch keine Auszeit mit diesem Objekt verbunden.</p>
               )}
             </div>
+          </article>
+
+          <article className="owner-card">
+            <p className="eyebrow">Nächster Schritt</p>
+            <h2>Was Morrow daraus macht</h2>
+            <p>
+              Freie Zeiträume werden mit passenden Auszeiten verbunden und
+              gezielt vermarktet. So bleibt sichtbar, wo Nachfrage entsteht und
+              welche Lücken als Nächstes bearbeitet werden.
+            </p>
           </article>
         </section>
 

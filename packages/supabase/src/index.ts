@@ -43,6 +43,19 @@ export type OwnerDashboardBooking = {
   payload: Record<string, unknown>;
 };
 
+export type OwnerDashboardDate = {
+  id: string;
+  packageId: string;
+  packageName: string;
+  propertyId: string | null;
+  label: string;
+  startsOn: string | null;
+  endsOn: string | null;
+  capacity: number | null;
+  status: string;
+  payload: Record<string, unknown>;
+};
+
 export type OwnerDashboardData = {
   profile: {
     id: string;
@@ -53,6 +66,7 @@ export type OwnerDashboardData = {
   };
   properties: OwnerDashboardProperty[];
   packages: OwnerDashboardPackage[];
+  dates: OwnerDashboardDate[];
   bookings: OwnerDashboardBooking[];
 };
 

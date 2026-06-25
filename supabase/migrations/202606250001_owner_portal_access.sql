@@ -136,6 +136,34 @@ as $$
           ),
           '[]'::jsonb
         ),
+      'dates',
+        coalesce(
+          (
+            select jsonb_agg(
+              jsonb_build_object(
+                'id', package_date.id,
+                'packageId', pkg.id,
+                'packageName', pkg.name,
+                'propertyId', pkg.property_id,
+                'label', package_date.label,
+                'startsOn', package_date.starts_on,
+                'endsOn', package_date.ends_on,
+                'capacity', package_date.capacity,
+                'status', package_date.status,
+                'payload', package_date.payload
+              )
+              order by coalesce(package_date.starts_on, package_date.created_at::date), package_date.created_at
+            )
+            from current_owner
+            join public.owner_property_access owner_access
+              on owner_access.owner_profile_id = current_owner.id
+            join public.packages pkg
+              on pkg.property_id = owner_access.property_id
+            join public.package_dates package_date
+              on package_date.package_id = pkg.id
+          ),
+          '[]'::jsonb
+        ),
       'bookings',
         coalesce(
           (
