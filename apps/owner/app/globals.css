@@ -39,6 +39,10 @@ input {
   font: inherit;
 }
 
+button {
+  color: inherit;
+}
+
 .owner-shell {
   min-height: 100vh;
 }
@@ -223,6 +227,16 @@ input {
   padding: 10px 14px;
 }
 
+.owner-nav-button {
+  background: transparent;
+  border: 0;
+  color: rgba(24, 23, 21, 0.64);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 780;
+  padding: 10px 0;
+}
+
 .owner-dashboard .owner-app-header {
   align-items: flex-start;
   flex-direction: column;
@@ -231,6 +245,28 @@ input {
 
 .owner-dashboard-hero {
   padding: clamp(28px, 5vw, 64px) 0 clamp(32px, 6vw, 72px);
+}
+
+.owner-center-state {
+  display: grid;
+  gap: 18px;
+  min-height: 100vh;
+  place-content: center;
+}
+
+.owner-center-state h1 {
+  font-size: clamp(34px, 8vw, 62px);
+  line-height: 0.98;
+  margin: 0;
+  max-width: 760px;
+}
+
+.owner-center-state p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.55;
+  margin: 0;
+  max-width: 560px;
 }
 
 .owner-metrics-grid,
@@ -305,6 +341,22 @@ input {
   padding: 24px;
 }
 
+.owner-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.owner-pill-row span {
+  background: rgba(112, 107, 63, 0.12);
+  border: 1px solid rgba(112, 107, 63, 0.2);
+  border-radius: 999px;
+  color: rgba(24, 23, 21, 0.74);
+  font-size: 13px;
+  font-weight: 800;
+  padding: 7px 10px;
+}
+
 .owner-status-list {
   display: grid;
   gap: 12px;
@@ -320,6 +372,13 @@ input {
   font-weight: 760;
   justify-content: space-between;
   padding: 12px 14px;
+}
+
+.owner-status-list p {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0;
 }
 
 @media (min-width: 760px) {

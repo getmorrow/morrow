@@ -221,6 +221,9 @@ Prinzipien:
 - Zielgefuehl: professionelle Betreuung, Transparenz, Entlastung.
 - Eigentuemer sollen nicht alles selbst erledigen muessen.
 - Die App zeigt, was Morrow tut und welchen Effekt es hat.
+- Der geschuetzte Zugriff wird ueber freigeschaltete Eigentuemerprofile gesteuert.
+- Ein Eigentuemer sieht nur Objekte, Auszeiten, Buchungen und Abrechnungsinformationen, die ueber Objekt-Rechte mit seinem Profil verbunden sind.
+- Admin bleibt die Quelle der Wahrheit; die Eigentuemer-App ist ein kuratierter, begrenzter Ausschnitt daraus.
 
 Nicht Zweck der Eigentuemer-App:
 
