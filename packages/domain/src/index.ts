@@ -33,6 +33,11 @@ export type GuideArticle = {
   image: string;
 };
 
+export type HomePageMoment = {
+  title: string;
+  text: string;
+};
+
 export const navigationItems = [
   { label: "Auszeiten", href: publicRoutes.stays },
   { label: "Ratgeber", href: publicRoutes.guides },
@@ -105,6 +110,11 @@ export const homePageContent = {
     cues: ["Unterkunft", "Erlebnis", "Betreuung"],
     image: "/brand/generated/morrow-spo-hero-people-boardwalk.png",
     imageAlt: "Menschen gehen gemeinsam durch die Dünen in Sankt Peter-Ording",
+    secondaryImage: "/brand/generated/morrow-spo-hero-people-table.png",
+    secondaryImageAlt:
+      "Familie teilt einen ruhigen Moment an einem Tisch in einer Unterkunft",
+    detailImage: "/brand/generated/morrow-spo-arrival-detail.png",
+    detailImageAlt: "Vorbereiteter Ankommensmoment in einer Unterkunft",
   },
   why: {
     kicker: "Warum Morrow",
@@ -134,6 +144,29 @@ export const homePageContent = {
     text:
       "Für Familien, die leichter gemeinsame Zeit finden wollen. Für Paare, die kurz raus möchten und länger etwas davon haben.",
   },
+  process: {
+    kicker: "So funktioniert Morrow",
+    title: "Wenige gute Entscheidungen. Mehr Raum für eure Zeit.",
+    text:
+      "Morrow nimmt nicht den ganzen Urlaub vorweg. Wir bereiten die wichtigen Dinge so vor, dass ihr leichter ankommt und vor Ort freier entscheiden könnt.",
+    items: [
+      {
+        title: "Auszeit wählen",
+        text:
+          "Ihr entscheidet nach dem Gefühl: Familienzeit, Paarzeit oder später weitere Anlässe.",
+      },
+      {
+        title: "Termin anfragen",
+        text:
+          "Ihr wählt einen vorbereiteten Zeitraum. Kein Kalenderstress, kein Direkt-Checkout.",
+      },
+      {
+        title: "Persönlich abstimmen",
+        text:
+          "Wir prüfen Unterkunft, Erlebnis und offene Details und melden uns mit dem nächsten Schritt.",
+      },
+    ],
+  },
   local: {
     kicker: "Lokal kuratiert",
     title: "SPO soll sich vorbereitet anfühlen.",
@@ -148,5 +181,11 @@ export const homePageContent = {
     title: "Klassische Agenturen listen. Morrow vermarktet aktiver.",
     text:
       "Wir prüfen, welche Reiseanlässe zu deinem Objekt passen, wie freie Zeiträume besser sichtbar werden und welcher nächste Schritt zu mehr Nettoertrag führen kann.",
+  },
+  finalCta: {
+    kicker: "Auszeit planen",
+    title: "Wenn der Urlaub leicht beginnen soll, ist das der richtige Start.",
+    text:
+      "Seht euch die vorbereiteten Auszeiten an oder stellt uns ein Objekt vor, das zu Morrow passen könnte.",
   },
 } as const;

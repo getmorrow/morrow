@@ -32,11 +32,27 @@ export default function HomePage() {
           </div>
 
           <div className="hero-media">
-            <img
-              alt={homePageContent.hero.imageAlt}
-              className="hero-photo-main"
-              src={homePageContent.hero.image}
-            />
+            <div className="hero-photo-cluster">
+              <img
+                alt={homePageContent.hero.imageAlt}
+                className="hero-photo-main"
+                src={homePageContent.hero.image}
+              />
+              <figure className="hero-photo-card hero-photo-card-one">
+                <img
+                  alt={homePageContent.hero.secondaryImageAlt}
+                  src={homePageContent.hero.secondaryImage}
+                />
+                <figcaption>Zeit zusammen</figcaption>
+              </figure>
+              <figure className="hero-photo-card hero-photo-card-two">
+                <img
+                  alt={homePageContent.hero.detailImageAlt}
+                  src={homePageContent.hero.detailImage}
+                />
+                <figcaption>Ankommen vorbereitet</figcaption>
+              </figure>
+            </div>
             <div className="hero-picks" aria-label="Auszeit-Einstiege">
               {stayTemplates.map((stay) => (
                 <a href={stay.href} key={stay.slug}>
@@ -63,6 +79,25 @@ export default function HomePage() {
                 <h3>{item.title}</h3>
                 <p>{item.text}</p>
               </Card>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      <section className="section process-section">
+        <Container className="process-grid">
+          <SectionHeader
+            eyebrow={homePageContent.process.kicker}
+            text={homePageContent.process.text}
+            title={homePageContent.process.title}
+          />
+          <div className="process-steps" aria-label="Ablauf">
+            {homePageContent.process.items.map((item, index) => (
+              <article className="process-step" key={item.title}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </article>
             ))}
           </div>
         </Container>
@@ -139,6 +174,22 @@ export default function HomePage() {
           <div>
             <p>{homePageContent.owners.text}</p>
             <Button href={publicRoutes.owners}>Immobilie vorstellen</Button>
+          </div>
+        </Container>
+      </section>
+
+      <section className="final-cta">
+        <Container className="final-cta-grid">
+          <SectionHeader
+            eyebrow={homePageContent.finalCta.kicker}
+            text={homePageContent.finalCta.text}
+            title={homePageContent.finalCta.title}
+          />
+          <div className="final-cta-actions">
+            <Button href="#auszeiten">Auszeiten ansehen</Button>
+            <Button href={publicRoutes.owners} variant="secondary">
+              Immobilie vorstellen
+            </Button>
           </div>
         </Container>
       </section>
