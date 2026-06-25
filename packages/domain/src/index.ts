@@ -364,6 +364,46 @@ export const stayDetails: Record<string, StayDetail> = {
   },
 };
 
+export const staysPageContent = {
+  hero: {
+    kicker: "Auszeiten in Sankt Peter-Ording",
+    title: "Zwei Wege ans Meer. Beide vorbereitet.",
+    text:
+      "Morrow startet bewusst mit zwei kuratierten Auszeiten: eine für Familien, eine für Paare. Nicht als endlose Auswahl, sondern als klarer Rahmen aus Unterkunft, Erlebnis und persönlicher Orientierung.",
+    image: "/brand/generated/morrow-spo-hero-people-boardwalk.png",
+    imageAlt: "Menschen gehen gemeinsam über einen Holzsteg zum Strand in Sankt Peter-Ording",
+  },
+  principles: [
+    {
+      title: "Weniger suchen",
+      text:
+        "Ihr müsst nicht Unterkunft, Erlebnis, Essen und erste Orientierung einzeln zusammensuchen.",
+    },
+    {
+      title: "Passender Rahmen",
+      text:
+        "Jede Auszeit ist für eine Zielgruppe gedacht: Familienzeit oder ruhige Paarzeit.",
+    },
+    {
+      title: "Persönlich geprüft",
+      text:
+        "Termine, Objekt und Erlebnis werden vor einer Zusage noch einmal abgestimmt.",
+    },
+  ],
+  comparison: {
+    kicker: "Welche Auszeit passt?",
+    title: "Nicht mehr Optionen. Bessere Orientierung.",
+    text:
+      "Phase 1 ist bewusst klein. Ihr sollt schnell verstehen, ob Morrow zu eurer Art von Aufenthalt passt.",
+  },
+  finalCta: {
+    kicker: "Nächster Schritt",
+    title: "Wählt die Auszeit, die sich nach euch anfühlt.",
+    text:
+      "Danach fragt ihr einen der vorbereiteten Termine an. Die Anfrage ist noch keine Buchung.",
+  },
+} as const;
+
 export const guideArticles: GuideArticle[] = [
   {
     slug: "sankt-peter-ording-mit-kindern",
