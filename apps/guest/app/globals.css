@@ -453,6 +453,231 @@ a {
   line-height: 1.42;
 }
 
+.guest-map-card {
+  overflow: hidden;
+  border: 1px solid rgba(25, 24, 23, 0.12);
+  border-radius: 1.25rem;
+  background: rgba(255, 252, 244, 0.74);
+  box-shadow: 0 1.2rem 3rem rgba(50, 45, 35, 0.08);
+}
+
+.guest-map-visual {
+  position: relative;
+  height: clamp(18rem, 74vw, 31rem);
+  overflow: hidden;
+  background: #f7f1e4;
+}
+
+.guest-leaflet-map,
+.guest-map-visual .leaflet-container {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  background: #f7f1e4;
+  font-family: inherit;
+}
+
+.guest-map-visual .leaflet-tile {
+  filter: saturate(0.72) contrast(0.94) sepia(0.08);
+}
+
+.guest-map-visual .leaflet-control-zoom {
+  overflow: hidden;
+  border: 1px solid rgba(25, 24, 23, 0.14);
+  border-radius: 1rem;
+  box-shadow: 0 0.9rem 2rem rgba(25, 24, 23, 0.12);
+}
+
+.guest-map-visual .leaflet-control-zoom a {
+  width: 2.35rem;
+  height: 2.35rem;
+  border: 0;
+  background: rgba(255, 252, 244, 0.94);
+  color: #191817;
+  font: inherit;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 2.35rem;
+}
+
+.guest-map-visual .leaflet-control-attribution {
+  border-radius: 999px;
+  background: rgba(255, 252, 244, 0.78);
+  color: rgba(25, 24, 23, 0.52);
+  font-size: 0.68rem;
+}
+
+.morrow-map-marker {
+  position: relative;
+  box-sizing: border-box;
+  min-height: 1.9rem;
+  padding: 0;
+  border: 1px solid rgba(25, 24, 23, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 252, 244, 0.94);
+  color: #191817;
+  box-shadow: 0 0.75rem 1.8rem rgba(25, 24, 23, 0.13);
+  font-size: 0.74rem;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.morrow-map-marker button {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0 0.65rem 0 0.55rem;
+}
+
+.morrow-map-marker strong {
+  position: relative;
+  z-index: 1;
+  display: block;
+  max-width: 8.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.morrow-map-marker:not(.is-compact) strong {
+  height: 1.9rem;
+  line-height: 1.9rem;
+}
+
+.morrow-map-marker.is-compact {
+  width: 1.9rem;
+  height: 1.9rem;
+  min-height: 1.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-color: rgba(25, 24, 23, 0.16);
+  background: rgba(255, 252, 244, 0.96);
+  text-align: center;
+}
+
+.morrow-map-marker.is-expanded-compact {
+  width: 2.15rem;
+  height: 2.15rem;
+  min-height: 2.15rem;
+}
+
+.morrow-map-marker.is-cluster {
+  border-color: rgba(25, 24, 23, 0.24);
+  background: #79723d;
+  color: #fffaf0;
+  box-shadow: 0 1rem 2.2rem rgba(25, 24, 23, 0.2);
+}
+
+.morrow-map-marker.is-stay {
+  border-color: rgba(25, 24, 23, 0.24);
+  background: #191817;
+  color: #fffaf0;
+}
+
+.morrow-map-marker.is-stay.is-compact {
+  width: 4.25rem;
+}
+
+.morrow-map-marker.is-compact button {
+  padding: 0;
+}
+
+.morrow-map-marker.is-compact span {
+  display: none;
+}
+
+.morrow-map-marker.is-compact strong {
+  max-width: none;
+  line-height: 1;
+}
+
+.morrow-map-marker span {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #9fa38e;
+}
+
+.morrow-map-marker:not(.is-compact) span {
+  display: none;
+}
+
+.morrow-map-marker-food span {
+  background: #c79074;
+}
+
+.morrow-map-marker-event span,
+.morrow-map-marker-shopping span,
+.morrow-map-marker-tide span {
+  background: #b49b69;
+}
+
+.morrow-map-marker-emergency span {
+  background: #9d5e51;
+}
+
+.guest-map-overlay {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 2;
+  display: grid;
+  gap: 0.1rem;
+  min-width: 9.8rem;
+  border: 1px solid rgba(25, 24, 23, 0.12);
+  border-radius: 1rem;
+  background: rgba(255, 252, 244, 0.9);
+  box-shadow: 0 0.9rem 2rem rgba(25, 24, 23, 0.1);
+  padding: 0.75rem 0.9rem;
+}
+
+.guest-map-overlay span,
+.guest-map-caption span {
+  color: rgba(25, 24, 23, 0.56);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.guest-map-overlay strong {
+  font-size: 1.25rem;
+  line-height: 1.1;
+}
+
+.guest-map-caption {
+  display: grid;
+  gap: 0.35rem;
+  border-top: 1px solid rgba(25, 24, 23, 0.08);
+  padding: 0.95rem 1rem;
+}
+
+.guest-map-caption strong {
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.guest-map-caption span {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 .guest-filter-row {
   display: flex;
   gap: 0.55rem;

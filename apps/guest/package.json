@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@morrow/supabase": "0.0.0",
+    "leaflet": "^1.9.4",
     "next": "^15.5.9",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"

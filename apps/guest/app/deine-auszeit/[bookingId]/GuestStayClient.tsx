@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "@morrow/supabase";
+import { GuestLocalMap, type GuestMapPlace } from "./GuestLocalMap";
 
 type GuestView = "home" | "plan" | "booking" | "local" | "help" | "feedback" | "again";
 type LocalFilter = "all" | "weather" | "tide" | "beach" | "food" | "experience" | "event" | "shopping" | "emergency";
@@ -52,6 +53,8 @@ type GuestPackage = {
     location?: string;
     address?: string;
     image?: string;
+    lat?: number | null;
+    lng?: number | null;
     checkInType?: string;
     checkInInstructions?: string;
     arrivalWindow?: string;
@@ -444,6 +447,49 @@ function placeActions(place: LocalPlace) {
   ].filter(Boolean) as Array<{ label: string; href: string }>;
 }
 
+function localPlaceToMapPlace(place: LocalPlace): GuestMapPlace | null {
+  if (!Number.isFinite(place.lat) || !Number.isFinite(place.lng)) return null;
+  return {
+    id: place.id,
+    name: place.name,
+    category: normalizeCategory(place.category),
+    lat: Number(place.lat),
+    lng: Number(place.lng),
+  };
+}
+
+function stayMapPlace(packageItem?: GuestPackage | null): GuestMapPlace {
+  const lat = typeof packageItem?.stay?.lat === "number" ? packageItem.stay.lat : 54.309;
+  const lng = typeof packageItem?.stay?.lng === "number" ? packageItem.stay.lng : 8.633;
+  return {
+    id: "stay",
+    name: packageItem?.stay?.name || "Eure Auszeit",
+    category: "stay",
+    lat,
+    lng,
+  };
+}
+
+function stayAsLocalPlace(packageItem?: GuestPackage | null): LocalPlace {
+  const mapPlace = stayMapPlace(packageItem);
+  return {
+    id: "stay",
+    name: mapPlace.name,
+    category: "stay",
+    status: "approved",
+    lat: mapPlace.lat,
+    lng: mapPlace.lng,
+    address: packageItem?.stay?.address || packageItem?.stay?.location || packageItem?.location || "Sankt Peter-Ording",
+    payload: {
+      description:
+        packageItem?.stay?.checkInInstructions ||
+        "Eure Unterkunft ist der Ausgangspunkt für Anreise, Strand, Empfehlungen und die vorbereitete Auszeit.",
+      bestFor: ["Ankommen", "Orientierung", "Ausgangspunkt"],
+      image: packageItem?.stay?.image || packageImage(packageItem),
+    },
+  };
+}
+
 export function GuestStayClient({
   bookingId,
   accessCode,
@@ -572,6 +618,16 @@ export function GuestStayClient({
     : localPlaces.filter((place) => normalizeCategory(place.category) === localFilter).slice(0, 12);
   const selectedFilterLabel = localFilterLabels[localFilter];
   const showPlaceResults = localFilter !== "weather" && localFilter !== "tide";
+  const mapPlaces = useMemo(() => {
+    const stay = stayMapPlace(packageItem);
+    const sourcePlaces = localFilter === "all"
+      ? localPlaces
+      : localPlaces.filter((place) => normalizeCategory(place.category) === localFilter);
+    const placePins = sourcePlaces
+      .map(localPlaceToMapPlace)
+      .filter((place): place is GuestMapPlace => Boolean(place));
+    return [stay, ...placePins];
+  }, [localFilter, localPlaces, packageItem]);
   const navItems: GuestView[] = completed
     ? ["home", "booking", "feedback", "again"]
     : ["home", "plan", "booking", "local", "help"];
@@ -802,16 +858,29 @@ export function GuestStayClient({
             <p className="eyebrow">Vor Ort</p>
             <h2>Schnelle Entscheidungen statt neuer Suche.</h2>
             <p>Hier erscheinen nur Orte, die von Morrow freigegeben wurden und zu eurer Auszeit passen.</p>
-            <div className="guest-local-map-preview">
-              <div>
-                <span>In eurer Nähe</span>
-                <strong>{localPlaces.length + 2} Hinweise</strong>
+            <div className="guest-map-card">
+              <div className="guest-map-visual" aria-label="Interaktive Karte Sankt Peter-Ording">
+                <GuestLocalMap
+                  places={mapPlaces}
+                  compactMarkers={localFilter === "all"}
+                  onSelectPlace={(placeId) => {
+                    if (placeId === "stay") {
+                      setSelectedPlace(stayAsLocalPlace(packageItem));
+                      return;
+                    }
+                    const place = localPlaces.find((item) => item.id === placeId);
+                    if (place) setSelectedPlace(place);
+                  }}
+                />
+                <div className="guest-map-overlay">
+                  <span>{localFilter === "all" ? "In eurer Nähe" : selectedFilterLabel}</span>
+                  <strong>{localFilter === "all" ? `${localPlaces.length} Orte` : `${Math.max(mapPlaces.length - 1, 0)} Orte`}</strong>
+                </div>
               </div>
-              <p>
-                Karte, Wetter, Gezeiten und kuratierte Orte werden hier gebündelt.
-                So findet ihr schneller, was zu eurem Tag passt, ohne neu suchen
-                und vergleichen zu müssen.
-              </p>
+              <div className="guest-map-caption">
+                <strong>{localFilter === "all" ? "Tippt Gruppen-Pins an, um Orte aufzulösen." : "Tippt einen Ort für Details."}</strong>
+                <span>{localFilter === "all" ? "Der Drawer öffnet erst bei einem konkreten Ort." : "Route, Links und Hinweise liegen im Detail."}</span>
+              </div>
             </div>
 
             <div className="guest-filter-row" aria-label="Vor-Ort-Filter">
