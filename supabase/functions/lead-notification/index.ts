@@ -252,6 +252,34 @@ async function logEmailEvent(lead: LeadPayload, eventType: string, recipient: st
   })
 }
 
+async function logCommunicationEvent(
+  lead: LeadPayload,
+  eventType: string,
+  recipient: string,
+  subject: string,
+  body: string,
+  status: string,
+  payload: Record<string, unknown>,
+) {
+  if (!supabase) return
+  await supabase.from('communication_events').insert({
+    lead_id: lead.id,
+    channel: 'email',
+    direction: eventType === 'internal_lead_notification' ? 'internal' : 'outbound',
+    event_type: eventType,
+    subject,
+    body,
+    recipient,
+    actor: eventType === 'internal_lead_notification' ? 'Morrow Automation' : 'Morrow',
+    status,
+    provider: 'resend',
+    provider_message_id: typeof payload.result === 'object' && payload.result && 'id' in payload.result
+      ? String((payload.result as { id?: unknown }).id ?? '')
+      : null,
+    payload,
+  })
+}
+
 async function sendEmail(lead: LeadPayload, eventType: string, to: string, subject: string, text: string, html: string) {
   if (!resendApiKey) {
     await logEmailEvent(lead, eventType, to, 'skipped', { subject, reason: 'missing_resend_api_key' })
@@ -281,6 +309,7 @@ async function sendEmail(lead: LeadPayload, eventType: string, to: string, subje
   }
 
   await logEmailEvent(lead, eventType, to, 'sent', { subject, result })
+  await logCommunicationEvent(lead, eventType, to, subject, text, 'sent', { subject, result })
 }
 
 Deno.serve(async (request) => {
