@@ -157,11 +157,17 @@ type InventorySelection =
 
 type InventoryDraft = Record<string, string | boolean>;
 
-type ExperienceSelection = { id: string } | null;
+type ExperienceSelection =
+  | { mode: "create" }
+  | { mode: "edit"; id: string }
+  | null;
 
 type ExperienceDraft = Record<string, string | boolean>;
 
-type DateSelection = { id: string } | null;
+type DateSelection =
+  | { mode: "create" }
+  | { mode: "edit"; id: string }
+  | null;
 
 type DateDraft = Record<string, string>;
 
@@ -687,10 +693,10 @@ function AdminDashboardView({
   const selectedProperty = inventorySelection?.type === "property"
     ? data.properties.find((item) => item.id === inventorySelection.id) ?? null
     : null;
-  const selectedExperience = experienceSelection
+  const selectedExperience = experienceSelection?.mode === "edit"
     ? data.experienceBlocks.find((item) => item.id === experienceSelection.id) ?? null
     : null;
-  const selectedDate = dateSelection
+  const selectedDate = dateSelection?.mode === "edit"
     ? data.packageDates.find((item) => item.id === dateSelection.id) ?? null
     : null;
 
@@ -740,6 +746,22 @@ function AdminDashboardView({
       return;
     }
 
+    if (experienceSelection.mode === "create") {
+      setExperienceDraft({
+        title: "",
+        package_id: data.packages[0]?.id || "",
+        provider_id: "",
+        role: "planned",
+        confirmation_status: "planned",
+        included_in_price: false,
+        guest_note: "",
+        price_note: "",
+        capacity_note: "",
+        availability_note: "",
+      });
+      return;
+    }
+
     const item = data.experienceBlocks.find((experience) => experience.id === experienceSelection.id);
     setExperienceDraft(item ? {
       title: item.title,
@@ -753,13 +775,26 @@ function AdminDashboardView({
       capacity_note: getPayloadText(item.payload, ["capacityNote", "capacity"]) || "",
       availability_note: getPayloadText(item.payload, ["availabilityNote", "availability"]) || "",
     } : {});
-  }, [experienceSelection, data.experienceBlocks]);
+  }, [experienceSelection, data.experienceBlocks, data.packages]);
 
   useEffect(() => {
     setDateMessage(null);
 
     if (!dateSelection) {
       setDateDraft({});
+      return;
+    }
+
+    if (dateSelection.mode === "create") {
+      setDateDraft({
+        label: "",
+        package_id: data.packages[0]?.id || "",
+        starts_on: "",
+        ends_on: "",
+        capacity: "",
+        status: "available",
+        note: "",
+      });
       return;
     }
 
@@ -773,7 +808,7 @@ function AdminDashboardView({
       status: item.status || "available",
       note: getPayloadText(item.payload, ["note", "internalNote", "availabilityNote"]) || "",
     } : {});
-  }, [dateSelection, data.packageDates]);
+  }, [dateSelection, data.packageDates, data.packages]);
 
   useEffect(() => {
     if (!selection) {
@@ -1359,18 +1394,18 @@ function AdminDashboardView({
   async function saveExperience() {
     if (!experienceSelection) return;
 
-    const actionKey = `experience-${experienceSelection.id}`;
+    const actionKey = experienceSelection.mode === "create"
+      ? "experience-create"
+      : `experience-${experienceSelection.id}`;
     setPendingAction(actionKey);
     setExperienceMessage(null);
 
     try {
       const supabase = createSupabaseBrowserClient();
       const now = new Date().toISOString();
-      const currentItem = data.experienceBlocks.find((item) => item.id === experienceSelection.id);
-      if (!currentItem) throw new Error("Missing experience");
+      const title = String(experienceDraft.title || "").trim() || "Neuer Erlebnisbaustein";
 
       const payload = {
-        ...(currentItem.payload ?? {}),
         guestNote: String(experienceDraft.guest_note || "").trim(),
         priceNote: String(experienceDraft.price_note || "").trim(),
         capacityNote: String(experienceDraft.capacity_note || "").trim(),
@@ -1378,7 +1413,7 @@ function AdminDashboardView({
         updatedAt: now,
       };
       const updatePayload = {
-        title: String(experienceDraft.title || "").trim(),
+        title,
         package_id: String(experienceDraft.package_id || "").trim() || null,
         provider_id: String(experienceDraft.provider_id || "").trim() || null,
         role: String(experienceDraft.role || "planned").trim(),
@@ -1387,9 +1422,48 @@ function AdminDashboardView({
         payload,
         updated_at: now,
       };
+
+      if (experienceSelection.mode === "create") {
+        const { data: inserted, error } = await supabase
+          .from("experience_blocks")
+          .insert(updatePayload)
+          .select("id,package_id,provider_id,title,role,included_in_price,confirmation_status,payload,created_at")
+          .single();
+
+        if (error) throw error;
+
+        setDataState((current) => ({
+          ...current,
+          experienceBlocks: [inserted as ExperienceBlockRow, ...current.experienceBlocks],
+        }));
+
+        await writeAuditLog({
+          action: "experience_created",
+          entityType: "experience",
+          entityId: (inserted as ExperienceBlockRow).id,
+          entityLabel: title,
+          payload: updatePayload,
+        });
+
+        setExperienceSelection({ mode: "edit", id: (inserted as ExperienceBlockRow).id });
+        setExperienceMessage("Angelegt.");
+        return;
+      }
+
+      const currentItem = data.experienceBlocks.find((item) => item.id === experienceSelection.id);
+      if (!currentItem) throw new Error("Missing experience");
+
+      const mergedPayload = {
+        ...(currentItem.payload ?? {}),
+        ...payload,
+      };
+      const editPayload = {
+        ...updatePayload,
+        payload: mergedPayload,
+      };
       const { error } = await supabase
         .from("experience_blocks")
-        .update(updatePayload)
+        .update(editPayload)
         .eq("id", experienceSelection.id);
 
       if (error) throw error;
@@ -1397,7 +1471,7 @@ function AdminDashboardView({
       setDataState((current) => ({
         ...current,
         experienceBlocks: current.experienceBlocks.map((item) =>
-          item.id === experienceSelection.id ? { ...item, ...updatePayload } : item,
+          item.id === experienceSelection.id ? { ...item, ...editPayload } : item,
         ),
       }));
 
@@ -1406,7 +1480,7 @@ function AdminDashboardView({
         entityType: "experience",
         entityId: experienceSelection.id,
         entityLabel: currentItem.title,
-        payload: updatePayload,
+        payload: editPayload,
       });
 
       setExperienceMessage("Gespeichert.");
@@ -1420,24 +1494,27 @@ function AdminDashboardView({
   async function savePackageDate() {
     if (!dateSelection) return;
 
-    const actionKey = `date-${dateSelection.id}`;
+    const actionKey = dateSelection.mode === "create" ? "date-create" : `date-${dateSelection.id}`;
     setPendingAction(actionKey);
     setDateMessage(null);
 
     try {
       const supabase = createSupabaseBrowserClient();
       const now = new Date().toISOString();
-      const currentItem = data.packageDates.find((item) => item.id === dateSelection.id);
-      if (!currentItem) throw new Error("Missing date");
+      const packageId = String(dateDraft.package_id || "").trim();
+      if (!packageId) {
+        setDateMessage("Bitte zuerst eine Auszeit auswählen.");
+        return;
+      }
+      const label = String(dateDraft.label || "").trim() || "Neuer Termin";
 
       const payload = {
-        ...(currentItem.payload ?? {}),
         note: String(dateDraft.note || "").trim(),
         updatedAt: now,
       };
       const updatePayload = {
-        label: String(dateDraft.label || "").trim(),
-        package_id: String(dateDraft.package_id || "").trim(),
+        label,
+        package_id: packageId,
         starts_on: String(dateDraft.starts_on || "").trim() || null,
         ends_on: String(dateDraft.ends_on || "").trim() || null,
         capacity: numberOrNull(String(dateDraft.capacity || "")),
@@ -1445,9 +1522,47 @@ function AdminDashboardView({
         payload,
         updated_at: now,
       };
+
+      if (dateSelection.mode === "create") {
+        const { data: inserted, error } = await supabase
+          .from("package_dates")
+          .insert(updatePayload)
+          .select("id,package_id,label,starts_on,ends_on,capacity,status,payload,created_at")
+          .single();
+
+        if (error) throw error;
+
+        setDataState((current) => ({
+          ...current,
+          packageDates: [inserted as PackageDateRow, ...current.packageDates],
+        }));
+
+        await writeAuditLog({
+          action: "package_date_created",
+          entityType: "package_date",
+          entityId: (inserted as PackageDateRow).id,
+          entityLabel: label,
+          payload: updatePayload,
+        });
+
+        setDateSelection({ mode: "edit", id: (inserted as PackageDateRow).id });
+        setDateMessage("Angelegt.");
+        return;
+      }
+
+      const currentItem = data.packageDates.find((item) => item.id === dateSelection.id);
+      if (!currentItem) throw new Error("Missing date");
+
+      const editPayload = {
+        ...updatePayload,
+        payload: {
+          ...(currentItem.payload ?? {}),
+          ...payload,
+        },
+      };
       const { error } = await supabase
         .from("package_dates")
-        .update(updatePayload)
+        .update(editPayload)
         .eq("id", dateSelection.id);
 
       if (error) throw error;
@@ -1455,7 +1570,7 @@ function AdminDashboardView({
       setDataState((current) => ({
         ...current,
         packageDates: current.packageDates.map((item) =>
-          item.id === dateSelection.id ? { ...item, ...updatePayload } : item,
+          item.id === dateSelection.id ? { ...item, ...editPayload } : item,
         ),
       }));
 
@@ -1464,7 +1579,7 @@ function AdminDashboardView({
         entityType: "package_date",
         entityId: dateSelection.id,
         entityLabel: currentItem.label,
-        payload: updatePayload,
+        payload: editPayload,
       });
 
       setDateMessage("Gespeichert.");
@@ -1718,6 +1833,15 @@ function AdminDashboardView({
             Erlebnisbausteine verbinden Auszeit, Anbieter und Gastversprechen.
             Enthaltene Bausteine sollten vor der Freigabe bestätigt sein.
           </p>
+          <div className="admin-card-toolbar">
+            <button
+              className="admin-button secondary"
+              onClick={() => setExperienceSelection({ mode: "create" })}
+              type="button"
+            >
+              Erlebnis anlegen
+            </button>
+          </div>
           <div className="admin-list">
             {data.experienceBlocks.length ? (
               data.experienceBlocks.map((experience) => (
@@ -1733,7 +1857,7 @@ function AdminDashboardView({
                   </div>
                   <div className="admin-row-actions">
                     <button
-                      onClick={() => setExperienceSelection({ id: experience.id })}
+                      onClick={() => setExperienceSelection({ mode: "edit", id: experience.id })}
                       type="button"
                     >
                       Bearbeiten
@@ -1756,6 +1880,15 @@ function AdminDashboardView({
             Diese Termine steuern, welche Auszeiten konkret angefragt und später
             verbindlich vorbereitet werden können.
           </p>
+          <div className="admin-card-toolbar">
+            <button
+              className="admin-button secondary"
+              onClick={() => setDateSelection({ mode: "create" })}
+              type="button"
+            >
+              Termin anlegen
+            </button>
+          </div>
           <div className="admin-list">
             {data.packageDates.length ? (
               data.packageDates.map((date) => (
@@ -1771,7 +1904,7 @@ function AdminDashboardView({
                   </div>
                   <div className="admin-row-actions">
                     <button
-                      onClick={() => setDateSelection({ id: date.id })}
+                      onClick={() => setDateSelection({ mode: "edit", id: date.id })}
                       type="button"
                     >
                       Bearbeiten
@@ -1864,6 +1997,7 @@ function AdminDashboardView({
       <AdminExperienceDrawer
         draft={experienceDraft}
         experience={selectedExperience}
+        isCreating={experienceSelection?.mode === "create"}
         message={experienceMessage}
         onChange={(key, value) => setExperienceDraft((current) => ({ ...current, [key]: value }))}
         onClose={() => setExperienceSelection(null)}
@@ -1875,6 +2009,7 @@ function AdminDashboardView({
       <AdminPackageDateDrawer
         date={selectedDate}
         draft={dateDraft}
+        isCreating={dateSelection?.mode === "create"}
         message={dateMessage}
         onChange={(key, value) => setDateDraft((current) => ({ ...current, [key]: value }))}
         onClose={() => setDateSelection(null)}
@@ -2221,6 +2356,7 @@ function AdminInventoryDrawer({
 function AdminExperienceDrawer({
   draft,
   experience,
+  isCreating,
   message,
   onChange,
   onClose,
@@ -2231,6 +2367,7 @@ function AdminExperienceDrawer({
 }: {
   draft: ExperienceDraft;
   experience: ExperienceBlockRow | null;
+  isCreating: boolean;
   message: string | null;
   onChange: (key: string, value: string | boolean) => void;
   onClose: () => void;
@@ -2239,7 +2376,7 @@ function AdminExperienceDrawer({
   pending: boolean;
   providers: ExperienceProviderRow[];
 }) {
-  if (!experience) return null;
+  if (!experience && !isCreating) return null;
 
   return (
     <div className="admin-drawer-layer" role="presentation">
@@ -2248,8 +2385,8 @@ function AdminExperienceDrawer({
         <header>
           <div>
             <p className="admin-eyebrow">Erlebnis</p>
-            <h2>{experience.title}</h2>
-            <span>{experience.id}</span>
+            <h2>{isCreating ? "Neuer Erlebnisbaustein" : experience?.title}</h2>
+            <span>{isCreating ? "wird nach dem Speichern angelegt" : experience?.id}</span>
           </div>
           <button aria-label="Bearbeitung schließen" onClick={onClose} type="button">
             Schließen
@@ -2386,6 +2523,7 @@ function AdminExperienceDrawer({
 function AdminPackageDateDrawer({
   date,
   draft,
+  isCreating,
   message,
   onChange,
   onClose,
@@ -2395,6 +2533,7 @@ function AdminPackageDateDrawer({
 }: {
   date: PackageDateRow | null;
   draft: DateDraft;
+  isCreating: boolean;
   message: string | null;
   onChange: (key: string, value: string) => void;
   onClose: () => void;
@@ -2402,7 +2541,7 @@ function AdminPackageDateDrawer({
   packages: SimpleRow[];
   pending: boolean;
 }) {
-  if (!date) return null;
+  if (!date && !isCreating) return null;
 
   return (
     <div className="admin-drawer-layer" role="presentation">
@@ -2411,8 +2550,8 @@ function AdminPackageDateDrawer({
         <header>
           <div>
             <p className="admin-eyebrow">Termin</p>
-            <h2>{date.label}</h2>
-            <span>{date.id}</span>
+            <h2>{isCreating ? "Neuer Termin" : date?.label}</h2>
+            <span>{isCreating ? "wird nach dem Speichern angelegt" : date?.id}</span>
           </div>
           <button aria-label="Bearbeitung schließen" onClick={onClose} type="button">
             Schließen

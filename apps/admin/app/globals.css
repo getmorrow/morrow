@@ -279,6 +279,12 @@ input {
   gap: 18px;
 }
 
+.admin-card-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .admin-card-wide {
   grid-column: 1 / -1;
 }
