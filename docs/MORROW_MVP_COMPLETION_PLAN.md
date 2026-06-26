@@ -104,7 +104,7 @@ Ziel: Buchbare Auszeiten duerfen nicht ohne klare Bedingungen live gehen.
 | Buchungsbedingungen | Web-Arbeitsfassung unter `/buchungsbedingungen` vorhanden und im Footer verlinkt | Was ist verbindlich, wann entsteht Buchung, was ist enthalten? juristisch finalisieren | MVP-kritisch | Teilweise |
 | Stornobedingungen | Web-Arbeitsfassung unter `/stornobedingungen` vorhanden und im Footer verlinkt | Fristen, Kosten, Sonderfaelle je Buchungsmodell final festlegen | MVP-kritisch | Teilweise |
 | Zahlungsbedingungen | Web-Arbeitsfassung unter `/zahlungsbedingungen` vorhanden und im Footer verlinkt | Zahlung wann, wohin, Beleg, Reservierung bis wann final festlegen | MVP-kritisch | Teilweise |
-| Datenschutz | Web-Arbeitsfassung unter `/datenschutz` vorhanden und im Footer verlinkt | Supabase, Resend, WhatsApp, Tracking, Supportdaten final pruefen | MVP-kritisch | Teilweise |
+| Datenschutz | Web-Arbeitsfassung unter `/datenschutz` vorhanden und im Footer verlinkt; optionale GA-/Meta-Messung startet in Next-Web erst nach Consent | Supabase, Resend, WhatsApp, Tracking, Supportdaten final pruefen | MVP-kritisch | Teilweise |
 | WhatsApp/Marketing-Einwilligung | Technisch teilweise | Rechtstext/Opt-in-Formulierung finalisieren | MVP-kritisch | Offen |
 | Bildrechte | Teilweise als Feld vorhanden | Pro Unterkunft/Erlebnis dokumentieren | MVP-kritisch | Teilweise |
 | Secret-Rotation | Secrets wurden im Arbeitsverlauf geteilt | Supabase Service Role, PAT, Resend Key, Admin-Passwort rotieren | MVP-kritisch | Offen |
@@ -118,8 +118,8 @@ Ziel: Morrow kann Nachfrage erzeugen und messen, ohne direkt zu ueberautomatisie
 | Ratgeberbereich | Vorhanden | Systematischer Ausbau mit Keyword-Clustern und interner Verlinkung | MVP-kritisch | Teilweise |
 | Keyword-Cluster | Dokument `SEO_GEO_KEYWORD_PLAN.md` vorhanden | SPO/Familienurlaub/Paar-Auszeit/Nordsee priorisieren, Artikelplan pflegen | MVP-kritisch | Teilweise |
 | Schema.org | Next-Web gibt strukturierte Daten fuer Organisation, Website, Auszeiten-Listen, Auszeit-Angebote, FAQ, Breadcrumbs, Ratgeber-Artikel, Eigentuemer- und Erlebnispartner-Service aus | Spaeter mit echten Review-/Availability-/LocalBusiness-Daten und Search Console Validierung erweitern | MVP-light | Teilweise |
-| Conversion-Tracking | Zentrale Web-Analytics-Komponente vorhanden; CTA-Klicks auf Auszeiten, Anfrage, Eigentuemer, Erlebnispartner und Ratgeber werden ueber `data-conversion` an GA/Meta gemeldet, wenn die Public IDs gesetzt sind | Events live mit echten GA4-/Meta-Pixel-IDs, Consent-Logik und Test-Events pruefen | MVP-kritisch | Teilweise |
-| Meta/Google Ads messen | GA4/Meta-Pixel sind env-gesteuert vorbereitet; PageView und Custom-CTA-Events werden bei gesetzten IDs ausgelöst | Pixel/Conversions/UTM in Production sauber testen und Zielereignisse in Meta/Google Ads anlegen | MVP-kritisch | Teilweise |
+| Conversion-Tracking | Zentrale Web-Analytics-Komponente vorhanden; CTA-Klicks auf Auszeiten, Anfrage, Eigentuemer, Erlebnispartner und Ratgeber werden ueber `data-conversion` an GA/Meta gemeldet, wenn die Public IDs gesetzt sind und Consent erteilt wurde | Events live mit echten GA4-/Meta-Pixel-IDs und Test-Events pruefen | MVP-kritisch | Teilweise |
+| Meta/Google Ads messen | GA4/Meta-Pixel sind env-gesteuert vorbereitet; PageView und Custom-CTA-Events werden bei gesetzten IDs erst nach Consent ausgelöst | Pixel/Conversions/UTM in Production sauber testen und Zielereignisse in Meta/Google Ads anlegen | MVP-kritisch | Teilweise |
 | Landingpages pro Auszeit/Zielgruppe | Paketseiten vorhanden | Kampagnenspezifische Landingpages optional fuer Ads | MVP-light | Teilweise |
 | E-Mail-Nurturing | Nicht umgesetzt | Fuer MVP reicht manuelle Nachfassung plus Statusmails | MVP-light | Offen |
 | Retargeting | Nicht umgesetzt | Spaeter, nicht vor erstem kontrollierten Start | V2 | Offen |

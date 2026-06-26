@@ -1,10 +1,12 @@
 "use client";
 
 import Script from "next/script";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+const consentStorageKey = "morrow_cookie_consent_v1";
+type ConsentState = "accepted" | "declined" | null;
 
 declare global {
   interface Window {
@@ -15,7 +17,22 @@ declare global {
 }
 
 export function Analytics() {
+  const [consent, setConsent] = useState<ConsentState>(null);
+  const [isReady, setIsReady] = useState(false);
+  const hasTracking = Boolean(gaId || metaPixelId);
+  const canTrack = hasTracking && consent === "accepted";
+
   useEffect(() => {
+    const savedConsent = window.localStorage.getItem(consentStorageKey);
+    if (savedConsent === "accepted" || savedConsent === "declined") {
+      setConsent(savedConsent);
+    }
+    setIsReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!canTrack) return;
+
     function handleClick(event: MouseEvent) {
       const target = event.target;
       if (!(target instanceof Element)) return;
@@ -39,11 +56,16 @@ export function Analytics() {
 
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
-  }, []);
+  }, [canTrack]);
+
+  function updateConsent(nextConsent: Exclude<ConsentState, null>) {
+    window.localStorage.setItem(consentStorageKey, nextConsent);
+    setConsent(nextConsent);
+  }
 
   return (
     <>
-      {gaId ? (
+      {canTrack && gaId ? (
         <>
           <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
           <Script id="morrow-google-analytics" strategy="afterInteractive">
@@ -57,7 +79,7 @@ export function Analytics() {
         </>
       ) : null}
 
-      {metaPixelId ? (
+      {canTrack && metaPixelId ? (
         <Script id="morrow-meta-pixel" strategy="afterInteractive">
           {`
             !function(f,b,e,v,n,t,s)
@@ -72,6 +94,27 @@ export function Analytics() {
             fbq('track', 'PageView');
           `}
         </Script>
+      ) : null}
+
+      {hasTracking && isReady && consent === null ? (
+        <div className="consent-banner" role="dialog" aria-label="Cookie-Einwilligung">
+          <div>
+            <strong>Datenschutz respektieren.</strong>
+            <p>
+              Wir nutzen optionale Analyse- und Marketingmessung, um zu
+              verstehen, welche Auszeiten wirklich angefragt werden. Ohne
+              Zustimmung bleiben nur technisch notwendige Funktionen aktiv.
+            </p>
+          </div>
+          <div className="consent-actions">
+            <button type="button" onClick={() => updateConsent("declined")}>
+              Nur notwendige
+            </button>
+            <button type="button" onClick={() => updateConsent("accepted")}>
+              Alle akzeptieren
+            </button>
+          </div>
+        </div>
       ) : null}
     </>
   );
