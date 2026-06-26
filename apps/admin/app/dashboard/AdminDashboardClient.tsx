@@ -102,6 +102,24 @@ type ExperienceBlockRow = {
   created_at: string;
 };
 
+type LocalPlaceRow = {
+  id: string;
+  name: string;
+  category: string;
+  status: string;
+  lat: number | null;
+  lng: number | null;
+  address: string | null;
+  website: string | null;
+  reservation_url: string | null;
+  menu_url: string | null;
+  rating: number | null;
+  opening_hours?: Record<string, unknown> | null;
+  package_fit?: string[];
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
 type PackageDateRow = {
   id: string;
   package_id: string;
@@ -179,6 +197,7 @@ type DashboardData = {
   supportMessages: SupportRow[];
   experienceProviders: ExperienceProviderRow[];
   experienceBlocks: ExperienceBlockRow[];
+  localPlaces: LocalPlaceRow[];
   packageDates: PackageDateRow[];
   ownerProfiles: OwnerProfileRow[];
   ownerAccess: OwnerAccessRow[];
@@ -241,6 +260,13 @@ type ExperienceSelection =
 
 type ExperienceDraft = Record<string, string | boolean>;
 
+type LocalPlaceSelection =
+  | { mode: "create" }
+  | { mode: "edit"; id: string }
+  | null;
+
+type LocalPlaceDraft = Record<string, string | boolean>;
+
 type DateSelection =
   | { mode: "create" }
   | { mode: "edit"; id: string }
@@ -254,6 +280,15 @@ const supportStatuses = ["open", "in_progress", "closed"] as const;
 const taskStatuses = ["open", "in_progress", "done"] as const;
 const experienceRoles = ["included", "optional", "recommendation", "planned"] as const;
 const experienceConfirmationStatuses = ["planned", "requested", "confirmed", "cancelled"] as const;
+const localPlaceStatuses = ["candidate", "approved", "paused", "rejected"] as const;
+const localPlaceCategories = [
+  "food",
+  "beach",
+  "experience",
+  "event",
+  "shopping",
+  "emergency",
+] as const;
 const packageDateStatuses = ["available", "reserved", "sold_out", "paused"] as const;
 const propertyAttributeOptions = [
   { value: "sea_near", label: "Nähe zum Wasser" },
@@ -417,6 +452,8 @@ function auditActionLabel(action: string) {
     experience_updated: "Erlebnis geändert",
     lead_reserved: "Reservierung angelegt",
     lead_status_updated: "Anfragestatus geändert",
+    local_place_created: "Vor-Ort-Ort angelegt",
+    local_place_updated: "Vor-Ort-Ort geändert",
     owner_profile_upserted: "Eigentümerprofil gespeichert",
     owner_property_access_upserted: "Objektzugriff gespeichert",
     package_created: "Auszeit angelegt",
@@ -430,6 +467,36 @@ function auditActionLabel(action: string) {
   };
 
   return labels[action] || action.replace(/_/g, " ");
+}
+
+function localPlaceCategoryLabel(category: string) {
+  const labels: Record<string, string> = {
+    food: "Essen",
+    beach: "Strand",
+    experience: "Kuratierte Erlebnisse",
+    event: "Veranstaltungen",
+    shopping: "Praktisch",
+    emergency: "Hilfe",
+  };
+
+  return labels[category] || category;
+}
+
+function localPlaceStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    candidate: "Kandidat",
+    approved: "Freigegeben",
+    paused: "Pausiert",
+    rejected: "Verworfen",
+  };
+
+  return labels[status] || status;
+}
+
+function getLocalPlaceSummary(place: LocalPlaceRow) {
+  return getPayloadText(place.payload, ["description", "guestDescription", "morrowNote", "routeNote"]) ||
+    place.address ||
+    "Noch keine Gastbeschreibung hinterlegt.";
 }
 
 function getAuditPayloadValue(payload: Record<string, unknown>, key: string) {
@@ -825,6 +892,7 @@ export function AdminDashboardClient() {
           supportResult,
           providersResult,
           experiencesResult,
+          localPlacesResult,
           datesResult,
           ownersResult,
           ownerAccessResult,
@@ -870,6 +938,11 @@ export function AdminDashboardClient() {
               .select("id,package_id,provider_id,title,role,included_in_price,confirmation_status,payload,created_at")
               .order("created_at", { ascending: false }),
             supabase
+              .from("local_places")
+              .select("id,name,category,status,lat,lng,address,website,reservation_url,menu_url,rating,opening_hours,package_fit,payload,created_at")
+              .order("updated_at", { ascending: false })
+              .limit(120),
+            supabase
               .from("package_dates")
               .select("id,package_id,label,starts_on,ends_on,capacity,status,payload,created_at")
               .order("starts_on", { ascending: true, nullsFirst: false })
@@ -905,6 +978,7 @@ export function AdminDashboardClient() {
           supportResult.error ||
           providersResult.error ||
           experiencesResult.error ||
+          localPlacesResult.error ||
           datesResult.error;
 
         if (firstError) {
@@ -927,6 +1001,7 @@ export function AdminDashboardClient() {
             supportMessages: (supportResult.data ?? []) as SupportRow[],
             experienceProviders: (providersResult.data ?? []) as ExperienceProviderRow[],
             experienceBlocks: (experiencesResult.data ?? []) as ExperienceBlockRow[],
+            localPlaces: (localPlacesResult.data ?? []) as LocalPlaceRow[],
             packageDates: (datesResult.data ?? []) as PackageDateRow[],
             ownerProfiles: ownersResult.error ? [] : (ownersResult.data ?? []) as OwnerProfileRow[],
             ownerAccess: ownerAccessResult.error ? [] : (ownerAccessResult.data ?? []) as OwnerAccessRow[],
@@ -1001,6 +1076,9 @@ function AdminDashboardView({
   const [experienceSelection, setExperienceSelection] = useState<ExperienceSelection>(null);
   const [experienceDraft, setExperienceDraft] = useState<ExperienceDraft>({});
   const [experienceMessage, setExperienceMessage] = useState<string | null>(null);
+  const [localPlaceSelection, setLocalPlaceSelection] = useState<LocalPlaceSelection>(null);
+  const [localPlaceDraft, setLocalPlaceDraft] = useState<LocalPlaceDraft>({});
+  const [localPlaceMessage, setLocalPlaceMessage] = useState<string | null>(null);
   const [dateSelection, setDateSelection] = useState<DateSelection>(null);
   const [dateDraft, setDateDraft] = useState<DateDraft>({});
   const [dateMessage, setDateMessage] = useState<string | null>(null);
@@ -1031,6 +1109,8 @@ function AdminDashboardView({
   const openSupport = data.supportMessages.filter((message) => message.status !== "closed");
   const activeTasks = data.tasks.filter((task) => task.status !== "done");
   const dueTasks = activeTasks.filter((task) => task.due_at && task.due_at <= todayIsoDate());
+  const approvedLocalPlaces = data.localPlaces.filter((place) => place.status === "approved");
+  const candidateLocalPlaces = data.localPlaces.filter((place) => place.status === "candidate");
   const monitoring = monitoringItems(data);
   const averageRating = averageFeedbackRating(data.guestFeedback);
   const lowFeedback = data.guestFeedback.filter((feedback) => typeof feedback.rating === "number" && feedback.rating <= 3);
@@ -1054,6 +1134,9 @@ function AdminDashboardView({
     : null;
   const selectedExperience = experienceSelection?.mode === "edit"
     ? data.experienceBlocks.find((item) => item.id === experienceSelection.id) ?? null
+    : null;
+  const selectedLocalPlace = localPlaceSelection?.mode === "edit"
+    ? data.localPlaces.find((item) => item.id === localPlaceSelection.id) ?? null
     : null;
   const selectedDate = dateSelection?.mode === "edit"
     ? data.packageDates.find((item) => item.id === dateSelection.id) ?? null
@@ -1201,6 +1284,53 @@ function AdminDashboardView({
       availability_note: getPayloadText(item.payload, ["availabilityNote", "availability"]) || "",
     } : {});
   }, [experienceSelection, data.experienceBlocks, data.packages]);
+
+  useEffect(() => {
+    setLocalPlaceMessage(null);
+
+    if (!localPlaceSelection) {
+      setLocalPlaceDraft({});
+      return;
+    }
+
+    if (localPlaceSelection.mode === "create") {
+      setLocalPlaceDraft({
+        name: "",
+        category: "food",
+        status: "candidate",
+        lat: "",
+        lng: "",
+        address: "",
+        website: "",
+        reservation_url: "",
+        menu_url: "",
+        rating: "",
+        description: "",
+        cuisine: "",
+        best_for: "",
+        images: "",
+      });
+      return;
+    }
+
+    const item = data.localPlaces.find((place) => place.id === localPlaceSelection.id);
+    setLocalPlaceDraft(item ? {
+      name: item.name,
+      category: item.category || "food",
+      status: item.status || "candidate",
+      lat: item.lat?.toString() || "",
+      lng: item.lng?.toString() || "",
+      address: item.address || "",
+      website: item.website || "",
+      reservation_url: item.reservation_url || "",
+      menu_url: item.menu_url || "",
+      rating: item.rating?.toString() || "",
+      description: getPayloadText(item.payload, ["description", "guestDescription", "morrowNote", "routeNote"]) || "",
+      cuisine: getPayloadText(item.payload, ["cuisine"]) || "",
+      best_for: getPayloadLines(item.payload, ["bestFor", "audiences"]),
+      images: getPayloadLines(item.payload, ["images"]),
+    } : {});
+  }, [localPlaceSelection, data.localPlaces]);
 
   useEffect(() => {
     setDateMessage(null);
@@ -2339,6 +2469,113 @@ function AdminDashboardView({
     }
   }
 
+  async function saveLocalPlace() {
+    if (!localPlaceSelection) return;
+
+    const actionKey = localPlaceSelection.mode === "create"
+      ? "local-place-create"
+      : `local-place-${localPlaceSelection.id}`;
+    setPendingAction(actionKey);
+    setLocalPlaceMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const now = new Date().toISOString();
+      const name = String(localPlaceDraft.name || "").trim() || "Neuer Ort";
+      const category = String(localPlaceDraft.category || "food").trim();
+      const status = String(localPlaceDraft.status || "candidate").trim();
+      const payload = {
+        description: String(localPlaceDraft.description || "").trim(),
+        cuisine: String(localPlaceDraft.cuisine || "").trim(),
+        bestFor: splitLines(String(localPlaceDraft.best_for || "")),
+        images: splitLines(String(localPlaceDraft.images || "")),
+        updatedAt: now,
+      };
+      const updatePayload = {
+        name,
+        category,
+        status,
+        lat: numberOrNull(String(localPlaceDraft.lat || "")),
+        lng: numberOrNull(String(localPlaceDraft.lng || "")),
+        address: String(localPlaceDraft.address || "").trim() || null,
+        website: String(localPlaceDraft.website || "").trim() || null,
+        reservation_url: String(localPlaceDraft.reservation_url || "").trim() || null,
+        menu_url: String(localPlaceDraft.menu_url || "").trim() || null,
+        rating: numberOrNull(String(localPlaceDraft.rating || "")),
+        payload,
+        updated_at: now,
+      };
+
+      if (localPlaceSelection.mode === "create") {
+        const { data: inserted, error } = await supabase
+          .from("local_places")
+          .insert({
+            ...updatePayload,
+            id: `place-${crypto.randomUUID()}`,
+          })
+          .select("id,name,category,status,lat,lng,address,website,reservation_url,menu_url,rating,opening_hours,package_fit,payload,created_at")
+          .single();
+
+        if (error) throw error;
+
+        setDataState((current) => ({
+          ...current,
+          localPlaces: [inserted as LocalPlaceRow, ...current.localPlaces],
+        }));
+
+        await writeAuditLog({
+          action: "local_place_created",
+          entityType: "local_place",
+          entityId: (inserted as LocalPlaceRow).id,
+          entityLabel: name,
+          payload: updatePayload,
+        });
+
+        setLocalPlaceSelection({ mode: "edit", id: (inserted as LocalPlaceRow).id });
+        setLocalPlaceMessage("Angelegt.");
+        return;
+      }
+
+      const currentItem = data.localPlaces.find((item) => item.id === localPlaceSelection.id);
+      if (!currentItem) throw new Error("Missing local place");
+
+      const editPayload = {
+        ...updatePayload,
+        payload: {
+          ...(currentItem.payload ?? {}),
+          ...payload,
+        },
+      };
+      const { error } = await supabase
+        .from("local_places")
+        .update(editPayload)
+        .eq("id", localPlaceSelection.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        localPlaces: current.localPlaces.map((item) =>
+          item.id === localPlaceSelection.id ? { ...item, ...editPayload } : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "local_place_updated",
+        entityType: "local_place",
+        entityId: localPlaceSelection.id,
+        entityLabel: currentItem.name,
+        payload: editPayload,
+      });
+
+      setLocalPlaceMessage("Gespeichert.");
+    } catch {
+      setLocalPlaceMessage("Der Ort konnte nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
   async function savePackageDate() {
     if (!dateSelection) return;
 
@@ -2451,6 +2688,7 @@ function AdminDashboardView({
           <a href="#support">Support</a>
           <a href="#feedback">Feedback</a>
           <a href="#audit">Änderungen</a>
+          <a href="#vor-ort">Vor Ort</a>
           <a href="#erlebnisse">Erlebnisse</a>
           <a href="#termine">Termine</a>
           <a href="#bestand">Bestand</a>
@@ -2496,6 +2734,11 @@ function AdminDashboardView({
           <span>Feedback</span>
           <strong>{averageRating ? averageRating.toFixed(1) : "–"}</strong>
           <p>{data.guestFeedback.length} Rückmeldungen geladen</p>
+        </article>
+        <article>
+          <span>Vor Ort</span>
+          <strong>{approvedLocalPlaces.length}</strong>
+          <p>{candidateLocalPlaces.length} Kandidaten prüfen</p>
         </article>
       </section>
 
@@ -2750,6 +2993,55 @@ function AdminDashboardView({
               })
             ) : (
               <p className="admin-drawer-message">Noch kein Gästefeedback vorhanden.</p>
+            )}
+          </div>
+        </article>
+      </section>
+
+      <section className="admin-grid" id="vor-ort">
+        <article className="admin-card admin-card-wide">
+          <p className="admin-eyebrow">Vor Ort</p>
+          <h2>Kuratierte Orte und Empfehlungen</h2>
+          <p>
+            Diese Datensätze steuern, was Gäste in der Vor-Ort-Karte sehen:
+            Restaurants, Strände, Veranstaltungen, Hilfe und bewusst ausgewählte Empfehlungen.
+          </p>
+          <div className="admin-card-toolbar">
+            <button
+              className="admin-button secondary"
+              onClick={() => setLocalPlaceSelection({ mode: "create" })}
+              type="button"
+            >
+              Ort anlegen
+            </button>
+          </div>
+          <div className="admin-list">
+            {data.localPlaces.length ? (
+              data.localPlaces.map((place) => (
+                <article className="admin-list-item" key={place.id}>
+                  <div>
+                    <small>
+                      {localPlaceStatusLabel(place.status)} · {localPlaceCategoryLabel(place.category)}
+                    </small>
+                    <strong>{place.name}</strong>
+                    <em>{getLocalPlaceSummary(place)}</em>
+                    <p>
+                      {place.rating ? `${place.rating.toFixed(1)} Bewertung · ` : ""}
+                      {place.lat && place.lng ? "Koordinaten vorhanden" : "Koordinaten fehlen"}
+                    </p>
+                  </div>
+                  <div className="admin-row-actions">
+                    <button
+                      onClick={() => setLocalPlaceSelection({ mode: "edit", id: place.id })}
+                      type="button"
+                    >
+                      Bearbeiten
+                    </button>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">Noch keine Vor-Ort-Datensätze vorhanden.</p>
             )}
           </div>
         </article>
@@ -3117,6 +3409,16 @@ function AdminDashboardView({
         packages={data.packages}
         pending={Boolean(pendingAction?.startsWith("experience"))}
         providers={data.experienceProviders}
+      />
+      <AdminLocalPlaceDrawer
+        draft={localPlaceDraft}
+        isCreating={localPlaceSelection?.mode === "create"}
+        message={localPlaceMessage}
+        onChange={(key, value) => setLocalPlaceDraft((current) => ({ ...current, [key]: value }))}
+        onClose={() => setLocalPlaceSelection(null)}
+        onSave={saveLocalPlace}
+        pending={Boolean(pendingAction?.startsWith("local-place"))}
+        place={selectedLocalPlace}
       />
       <AdminPackageDateDrawer
         date={selectedDate}
@@ -3982,6 +4284,195 @@ function AdminExperienceDrawer({
               <input
                 onChange={(event) => onChange("availability_note", event.target.value)}
                 value={String(draft.availability_note || "")}
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="admin-drawer-section">
+          <button className="admin-button" disabled={pending} onClick={onSave} type="button">
+            {pending ? "Speichern" : "Speichern"}
+          </button>
+          {message ? <p className="admin-drawer-message">{message}</p> : null}
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+function AdminLocalPlaceDrawer({
+  draft,
+  isCreating,
+  message,
+  onChange,
+  onClose,
+  onSave,
+  pending,
+  place,
+}: {
+  draft: LocalPlaceDraft;
+  isCreating: boolean;
+  message: string | null;
+  onChange: (key: string, value: string | boolean) => void;
+  onClose: () => void;
+  onSave: () => void;
+  pending: boolean;
+  place: LocalPlaceRow | null;
+}) {
+  if (!place && !isCreating) return null;
+
+  return (
+    <div className="admin-drawer-layer" role="presentation">
+      <button className="admin-drawer-backdrop" onClick={onClose} type="button" />
+      <aside className="admin-drawer" aria-label="Vor-Ort-Ort bearbeiten">
+        <header>
+          <div>
+            <p className="admin-eyebrow">Vor Ort</p>
+            <h2>{isCreating ? "Neuer Ort" : place?.name}</h2>
+            <span>{isCreating ? "wird nach dem Speichern angelegt" : place?.id}</span>
+          </div>
+          <button aria-label="Bearbeitung schließen" onClick={onClose} type="button">
+            Schließen
+          </button>
+        </header>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Freigabe</p>
+          <div className="admin-form-grid">
+            <label>
+              Name
+              <input
+                onChange={(event) => onChange("name", event.target.value)}
+                value={String(draft.name || "")}
+              />
+            </label>
+            <label>
+              Kategorie
+              <select
+                onChange={(event) => onChange("category", event.target.value)}
+                value={String(draft.category || "food")}
+              >
+                {localPlaceCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {localPlaceCategoryLabel(category)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Status
+              <select
+                onChange={(event) => onChange("status", event.target.value)}
+                value={String(draft.status || "candidate")}
+              >
+                {localPlaceStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {localPlaceStatusLabel(status)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Bewertung
+              <input
+                inputMode="decimal"
+                onChange={(event) => onChange("rating", event.target.value)}
+                placeholder="z. B. 4.6"
+                value={String(draft.rating || "")}
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Karte und Kontakt</p>
+          <div className="admin-form-grid">
+            <label>
+              Adresse
+              <input
+                onChange={(event) => onChange("address", event.target.value)}
+                value={String(draft.address || "")}
+              />
+            </label>
+            <label>
+              Latitude
+              <input
+                inputMode="decimal"
+                onChange={(event) => onChange("lat", event.target.value)}
+                value={String(draft.lat || "")}
+              />
+            </label>
+            <label>
+              Longitude
+              <input
+                inputMode="decimal"
+                onChange={(event) => onChange("lng", event.target.value)}
+                value={String(draft.lng || "")}
+              />
+            </label>
+            <label>
+              Website
+              <input
+                onChange={(event) => onChange("website", event.target.value)}
+                placeholder="https://..."
+                value={String(draft.website || "")}
+              />
+            </label>
+            <label>
+              Reservierungslink
+              <input
+                onChange={(event) => onChange("reservation_url", event.target.value)}
+                placeholder="https://..."
+                value={String(draft.reservation_url || "")}
+              />
+            </label>
+            <label>
+              Speisekarte / Programm
+              <input
+                onChange={(event) => onChange("menu_url", event.target.value)}
+                placeholder="https://..."
+                value={String(draft.menu_url || "")}
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Gastansicht</p>
+          <div className="admin-form-grid">
+            <label>
+              Beschreibung
+              <textarea
+                onChange={(event) => onChange("description", event.target.value)}
+                placeholder="Kurz, hilfreich und passend zur Auszeit."
+                rows={4}
+                value={String(draft.description || "")}
+              />
+            </label>
+            <label>
+              Küche / Typ
+              <input
+                onChange={(event) => onChange("cuisine", event.target.value)}
+                placeholder="z. B. Fisch, Pfahlbau, Familienfreundlich"
+                value={String(draft.cuisine || "")}
+              />
+            </label>
+            <label>
+              Passt gut für
+              <textarea
+                onChange={(event) => onChange("best_for", event.target.value)}
+                placeholder="Ein Punkt pro Zeile"
+                rows={4}
+                value={String(draft.best_for || "")}
+              />
+            </label>
+            <label>
+              Bilder
+              <textarea
+                onChange={(event) => onChange("images", event.target.value)}
+                placeholder="Ein Bildpfad oder eine URL pro Zeile"
+                rows={5}
+                value={String(draft.images || "")}
               />
             </label>
           </div>
