@@ -19,6 +19,8 @@ type LeadRow = {
   email: string | null;
   phone: string | null;
   package_slug: string | null;
+  source?: string | null;
+  campaign?: string | null;
   created_at: string;
   payload: Record<string, unknown>;
 };
@@ -414,6 +416,30 @@ function formatDate(value: string) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+function leadSourceLabel(lead: LeadRow) {
+  const payload = lead.payload ?? {};
+  const utm = typeof payload.utm === "object" && payload.utm !== null
+    ? payload.utm as Record<string, unknown>
+    : {};
+  const source =
+    lead.source ||
+    getPayloadText(utm, ["source", "utm_source"]) ||
+    getPayloadText(payload, ["source", "leadSource"]) ||
+    "Quelle offen";
+  const campaign =
+    lead.campaign ||
+    getPayloadText(utm, ["campaign", "utm_campaign"]) ||
+    getPayloadText(payload, ["campaign"]);
+
+  return campaign ? `${source} · ${campaign}` : source;
+}
+
+function leadIntentLabel(lead: LeadRow) {
+  if (lead.type === "owner") return "Eigentümer";
+  if (lead.type === "experience") return "Erlebnispartner";
+  return lead.package_slug || getPayloadText(lead.payload ?? {}, ["packageName", "packageSlug"]) || "Gastanfrage";
 }
 
 function formatShortDate(value: string | null) {
@@ -902,7 +928,7 @@ export function AdminDashboardClient() {
           await Promise.all([
             supabase
               .from("leads")
-              .select("id,type,status,name,email,phone,package_slug,created_at,payload")
+              .select("id,type,status,name,email,phone,package_slug,source,campaign,created_at,payload")
               .order("created_at", { ascending: false })
               .limit(30),
             supabase
@@ -2952,9 +2978,9 @@ function AdminDashboardView({
             {data.leads.slice(0, 8).map((lead) => (
               <article className="admin-list-item" key={lead.id}>
                 <div>
-                  <small>{formatDate(lead.created_at)}</small>
+                  <small>{formatDate(lead.created_at)} · {leadSourceLabel(lead)}</small>
                   <strong>{getLeadLabel(lead)}</strong>
-                  <em>{lead.status}</em>
+                  <em>{lead.status} · {leadIntentLabel(lead)}</em>
                 </div>
                 <div className="admin-row-actions">
                   <button onClick={() => setSelection({ type: "lead", id: lead.id })} type="button">
@@ -3682,6 +3708,12 @@ function AdminDetailDrawer({
   const drawerType = lead ? "Anfrage" : booking ? "Buchung" : "Support";
   const supportMessage = support?.message || getPayloadText(payload, ["message", "note"]);
   const supportCategory = support?.category || getPayloadText(payload, ["category", "categoryLabel"]);
+  const leadSource = lead ? leadSourceLabel(lead) : null;
+  const leadUtm = typeof payload.utm === "object" && payload.utm !== null
+    ? payload.utm as Record<string, unknown>
+    : {};
+  const leadMedium = getPayloadText(leadUtm, ["medium", "utm_medium"]);
+  const leadContent = getPayloadText(leadUtm, ["content", "utm_content"]);
 
   return (
     <div className="admin-drawer-layer" role="presentation">
@@ -3719,6 +3751,18 @@ function AdminDetailDrawer({
             <small>{support ? "Dringlichkeit" : "Termin"}</small>
             <strong>{support ? supportUrgencyLabel(support.urgency) : selectedDate || "offen"}</strong>
           </article>
+          {lead ? (
+            <>
+              <article>
+                <small>Quelle</small>
+                <strong>{leadSource}</strong>
+              </article>
+              <article>
+                <small>Kampagnenkontext</small>
+                <strong>{[leadMedium, leadContent].filter(Boolean).join(" · ") || "nicht gesetzt"}</strong>
+              </article>
+            </>
+          ) : null}
         </section>
 
         {supportMessage ? (
