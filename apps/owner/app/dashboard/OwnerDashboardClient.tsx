@@ -45,6 +45,54 @@ function formatDate(date: OwnerDashboardDate) {
   return `${formatter.format(start)} - ${formatter.format(end)}`;
 }
 
+function getPayloadText(payload: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = payload[key];
+    if (typeof value === "string" && value.trim()) return value;
+  }
+
+  return null;
+}
+
+function getPayloadLines(payload: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = payload[key];
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === "string");
+    }
+    if (typeof value === "string" && value.trim()) {
+      return value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    }
+  }
+
+  return [];
+}
+
+function propertyImage(property: OwnerDashboardProperty) {
+  const media = getPayloadLines(property.payload ?? {}, ["media"]);
+  return getPayloadText(property.payload ?? {}, ["image"]) || media[0] || "/brand/generated/morrow-spo-interior.png";
+}
+
+function propertyReadiness(property: OwnerDashboardProperty) {
+  const payload = property.payload ?? {};
+  const checks = [
+    Boolean(getPayloadText(payload, ["address"])),
+    Boolean(getPayloadText(payload, ["checkInInstructions"])),
+    getPayloadLines(payload, ["houseRules"]).length >= 2,
+    getPayloadLines(payload, ["media"]).length > 0,
+    getPayloadLines(payload, ["amenities", "features"]).length >= 3,
+    getPayloadLines(payload, ["attributes"]).length >= 2,
+    getPayloadLines(payload, ["experienceWorlds"]).length > 0,
+  ];
+  const done = checks.filter(Boolean).length;
+
+  return {
+    done,
+    total: checks.length,
+    label: done === checks.length ? "bereit" : `${done}/${checks.length} gepflegt`,
+  };
+}
+
 function getNextBookings(bookings: OwnerDashboardBooking[]) {
   return [...bookings]
     .filter((booking) => booking.status !== "Abgeschlossen")
@@ -58,7 +106,7 @@ function getNextBookings(bookings: OwnerDashboardBooking[]) {
 
 function getUpcomingDates(dates: OwnerDashboardDate[]) {
   return [...dates]
-    .filter((date) => date.status !== "archived")
+    .filter((date) => !["archived", "cancelled"].includes(date.status))
     .sort((a, b) => {
       const aDate = a.startsOn ? new Date(a.startsOn).getTime() : Number.MAX_SAFE_INTEGER;
       const bDate = b.startsOn ? new Date(b.startsOn).getTime() : Number.MAX_SAFE_INTEGER;
@@ -70,12 +118,13 @@ function getUpcomingDates(dates: OwnerDashboardDate[]) {
 function getOpenPropertyNotes(properties: OwnerDashboardProperty[]) {
   return properties.flatMap((property) => {
     const notes: string[] = [];
+    const payload = property.payload ?? {};
 
     if (!property.checkInType) notes.push(`${property.name}: Check-in ergänzen`);
     if (!property.supportType) notes.push(`${property.name}: Betreuung klären`);
-    if (!property.payload || Object.keys(property.payload).length === 0) {
-      notes.push(`${property.name}: Detaildaten weiter pflegen`);
-    }
+    if (!getPayloadText(payload, ["address"])) notes.push(`${property.name}: Adresse fehlt`);
+    if (getPayloadLines(payload, ["media"]).length === 0) notes.push(`${property.name}: Medien fehlen`);
+    if (getPayloadLines(payload, ["experienceWorlds"]).length === 0) notes.push(`${property.name}: Erlebniswelten offen`);
 
     return notes;
   });
@@ -191,8 +240,12 @@ function OwnerDashboardView({
   const nextBookings = useMemo(() => getNextBookings(data.bookings), [data.bookings]);
   const upcomingDates = useMemo(() => getUpcomingDates(data.dates ?? []), [data.dates]);
   const openNotes = useMemo(() => getOpenPropertyNotes(data.properties), [data.properties]);
-  const activePackages = data.packages.filter((packageItem) => packageItem.status === "active");
+  const activePackages = data.packages.filter((packageItem) =>
+    ["active", "published"].includes(packageItem.status),
+  );
   const paidBookings = data.bookings.filter((booking) => booking.paymentStatus === "bezahlt");
+  const reservedBookings = data.bookings.filter((booking) => booking.status === "Reserviert");
+  const visibleGaps = upcomingDates.filter((date) => date.status === "available");
   const displayName = data.profile.displayName || "dein Objekt";
 
   return (
@@ -218,7 +271,8 @@ function OwnerDashboardView({
           <h1>Guten Überblick, {displayName}.</h1>
           <p>
             Hier siehst du, welche Objekte verbunden sind, welche Auszeiten
-            sichtbar sind, welche Buchungen anstehen und wo noch Angaben fehlen.
+            sichtbar sind, welche Buchungen anstehen und wie Morrow freie
+            Zeiträume aktiv in Nachfrage verwandelt.
           </p>
         </section>
 
@@ -235,13 +289,41 @@ function OwnerDashboardView({
           </article>
           <article className="owner-metric-card">
             <span>Termine</span>
-            <strong>{upcomingDates.length}</strong>
-            <p>kommende Zeiträume</p>
+            <strong>{visibleGaps.length}</strong>
+            <p>freie Zeiträume sichtbar</p>
           </article>
           <article className="owner-metric-card">
             <span>Buchungen</span>
             <strong>{data.bookings.length}</strong>
-            <p>{paidBookings.length} bezahlt</p>
+            <p>{paidBookings.length} bezahlt · {reservedBookings.length} reserviert</p>
+          </article>
+        </section>
+
+        <section className="owner-section owner-highlight-grid" aria-label="Tagesüberblick">
+          <article className="owner-card owner-highlight-card">
+            <p className="eyebrow">Aktiver Ertragshebel</p>
+            <h2>{visibleGaps.length ? "Freie Zeiträume im Blick" : "Keine offenen Lücken sichtbar"}</h2>
+            <p>
+              {visibleGaps.length
+                ? "Morrow kann diese Zeiträume mit passenden Auszeiten, Zielgruppen und Kampagnen verbinden."
+                : "Aktuell sind keine freien buchbaren Zeiträume für deine verbundenen Auszeiten sichtbar."}
+            </p>
+          </article>
+          <article className="owner-card owner-highlight-card">
+            <p className="eyebrow">Transparenz</p>
+            <h2>{openNotes.length ? `${openNotes.length} Punkte offen` : "Objektdaten wirken vollständig"}</h2>
+            <p>
+              Je vollständiger Objekt, Check-in, Medien und Erlebniswelten gepflegt sind,
+              desto besser kann Morrow dein Objekt positionieren.
+            </p>
+          </article>
+          <article className="owner-card owner-highlight-card">
+            <p className="eyebrow">Abrechnung</p>
+            <h2>{paidBookings.length ? `${paidBookings.length} bezahlte Buchung${paidBookings.length === 1 ? "" : "en"}` : "Noch keine bezahlte Buchung"}</h2>
+            <p>
+              Umsatz, Kosten und Nettoauszahlung werden hier als nächster Schritt
+              nachvollziehbar zusammengeführt.
+            </p>
           </article>
         </section>
 
@@ -250,11 +332,7 @@ function OwnerDashboardView({
             <article className="owner-card owner-object-card" key={property.id}>
               <img
                 alt={`${property.name} in ${property.location}`}
-                src={
-                  typeof property.payload?.image === "string"
-                    ? property.payload.image
-                    : "/brand/generated/morrow-spo-interior.png"
-                }
+                src={propertyImage(property)}
               />
               <div>
                 <p className="eyebrow">Objekt</p>
@@ -267,7 +345,18 @@ function OwnerDashboardView({
                 <div className="owner-pill-row">
                   <span>{property.status}</span>
                   <span>{property.accessRole}</span>
+                  <span>{propertyReadiness(property).label}</span>
                   {property.canViewFinancials ? <span>Abrechnung sichtbar</span> : null}
+                </div>
+                <div className="owner-detail-list">
+                  <span>
+                    Check-in
+                    <strong>{property.checkInType || "offen"}</strong>
+                  </span>
+                  <span>
+                    Betreuung
+                    <strong>{property.supportName || property.supportType || "offen"}</strong>
+                  </span>
                 </div>
               </div>
             </article>
@@ -333,7 +422,7 @@ function OwnerDashboardView({
                 data.packages.map((packageItem) => (
                   <span key={packageItem.id}>
                     {packageItem.name}
-                    <strong>{packageItem.status}</strong>
+                    <strong>{packageItem.status} · {packageItem.concretePrice || packageItem.priceFrom || "Preis offen"}</strong>
                   </span>
                 ))
               ) : (
@@ -350,6 +439,11 @@ function OwnerDashboardView({
               gezielt vermarktet. So bleibt sichtbar, wo Nachfrage entsteht und
               welche Lücken als Nächstes bearbeitet werden.
             </p>
+            <div className="owner-process-list">
+              <span>Objektprofil schärfen</span>
+              <span>Reiseanlass ableiten</span>
+              <span>Direktanfragen gewinnen</span>
+            </div>
           </article>
         </section>
 

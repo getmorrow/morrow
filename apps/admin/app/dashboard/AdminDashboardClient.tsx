@@ -114,6 +114,26 @@ type PackageDateRow = {
   created_at: string;
 };
 
+type OwnerProfileRow = {
+  id: string;
+  email: string;
+  display_name: string | null;
+  phone: string | null;
+  status: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
+type OwnerAccessRow = {
+  id: string;
+  owner_profile_id: string;
+  property_id: string;
+  role: string;
+  can_view_financials: boolean;
+  can_view_operations: boolean;
+  created_at: string;
+};
+
 type CommunicationEventRow = {
   id: string;
   lead_id: string | null;
@@ -139,6 +159,8 @@ type DashboardData = {
   experienceProviders: ExperienceProviderRow[];
   experienceBlocks: ExperienceBlockRow[];
   packageDates: PackageDateRow[];
+  ownerProfiles: OwnerProfileRow[];
+  ownerAccess: OwnerAccessRow[];
 };
 
 type LoadState =
@@ -163,6 +185,21 @@ type InventoryDraft = Record<string, string | boolean | string[]>;
 type OutboundDraft = {
   subject: string;
   body: string;
+};
+
+type OwnerProfileDraft = {
+  email: string;
+  display_name: string;
+  phone: string;
+  status: string;
+};
+
+type OwnerAccessDraft = {
+  owner_profile_id: string;
+  property_id: string;
+  role: string;
+  can_view_financials: boolean;
+  can_view_operations: boolean;
 };
 
 type ExperienceSelection =
@@ -453,6 +490,11 @@ function getPackageName(packages: SimpleRow[], packageId: string | null) {
   return packages.find((item) => item.id === packageId)?.name || packageId;
 }
 
+function getPropertyName(properties: SimpleRow[], propertyId: string | null) {
+  if (!propertyId) return "Unterkunft offen";
+  return properties.find((item) => item.id === propertyId)?.name || propertyId;
+}
+
 function getProviderName(providers: ExperienceProviderRow[], providerId: string | null) {
   if (!providerId) return "Anbieter offen";
   return providers.find((item) => item.id === providerId)?.name || providerId;
@@ -649,6 +691,8 @@ export function AdminDashboardClient() {
           providersResult,
           experiencesResult,
           datesResult,
+          ownersResult,
+          ownerAccessResult,
         ] =
           await Promise.all([
             supabase
@@ -693,6 +737,14 @@ export function AdminDashboardClient() {
               .select("id,package_id,label,starts_on,ends_on,capacity,status,payload,created_at")
               .order("starts_on", { ascending: true, nullsFirst: false })
               .order("created_at", { ascending: false }),
+            supabase
+              .from("owner_profiles")
+              .select("id,email,display_name,phone,status,payload,created_at")
+              .order("created_at", { ascending: false }),
+            supabase
+              .from("owner_property_access")
+              .select("id,owner_profile_id,property_id,role,can_view_financials,can_view_operations,created_at")
+              .order("created_at", { ascending: false }),
           ]);
 
         if (!isMounted) return;
@@ -729,6 +781,8 @@ export function AdminDashboardClient() {
             experienceProviders: (providersResult.data ?? []) as ExperienceProviderRow[],
             experienceBlocks: (experiencesResult.data ?? []) as ExperienceBlockRow[],
             packageDates: (datesResult.data ?? []) as PackageDateRow[],
+            ownerProfiles: ownersResult.error ? [] : (ownersResult.data ?? []) as OwnerProfileRow[],
+            ownerAccess: ownerAccessResult.error ? [] : (ownerAccessResult.data ?? []) as OwnerAccessRow[],
           },
         });
       } catch {
@@ -801,6 +855,20 @@ function AdminDashboardView({
   const [dateSelection, setDateSelection] = useState<DateSelection>(null);
   const [dateDraft, setDateDraft] = useState<DateDraft>({});
   const [dateMessage, setDateMessage] = useState<string | null>(null);
+  const [ownerProfileDraft, setOwnerProfileDraft] = useState<OwnerProfileDraft>({
+    email: "",
+    display_name: "",
+    phone: "",
+    status: "active",
+  });
+  const [ownerAccessDraft, setOwnerAccessDraft] = useState<OwnerAccessDraft>({
+    owner_profile_id: "",
+    property_id: "",
+    role: "owner",
+    can_view_financials: true,
+    can_view_operations: true,
+  });
+  const [ownerMessage, setOwnerMessage] = useState<string | null>(null);
   const [communicationEvents, setCommunicationEvents] = useState<CommunicationEventRow[]>([]);
   const [drawerNote, setDrawerNote] = useState("");
   const [outboundDraft, setOutboundDraft] = useState<OutboundDraft>({ subject: "", body: "" });
@@ -1119,6 +1187,120 @@ function AdminDashboardView({
       entity_label: entityLabel,
       payload,
     });
+  }
+
+  async function createOwnerProfile() {
+    const email = ownerProfileDraft.email.trim().toLowerCase();
+    if (!email) {
+      setOwnerMessage("Bitte eine Eigentümer-E-Mail eintragen.");
+      return;
+    }
+
+    setPendingAction("owner-profile-create");
+    setOwnerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const payload = {
+        source: "next-admin",
+        updatedAt: new Date().toISOString(),
+      };
+      const insertPayload = {
+        email,
+        display_name: ownerProfileDraft.display_name.trim() || null,
+        phone: ownerProfileDraft.phone.trim() || null,
+        status: ownerProfileDraft.status || "active",
+        payload,
+      };
+      const { data: inserted, error } = await supabase
+        .from("owner_profiles")
+        .upsert(insertPayload, { onConflict: "email" })
+        .select("id,email,display_name,phone,status,payload,created_at")
+        .single();
+
+      if (error) throw error;
+
+      setDataState((current) => {
+        const nextProfile = inserted as OwnerProfileRow;
+        return {
+          ...current,
+          ownerProfiles: current.ownerProfiles.some((profile) => profile.id === nextProfile.id)
+            ? current.ownerProfiles.map((profile) => profile.id === nextProfile.id ? nextProfile : profile)
+            : [nextProfile, ...current.ownerProfiles],
+        };
+      });
+
+      await writeAuditLog({
+        action: "owner_profile_upserted",
+        entityType: "owner_profile",
+        entityId: (inserted as OwnerProfileRow).id,
+        entityLabel: email,
+        payload: insertPayload,
+      });
+
+      setOwnerProfileDraft({ email: "", display_name: "", phone: "", status: "active" });
+      setOwnerAccessDraft((current) => ({
+        ...current,
+        owner_profile_id: (inserted as OwnerProfileRow).id,
+      }));
+      setOwnerMessage("Eigentümerprofil gespeichert.");
+    } catch {
+      setOwnerMessage("Das Eigentümerprofil konnte nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function createOwnerAccess() {
+    if (!ownerAccessDraft.owner_profile_id || !ownerAccessDraft.property_id) {
+      setOwnerMessage("Bitte Eigentümer und Unterkunft auswählen.");
+      return;
+    }
+
+    setPendingAction("owner-access-create");
+    setOwnerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const insertPayload = {
+        owner_profile_id: ownerAccessDraft.owner_profile_id,
+        property_id: ownerAccessDraft.property_id,
+        role: ownerAccessDraft.role || "owner",
+        can_view_financials: ownerAccessDraft.can_view_financials,
+        can_view_operations: ownerAccessDraft.can_view_operations,
+      };
+      const { data: inserted, error } = await supabase
+        .from("owner_property_access")
+        .upsert(insertPayload, { onConflict: "owner_profile_id,property_id" })
+        .select("id,owner_profile_id,property_id,role,can_view_financials,can_view_operations,created_at")
+        .single();
+
+      if (error) throw error;
+
+      setDataState((current) => {
+        const nextAccess = inserted as OwnerAccessRow;
+        return {
+          ...current,
+          ownerAccess: current.ownerAccess.some((access) => access.id === nextAccess.id)
+            ? current.ownerAccess.map((access) => access.id === nextAccess.id ? nextAccess : access)
+            : [nextAccess, ...current.ownerAccess],
+        };
+      });
+
+      await writeAuditLog({
+        action: "owner_property_access_upserted",
+        entityType: "owner_property_access",
+        entityId: (inserted as OwnerAccessRow).id,
+        entityLabel: getPropertyName(data.properties, ownerAccessDraft.property_id),
+        payload: insertPayload,
+      });
+
+      setOwnerMessage("Objektzugriff gespeichert.");
+    } catch {
+      setOwnerMessage("Der Objektzugriff konnte nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
   }
 
   async function updateLeadStatus(lead: LeadRow, status: string) {
@@ -2025,6 +2207,7 @@ function AdminDashboardView({
           <a href="#erlebnisse">Erlebnisse</a>
           <a href="#termine">Termine</a>
           <a href="#bestand">Bestand</a>
+          <a href="#eigentuemer">Eigentümer</a>
           <button onClick={onLogout} type="button">
             Abmelden
           </button>
@@ -2406,6 +2589,158 @@ function AdminDashboardView({
                 </div>
               </article>
             ))}
+          </div>
+        </article>
+      </section>
+
+      <section className="admin-grid" id="eigentuemer">
+        <article className="admin-card">
+          <p className="admin-eyebrow">Eigentümer</p>
+          <h2>Zugänge freischalten</h2>
+          <p>
+            Eigentümer sehen nur Objekte und Buchungen, die hier ausdrücklich
+            verbunden wurden.
+          </p>
+          <div className="admin-form-grid">
+            <label>
+              E-Mail
+              <input
+                onChange={(event) => setOwnerProfileDraft((current) => ({ ...current, email: event.target.value }))}
+                type="email"
+                value={ownerProfileDraft.email}
+              />
+            </label>
+            <label>
+              Name
+              <input
+                onChange={(event) => setOwnerProfileDraft((current) => ({ ...current, display_name: event.target.value }))}
+                value={ownerProfileDraft.display_name}
+              />
+            </label>
+            <label>
+              Telefon
+              <input
+                onChange={(event) => setOwnerProfileDraft((current) => ({ ...current, phone: event.target.value }))}
+                type="tel"
+                value={ownerProfileDraft.phone}
+              />
+            </label>
+            <label>
+              Status
+              <select
+                onChange={(event) => setOwnerProfileDraft((current) => ({ ...current, status: event.target.value }))}
+                value={ownerProfileDraft.status}
+              >
+                <option value="active">Aktiv</option>
+                <option value="invited">Eingeladen</option>
+                <option value="paused">Pausiert</option>
+                <option value="archived">Archiviert</option>
+              </select>
+            </label>
+          </div>
+          <button
+            className="admin-button"
+            disabled={pendingAction === "owner-profile-create"}
+            onClick={createOwnerProfile}
+            type="button"
+          >
+            Eigentümer speichern
+          </button>
+          {ownerMessage ? <p className="admin-drawer-message">{ownerMessage}</p> : null}
+        </article>
+
+        <article className="admin-card">
+          <p className="admin-eyebrow">Objektzugriff</p>
+          <h2>Unterkunft verbinden</h2>
+          <div className="admin-form-grid">
+            <label>
+              Eigentümer
+              <select
+                onChange={(event) => setOwnerAccessDraft((current) => ({ ...current, owner_profile_id: event.target.value }))}
+                value={ownerAccessDraft.owner_profile_id}
+              >
+                <option value="">Auswählen</option>
+                {data.ownerProfiles.map((owner) => (
+                  <option key={owner.id} value={owner.id}>
+                    {owner.display_name || owner.email}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Unterkunft
+              <select
+                onChange={(event) => setOwnerAccessDraft((current) => ({ ...current, property_id: event.target.value }))}
+                value={ownerAccessDraft.property_id}
+              >
+                <option value="">Auswählen</option>
+                {data.properties.map((property) => (
+                  <option key={property.id} value={property.id}>
+                    {property.name || property.id}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Rolle
+              <select
+                onChange={(event) => setOwnerAccessDraft((current) => ({ ...current, role: event.target.value }))}
+                value={ownerAccessDraft.role}
+              >
+                <option value="owner">Eigentümer</option>
+                <option value="co_owner">Miteigentümer</option>
+                <option value="viewer">Betrachter</option>
+              </select>
+            </label>
+            <label className="admin-checkbox-label">
+              <input
+                checked={ownerAccessDraft.can_view_financials}
+                onChange={(event) => setOwnerAccessDraft((current) => ({ ...current, can_view_financials: event.target.checked }))}
+                type="checkbox"
+              />
+              Finanzen sichtbar
+            </label>
+            <label className="admin-checkbox-label">
+              <input
+                checked={ownerAccessDraft.can_view_operations}
+                onChange={(event) => setOwnerAccessDraft((current) => ({ ...current, can_view_operations: event.target.checked }))}
+                type="checkbox"
+              />
+              Operations sichtbar
+            </label>
+          </div>
+          <button
+            className="admin-button"
+            disabled={pendingAction === "owner-access-create"}
+            onClick={createOwnerAccess}
+            type="button"
+          >
+            Zugriff speichern
+          </button>
+        </article>
+
+        <article className="admin-card admin-card-wide">
+          <p className="admin-eyebrow">Freigaben</p>
+          <h2>Aktive Eigentümerzugriffe</h2>
+          <div className="admin-list">
+            {data.ownerAccess.length ? (
+              data.ownerAccess.map((access) => {
+                const owner = data.ownerProfiles.find((profile) => profile.id === access.owner_profile_id);
+                return (
+                  <article className="admin-list-item" key={access.id}>
+                    <div>
+                      <small>{access.role} · {access.can_view_financials ? "Finanzen" : "ohne Finanzen"}</small>
+                      <strong>{owner?.display_name || owner?.email || access.owner_profile_id}</strong>
+                      <em>{getPropertyName(data.properties, access.property_id)}</em>
+                    </div>
+                  </article>
+                );
+              })
+            ) : (
+              <p className="admin-drawer-message">
+                Noch keine Eigentümerzugriffe vorhanden oder Owner-Migration noch nicht live angewendet.
+              </p>
+            )}
           </div>
         </article>
       </section>

@@ -270,6 +270,7 @@ button {
 }
 
 .owner-metrics-grid,
+.owner-highlight-grid,
 .owner-dashboard-grid,
 .owner-object-grid {
   display: grid;
@@ -310,6 +311,15 @@ button {
 .owner-card {
   display: grid;
   gap: 18px;
+}
+
+.owner-highlight-card {
+  align-content: start;
+  background: rgba(255, 253, 248, 0.72);
+}
+
+.owner-highlight-card h2 {
+  max-width: 420px;
 }
 
 .owner-card ul {
@@ -357,6 +367,32 @@ button {
   padding: 7px 10px;
 }
 
+.owner-detail-list,
+.owner-process-list {
+  display: grid;
+  gap: 8px;
+}
+
+.owner-detail-list span,
+.owner-process-list span {
+  align-items: center;
+  background: rgba(236, 230, 214, 0.5);
+  border-radius: 8px;
+  color: rgba(24, 23, 21, 0.68);
+  display: flex;
+  font-size: 14px;
+  font-weight: 760;
+  justify-content: space-between;
+  padding: 10px 12px;
+}
+
+.owner-detail-list strong {
+  color: var(--offblack);
+  font-size: 14px;
+  font-weight: 860;
+  text-align: right;
+}
+
 .owner-status-list {
   display: grid;
   gap: 12px;
@@ -396,6 +432,10 @@ button {
 
   .owner-metrics-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .owner-highlight-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

@@ -131,7 +131,6 @@ Ziel: Morrow kann Nachfrage erzeugen und messen, ohne direkt zu ueberautomatisie
 Diese Punkte bleiben bewusst nachgelagert:
 
 - Erlebnisanbieter-Login
-- Eigentuemer-Login
 - Agentur-/Hotel-Login
 - Verfuegbarkeiten durch Partner melden
 - Stammdaten durch Partner pflegen
@@ -145,22 +144,22 @@ Diese Punkte bleiben bewusst nachgelagert:
 
 ## Architekturstand Nach Next-Migration
 
-Stand: 2026-06-25
+Stand: 2026-06-26
 
 - `apps/web` enthaelt die migrierte oeffentliche SEO-Website mit Startseite, Auszeiten, Eigentuemerpfad, Erlebnispartnerpfad und Ratgeber.
-- `apps/owner` ist als geschuetzte Eigentuemer-App gestartet.
-- Der Eigentuemerzugriff ist strukturell ueber `owner_profiles` und `owner_property_access` vorbereitet.
-- Die Eigentuemer-App liest kuenftig eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
+- `apps/owner` ist als geschuetzte Eigentuemer-App gestartet und zeigt MVP-Light Objekttransparenz, freie Zeitraeume, Buchungen, Vermarktungslogik, offene Objektpunkte und Abrechnungsausblick.
+- Der Eigentuemerzugriff ist strukturell ueber `owner_profiles` und `owner_property_access` vorbereitet und im Next-Admin pflegbar.
+- Die Eigentuemer-App liest eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - Die Migration muss noch remote in Supabase angewendet werden, sobald `SUPABASE_ACCESS_TOKEN` oder Datenbankpasswort lokal verfuegbar ist.
-- `apps/admin` und `apps/guest` sind noch nicht produktiv nach Next migriert; sie bleiben der naechste grosse Architekturblock.
-- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen, interne Notizen speichern, freie E-Mail-Antworten aus Anfrage/Buchung/Support senden, Monitoringhinweise anzeigen sowie Auszeiten, Termine und Erlebnisbausteine bearbeiten/neu anlegen und Unterkuenfte inklusive operativer Anreise-/Regel-/Medienfelder, Ausstattung, Objektattributen und Erlebniswelten pflegen.
+- `apps/guest` ist noch nicht produktiv nach Next migriert und bleibt der naechste grosse Architekturblock.
+- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen, interne Notizen speichern, freie E-Mail-Antworten aus Anfrage/Buchung/Support senden, Monitoringhinweise anzeigen, Eigentuemerprofile/Objektzugriffe vorbereiten sowie Auszeiten, Termine und Erlebnisbausteine bearbeiten/neu anlegen und Unterkuenfte inklusive operativer Anreise-/Regel-/Medienfelder, Ausstattung, Objektattributen und Erlebniswelten pflegen.
 
 Naechste technische Prioritaet:
 
-1. Supabase Owner-Migration live anwenden und ersten echten Owner-Zugang testen.
+1. Supabase Owner-Migration live anwenden, `admin-send-message` deployen und ersten echten Owner-Zugang testen.
 2. Admin-App weiter ausbauen: Kommunikationsvorlagen, echte Medienbibliothek, Detailsektionen und tieferes Monitoring migrieren.
 3. Guest-App danach aus dem Prototyp in `apps/guest` migrieren.
-4. Erst danach Owner-App weiter vertiefen: Abrechnung, Dokumente, Operationsstatus und Eigentuemer-Kommunikation.
+4. Owner-App danach vertiefen: Abrechnung, Dokumente, Operationsstatus und Eigentuemer-Kommunikation.
 
 ## Empfohlene Umsetzungsreihenfolge
 
@@ -240,14 +239,14 @@ Naechste technische Prioritaet:
 
 ## Naechster Konkreter Schritt
 
-Weiter mit Sprint 3, Punkt 4:
+Weiter mit Owner- und Plattformfundament:
 
-`AGB, Buchungs-, Storno- und Zahlungsbedingungen sichtbar einbinden`
+`Owner-Migration live anwenden, ersten echten Owner-Zugang testen und danach die Guest-App aus dem Prototyp migrieren`
 
 Definition of Done:
 
-- Rechtstexte sind als eigene Seiten oder klar verlinkte Dokumente vorhanden.
-- Anfrage- und Buchungsflow verweisen auf die relevanten Bedingungen.
-- Zahlungs- und Stornoregeln sind vor verbindlicher Buchung sichtbar.
-- Datenschutz, WhatsApp-Opt-in und spaeteres Tracking sind sauber getrennt.
-- Footer und Formulare enthalten die passenden Links.
+- `owner_profiles`, `owner_property_access` und `get_owner_dashboard()` sind remote in Supabase vorhanden.
+- Im Admin kann ein Eigentuemer angelegt und einer Unterkunft zugeordnet werden.
+- Der Eigentuemer kann sich einloggen und sieht nur seine freigegebenen Objekte, Termine, Buchungen und offenen Objektpunkte.
+- `admin-send-message` ist deployed und freie E-Mail-Antworten funktionieren live aus Anfrage, Buchung und Support.
+- Danach beginnt die Migration des Gaestebereichs nach `apps/guest`.
