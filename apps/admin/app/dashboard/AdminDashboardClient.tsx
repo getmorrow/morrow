@@ -757,6 +757,8 @@ function AdminDashboardView({
   const selectedSupport = selection?.type === "support"
     ? data.supportMessages.find((support) => support.id === selection.id) ?? null
     : null;
+  const selectedDrawerPayload = selectedLead?.payload ?? selectedBooking?.payload ?? selectedSupport?.payload ?? {};
+  const selectedDrawerEmail = selectedLead?.email || getPayloadText(selectedDrawerPayload, ["email"]);
   const selectedPackage = inventorySelection?.mode === "edit" && inventorySelection.type === "package"
     ? data.packages.find((item) => item.id === inventorySelection.id) ?? null
     : null;
@@ -945,7 +947,7 @@ function AdminDashboardView({
         ? "Rückmeldung zu eurer Morrow Anfrage"
         : selection.type === "booking"
           ? "Zu eurer Morrow Auszeit"
-          : "",
+          : "Rückmeldung zu eurer Nachricht",
       body: "",
     });
     setDrawerMessage(null);
@@ -1321,11 +1323,13 @@ function AdminDashboardView({
   }
 
   async function sendDrawerEmail() {
-    if (!selection || selection.type === "support") return;
+    if (!selection) return;
 
     const currentEntity = selection.type === "lead"
       ? data.leads.find((lead) => lead.id === selection.id)
-      : data.bookings.find((booking) => booking.id === selection.id);
+      : selection.type === "booking"
+        ? data.bookings.find((booking) => booking.id === selection.id)
+        : data.supportMessages.find((support) => support.id === selection.id);
 
     if (!currentEntity) return;
 
@@ -1342,6 +1346,7 @@ function AdminDashboardView({
     }
 
     const booking = selection.type === "booking" ? currentEntity as BookingRow : null;
+    const supportCase = selection.type === "support" ? currentEntity as SupportRow : null;
     const actionKey = `drawer-email-${selection.type}-${selection.id}`;
     setPendingAction(actionKey);
     setDrawerMessage(null);
@@ -1350,14 +1355,23 @@ function AdminDashboardView({
       const supabase = createSupabaseBrowserClient();
       const leadId = selection.type === "lead"
         ? selection.id
-        : booking?.lead_id || getPayloadText(payload, ["leadId", "lead_id"]) || booking?.id;
-      const bookingId = selection.type === "booking" ? selection.id : null;
+        : selection.type === "booking"
+          ? booking?.lead_id || getPayloadText(payload, ["leadId", "lead_id"]) || booking?.id
+          : supportCase
+            ? getSupportRelationId(supportCase, "lead")
+            : null;
+      const bookingId = selection.type === "booking"
+        ? selection.id
+        : supportCase
+          ? getSupportRelationId(supportCase, "booking")
+          : null;
       const customerId = booking?.customer_id || getPayloadText(payload, ["customerId", "customer_id"]);
       const { data: result, error } = await supabase.functions.invoke("admin-send-message", {
         body: {
           leadId,
           bookingId,
           customerId,
+          supportId: selection.type === "support" ? selection.id : null,
           recipient,
           subject,
           body,
@@ -1377,7 +1391,9 @@ function AdminDashboardView({
         entityId: selection.id,
         entityLabel: selection.type === "lead"
           ? getLeadLabel(currentEntity as LeadRow)
-          : getBookingLabel(currentEntity as BookingRow),
+          : selection.type === "booking"
+            ? getBookingLabel(currentEntity as BookingRow)
+            : getSupportLabel(currentEntity as SupportRow),
         payload: { recipient, subject },
       });
 
@@ -2297,7 +2313,7 @@ function AdminDashboardView({
       <AdminDetailDrawer
         booking={selectedBooking}
         communicationEvents={communicationEvents}
-        canSendEmail={selection?.type === "lead" || selection?.type === "booking"}
+        canSendEmail={Boolean(selection && selectedDrawerEmail)}
         isLoading={isDrawerLoading}
         message={drawerMessage}
         note={drawerNote}

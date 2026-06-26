@@ -4,6 +4,7 @@ type AdminMessagePayload = {
   leadId?: string | null
   bookingId?: string | null
   customerId?: string | null
+  supportId?: string | null
   recipient?: string
   subject?: string
   body?: string
@@ -106,6 +107,10 @@ Deno.serve(async (request) => {
     const leadId = isUuid(payload.leadId) ? payload.leadId : null
     const bookingId = isUuid(payload.bookingId) ? payload.bookingId : null
     const customerId = isUuid(payload.customerId) ? payload.customerId : null
+    const supportId = typeof payload.supportId === 'string' && payload.supportId.trim()
+      ? payload.supportId.trim()
+      : null
+    const eventType = supportId ? `support:${supportId}` : 'admin_manual_email'
 
     if (!recipient || !subject || !body) {
       return new Response(JSON.stringify({ error: 'Missing recipient, subject or body' }), {
@@ -120,7 +125,7 @@ Deno.serve(async (request) => {
         recipient,
         status: 'skipped',
         subject,
-        payload: { reason: 'missing_resend_api_key', bookingId, customerId },
+        payload: { reason: 'missing_resend_api_key', bookingId, customerId, supportId },
       })
       return new Response(JSON.stringify({ error: 'Missing Resend API key' }), {
         status: 500,
@@ -133,7 +138,7 @@ Deno.serve(async (request) => {
       recipient,
       status: 'queued',
       subject,
-      payload: { bookingId, customerId, actor },
+      payload: { bookingId, customerId, supportId, actor },
     })
 
     const response = await fetch('https://api.resend.com/emails', {
@@ -159,7 +164,7 @@ Deno.serve(async (request) => {
         recipient,
         status: 'failed',
         subject,
-        payload: { bookingId, customerId, actor, result },
+        payload: { bookingId, customerId, supportId, actor, result },
         errorMessage: JSON.stringify(result),
       })
       throw new Error(`Resend failed: ${response.status}`)
@@ -170,7 +175,7 @@ Deno.serve(async (request) => {
       recipient,
       status: 'sent',
       subject,
-      payload: { bookingId, customerId, actor, result },
+      payload: { bookingId, customerId, supportId, actor, result },
     })
 
     const communicationResult = await serviceClient
@@ -181,7 +186,7 @@ Deno.serve(async (request) => {
         customer_id: customerId,
         channel: 'email',
         direction: 'outbound',
-        event_type: 'admin_manual_email',
+        event_type: eventType,
         subject,
         body,
         recipient,
@@ -191,6 +196,7 @@ Deno.serve(async (request) => {
         provider_message_id: typeof result.id === 'string' ? result.id : null,
         payload: {
           source: 'next-admin',
+          supportId,
           result,
         },
       })

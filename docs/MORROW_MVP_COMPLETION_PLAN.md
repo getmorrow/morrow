@@ -63,7 +63,7 @@ Ziel: Nach der Buchung fuehlt sich Morrow wie Komfort an, nicht wie eine lose E-
 | Kuratierte Karte | Karte, Filter, Pins, Drawer, Restaurants, Orte, Veranstaltungen vorhanden | Datenqualitaet weiter kuratieren, Kategorien finalisieren, Pin-/Drawer-UX fortlaufend testen | MVP-kritisch | Teilweise |
 | Live-Daten | Wetter, Gezeiten, Veranstaltungen integriert | Wetter/Gezeiten stabil beobachten, Quellen/Fehlerzustand sauber anzeigen | MVP-light | Teilweise |
 | Restaurant-Reservierungen | Reservierungs-/Website-/Speisekartenlinks als externe Links vorhanden | Pro Restaurant kuratierte Reservierungslinks, Bilder, Kueche, Preisgefuehl, Oeffnungszeiten, Bewertung | MVP-kritisch | Teilweise |
-| Support-Chat | Gaeste koennen im Bereich Hilfe eine Nachricht mit Kategorie und Dringlichkeit senden; Next-Admin zeigt Supportfaelle als eigene Sektion mit Detail-Drawer, Statuswechsel, Historie und interner Notiz | Spaeter echte Chat-Antwort aus Admin heraus ergaenzen | MVP-kritisch | Erledigt fuer MVP |
+| Support-Chat | Gaeste koennen im Bereich Hilfe eine Nachricht mit Kategorie und Dringlichkeit senden; Next-Admin zeigt Supportfaelle als eigene Sektion mit Detail-Drawer, Statuswechsel, Historie, interner Notiz und E-Mail-Antwort aus dem Supportfall | Spaeter echte In-App-Chat-Antwort und WhatsApp-Templates ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Schadens-/Problem-Tickets | Objektproblem-Flow unterscheidet Morrow-Objektbetreuung von Agentur/Hotel-Partnerfaellen und priorisiert dringende Themen; `support_messages` hat Status, Dringlichkeit und Updated-At als Workflowfelder | Spaeter Partnerweiterleitung und Status pro Ticket weiter normalisieren | MVP-kritisch | Erledigt fuer MVP |
 | Feedback nach Aufenthalt | Feedback-Ansicht im Gaestebereich, Speicherung in `guest_feedback`, Kommunikationshistorie und automatische Resend-Edge-Function fuer faellige Feedback-Mails 1 Tag nach Abschluss sind live; serverseitiger Supabase-Cron `morrow-post-stay-feedback-daily` ruft die Function taeglich um 07:15 UTC mit Vault-Secrets und eigenem Automation-Secret auf; Live-Function, Dedupe, gesicherter Cron-Pfad und `pg_net`-Response wurden am 2026-06-23 getestet | Spaeter Feedback-Auswertung im Admin und Wiederbuchungsimpulse vertiefen | MVP-light | Erledigt fuer MVP |
 | Wiederbuchung | Nicht umgesetzt | Nach Aufenthalt leichte Rueckkehr-CTA, Empfehlung fuer naechste Auszeit | MVP-light | Offen |
@@ -75,7 +75,7 @@ Ziel: Kommunikation ist nachvollziehbar, persoenlich und nicht verteilt ueber pr
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
 | E-Mail-Automation | Resend/Supabase Edge Functions getestet; Lead-Mails funktionieren; Feedback-Mail nach Aufenthalt laeuft serverseitig ueber Supabase-Cron; Statusmails fuer Reservierung, Zahlung/Bestaetigung und Vor Anreise sind als Admin-getriggerte Function live, dedupliziert und mit Kommunikationshistorie getestet | Spaeter weitere Statusmails, manuelle E-Mail-Komposition und bessere Template-Verwaltung | MVP-kritisch | Erledigt fuer MVP |
-| Kommunikationshistorie | `communication_events` vorhanden; Next-Admin hat Detail-Drawer fuer Anfragen, Buchungen und Support mit Historie, klickbaren Kontaktdaten und interner Notiz, die als Kommunikationsereignis gespeichert wird; freie E-Mail-Antworten aus Anfrage/Buchung heraus laufen ueber Resend und werden in `email_events` sowie `communication_events` dokumentiert | Support-Antworten, WhatsApp-Templates, Vorlagenbibliothek und spaeter bessere Kommunikationszentrale ergaenzen | MVP-kritisch | Teilweise |
+| Kommunikationshistorie | `communication_events` vorhanden; Next-Admin hat Detail-Drawer fuer Anfragen, Buchungen und Support mit Historie, klickbaren Kontaktdaten und interner Notiz, die als Kommunikationsereignis gespeichert wird; freie E-Mail-Antworten aus Anfrage, Buchung und Support heraus laufen ueber Resend und werden in `email_events` sowie `communication_events` dokumentiert | WhatsApp-Templates, Vorlagenbibliothek und spaeter bessere Kommunikationszentrale ergaenzen | MVP-kritisch | Teilweise |
 | WhatsApp-Opt-in | Formularabfrage/Opt-in vorhanden | Zustimmung sauber speichern, Texte/Einwilligung rechtlich pruefen, manuelle WhatsApp-Nutzung dokumentieren | MVP-kritisch | Teilweise |
 | WhatsApp-Templates | Nicht umgesetzt | V2 oder MVP-light: vorbereitete Textbausteine, noch manuell versenden | MVP-light | Offen |
 | Push-Benachrichtigungen | Nicht umgesetzt | Nicht noetig fuer ersten MVP-Start, spaeter PWA/App | V2 | Offen |
@@ -153,12 +153,12 @@ Stand: 2026-06-25
 - Die Eigentuemer-App liest kuenftig eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - Die Migration muss noch remote in Supabase angewendet werden, sobald `SUPABASE_ACCESS_TOKEN` oder Datenbankpasswort lokal verfuegbar ist.
 - `apps/admin` und `apps/guest` sind noch nicht produktiv nach Next migriert; sie bleiben der naechste grosse Architekturblock.
-- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen, interne Notizen speichern, freie E-Mail-Antworten aus Anfrage/Buchung senden, Monitoringhinweise anzeigen sowie Auszeiten, Termine und Erlebnisbausteine bearbeiten/neu anlegen und Unterkuenfte inklusive operativer Anreise-/Regel-/Medienfelder pflegen.
+- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen, interne Notizen speichern, freie E-Mail-Antworten aus Anfrage/Buchung/Support senden, Monitoringhinweise anzeigen sowie Auszeiten, Termine und Erlebnisbausteine bearbeiten/neu anlegen und Unterkuenfte inklusive operativer Anreise-/Regel-/Medienfelder pflegen.
 
 Naechste technische Prioritaet:
 
 1. Supabase Owner-Migration live anwenden und ersten echten Owner-Zugang testen.
-2. Admin-App weiter ausbauen: Kommunikationsvorlagen, Support-Antworten, Medienbibliothek, Ausstattung, Detailsektionen und tieferes Monitoring migrieren.
+2. Admin-App weiter ausbauen: Kommunikationsvorlagen, Medienbibliothek, Ausstattung, Detailsektionen und tieferes Monitoring migrieren.
 3. Guest-App danach aus dem Prototyp in `apps/guest` migrieren.
 4. Erst danach Owner-App weiter vertiefen: Abrechnung, Dokumente, Operationsstatus und Eigentuemer-Kommunikation.
 
@@ -200,6 +200,7 @@ Naechste technische Prioritaet:
 1. Statusbasierte E-Mails definieren und umsetzen.
 2. Kommunikationszentrale aus Lead/Buchung heraus nutzbar machen.
    - Stand 2026-06-26: Next-Admin kann aus Anfrage/Buchung freie E-Mail-Antworten ueber `admin-send-message` senden; Versand wird in `email_events`, `communication_events` und Audit-Log dokumentiert; Build, Typecheck und Lint bestanden.
+   - Stand 2026-06-26: Supportfaelle koennen denselben E-Mail-Pfad nutzen; Support-Ereignisse ohne Lead-/Booking-Bezug bleiben ueber `event_type = support:<id>` in der Historie auffindbar; Build, Typecheck und Lint bestanden.
 3. WhatsApp-Opt-in rechtlich und technisch finalisieren.
 4. AGB, Buchungs-, Storno-, Zahlungsbedingungen sichtbar einbinden.
 5. Secrets und Admin-Passwort rotieren.
