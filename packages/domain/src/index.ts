@@ -4,7 +4,7 @@ export const publicRoutes = {
   familyEscape: "/auszeiten/family-escape",
   coupleReset: "/auszeiten/couple-reset",
   owners: "/eigentuemer",
-  partners: "/erlebnispartner",
+  partners: "/partner/erlebnisanbieter",
   guides: "/ratgeber",
   imprint: "/impressum",
   privacy: "/datenschutz",

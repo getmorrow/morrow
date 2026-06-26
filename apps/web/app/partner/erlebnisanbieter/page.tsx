@@ -1,5 +1,4 @@
-import { publicRoutes } from "@morrow/domain";
-import { redirect } from "next/navigation";
+import { ExperiencePartnersPageContent } from "../../_components/ExperiencePartnersPageContent";
 
 export const metadata = {
   title: "Für Erlebnispartner",
@@ -8,5 +7,5 @@ export const metadata = {
 };
 
 export default function ExperiencePartnersPage() {
-  redirect(publicRoutes.partners);
+  return <ExperiencePartnersPageContent />;
 }

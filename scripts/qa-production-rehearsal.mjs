@@ -15,7 +15,7 @@ const requiredPages = [
   { path: '/auszeiten/family-escape', text: /Vier Tage Nordsee|Family Escape/i },
   { path: '/auszeiten/couple-reset', text: /Couple Reset|Auszeit/i },
   { path: '/eigentuemer', text: /Eigentümer|Immobilie/i },
-  { path: '/erlebnispartner', text: /Erlebnispartner|Kooperation/i },
+  { path: '/partner/erlebnisanbieter', text: /Erlebnispartner|Kooperation|Lokale Erlebnisse/i },
   { path: '/ratgeber', text: /Ratgeber|Sankt Peter-Ording/i },
   { path: '/impressum', text: /Impressum/i },
   { path: '/datenschutz', text: /Datenschutz/i },
@@ -29,28 +29,41 @@ const formChecks = [
   { path: '/auszeiten/family-escape', anchor: '#anfrage', submit: /Auszeit anfragen/i, minimumFields: 8 },
   { path: '/auszeiten/couple-reset', anchor: '#anfrage', submit: /Auszeit anfragen/i, minimumFields: 7 },
   { path: '/eigentuemer', anchor: '#ertragspotenzial', submit: /Immobilie vorstellen/i, minimumFields: 6 },
-  { path: '/erlebnispartner', anchor: '#kooperation', submit: /Kooperation anfragen/i, minimumFields: 6 },
+  { path: '/partner/erlebnisanbieter', anchor: '#kooperation', submit: /Kooperation anfragen/i, minimumFields: 6 },
 ]
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
 }
 
+function assertNoSoft404(path, body) {
+  const normalizedBody = body.replace(/\s+/g, ' ').trim()
+  assert(
+    !/404 Diese Seite gibt es noch nicht/i.test(normalizedBody),
+    `${path} rendered the Morrow 404 page with a successful HTTP response`,
+  )
+}
+
 async function checkPage(page, { path, text }) {
   const response = await page.goto(`${baseUrl}${path}`, { waitUntil: 'networkidle' })
   assert(response?.ok(), `${path} returned ${response?.status()}`)
-  await page.getByText(text).first().waitFor({ timeout: 10_000 })
+  const body = await page.locator('body').innerText()
+  assertNoSoft404(path, body)
+  assert(text.test(body), `${path} does not include expected text ${text}`)
 }
 
 async function checkStaticEndpoint(page, path, expectedText) {
   const response = await page.goto(`${baseUrl}${path}`, { waitUntil: 'networkidle' })
   assert(response?.ok(), `${path} returned ${response?.status()}`)
   const body = await page.locator('body').innerText()
+  assertNoSoft404(path, body)
   assert(body.includes(expectedText), `${path} does not include ${expectedText}`)
 }
 
 async function checkForm(page, check) {
   await page.goto(`${baseUrl}${check.path}?utm_source=qa&utm_medium=rehearsal&utm_campaign=${campaign}`, { waitUntil: 'networkidle' })
+  const body = await page.locator('body').innerText()
+  assertNoSoft404(check.path, body)
   await page.locator(check.anchor).scrollIntoViewIfNeeded()
   const form = page.locator(`${check.anchor} .lead-form`)
   await form.waitFor({ timeout: 10_000 })
