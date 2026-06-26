@@ -57,7 +57,7 @@ Ziel: Nach der Buchung fuehlt sich Morrow wie Komfort an, nicht wie eine lose E-
 
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
-| Gaestebereich | Live-Zugang per Buchungscode getestet; Prototyp enthaelt volle App-Logik; `apps/guest` ist als Next-App gestartet und laedt Buchung/Auszeit ueber `get_guest_stay()`, zeigt Start, Auszeit, Buchung, Vor Ort, Hilfe und Feedback als mobil-first App-Shell | Interaktive Karte, Wetter/Gezeiten/Veranstaltungen, feinere Support- und Nach-Aufenthalt-Logik aus dem Prototyp migrieren | MVP-kritisch | Teilweise |
+| Gaestebereich | Live-Zugang per Buchungscode getestet; Prototyp enthaelt volle App-Logik; `apps/guest` ist als Next-App gestartet und laedt Buchung/Auszeit ueber `get_guest_stay()`, zeigt Start, Auszeit, Buchung, Vor Ort, Hilfe und Feedback als mobil-first App-Shell; Vor-Ort-Bereich hat Filter, Wetter-/Gezeitenmodule und kuratierte Ortskarten als Next-Zwischenstand | Interaktive Leaflet-Karte, Cluster-/Drawer-Logik, echte Live-Wetter-/Gezeitenquelle, Veranstaltungen und feinere Support-/Nach-Aufenthalt-Logik aus dem Prototyp migrieren; aktiven Live-Testdatensatz fuer Vor-Ort-Sichttest bereitstellen | MVP-kritisch | Teilweise |
 | Anreise, Schluessel, Unterkunftsregeln | Check-in-Daten, Adresse, Regeln, Check-out und Support-Zustaendigkeit sind am Paket/Objekt pflegbar; Buchungsseite im Gaestebereich zeigt die Infos klar aus Admin-Daten | Spaeter buchungsspezifische Sonderhinweise und echte Freigabezeitpunkte pro Buchung ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Tagesplan / Meine Auszeit | Eigener Bereich im Gaestebereich vorhanden; Ablaufpunkte sind pro Auszeit im Admin pflegbar und erscheinen als kompakte Timeline mit Detail-Drawer | Spaeter buchungsspezifische Abweichungen und echte Tageszeiten pro Buchung ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Kuratierte Karte | Karte, Filter, Pins, Drawer, Restaurants, Orte, Veranstaltungen vorhanden | Datenqualitaet weiter kuratieren, Kategorien finalisieren, Pin-/Drawer-UX fortlaufend testen | MVP-kritisch | Teilweise |
@@ -160,6 +160,7 @@ Naechste technische Prioritaet:
 2. Admin-App weiter ausbauen: Kommunikationsvorlagen, echte Medienbibliothek, Detailsektionen und tieferes Monitoring migrieren.
 3. Guest-App vertiefen: interaktive Karte, lokale Detail-Drawer, Wetter, Gezeiten, Veranstaltungen, Support-Chat und Nach-Aufenthalt-Modus aus dem Prototyp ueberfuehren.
 4. Owner-App danach vertiefen: Abrechnung, Dokumente, Operationsstatus und Eigentuemer-Kommunikation.
+5. Fuer die Next-Guest-App einen aktiven Testdatensatz mit gueltigem Access-Code pflegen, damit Start, Vor Ort, Hilfe und Buchung im Browser sichtbar getestet werden koennen.
 
 ## Empfohlene Umsetzungsreihenfolge
 

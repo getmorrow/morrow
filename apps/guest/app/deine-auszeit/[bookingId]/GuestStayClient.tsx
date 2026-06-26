@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "@morrow/supabase";
 
 type GuestView = "home" | "plan" | "booking" | "local" | "help" | "feedback" | "again";
+type LocalFilter = "all" | "weather" | "tide" | "beach" | "food" | "experience" | "event" | "shopping" | "emergency";
 
 type GuestBooking = {
   id?: string;
@@ -73,6 +74,8 @@ type LocalPlace = {
   name: string;
   category: string;
   status: string;
+  lat?: number | null;
+  lng?: number | null;
   address?: string | null;
   website?: string | null;
   reservation_url?: string | null;
@@ -108,8 +111,67 @@ const viewIcons: Record<GuestView, string> = {
 
 const allowedStatuses = ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen"];
 
+const localFilterOrder: LocalFilter[] = [
+  "all",
+  "weather",
+  "tide",
+  "beach",
+  "food",
+  "experience",
+  "event",
+  "shopping",
+  "emergency",
+];
+
+const localFilterLabels: Record<LocalFilter, string> = {
+  all: "Alle",
+  weather: "Wetter",
+  tide: "Gezeiten",
+  beach: "Strand",
+  food: "Essen",
+  experience: "Erlebnisse",
+  event: "Veranstaltungen",
+  shopping: "Praktisch",
+  emergency: "Hilfe",
+};
+
+const weatherPreview = [
+  { label: "Heute", value: "18°", detail: "Windig, kurze Strandfenster" },
+  { label: "Morgen", value: "19°", detail: "Hell, gute Wege ans Wasser" },
+  { label: "3 Tage", value: "17-20°", detail: "Wechselhaft, Plan B bereithalten" },
+  { label: "14 Tage", value: "Nordsee typisch", detail: "Vor Anreise erneut prüfen" },
+];
+
+const tidePreview = [
+  { label: "Morgens", value: "Ebbe prüfen", detail: "Watt nur mit aktuellem Stand und sicherer Route." },
+  { label: "Nachmittags", value: "Wasser kommt", detail: "Strandspaziergänge lieber nah am Übergang planen." },
+  { label: "Hinweis", value: "Tagesaktuell", detail: "Live-Werte werden als eigener Datenbaustein ergänzt." },
+];
+
 function text(value: unknown, fallback = "") {
   return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function payloadText(payload: Record<string, unknown> | undefined, keys: string[], fallback = "") {
+  if (!payload) return fallback;
+  for (const key of keys) {
+    const value = payload[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+    if (typeof value === "number") return String(value);
+  }
+  return fallback;
+}
+
+function payloadList(payload: Record<string, unknown> | undefined, keys: string[]) {
+  if (!payload) return [];
+  for (const key of keys) {
+    const value = payload[key];
+    if (Array.isArray(value)) return value.map(String).filter(Boolean);
+    if (typeof value === "string" && value.trim()) {
+      return value.split(/\n|,/).map((item) => item.trim()).filter(Boolean);
+    }
+  }
+  return [];
 }
 
 function firstName(name: string) {
@@ -168,7 +230,7 @@ function visibleLocalPlaces(places: LocalPlace[], packageItem?: GuestPackage | n
       if (!audience || !Array.isArray(fit)) return true;
       return fit.length === 0 || fit.includes(audience);
     })
-    .slice(0, 8);
+    .slice(0, 24);
 }
 
 function categoryLabel(category: string) {
@@ -183,6 +245,36 @@ function categoryLabel(category: string) {
     tide: "Gezeiten",
   };
   return labels[category] ?? category;
+}
+
+function normalizeCategory(category: string): LocalFilter {
+  if (category === "service") return "emergency";
+  if (localFilterOrder.includes(category as LocalFilter)) return category as LocalFilter;
+  return "all";
+}
+
+function placeDescription(place: LocalPlace) {
+  return (
+    place.address ||
+    payloadText(place.payload, ["description", "guestDescription", "routeNote", "morrowNote"], "Für eure Auszeit kuratiert.")
+  );
+}
+
+function placeMeta(place: LocalPlace) {
+  const parts = [
+    categoryLabel(place.category),
+    payloadText(place.payload, ["cuisine", "meta"]),
+    place.rating ? `${place.rating.toFixed(1)} Bewertung` : payloadText(place.payload, ["ratingValue"]),
+  ].filter(Boolean);
+  return parts.slice(0, 2).join(" · ");
+}
+
+function placeActions(place: LocalPlace) {
+  return [
+    place.reservation_url ? { label: "Reservieren", href: place.reservation_url } : null,
+    place.menu_url ? { label: "Speisekarte", href: place.menu_url } : null,
+    place.website ? { label: "Website", href: place.website } : null,
+  ].filter(Boolean) as Array<{ label: string; href: string }>;
 }
 
 export function GuestStayClient({
@@ -206,6 +298,7 @@ export function GuestStayClient({
   const [feedbackRating, setFeedbackRating] = useState("5");
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
+  const [localFilter, setLocalFilter] = useState<LocalFilter>("all");
 
   useEffect(() => {
     let cancelled = false;
@@ -219,7 +312,7 @@ export function GuestStayClient({
       try {
         supabase = createSupabaseBrowserClient();
       } catch {
-        setError("Der Gästebereich ist lokal noch nicht mit Supabase verbunden. Bitte prüft die Umgebungsvariablen.");
+        setError("Der Gästebereich ist gerade nicht erreichbar. Bitte versucht es gleich noch einmal oder meldet euch bei Morrow.");
         setLoading(false);
         return;
       }
@@ -241,7 +334,7 @@ export function GuestStayClient({
 
       const { data: localData } = await supabase
         .from("local_places")
-        .select("id,name,category,status,address,website,reservation_url,menu_url,rating,payload")
+        .select("id,name,category,status,lat,lng,address,website,reservation_url,menu_url,rating,payload")
         .eq("status", "approved")
         .order("updated_at", { ascending: false })
         .limit(80);
@@ -271,6 +364,17 @@ export function GuestStayClient({
   const stayDate = formatStayDate(booking?.selectedDate ?? booking?.dateLabel);
   const countdown = daysUntilFromLabel(booking?.selectedDate ?? booking?.dateLabel);
   const localPlaces = useMemo(() => visibleLocalPlaces(places, packageItem), [places, packageItem]);
+  const localFilters = useMemo(() => {
+    const categories = new Set(localPlaces.map((place) => normalizeCategory(place.category)));
+    categories.add("weather");
+    categories.add("tide");
+    categories.add("all");
+    return localFilterOrder.filter((filter) => categories.has(filter));
+  }, [localPlaces]);
+  const filteredLocalPlaces = localFilter === "all"
+    ? localPlaces.slice(0, 10)
+    : localPlaces.filter((place) => normalizeCategory(place.category) === localFilter).slice(0, 12);
+  const selectedFilterLabel = localFilterLabels[localFilter];
   const navItems: GuestView[] = completed
     ? ["home", "booking", "feedback", "again"]
     : ["home", "plan", "booking", "local", "help"];
@@ -462,20 +566,106 @@ export function GuestStayClient({
             <p className="eyebrow">Vor Ort</p>
             <h2>Schnelle Entscheidungen statt neuer Suche.</h2>
             <p>Hier erscheinen nur Orte, die von Morrow freigegeben wurden und zu eurer Auszeit passen.</p>
-            <div className="guest-place-list">
-              {localPlaces.map((place) => (
-                <article key={place.id}>
-                  <span>{categoryLabel(place.category)}</span>
-                  <strong>{place.name}</strong>
-                  <p>{place.address ?? text(place.payload?.description, "Für eure Auszeit kuratiert.")}</p>
-                  <div>
-                    {place.rating ? <small>{place.rating.toFixed(1)} Bewertung</small> : null}
-                    {place.website ? <a href={place.website} target="_blank" rel="noreferrer">Website</a> : null}
-                    {place.reservation_url ? <a href={place.reservation_url} target="_blank" rel="noreferrer">Reservieren</a> : null}
-                  </div>
-                </article>
+            <div className="guest-local-map-preview">
+              <div>
+                <span>In eurer Nähe</span>
+                <strong>{localPlaces.length + 2} Hinweise</strong>
+              </div>
+              <p>
+                Karte, Wetter, Gezeiten und kuratierte Orte werden hier gebündelt.
+                So findet ihr schneller, was zu eurem Tag passt, ohne neu suchen
+                und vergleichen zu müssen.
+              </p>
+            </div>
+
+            <div className="guest-filter-row" aria-label="Vor-Ort-Filter">
+              {localFilters.map((filter) => (
+                <button
+                  key={filter}
+                  className={localFilter === filter ? "is-active" : ""}
+                  type="button"
+                  onClick={() => setLocalFilter(filter)}
+                >
+                  {localFilterLabels[filter]}
+                </button>
               ))}
             </div>
+
+            {(localFilter === "all" || localFilter === "weather") && (
+              <section className="guest-local-module" aria-label="Wetter">
+                <div className="guest-module-head">
+                  <span>Wetter</span>
+                  <strong>Nordsee im Blick behalten</strong>
+                </div>
+                <div className="guest-horizontal-cards">
+                  {weatherPreview.map((item) => (
+                    <article key={item.label}>
+                      <span>{item.label}</span>
+                      <strong>{item.value}</strong>
+                      <p>{item.detail}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {(localFilter === "all" || localFilter === "tide") && (
+              <section className="guest-local-module" aria-label="Gezeiten">
+                <div className="guest-module-head">
+                  <span>Gezeiten</span>
+                  <strong>Watt und Wasser bewusst planen</strong>
+                </div>
+                <div className="guest-horizontal-cards">
+                  {tidePreview.map((item) => (
+                    <article key={item.label}>
+                      <span>{item.label}</span>
+                      <strong>{item.value}</strong>
+                      <p>{item.detail}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <section className="guest-local-module">
+              <div className="guest-module-head">
+                <span>{selectedFilterLabel}</span>
+                <strong>{localFilter === "all" ? "Kuratierte Auswahl" : `${filteredLocalPlaces.length} passende Orte`}</strong>
+              </div>
+              {filteredLocalPlaces.length ? (
+                <div className="guest-place-list">
+                  {filteredLocalPlaces.map((place) => {
+                    const actions = placeActions(place);
+                    const bestFor = payloadList(place.payload, ["bestFor", "audiences"]).slice(0, 3);
+
+                    return (
+                      <article key={place.id}>
+                        <span>{placeMeta(place)}</span>
+                        <strong>{place.name}</strong>
+                        <p>{placeDescription(place)}</p>
+                        {bestFor.length ? (
+                          <div className="guest-place-tags">
+                            {bestFor.map((item) => <small key={item}>{item}</small>)}
+                          </div>
+                        ) : null}
+                        {actions.length ? (
+                          <div>
+                            {actions.map((action) => (
+                              <a key={action.label} href={action.href} target="_blank" rel="noreferrer">{action.label}</a>
+                            ))}
+                          </div>
+                        ) : null}
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="guest-empty-state">
+                  <strong>Noch keine freigegebenen Orte</strong>
+                  <p>Wenn diese Kategorie zur Auszeit passt, ergänzt Morrow hier bewusst kuratierte Empfehlungen.</p>
+                </div>
+              )}
+            </section>
           </section>
         )}
 
