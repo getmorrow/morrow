@@ -294,6 +294,10 @@ input {
   gap: 10px;
 }
 
+.admin-list-compact {
+  margin-top: 16px;
+}
+
 .admin-list span,
 .admin-list-item {
   align-items: center;
@@ -354,6 +358,10 @@ input {
 .admin-row-actions button:disabled {
   cursor: wait;
   opacity: 0.52;
+}
+
+.admin-row-actions button.is-danger {
+  color: #75491f;
 }
 
 .admin-action-message {

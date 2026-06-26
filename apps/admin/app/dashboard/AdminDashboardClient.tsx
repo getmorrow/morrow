@@ -1623,6 +1623,110 @@ function AdminDashboardView({
     }
   }
 
+  function editOwnerProfile(profile: OwnerProfileRow) {
+    setOwnerProfileDraft({
+      email: profile.email,
+      display_name: profile.display_name || "",
+      phone: profile.phone || "",
+      status: profile.status || "active",
+    });
+    setOwnerMessage("Eigentümerprofil zum Bearbeiten geladen.");
+  }
+
+  function editOwnerAccess(access: OwnerAccessRow) {
+    setOwnerAccessDraft({
+      owner_profile_id: access.owner_profile_id,
+      property_id: access.property_id,
+      role: access.role || "owner",
+      can_view_financials: access.can_view_financials,
+      can_view_operations: access.can_view_operations,
+    });
+    setOwnerMessage("Objektzugriff zum Bearbeiten geladen.");
+  }
+
+  async function updateOwnerProfileStatus(profile: OwnerProfileRow, status: string) {
+    setPendingAction(`owner-profile-status-${profile.id}`);
+    setOwnerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data: updated, error } = await supabase
+        .from("owner_profiles")
+        .update({
+          status,
+          payload: {
+            ...(profile.payload ?? {}),
+            statusUpdatedAt: new Date().toISOString(),
+            source: "next-admin",
+          },
+        })
+        .eq("id", profile.id)
+        .select("id,email,display_name,phone,status,payload,created_at")
+        .single();
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        ownerProfiles: current.ownerProfiles.map((item) =>
+          item.id === profile.id ? updated as OwnerProfileRow : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "owner_profile_status_updated",
+        entityType: "owner_profile",
+        entityId: profile.id,
+        entityLabel: profile.display_name || profile.email,
+        payload: { from: profile.status, to: status },
+      });
+
+      setOwnerMessage(status === "active" ? "Eigentümerzugang aktiviert." : "Eigentümerzugang pausiert.");
+    } catch {
+      setOwnerMessage("Der Eigentümerstatus konnte nicht geändert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function deleteOwnerAccess(access: OwnerAccessRow) {
+    setPendingAction(`owner-access-delete-${access.id}`);
+    setOwnerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("owner_property_access")
+        .delete()
+        .eq("id", access.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        ownerAccess: current.ownerAccess.filter((item) => item.id !== access.id),
+      }));
+
+      await writeAuditLog({
+        action: "owner_property_access_deleted",
+        entityType: "owner_property_access",
+        entityId: access.id,
+        entityLabel: getPropertyName(data.properties, access.property_id),
+        payload: {
+          ownerProfileId: access.owner_profile_id,
+          propertyId: access.property_id,
+          role: access.role,
+        },
+      });
+
+      setOwnerMessage("Objektzugriff entfernt.");
+    } catch {
+      setOwnerMessage("Der Objektzugriff konnte nicht entfernt werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
   async function updateLeadStatus(lead: LeadRow, status: string) {
     const actionKey = `lead-${lead.id}-${status}`;
     setPendingAction(actionKey);
@@ -3284,6 +3388,44 @@ function AdminDashboardView({
             Eigentümer speichern
           </button>
           {ownerMessage ? <p className="admin-drawer-message">{ownerMessage}</p> : null}
+          <div className="admin-list admin-list-compact">
+            {data.ownerProfiles.length ? (
+              data.ownerProfiles.map((owner) => (
+                <article className="admin-list-item" key={owner.id}>
+                  <div>
+                    <small>{owner.status}</small>
+                    <strong>{owner.display_name || owner.email}</strong>
+                    <em>{owner.email}{owner.phone ? ` · ${owner.phone}` : ""}</em>
+                  </div>
+                  <div className="admin-row-actions">
+                    <button onClick={() => editOwnerProfile(owner)} type="button">
+                      Bearbeiten
+                    </button>
+                    {owner.status === "active" ? (
+                      <button
+                        className="is-danger"
+                        disabled={pendingAction === `owner-profile-status-${owner.id}`}
+                        onClick={() => updateOwnerProfileStatus(owner, "paused")}
+                        type="button"
+                      >
+                        Pausieren
+                      </button>
+                    ) : (
+                      <button
+                        disabled={pendingAction === `owner-profile-status-${owner.id}`}
+                        onClick={() => updateOwnerProfileStatus(owner, "active")}
+                        type="button"
+                      >
+                        Aktivieren
+                      </button>
+                    )}
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">Noch keine Eigentümerprofile angelegt.</p>
+            )}
+          </div>
         </article>
 
         <article className="admin-card">
@@ -3369,6 +3511,19 @@ function AdminDashboardView({
                       <small>{access.role} · {access.can_view_financials ? "Finanzen" : "ohne Finanzen"}</small>
                       <strong>{owner?.display_name || owner?.email || access.owner_profile_id}</strong>
                       <em>{getPropertyName(data.properties, access.property_id)}</em>
+                    </div>
+                    <div className="admin-row-actions">
+                      <button onClick={() => editOwnerAccess(access)} type="button">
+                        Bearbeiten
+                      </button>
+                      <button
+                        className="is-danger"
+                        disabled={pendingAction === `owner-access-delete-${access.id}`}
+                        onClick={() => deleteOwnerAccess(access)}
+                        type="button"
+                      >
+                        Entfernen
+                      </button>
                     </div>
                   </article>
                 );
