@@ -100,11 +100,11 @@ Ziel: Buchbare Auszeiten duerfen nicht ohne klare Bedingungen live gehen.
 
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
-| AGB | Nicht final | AGB fuer Anfrage/Buchung/Leistungspartner pruefen lassen | MVP-kritisch | Offen |
-| Buchungsbedingungen | Nicht final | Was ist verbindlich, wann entsteht Buchung, was ist enthalten? | MVP-kritisch | Offen |
-| Stornobedingungen | Nicht final | Fristen, Kosten, Sonderfaelle | MVP-kritisch | Offen |
-| Zahlungsbedingungen | Nicht final | Zahlung wann, wohin, Beleg, Reservierung bis wann | MVP-kritisch | Offen |
-| Datenschutz | Vorhanden/zu pruefen | Supabase, Resend, WhatsApp, Tracking, Supportdaten final pruefen | MVP-kritisch | Offen |
+| AGB | Web-Arbeitsfassung unter `/agb` vorhanden und im Footer verlinkt | AGB fuer Anfrage/Buchung/Leistungspartner juristisch final pruefen lassen | MVP-kritisch | Teilweise |
+| Buchungsbedingungen | Web-Arbeitsfassung unter `/buchungsbedingungen` vorhanden und im Footer verlinkt | Was ist verbindlich, wann entsteht Buchung, was ist enthalten? juristisch finalisieren | MVP-kritisch | Teilweise |
+| Stornobedingungen | Web-Arbeitsfassung unter `/stornobedingungen` vorhanden und im Footer verlinkt | Fristen, Kosten, Sonderfaelle je Buchungsmodell final festlegen | MVP-kritisch | Teilweise |
+| Zahlungsbedingungen | Web-Arbeitsfassung unter `/zahlungsbedingungen` vorhanden und im Footer verlinkt | Zahlung wann, wohin, Beleg, Reservierung bis wann final festlegen | MVP-kritisch | Teilweise |
+| Datenschutz | Web-Arbeitsfassung unter `/datenschutz` vorhanden und im Footer verlinkt | Supabase, Resend, WhatsApp, Tracking, Supportdaten final pruefen | MVP-kritisch | Teilweise |
 | WhatsApp/Marketing-Einwilligung | Technisch teilweise | Rechtstext/Opt-in-Formulierung finalisieren | MVP-kritisch | Offen |
 | Bildrechte | Teilweise als Feld vorhanden | Pro Unterkunft/Erlebnis dokumentieren | MVP-kritisch | Teilweise |
 | Secret-Rotation | Secrets wurden im Arbeitsverlauf geteilt | Supabase Service Role, PAT, Resend Key, Admin-Passwort rotieren | MVP-kritisch | Offen |
@@ -206,6 +206,7 @@ Naechste technische Prioritaet:
    - Stand 2026-06-26: Supportfaelle koennen denselben E-Mail-Pfad nutzen; Support-Ereignisse ohne Lead-/Booking-Bezug bleiben ueber `event_type = support:<id>` in der Historie auffindbar; Build, Typecheck und Lint bestanden.
 3. WhatsApp-Opt-in rechtlich und technisch finalisieren.
 4. AGB, Buchungs-, Storno-, Zahlungsbedingungen sichtbar einbinden.
+   - Stand 2026-06-26: Next-Web hat Footer-Links und Web-Arbeitsfassungen fuer Impressum, Datenschutz, AGB, Buchungsbedingungen, Stornobedingungen und Zahlungsbedingungen. Die Seiten sind technisch sichtbar und ueber Sitemap angebunden; finaler Rechtscheck und vollstaendige Anbieterkennzeichnung bleiben offen.
 5. Secrets und Admin-Passwort rotieren.
 
 ### Sprint 4: Growth-Messung

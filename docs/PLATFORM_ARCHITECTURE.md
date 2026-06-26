@@ -469,7 +469,7 @@ Jede Welt braucht eine eigene Shell.
 ### Website-Shell
 
 - Marken-Navigation
-- Website-Footer
+- Website-Footer mit Impressum, Datenschutz, AGB, Buchungsbedingungen, Stornobedingungen und Zahlungsbedingungen
 - SEO-faehige Seiten
 - klare CTAs
 

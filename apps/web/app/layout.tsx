@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Analytics } from "./_components/Analytics";
+import { SiteFooter } from "./_components/SiteFooter";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({
     <html lang="de">
       <body>
         {children}
+        <SiteFooter />
         <Analytics />
       </body>
     </html>

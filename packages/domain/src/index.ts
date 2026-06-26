@@ -6,6 +6,12 @@ export const publicRoutes = {
   owners: "/eigentuemer",
   partners: "/erlebnispartner",
   guides: "/ratgeber",
+  imprint: "/impressum",
+  privacy: "/datenschutz",
+  terms: "/agb",
+  bookingTerms: "/buchungsbedingungen",
+  cancellationTerms: "/stornobedingungen",
+  paymentTerms: "/zahlungsbedingungen",
 } as const;
 
 export type PublicRoute = (typeof publicRoutes)[keyof typeof publicRoutes];
