@@ -199,6 +199,15 @@ type OutboundDraft = {
   body: string;
 };
 
+type PaymentDraft = {
+  payment_status: string;
+  payment_amount: string;
+  payment_date: string;
+  payment_method: string;
+  payment_reference: string;
+  payment_proof_url: string;
+};
+
 type OwnerProfileDraft = {
   email: string;
   display_name: string;
@@ -264,6 +273,19 @@ function paymentStatusForBooking(status: string) {
   return ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen"].includes(status)
     ? "bezahlt"
     : "offen";
+}
+
+function paymentDraftFromBooking(booking: BookingRow | null): PaymentDraft {
+  const payload = booking?.payload ?? {};
+
+  return {
+    payment_status: booking?.payment_status || getPayloadText(payload, ["paymentStatus"]) || "offen",
+    payment_amount: getPayloadText(payload, ["paymentAmount", "amountPaid", "price"]) || "",
+    payment_date: getPayloadText(payload, ["paymentDate", "paidAt"]) || "",
+    payment_method: getPayloadText(payload, ["paymentMethod"]) || "",
+    payment_reference: getPayloadText(payload, ["paymentReference", "invoiceNumber", "transactionId"]) || "",
+    payment_proof_url: getPayloadText(payload, ["paymentProofUrl", "receiptUrl", "invoiceUrl"]) || "",
+  };
 }
 
 function getPayloadText(payload: Record<string, unknown>, keys: string[]) {
@@ -374,6 +396,7 @@ function supportStatusLabel(status: string) {
 function auditActionLabel(action: string) {
   const labels: Record<string, string> = {
     admin_email_sent: "E-Mail gesendet",
+    booking_payment_documented: "Zahlung dokumentiert",
     booking_status_updated: "Buchungsstatus geändert",
     date_created: "Termin angelegt",
     date_updated: "Termin geändert",
@@ -943,6 +966,7 @@ function AdminDashboardView({
   const [drawerAuditLogs, setDrawerAuditLogs] = useState<AuditLogRow[]>([]);
   const [drawerNote, setDrawerNote] = useState("");
   const [outboundDraft, setOutboundDraft] = useState<OutboundDraft>({ subject: "", body: "" });
+  const [paymentDraft, setPaymentDraft] = useState<PaymentDraft>(paymentDraftFromBooking(null));
   const [drawerMessage, setDrawerMessage] = useState<string | null>(null);
   const [isDrawerLoading, setIsDrawerLoading] = useState(false);
   const data = dataState;
@@ -1159,6 +1183,7 @@ function AdminDashboardView({
       setDrawerAuditLogs([]);
       setDrawerNote("");
       setOutboundDraft({ subject: "", body: "" });
+      setPaymentDraft(paymentDraftFromBooking(null));
       setDrawerMessage(null);
       return;
     }
@@ -1178,6 +1203,9 @@ function AdminDashboardView({
           : "Rückmeldung zu eurer Nachricht",
       body: "",
     });
+    setPaymentDraft(selection.type === "booking"
+      ? paymentDraftFromBooking(data.bookings.find((booking) => booking.id === selection.id) ?? null)
+      : paymentDraftFromBooking(null));
     setDrawerMessage(null);
 
     let isMounted = true;
@@ -1581,6 +1609,72 @@ function AdminDashboardView({
       setActionMessage("Buchung aktualisiert.");
     } catch {
       setActionMessage("Die Buchung konnte nicht aktualisiert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function savePaymentInfo() {
+    if (!selectedBooking) return;
+
+    const actionKey = `booking-payment-${selectedBooking.id}`;
+    setPendingAction(actionKey);
+    setDrawerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const paymentStatus = paymentDraft.payment_status.trim() || "offen";
+      const paymentPayload = {
+        paymentStatus,
+        paymentAmount: paymentDraft.payment_amount.trim(),
+        paymentDate: paymentDraft.payment_date.trim(),
+        paymentMethod: paymentDraft.payment_method.trim(),
+        paymentReference: paymentDraft.payment_reference.trim(),
+        paymentProofUrl: paymentDraft.payment_proof_url.trim(),
+        updatedAt: new Date().toISOString(),
+      };
+      const payload = {
+        ...selectedBooking.payload,
+        ...paymentPayload,
+      };
+      const { error } = await supabase
+        .from("bookings")
+        .update({
+          payment_status: paymentStatus,
+          payload,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", selectedBooking.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        bookings: current.bookings.map((booking) =>
+          booking.id === selectedBooking.id
+            ? { ...booking, payment_status: paymentStatus, payload }
+            : booking,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "booking_payment_documented",
+        entityType: "booking",
+        entityId: selectedBooking.id,
+        entityLabel: getBookingLabel(selectedBooking),
+        payload: {
+          from: selectedBooking.payment_status,
+          to: paymentStatus,
+          paymentAmount: paymentPayload.paymentAmount,
+          paymentDate: paymentPayload.paymentDate,
+          paymentMethod: paymentPayload.paymentMethod,
+          paymentReference: paymentPayload.paymentReference,
+        },
+      });
+
+      setDrawerMessage("Zahlungsdaten gespeichert.");
+    } catch {
+      setDrawerMessage("Zahlungsdaten konnten nicht gespeichert werden.");
     } finally {
       setPendingAction(null);
     }
@@ -2873,9 +2967,13 @@ function AdminDashboardView({
         onClose={() => setSelection(null)}
         onOutboundChange={(key, value) => setOutboundDraft((current) => ({ ...current, [key]: value }))}
         onNoteChange={setDrawerNote}
+        onPaymentChange={(key, value) => setPaymentDraft((current) => ({ ...current, [key]: value }))}
         onSaveNote={saveDrawerNote}
+        onSavePayment={savePaymentInfo}
         onSendEmail={sendDrawerEmail}
         outboundDraft={outboundDraft}
+        paymentDraft={paymentDraft}
+        paymentPending={pendingAction === `booking-payment-${selectedBooking?.id}`}
         pending={Boolean(pendingAction?.startsWith("drawer-note"))}
         sendPending={Boolean(pendingAction?.startsWith("drawer-email"))}
         support={selectedSupport}
@@ -2932,9 +3030,13 @@ function AdminDetailDrawer({
   onClose,
   onOutboundChange,
   onNoteChange,
+  onPaymentChange,
   onSaveNote,
+  onSavePayment,
   onSendEmail,
   outboundDraft,
+  paymentDraft,
+  paymentPending,
   pending,
   sendPending,
   support,
@@ -2950,9 +3052,13 @@ function AdminDetailDrawer({
   onClose: () => void;
   onOutboundChange: (key: keyof OutboundDraft, value: string) => void;
   onNoteChange: (value: string) => void;
+  onPaymentChange: (key: keyof PaymentDraft, value: string) => void;
   onSaveNote: () => void;
+  onSavePayment: () => void;
   onSendEmail: () => void;
   outboundDraft: OutboundDraft;
+  paymentDraft: PaymentDraft;
+  paymentPending: boolean;
   pending: boolean;
   sendPending: boolean;
   support: SupportRow | null;
@@ -3030,6 +3136,70 @@ function AdminDetailDrawer({
             <article className="admin-drawer-note-card">
               <p>{supportMessage}</p>
             </article>
+          </section>
+        ) : null}
+
+        {booking ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Zahlung</p>
+            <div className="admin-form-grid">
+              <label>
+                Zahlungsstatus
+                <select
+                  onChange={(event) => onPaymentChange("payment_status", event.target.value)}
+                  value={paymentDraft.payment_status}
+                >
+                  <option value="offen">Offen</option>
+                  <option value="angefordert">Angefordert</option>
+                  <option value="teilbezahlt">Teilbezahlt</option>
+                  <option value="bezahlt">Bezahlt</option>
+                  <option value="erstattet">Erstattet</option>
+                </select>
+              </label>
+              <label>
+                Betrag
+                <input
+                  onChange={(event) => onPaymentChange("payment_amount", event.target.value)}
+                  placeholder="z. B. 1.190 €"
+                  value={paymentDraft.payment_amount}
+                />
+              </label>
+              <label>
+                Zahlungsdatum
+                <input
+                  onChange={(event) => onPaymentChange("payment_date", event.target.value)}
+                  placeholder="TT.MM.JJJJ"
+                  value={paymentDraft.payment_date}
+                />
+              </label>
+              <label>
+                Zahlungsart
+                <input
+                  onChange={(event) => onPaymentChange("payment_method", event.target.value)}
+                  placeholder="Überweisung, Rechnung, Stripe ..."
+                  value={paymentDraft.payment_method}
+                />
+              </label>
+              <label>
+                Referenz
+                <input
+                  onChange={(event) => onPaymentChange("payment_reference", event.target.value)}
+                  placeholder="Rechnungsnummer oder Transaktions-ID"
+                  value={paymentDraft.payment_reference}
+                />
+              </label>
+              <label>
+                Beleglink
+                <input
+                  onChange={(event) => onPaymentChange("payment_proof_url", event.target.value)}
+                  placeholder="Interner Link zum Zahlungsbeleg"
+                  value={paymentDraft.payment_proof_url}
+                />
+              </label>
+            </div>
+            <button className="admin-button" disabled={paymentPending} onClick={onSavePayment} type="button">
+              {paymentPending ? "Speichern" : "Zahlung speichern"}
+            </button>
           </section>
         ) : null}
 

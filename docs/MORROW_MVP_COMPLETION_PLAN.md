@@ -89,7 +89,7 @@ Ziel: Supabase ist die fuehrende Datenquelle fuer alles, was operativ relevant i
 | --- | --- | --- | --- | --- |
 | Supabase als Quelle | Leads, Kunden, Buchungen, Auszeiten, Vor-Ort-Daten, Anbieter, Agenturen, Objekte angebunden | LocalStorage nur noch Demo/Fallback; alle Admin-Mutationen remote bestaetigen | MVP-kritisch | Teilweise |
 | Relationale Struktur | Tabellen vorhanden, Payload noch stark genutzt | Buchungen, Kunden, Zahlungen, Pakete, Termine, Anbieter staerker normalisieren | MVP-light | Teilweise |
-| Zahlungen | Zahlung manuell ueber Status | Payment-Provider nicht zwingend fuer ersten MVP, aber Zahlungsnachweis/Status muss sauber dokumentiert sein | MVP-light | Offen |
+| Zahlungen | Zahlung bleibt manuell; Next-Admin kann in Buchungen Zahlungsstatus, Betrag, Datum, Zahlungsart, Referenz und Beleglink dokumentieren und schreibt Änderungen ins Audit-Log | Payment-Provider, Rechnungslogik und automatische Zahlungsabgleiche spaeter ergaenzen | MVP-light | Teilweise |
 | Automatische Gaestebereich-Freigabe | Status `Bezahlt` schaltet frei, getestet | Freigabe an Zahlungs-/Buchungsstatus koppeln, klare Sperr-/Fehlerzustaende | MVP-kritisch | Teilweise |
 | Testdaten | Testdaten markiert und aus KPIs ausgeschlossen | Testfilter optional in Admin | MVP-light | Teilweise |
 | Backup/Recovery | Nicht geprueft | Supabase Backup/Export-Prozess dokumentieren | MVP-kritisch | Offen |
