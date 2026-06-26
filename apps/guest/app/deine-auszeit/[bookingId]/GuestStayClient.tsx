@@ -86,6 +86,8 @@ type LocalPlace = {
   reservation_url?: string | null;
   menu_url?: string | null;
   rating?: number | null;
+  opening_hours?: Record<string, unknown> | null;
+  package_fit?: string[];
   payload?: Record<string, unknown>;
 };
 
@@ -420,9 +422,11 @@ function visibleLocalPlaces(places: LocalPlace[], packageItem?: GuestPackage | n
   return places
     .filter((place) => place.status === "approved")
     .filter((place) => {
-      const fit = place.payload?.packageFit;
+      const fit = Array.isArray(place.package_fit) && place.package_fit.length
+        ? place.package_fit
+        : place.payload?.packageFit;
       if (!audience || !Array.isArray(fit)) return true;
-      return fit.length === 0 || fit.includes(audience);
+      return fit.length === 0 || fit.map(String).includes(audience);
     })
     .slice(0, 24);
 }
@@ -472,6 +476,14 @@ function placeActions(place: LocalPlace) {
     place.menu_url ? { label: "Speisekarte", href: place.menu_url } : null,
     place.website ? { label: "Website", href: place.website } : null,
   ].filter(Boolean) as Array<{ label: string; href: string }>;
+}
+
+function openingHoursText(place: LocalPlace) {
+  const payloadValue = payloadText(place.payload, ["openingHours", "openingHoursNote", "hours"]);
+  if (payloadValue) return payloadValue;
+  const note = place.opening_hours?.note;
+  if (typeof note === "string" && note.trim()) return note.trim();
+  return "";
 }
 
 function localPlaceToMapPlace(place: LocalPlace): GuestMapPlace | null {
@@ -587,7 +599,7 @@ export function GuestStayClient({
 
       const { data: localData } = await supabase
         .from("local_places")
-        .select("id,name,category,status,lat,lng,address,website,reservation_url,menu_url,rating,payload")
+        .select("id,name,category,status,lat,lng,address,website,reservation_url,menu_url,rating,opening_hours,package_fit,payload")
         .eq("status", "approved")
         .order("updated_at", { ascending: false })
         .limit(80);
@@ -1180,6 +1192,12 @@ export function GuestStayClient({
                   <article>
                     <span>Adresse</span>
                     <strong>{selectedPlace.address}</strong>
+                  </article>
+                ) : null}
+                {openingHoursText(selectedPlace) ? (
+                  <article>
+                    <span>Öffnungszeiten</span>
+                    <strong>{openingHoursText(selectedPlace)}</strong>
                   </article>
                 ) : null}
               </div>

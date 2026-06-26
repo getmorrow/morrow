@@ -1305,6 +1305,8 @@ function AdminDashboardView({
         reservation_url: "",
         menu_url: "",
         rating: "",
+        opening_hours: "",
+        package_fit: "",
         description: "",
         cuisine: "",
         best_for: "",
@@ -1325,6 +1327,11 @@ function AdminDashboardView({
       reservation_url: item.reservation_url || "",
       menu_url: item.menu_url || "",
       rating: item.rating?.toString() || "",
+      opening_hours: getPayloadText(item.payload, ["openingHours", "openingHoursNote", "hours"]) ||
+        (typeof item.opening_hours?.note === "string" ? item.opening_hours.note : ""),
+      package_fit: Array.isArray(item.package_fit) && item.package_fit.length
+        ? item.package_fit.join("\n")
+        : getPayloadLines(item.payload, ["packageFit"]),
       description: getPayloadText(item.payload, ["description", "guestDescription", "morrowNote", "routeNote"]) || "",
       cuisine: getPayloadText(item.payload, ["cuisine"]) || "",
       best_for: getPayloadLines(item.payload, ["bestFor", "audiences"]),
@@ -2487,6 +2494,8 @@ function AdminDashboardView({
       const payload = {
         description: String(localPlaceDraft.description || "").trim(),
         cuisine: String(localPlaceDraft.cuisine || "").trim(),
+        openingHours: String(localPlaceDraft.opening_hours || "").trim(),
+        packageFit: splitLines(String(localPlaceDraft.package_fit || "")),
         bestFor: splitLines(String(localPlaceDraft.best_for || "")),
         images: splitLines(String(localPlaceDraft.images || "")),
         updatedAt: now,
@@ -2502,6 +2511,10 @@ function AdminDashboardView({
         reservation_url: String(localPlaceDraft.reservation_url || "").trim() || null,
         menu_url: String(localPlaceDraft.menu_url || "").trim() || null,
         rating: numberOrNull(String(localPlaceDraft.rating || "")),
+        opening_hours: String(localPlaceDraft.opening_hours || "").trim()
+          ? { note: String(localPlaceDraft.opening_hours || "").trim() }
+          : null,
+        package_fit: splitLines(String(localPlaceDraft.package_fit || "")),
         payload,
         updated_at: now,
       };
@@ -4381,6 +4394,15 @@ function AdminLocalPlaceDrawer({
                 value={String(draft.rating || "")}
               />
             </label>
+            <label>
+              Passt zu Auszeiten
+              <textarea
+                onChange={(event) => onChange("package_fit", event.target.value)}
+                placeholder="families oder couples, je Zeile ein Wert. Leer = für alle."
+                rows={3}
+                value={String(draft.package_fit || "")}
+              />
+            </label>
           </div>
         </section>
 
@@ -4432,6 +4454,14 @@ function AdminLocalPlaceDrawer({
                 onChange={(event) => onChange("menu_url", event.target.value)}
                 placeholder="https://..."
                 value={String(draft.menu_url || "")}
+              />
+            </label>
+            <label>
+              Öffnungszeiten / Hinweis
+              <input
+                onChange={(event) => onChange("opening_hours", event.target.value)}
+                placeholder="z. B. täglich ab 12 Uhr, saisonal prüfen"
+                value={String(draft.opening_hours || "")}
               />
             </label>
           </div>
