@@ -1,6 +1,8 @@
 import { publicRoutes, stayDetails } from "@morrow/domain";
 import { Button, Card, Container, Eyebrow, SectionHeader } from "@morrow/ui";
+import { JsonLd } from "../../_components/JsonLd";
 import { SiteHeader } from "../../_components/SiteHeader";
+import { stayStructuredData } from "../../_lib/structuredData";
 
 const stay = stayDetails["couple-reset"];
 
@@ -13,6 +15,7 @@ export const metadata = {
 export default function CoupleResetPage() {
   return (
     <main className="site-shell">
+      <JsonLd data={stayStructuredData(stay)} />
       <SiteHeader />
 
       <section className="stay-hero">
@@ -24,8 +27,19 @@ export default function CoupleResetPage() {
             <h1>{stay.heroTitle}</h1>
             <p>{stay.heroLead}</p>
             <div className="stay-hero-actions">
-              <Button href="#anfrage">Auszeit anfragen</Button>
-              <Button href={publicRoutes.stays} variant="secondary">
+              <Button
+                data-conversion="stay_request_click"
+                data-conversion-label="Couple Reset Hero Anfrage"
+                href="#anfrage"
+              >
+                Auszeit anfragen
+              </Button>
+              <Button
+                data-conversion="cta_stays_view"
+                data-conversion-label="Couple Reset Hero Auszeiten ansehen"
+                href={publicRoutes.stays}
+                variant="secondary"
+              >
                 Auszeiten ansehen
               </Button>
             </div>
@@ -168,7 +182,11 @@ export default function CoupleResetPage() {
                 <span key={field}>{field}</span>
               ))}
             </div>
-            <Button href="mailto:auszeiten@getmorrow.de?subject=Anfrage%20Couple%20Reset">
+            <Button
+              data-conversion="stay_request_mailto"
+              data-conversion-label="Couple Reset Anfrage per E-Mail"
+              href="mailto:auszeiten@getmorrow.de?subject=Anfrage%20Couple%20Reset"
+            >
               Anfrage per E-Mail starten
             </Button>
           </Card>

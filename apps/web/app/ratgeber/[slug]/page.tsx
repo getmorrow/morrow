@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import { guideArticles, stayDetails } from "@morrow/domain";
 import type { GuideArticle } from "@morrow/domain";
 import { Button, Card, Container, Eyebrow } from "@morrow/ui";
+import { JsonLd } from "../../_components/JsonLd";
 import { SiteHeader } from "../../_components/SiteHeader";
+import { articleStructuredData } from "../../_lib/structuredData";
 
 type GuideArticlePageProps = {
   params: Promise<{
@@ -48,6 +50,7 @@ export default async function GuideArticlePage({ params }: GuideArticlePageProps
 
   return (
     <main className="site-shell">
+      <JsonLd data={articleStructuredData(article)} />
       <SiteHeader />
 
       <section className="article-hero">
@@ -120,7 +123,13 @@ export default async function GuideArticlePage({ params }: GuideArticlePageProps
             </p>
             <div className="article-related-grid">
               {relatedStays.map((stay) => (
-                <a className="stay-overview-card" href={stay.href} key={stay.slug}>
+                <a
+                  className="stay-overview-card"
+                  data-conversion="article_related_stay_click"
+                  data-conversion-label={`${article.slug} -> ${stay.title}`}
+                  href={stay.href}
+                  key={stay.slug}
+                >
                   <img alt={stay.title} src={stay.image} />
                   <div className="stay-overview-content">
                     <span>{stay.shortTitle}</span>

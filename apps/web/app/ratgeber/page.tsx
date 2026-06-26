@@ -1,6 +1,8 @@
 import { guideArticles } from "@morrow/domain";
 import { Button, Card, Container, Eyebrow, SectionHeader } from "@morrow/ui";
+import { JsonLd } from "../_components/JsonLd";
 import { SiteHeader } from "../_components/SiteHeader";
+import { guidesStructuredData } from "../_lib/structuredData";
 
 export const metadata = {
   title: "Ratgeber",
@@ -31,6 +33,7 @@ export default function GuidesPage() {
 
   return (
     <main className="site-shell">
+      <JsonLd data={guidesStructuredData()} />
       <SiteHeader />
 
       <section className="guide-index-hero">
@@ -44,8 +47,19 @@ export default function GuidesPage() {
               Paarzeit und gute Entscheidungen vor Ort.
             </p>
             <div className="guide-index-actions">
-              <Button href="#ratgeber-artikel">Artikel entdecken</Button>
-              <Button href="/auszeiten" variant="secondary">
+              <Button
+                data-conversion="guide_index_click"
+                data-conversion-label="Ratgeber Hero Artikel entdecken"
+                href="#ratgeber-artikel"
+              >
+                Artikel entdecken
+              </Button>
+              <Button
+                data-conversion="cta_stays_view"
+                data-conversion-label="Ratgeber Hero Auszeiten ansehen"
+                href="/auszeiten"
+                variant="secondary"
+              >
                 Auszeiten ansehen
               </Button>
             </div>
@@ -101,14 +115,26 @@ export default function GuidesPage() {
                 <Eyebrow>Startpunkt</Eyebrow>
                 <h2>{featuredArticle.title}</h2>
                 <p>{featuredArticle.excerpt}</p>
-                <Button href={featuredArticle.href}>Artikel lesen</Button>
+                <Button
+                  data-conversion="guide_article_click"
+                  data-conversion-label={`Featured ${featuredArticle.title}`}
+                  href={featuredArticle.href}
+                >
+                  Artikel lesen
+                </Button>
               </div>
             </article>
           ) : null}
 
           <div className="article-grid guide-index-grid">
             {secondaryArticles.map((article) => (
-              <a className="article-card" href={article.href} key={article.slug}>
+              <a
+                className="article-card"
+                data-conversion="guide_article_click"
+                data-conversion-label={article.title}
+                href={article.href}
+                key={article.slug}
+              >
                 <img alt="" src={article.image} />
                 <div>
                   <Eyebrow>{article.category}</Eyebrow>

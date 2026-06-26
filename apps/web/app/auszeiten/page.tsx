@@ -1,6 +1,8 @@
 import { stayDetails, stayTemplates, staysPageContent } from "@morrow/domain";
 import { Button, Card, Container, Eyebrow, SectionHeader } from "@morrow/ui";
+import { JsonLd } from "../_components/JsonLd";
 import { SiteHeader } from "../_components/SiteHeader";
+import { staysStructuredData } from "../_lib/structuredData";
 
 export const metadata = {
   title: "Auszeiten in Sankt Peter-Ording",
@@ -11,6 +13,7 @@ export const metadata = {
 export default function StaysPage() {
   return (
     <main className="site-shell">
+      <JsonLd data={staysStructuredData()} />
       <SiteHeader />
 
       <section className="stays-hero">
@@ -20,8 +23,19 @@ export default function StaysPage() {
             <h1>{staysPageContent.hero.title}</h1>
             <p>{staysPageContent.hero.text}</p>
             <div className="stays-hero-actions">
-              <Button href="#auszeiten">Auszeiten ansehen</Button>
-              <Button href="/ratgeber" variant="secondary">
+              <Button
+                data-conversion="cta_stays_view"
+                data-conversion-label="Auszeiten Hero ansehen"
+                href="#auszeiten"
+              >
+                Auszeiten ansehen
+              </Button>
+              <Button
+                data-conversion="guide_index_click"
+                data-conversion-label="Auszeiten Hero Ratgeber"
+                href="/ratgeber"
+                variant="secondary"
+              >
                 Ratgeber lesen
               </Button>
             </div>
@@ -54,7 +68,13 @@ export default function StaysPage() {
               const detail = stayDetails[stay.slug];
 
               return (
-                <a className="stay-overview-card" href={stay.href} key={stay.slug}>
+                <a
+                  className="stay-overview-card"
+                  data-conversion="stay_card_click"
+                  data-conversion-label={`Auszeiten Übersicht ${stay.title}`}
+                  href={stay.href}
+                  key={stay.slug}
+                >
                   <img alt="" src={stay.image} />
                   <div className="stay-overview-content">
                     <Eyebrow>{stay.shortTitle}</Eyebrow>
@@ -104,8 +124,19 @@ export default function StaysPage() {
             title={staysPageContent.finalCta.title}
           />
           <div className="final-cta-actions">
-            <Button href="/auszeiten/family-escape">Family Escape</Button>
-            <Button href="/auszeiten/couple-reset" variant="secondary">
+            <Button
+              data-conversion="stay_card_click"
+              data-conversion-label="Auszeiten Final Family Escape"
+              href="/auszeiten/family-escape"
+            >
+              Family Escape
+            </Button>
+            <Button
+              data-conversion="stay_card_click"
+              data-conversion-label="Auszeiten Final Couple Reset"
+              href="/auszeiten/couple-reset"
+              variant="secondary"
+            >
               Couple Reset
             </Button>
           </div>

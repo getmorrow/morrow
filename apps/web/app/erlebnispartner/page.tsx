@@ -1,6 +1,8 @@
 import { experiencePartnersPageContent } from "@morrow/domain";
 import { Button, Card, Container, Eyebrow, SectionHeader } from "@morrow/ui";
+import { JsonLd } from "../_components/JsonLd";
 import { SiteHeader } from "../_components/SiteHeader";
+import { partnersStructuredData } from "../_lib/structuredData";
 
 export const metadata = {
   title: "Für Erlebnispartner",
@@ -11,6 +13,7 @@ export const metadata = {
 export default function ExperiencePartnersPage() {
   return (
     <main className="site-shell">
+      <JsonLd data={partnersStructuredData()} />
       <SiteHeader />
 
       <section className="partner-hero">
@@ -20,8 +23,19 @@ export default function ExperiencePartnersPage() {
             <h1>{experiencePartnersPageContent.hero.title}</h1>
             <p>{experiencePartnersPageContent.hero.text}</p>
             <div className="partner-hero-actions">
-              <Button href="#kooperation">Erlebnis vorschlagen</Button>
-              <Button href="/auszeiten" variant="secondary">
+              <Button
+                data-conversion="partner_request_click"
+                data-conversion-label="Erlebnispartner Hero Erlebnis vorschlagen"
+                href="#kooperation"
+              >
+                Erlebnis vorschlagen
+              </Button>
+              <Button
+                data-conversion="cta_stays_view"
+                data-conversion-label="Erlebnispartner Hero Auszeiten ansehen"
+                href="/auszeiten"
+                variant="secondary"
+              >
                 Auszeiten ansehen
               </Button>
             </div>
@@ -108,7 +122,11 @@ export default function ExperiencePartnersPage() {
                 <span key={field}>{field}</span>
               ))}
             </div>
-            <Button href="mailto:auszeiten@getmorrow.de?subject=Erlebnis%20vorschlagen">
+            <Button
+              data-conversion="partner_request_mailto"
+              data-conversion-label="Erlebnispartner Kooperation anfragen"
+              href="mailto:auszeiten@getmorrow.de?subject=Erlebnis%20vorschlagen"
+            >
               Kooperation anfragen
             </Button>
           </Card>

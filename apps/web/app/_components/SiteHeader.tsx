@@ -12,7 +12,12 @@ export function SiteHeader() {
             {item.label}
           </a>
         ))}
-        <a className="header-cta" href="/#auszeiten">
+        <a
+          className="header-cta"
+          data-conversion="cta_header_auszeit_planen"
+          data-conversion-label="Header Auszeit planen"
+          href="/#auszeiten"
+        >
           Auszeit planen
         </a>
       </nav>

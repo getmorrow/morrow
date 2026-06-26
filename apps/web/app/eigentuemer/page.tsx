@@ -1,6 +1,8 @@
 import { ownersPageContent } from "@morrow/domain";
 import { Button, Card, Container, Eyebrow, SectionHeader } from "@morrow/ui";
+import { JsonLd } from "../_components/JsonLd";
 import { SiteHeader } from "../_components/SiteHeader";
+import { ownersStructuredData } from "../_lib/structuredData";
 
 export const metadata = {
   title: "Für Eigentümer",
@@ -11,6 +13,7 @@ export const metadata = {
 export default function OwnersPage() {
   return (
     <main className="site-shell">
+      <JsonLd data={ownersStructuredData()} />
       <SiteHeader />
 
       <section className="owner-hero">
@@ -20,8 +23,19 @@ export default function OwnersPage() {
             <h1>{ownersPageContent.hero.title}</h1>
             <p>{ownersPageContent.hero.text}</p>
             <div className="owner-hero-actions">
-              <Button href="#ertragspotenzial">Immobilie vorstellen</Button>
-              <Button href="/auszeiten" variant="secondary">
+              <Button
+                data-conversion="owner_request_click"
+                data-conversion-label="Eigentümer Hero Immobilie vorstellen"
+                href="#ertragspotenzial"
+              >
+                Immobilie vorstellen
+              </Button>
+              <Button
+                data-conversion="cta_stays_view"
+                data-conversion-label="Eigentümer Hero Auszeiten ansehen"
+                href="/auszeiten"
+                variant="secondary"
+              >
                 Auszeiten ansehen
               </Button>
             </div>
@@ -118,7 +132,11 @@ export default function OwnersPage() {
                 <span key={field}>{field}</span>
               ))}
             </div>
-            <Button href="mailto:auszeiten@getmorrow.de?subject=Immobilie%20vorstellen">
+            <Button
+              data-conversion="owner_request_mailto"
+              data-conversion-label="Eigentümer Ertragspotenzial anfordern"
+              href="mailto:auszeiten@getmorrow.de?subject=Immobilie%20vorstellen"
+            >
               Ertragspotenzial anfordern
             </Button>
           </Card>

@@ -5,11 +5,14 @@ import {
   stayTemplates,
 } from "@morrow/domain";
 import { Button, Card, Container, Eyebrow, SectionHeader } from "@morrow/ui";
+import { JsonLd } from "./_components/JsonLd";
 import { SiteHeader } from "./_components/SiteHeader";
+import { homeStructuredData } from "./_lib/structuredData";
 
 export default function HomePage() {
   return (
     <main className="site-shell">
+      <JsonLd data={homeStructuredData()} />
       <SiteHeader />
 
       <section className="hero" id="top">
@@ -24,8 +27,19 @@ export default function HomePage() {
               ))}
             </div>
             <div className="hero-actions">
-              <Button href="#auszeiten">Auszeit planen</Button>
-              <Button href={publicRoutes.owners} variant="secondary">
+              <Button
+                data-conversion="cta_auszeit_planen"
+                data-conversion-label="Startseite Hero Auszeit planen"
+                href="#auszeiten"
+              >
+                Auszeit planen
+              </Button>
+              <Button
+                data-conversion="cta_owner_interest"
+                data-conversion-label="Startseite Hero Für Eigentümer"
+                href={publicRoutes.owners}
+                variant="secondary"
+              >
                 Für Eigentümer
               </Button>
             </div>
@@ -55,7 +69,12 @@ export default function HomePage() {
             </div>
             <div className="hero-picks" aria-label="Auszeit-Einstiege">
               {stayTemplates.map((stay) => (
-                <a href={stay.href} key={stay.slug}>
+                <a
+                  data-conversion="stay_card_click"
+                  data-conversion-label={`Hero ${stay.title}`}
+                  href={stay.href}
+                  key={stay.slug}
+                >
                   <span>{stay.shortTitle}</span>
                   <strong>{stay.title}</strong>
                   <small>{stay.promise}</small>
@@ -112,7 +131,13 @@ export default function HomePage() {
           />
           <div className="package-grid">
             {stayTemplates.map((stay) => (
-              <a className="stay-card" href={stay.href} key={stay.slug}>
+              <a
+                className="stay-card"
+                data-conversion="stay_card_click"
+                data-conversion-label={`Startseite ${stay.title}`}
+                href={stay.href}
+                key={stay.slug}
+              >
                 <img alt="" src={stay.image} />
                 <div>
                   <Eyebrow>{stay.shortTitle}</Eyebrow>
@@ -136,7 +161,12 @@ export default function HomePage() {
             <Eyebrow>{homePageContent.local.kicker}</Eyebrow>
             <h2>{homePageContent.local.title}</h2>
             <p>{homePageContent.local.text}</p>
-            <Button href={publicRoutes.guides} variant="secondary">
+            <Button
+              data-conversion="guide_index_click"
+              data-conversion-label="Startseite Ratgeber lesen"
+              href={publicRoutes.guides}
+              variant="secondary"
+            >
               Ratgeber lesen
             </Button>
           </div>
@@ -173,7 +203,13 @@ export default function HomePage() {
           />
           <div>
             <p>{homePageContent.owners.text}</p>
-            <Button href={publicRoutes.owners}>Immobilie vorstellen</Button>
+            <Button
+              data-conversion="cta_owner_interest"
+              data-conversion-label="Startseite Immobilie vorstellen"
+              href={publicRoutes.owners}
+            >
+              Immobilie vorstellen
+            </Button>
           </div>
         </Container>
       </section>
@@ -186,8 +222,19 @@ export default function HomePage() {
             title={homePageContent.finalCta.title}
           />
           <div className="final-cta-actions">
-            <Button href="#auszeiten">Auszeiten ansehen</Button>
-            <Button href={publicRoutes.owners} variant="secondary">
+            <Button
+              data-conversion="cta_stays_view"
+              data-conversion-label="Startseite Final Auszeiten ansehen"
+              href="#auszeiten"
+            >
+              Auszeiten ansehen
+            </Button>
+            <Button
+              data-conversion="cta_owner_interest"
+              data-conversion-label="Startseite Final Immobilie vorstellen"
+              href={publicRoutes.owners}
+              variant="secondary"
+            >
               Immobilie vorstellen
             </Button>
           </div>

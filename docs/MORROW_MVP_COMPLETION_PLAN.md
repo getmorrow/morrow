@@ -117,9 +117,9 @@ Ziel: Morrow kann Nachfrage erzeugen und messen, ohne direkt zu ueberautomatisie
 | --- | --- | --- | --- | --- |
 | Ratgeberbereich | Vorhanden | Systematischer Ausbau mit Keyword-Clustern und interner Verlinkung | MVP-kritisch | Teilweise |
 | Keyword-Cluster | Dokument `SEO_GEO_KEYWORD_PLAN.md` vorhanden | SPO/Familienurlaub/Paar-Auszeit/Nordsee priorisieren, Artikelplan pflegen | MVP-kritisch | Teilweise |
-| Schema.org | Nicht sicher vollstaendig | Article, FAQ, Breadcrumb, LocalBusiness/Offer wo sinnvoll | MVP-light | Offen |
-| Conversion-Tracking | Nicht final geprueft | Anfrage-Submit, CTA-Klick, Paketdetail, Ratgeber-CTA messen | MVP-kritisch | Offen |
-| Meta/Google Ads messen | Nicht final | Pixel/Conversions/UTM sauber testen | MVP-kritisch | Offen |
+| Schema.org | Next-Web gibt strukturierte Daten fuer Organisation, Website, Auszeiten-Listen, Auszeit-Angebote, FAQ, Breadcrumbs, Ratgeber-Artikel, Eigentuemer- und Erlebnispartner-Service aus | Spaeter mit echten Review-/Availability-/LocalBusiness-Daten und Search Console Validierung erweitern | MVP-light | Teilweise |
+| Conversion-Tracking | Zentrale Web-Analytics-Komponente vorhanden; CTA-Klicks auf Auszeiten, Anfrage, Eigentuemer, Erlebnispartner und Ratgeber werden ueber `data-conversion` an GA/Meta gemeldet, wenn die Public IDs gesetzt sind | Events live mit echten GA4-/Meta-Pixel-IDs, Consent-Logik und Test-Events pruefen | MVP-kritisch | Teilweise |
+| Meta/Google Ads messen | GA4/Meta-Pixel sind env-gesteuert vorbereitet; PageView und Custom-CTA-Events werden bei gesetzten IDs ausgelöst | Pixel/Conversions/UTM in Production sauber testen und Zielereignisse in Meta/Google Ads anlegen | MVP-kritisch | Teilweise |
 | Landingpages pro Auszeit/Zielgruppe | Paketseiten vorhanden | Kampagnenspezifische Landingpages optional fuer Ads | MVP-light | Teilweise |
 | E-Mail-Nurturing | Nicht umgesetzt | Fuer MVP reicht manuelle Nachfassung plus Statusmails | MVP-light | Offen |
 | Retargeting | Nicht umgesetzt | Spaeter, nicht vor erstem kontrollierten Start | V2 | Offen |
