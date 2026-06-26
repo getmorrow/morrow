@@ -148,6 +148,17 @@ type CommunicationEventRow = {
   created_at: string;
 };
 
+type AuditLogRow = {
+  id: string;
+  actor_email: string | null;
+  action: string;
+  entity_type: string;
+  entity_id: string;
+  entity_label: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
 type DashboardData = {
   profile: AdminProfile;
   leads: LeadRow[];
@@ -161,6 +172,7 @@ type DashboardData = {
   packageDates: PackageDateRow[];
   ownerProfiles: OwnerProfileRow[];
   ownerAccess: OwnerAccessRow[];
+  auditLogs: AuditLogRow[];
 };
 
 type LoadState =
@@ -357,6 +369,57 @@ function supportStatusLabel(status: string) {
   };
 
   return labels[status] || status;
+}
+
+function auditActionLabel(action: string) {
+  const labels: Record<string, string> = {
+    admin_email_sent: "E-Mail gesendet",
+    booking_status_updated: "Buchungsstatus geändert",
+    date_created: "Termin angelegt",
+    date_updated: "Termin geändert",
+    drawer_note_saved: "Interne Notiz gespeichert",
+    internal_note_updated: "Interne Notiz gespeichert",
+    experience_created: "Erlebnis angelegt",
+    experience_updated: "Erlebnis geändert",
+    lead_reserved: "Reservierung angelegt",
+    lead_status_updated: "Anfragestatus geändert",
+    owner_profile_upserted: "Eigentümerprofil gespeichert",
+    owner_property_access_upserted: "Objektzugriff gespeichert",
+    package_created: "Auszeit angelegt",
+    package_date_created: "Termin angelegt",
+    package_date_updated: "Termin geändert",
+    package_updated: "Auszeit geändert",
+    property_created: "Unterkunft angelegt",
+    property_updated: "Unterkunft geändert",
+    support_status_updated: "Supportstatus geändert",
+    task_status_updated: "Aufgabe aktualisiert",
+  };
+
+  return labels[action] || action.replace(/_/g, " ");
+}
+
+function getAuditPayloadValue(payload: Record<string, unknown>, key: string) {
+  const value = payload[key];
+  if (typeof value === "string" && value.trim()) return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return null;
+}
+
+function auditPayloadSummary(log: AuditLogRow) {
+  const from = getAuditPayloadValue(log.payload, "from");
+  const to = getAuditPayloadValue(log.payload, "to");
+  const paymentStatus = getAuditPayloadValue(log.payload, "paymentStatus");
+  const noteLength = getAuditPayloadValue(log.payload, "noteLength");
+  const subject = getAuditPayloadValue(log.payload, "subject");
+  const title = getAuditPayloadValue(log.payload, "title") || getAuditPayloadValue(log.payload, "name");
+
+  if (from || to) {
+    return `${from || "vorher offen"} → ${to || "nachher offen"}${paymentStatus ? ` · Zahlung: ${paymentStatus}` : ""}`;
+  }
+  if (subject) return subject;
+  if (noteLength) return `${noteLength} Zeichen interne Notiz`;
+  if (title) return title;
+  return log.entity_label || `${log.entity_type} · ${log.entity_id}`;
 }
 
 function supportUrgencyLabel(urgency: string | null) {
@@ -693,6 +756,7 @@ export function AdminDashboardClient() {
           datesResult,
           ownersResult,
           ownerAccessResult,
+          auditResult,
         ] =
           await Promise.all([
             supabase
@@ -745,6 +809,11 @@ export function AdminDashboardClient() {
               .from("owner_property_access")
               .select("id,owner_profile_id,property_id,role,can_view_financials,can_view_operations,created_at")
               .order("created_at", { ascending: false }),
+            supabase
+              .from("admin_audit_logs")
+              .select("id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at")
+              .order("created_at", { ascending: false })
+              .limit(80),
           ]);
 
         if (!isMounted) return;
@@ -783,6 +852,7 @@ export function AdminDashboardClient() {
             packageDates: (datesResult.data ?? []) as PackageDateRow[],
             ownerProfiles: ownersResult.error ? [] : (ownersResult.data ?? []) as OwnerProfileRow[],
             ownerAccess: ownerAccessResult.error ? [] : (ownerAccessResult.data ?? []) as OwnerAccessRow[],
+            auditLogs: auditResult.error ? [] : (auditResult.data ?? []) as AuditLogRow[],
           },
         });
       } catch {
@@ -870,6 +940,7 @@ function AdminDashboardView({
   });
   const [ownerMessage, setOwnerMessage] = useState<string | null>(null);
   const [communicationEvents, setCommunicationEvents] = useState<CommunicationEventRow[]>([]);
+  const [drawerAuditLogs, setDrawerAuditLogs] = useState<AuditLogRow[]>([]);
   const [drawerNote, setDrawerNote] = useState("");
   const [outboundDraft, setOutboundDraft] = useState<OutboundDraft>({ subject: "", body: "" });
   const [drawerMessage, setDrawerMessage] = useState<string | null>(null);
@@ -1085,6 +1156,7 @@ function AdminDashboardView({
   useEffect(() => {
     if (!selection) {
       setCommunicationEvents([]);
+      setDrawerAuditLogs([]);
       setDrawerNote("");
       setOutboundDraft({ subject: "", body: "" });
       setDrawerMessage(null);
@@ -1145,14 +1217,25 @@ function AdminDashboardView({
         if (error) {
           setDrawerMessage("Historie konnte nicht geladen werden.");
           setCommunicationEvents([]);
+          setDrawerAuditLogs([]);
           return;
         }
 
+        const { data: auditLogs } = await supabase
+          .from("admin_audit_logs")
+          .select("id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at")
+          .eq("entity_type", activeSelection.type)
+          .eq("entity_id", activeSelection.id)
+          .order("created_at", { ascending: false })
+          .limit(30);
+
         setCommunicationEvents((events ?? []) as CommunicationEventRow[]);
+        setDrawerAuditLogs((auditLogs ?? []) as AuditLogRow[]);
       } catch {
         if (!isMounted) return;
         setDrawerMessage("Historie konnte nicht geladen werden.");
         setCommunicationEvents([]);
+        setDrawerAuditLogs([]);
       } finally {
         if (isMounted) setIsDrawerLoading(false);
       }
@@ -1179,14 +1262,24 @@ function AdminDashboardView({
     payload: Record<string, unknown>;
   }) {
     const supabase = createSupabaseBrowserClient();
-    await supabase.from("admin_audit_logs").insert({
+    const { data: inserted } = await supabase.from("admin_audit_logs").insert({
       actor_email: data.profile.email,
       action,
       entity_type: entityType,
       entity_id: entityId,
       entity_label: entityLabel,
       payload,
-    });
+    }).select("id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at").single();
+
+    if (inserted) {
+      setDataState((current) => ({
+        ...current,
+        auditLogs: [inserted as AuditLogRow, ...current.auditLogs].slice(0, 80),
+      }));
+      if (selection?.type === entityType && selection.id === entityId) {
+        setDrawerAuditLogs((current) => [inserted as AuditLogRow, ...current].slice(0, 30));
+      }
+    }
   }
 
   async function createOwnerProfile() {
@@ -2204,6 +2297,7 @@ function AdminDashboardView({
           <a href="#buchungen">Buchungen</a>
           <a href="#aufgaben">Aufgaben</a>
           <a href="#support">Support</a>
+          <a href="#audit">Änderungen</a>
           <a href="#erlebnisse">Erlebnisse</a>
           <a href="#termine">Termine</a>
           <a href="#bestand">Bestand</a>
@@ -2299,6 +2393,29 @@ function AdminDashboardView({
             {monitoring.length === 0 ? (
               <p className="admin-drawer-message">Keine akuten Monitoringhinweise vorhanden.</p>
             ) : null}
+          </div>
+        </article>
+
+        <article className="admin-card admin-card-wide" id="audit">
+          <p className="admin-eyebrow">Änderungen</p>
+          <h2>Letzte Aktivitäten</h2>
+          <div className="admin-timeline admin-timeline-compact">
+            {data.auditLogs.length ? (
+              data.auditLogs.slice(0, 8).map((log) => (
+                <article key={log.id}>
+                  <small>
+                    {formatDate(log.created_at)} · {log.actor_email || "Morrow"}
+                  </small>
+                  <strong>{auditActionLabel(log.action)}</strong>
+                  <p>
+                    {log.entity_label ? `${log.entity_label} · ` : ""}
+                    {auditPayloadSummary(log)}
+                  </p>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">Noch keine Änderungen protokolliert.</p>
+            )}
           </div>
         </article>
       </section>
@@ -2745,6 +2862,7 @@ function AdminDashboardView({
         </article>
       </section>
       <AdminDetailDrawer
+        auditLogs={drawerAuditLogs}
         booking={selectedBooking}
         communicationEvents={communicationEvents}
         canSendEmail={Boolean(selection && selectedDrawerEmail)}
@@ -2803,6 +2921,7 @@ function AdminDashboardView({
 }
 
 function AdminDetailDrawer({
+  auditLogs,
   booking,
   canSendEmail,
   communicationEvents,
@@ -2820,6 +2939,7 @@ function AdminDetailDrawer({
   sendPending,
   support,
 }: {
+  auditLogs: AuditLogRow[];
   booking: BookingRow | null;
   canSendEmail: boolean;
   communicationEvents: CommunicationEventRow[];
@@ -2968,6 +3088,25 @@ function AdminDetailDrawer({
               ))
             ) : (
               <p className="admin-drawer-message">Noch keine Historie vorhanden.</p>
+            )}
+          </div>
+        </section>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Änderungen</p>
+          <div className="admin-timeline admin-timeline-compact">
+            {auditLogs.length ? (
+              auditLogs.map((log) => (
+                <article key={log.id}>
+                  <small>
+                    {formatDate(log.created_at)} · {log.actor_email || "Morrow"}
+                  </small>
+                  <strong>{auditActionLabel(log.action)}</strong>
+                  <p>{auditPayloadSummary(log)}</p>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">Noch keine Änderungen protokolliert.</p>
             )}
           </div>
         </section>
