@@ -147,6 +147,18 @@ const devGuestStayPayload: GuestStayPayload = {
   },
 };
 
+const devCompletedGuestStayPayload: GuestStayPayload = {
+  ...devGuestStayPayload,
+  booking: {
+    ...devGuestStayPayload.booking,
+    id: "22222222-2222-4222-8222-222222222222",
+    leadId: "22222222-2222-4222-8222-222222222222",
+    customerId: "22222222-2222-4222-8222-222222222222",
+    status: "Abgeschlossen",
+    selectedDate: "12.–16. August",
+  },
+};
+
 const devLocalPlaces: LocalPlace[] = [
   {
     id: "dev-food-arche-noah",
@@ -206,7 +218,11 @@ const devLocalPlaces: LocalPlace[] = [
 ];
 
 function isDevGuestAccess(bookingId: string, accessCode: string) {
-  return process.env.NODE_ENV !== "production" && bookingId === "dev-active" && accessCode === "MORROWDEV";
+  return process.env.NODE_ENV !== "production" && ["dev-active", "dev-completed"].includes(bookingId) && accessCode === "MORROWDEV";
+}
+
+function devGuestPayload(bookingId: string) {
+  return bookingId === "dev-completed" ? devCompletedGuestStayPayload : devGuestStayPayload;
 }
 
 const viewLabels: Record<GuestView, string> = {
@@ -444,7 +460,7 @@ export function GuestStayClient({
       setError("");
 
       if (isDevGuestAccess(bookingId, accessCode)) {
-        setPayload(devGuestStayPayload);
+        setPayload(devGuestPayload(bookingId));
         setPlaces(devLocalPlaces);
         setLoading(false);
         return;
@@ -510,6 +526,22 @@ export function GuestStayClient({
   const stayDate = formatStayDate(booking?.selectedDate ?? booking?.dateLabel);
   const countdown = daysUntilFromLabel(booking?.selectedDate ?? booking?.dateLabel);
   const localPlaces = useMemo(() => visibleLocalPlaces(places, packageItem), [places, packageItem]);
+  const nextEscapeCards = [
+    {
+      title: packageItem?.name?.includes("Couple") ? "Family Escape" : "Couple Reset",
+      text: packageItem?.name?.includes("Couple")
+        ? "Wenn ihr das nächste Mal mit Kindern, Großeltern oder Freunden ans Meer möchtet."
+        : "Wenn ihr das nächste Mal bewusst zu zweit raus aus dem Alltag möchtet.",
+      href: packageItem?.name?.includes("Couple")
+        ? "https://www.getmorrow.de/auszeiten/family-escape"
+        : "https://www.getmorrow.de/auszeiten/couple-reset",
+    },
+    {
+      title: "Neue Auszeiten",
+      text: "Alle kuratierten Aufenthalte, sobald neue Termine und Unterkünfte freigegeben sind.",
+      href: "https://www.getmorrow.de/auszeiten",
+    },
+  ];
   const localFilters = useMemo(() => {
     const categories = new Set(localPlaces.map((place) => normalizeCategory(place.category)));
     categories.add("weather");
@@ -658,18 +690,51 @@ export function GuestStayClient({
               <h2>{completed ? "Zeit für einen Blick zurück." : "Eure Auszeit rückt näher."}</h2>
               <p>{completed ? "Teilt kurz, was gut war. Das hilft uns, Morrow spürbar besser zu machen." : `${stayDate}. Wir halten die wichtigsten Hinweise für euch bereit.`}</p>
             </div>
-            <div className="guest-card-grid">
-              <article>
-                <span>Heute wichtig</span>
-                <strong>{completed ? "Feedback geben" : "Anreise prüfen"}</strong>
-                <p>{completed ? "Ein kurzer Eindruck reicht." : "Schlüssel, Zeitfenster und Unterkunftshinweise findet ihr in Buchung."}</p>
-              </article>
-              <article>
-                <span>Vor Ort</span>
-                <strong>{localPlaces.length} kuratierte Orte</strong>
-                <p>Restaurants, Strand, Erlebnisse und praktische Hinweise werden bewusst reduziert gezeigt.</p>
-              </article>
-            </div>
+            {completed ? (
+              <>
+                <div className="guest-card-grid">
+                  <article>
+                    <span>Rückblick</span>
+                    <strong>{booking.packageName ?? packageItem?.name ?? "Eure Morrow Auszeit"}</strong>
+                    <p>{stayDate}. Eure Buchungsdetails bleiben sichtbar, damit ihr später noch einmal nachsehen könnt.</p>
+                  </article>
+                  <article>
+                    <span>Feedback</span>
+                    <strong>Was sollen wir behalten?</strong>
+                    <p>Ein kurzer Eindruck hilft uns, kommende Auszeiten noch ruhiger und passender vorzubereiten.</p>
+                  </article>
+                </div>
+                <section className="guest-return-section">
+                  <div>
+                    <p className="eyebrow">Wieder raus</p>
+                    <h2>Wenn die nächste Auszeit ruft.</h2>
+                    <p>Wir zeigen euch bewusst nur wenige Wege zurück: dieselbe Ruhe, ein anderer Anlass oder eine neue Zeit am Wasser.</p>
+                  </div>
+                  <div className="guest-return-slider">
+                    {nextEscapeCards.map((card) => (
+                      <a href={card.href} key={card.title}>
+                        <span>Morrow Auszeit</span>
+                        <strong>{card.title}</strong>
+                        <p>{card.text}</p>
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              </>
+            ) : (
+              <div className="guest-card-grid">
+                <article>
+                  <span>Heute wichtig</span>
+                  <strong>Anreise prüfen</strong>
+                  <p>Schlüssel, Zeitfenster und Unterkunftshinweise findet ihr in Buchung.</p>
+                </article>
+                <article>
+                  <span>Vor Ort</span>
+                  <strong>{localPlaces.length} kuratierte Orte</strong>
+                  <p>Restaurants, Strand, Erlebnisse und praktische Hinweise werden bewusst reduziert gezeigt.</p>
+                </article>
+              </div>
+            )}
           </section>
         )}
 
@@ -886,8 +951,17 @@ export function GuestStayClient({
           <section className="guest-content-card">
             <p className="eyebrow">Wieder raus</p>
             <h2>Vielleicht ist die nächste Auszeit schon näher, als ihr denkt.</h2>
-            <p>Wenn ihr wieder ein paar Tage Nordsee braucht, könnt ihr euch die aktuellen Auszeiten ansehen.</p>
-            <a className="guest-primary-link" href="https://www.getmorrow.de/auszeiten">Auszeiten ansehen</a>
+            <p>Wenn ihr wieder ein paar Tage Nordsee braucht, könnt ihr direkt in die aktuellen Auszeiten springen oder euch später persönlich melden.</p>
+            <div className="guest-return-slider">
+              {nextEscapeCards.map((card) => (
+                <a href={card.href} key={card.title}>
+                  <span>Morrow Auszeit</span>
+                  <strong>{card.title}</strong>
+                  <p>{card.text}</p>
+                </a>
+              ))}
+            </div>
+            <a className="guest-primary-link" href="https://www.getmorrow.de/auszeiten">Alle Auszeiten ansehen</a>
           </section>
         )}
       </div>
