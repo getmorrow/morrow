@@ -351,6 +351,145 @@ input {
   padding: 12px 14px;
 }
 
+.admin-drawer-layer {
+  inset: 0;
+  position: fixed;
+  z-index: 40;
+}
+
+.admin-drawer-backdrop {
+  background: rgba(24, 23, 21, 0.28);
+  border: 0;
+  cursor: pointer;
+  inset: 0;
+  position: absolute;
+}
+
+.admin-drawer {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px 16px 0 0;
+  bottom: 0;
+  box-shadow: 0 -18px 50px rgba(24, 23, 21, 0.16);
+  display: grid;
+  gap: 22px;
+  left: 0;
+  max-height: 88vh;
+  overflow: auto;
+  padding: 24px 20px 32px;
+  position: absolute;
+  right: 0;
+}
+
+.admin-drawer header {
+  align-items: flex-start;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.admin-drawer header h2 {
+  font-size: clamp(28px, 8vw, 42px);
+  font-weight: 900;
+  line-height: 0.98;
+  margin: 0 0 10px;
+}
+
+.admin-drawer header span {
+  color: var(--muted);
+  display: block;
+  font-size: 15px;
+  font-weight: 760;
+}
+
+.admin-drawer header button {
+  background: rgba(236, 230, 214, 0.62);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 820;
+  min-height: 38px;
+  padding: 0 12px;
+}
+
+.admin-drawer-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-drawer-grid article {
+  background: rgba(236, 230, 214, 0.48);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+}
+
+.admin-drawer-grid small,
+.admin-timeline small {
+  color: rgba(24, 23, 21, 0.56);
+  font-size: 12px;
+  font-weight: 820;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.admin-drawer-grid strong {
+  font-size: 15px;
+  font-weight: 850;
+  overflow-wrap: anywhere;
+}
+
+.admin-drawer-section {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-drawer-section textarea {
+  background: rgba(236, 230, 214, 0.38);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--offblack);
+  font: inherit;
+  line-height: 1.5;
+  padding: 14px;
+  resize: vertical;
+}
+
+.admin-drawer-message {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.admin-timeline {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-timeline article {
+  background: rgba(236, 230, 214, 0.48);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+}
+
+.admin-timeline strong {
+  font-size: 15px;
+  font-weight: 860;
+}
+
+.admin-timeline p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 0;
+}
+
 @media (min-width: 760px) {
   .admin-login-copy h1,
   .admin-hero h1,
@@ -384,5 +523,16 @@ input {
 
   .admin-grid {
     grid-template-columns: minmax(0, 1fr) minmax(360px, 0.68fr);
+  }
+
+  .admin-drawer {
+    border-radius: 8px 0 0 8px;
+    bottom: 0;
+    box-shadow: -18px 0 50px rgba(24, 23, 21, 0.16);
+    left: auto;
+    max-height: 100vh;
+    padding: 34px;
+    top: 0;
+    width: min(520px, 100vw);
   }
 }

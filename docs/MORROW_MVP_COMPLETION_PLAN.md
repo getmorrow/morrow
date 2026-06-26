@@ -75,7 +75,7 @@ Ziel: Kommunikation ist nachvollziehbar, persoenlich und nicht verteilt ueber pr
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
 | E-Mail-Automation | Resend/Supabase Edge Functions getestet; Lead-Mails funktionieren; Feedback-Mail nach Aufenthalt laeuft serverseitig ueber Supabase-Cron; Statusmails fuer Reservierung, Zahlung/Bestaetigung und Vor Anreise sind als Admin-getriggerte Function live, dedupliziert und mit Kommunikationshistorie getestet | Spaeter weitere Statusmails, manuelle E-Mail-Komposition und bessere Template-Verwaltung | MVP-kritisch | Erledigt fuer MVP |
-| Kommunikationshistorie | `communication_events` vorhanden, Lead-Drawer hat Historie | E-Mail aus Anfrage/Buchung heraus senden, manuelle Notizen, Supporteintraege konsistent verbinden | MVP-kritisch | Teilweise |
+| Kommunikationshistorie | `communication_events` vorhanden; Next-Admin hat Detail-Drawer fuer Anfragen und Buchungen mit Historie, klickbaren Kontaktdaten und interner Notiz, die als Kommunikationsereignis gespeichert wird | E-Mail aus Anfrage/Buchung heraus senden, Supporteintraege konsistent verbinden und spaeter bessere Kommunikationszentrale ergaenzen | MVP-kritisch | Teilweise |
 | WhatsApp-Opt-in | Formularabfrage/Opt-in vorhanden | Zustimmung sauber speichern, Texte/Einwilligung rechtlich pruefen, manuelle WhatsApp-Nutzung dokumentieren | MVP-kritisch | Teilweise |
 | WhatsApp-Templates | Nicht umgesetzt | V2 oder MVP-light: vorbereitete Textbausteine, noch manuell versenden | MVP-light | Offen |
 | Push-Benachrichtigungen | Nicht umgesetzt | Nicht noetig fuer ersten MVP-Start, spaeter PWA/App | V2 | Offen |
@@ -153,12 +153,12 @@ Stand: 2026-06-25
 - Die Eigentuemer-App liest kuenftig eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - Die Migration muss noch remote in Supabase angewendet werden, sobald `SUPABASE_ACCESS_TOKEN` oder Datenbankpasswort lokal verfuegbar ist.
 - `apps/admin` und `apps/guest` sind noch nicht produktiv nach Next migriert; sie bleiben der naechste grosse Architekturblock.
-- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login erste operative Supabase-Daten lesen sowie Anfrage- und Buchungsstatus aus der Uebersicht aktualisieren.
+- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login erste operative Supabase-Daten lesen, Anfrage- und Buchungsstatus aktualisieren sowie Detail-Drawer mit Kommunikationshistorie und interner Notiz nutzen.
 
 Naechste technische Prioritaet:
 
 1. Supabase Owner-Migration live anwenden und ersten echten Owner-Zugang testen.
-2. Admin-App weiter ausbauen: Detail-Drawer fuer Anfragen/Buchungen, Kommunikationshistorie, Aufgaben und Monitoring.
+2. Admin-App weiter ausbauen: Aufgaben, Monitoring, Support-Detailansicht und Kommunikationsaktionen aus Anfrage/Buchung heraus.
 3. Guest-App danach aus dem Prototyp in `apps/guest` migrieren.
 4. Erst danach Owner-App weiter vertiefen: Abrechnung, Dokumente, Operationsstatus und Eigentuemer-Kommunikation.
 

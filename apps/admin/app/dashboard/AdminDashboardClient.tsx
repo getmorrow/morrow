@@ -46,6 +46,20 @@ type SupportRow = {
   payload: Record<string, unknown>;
 };
 
+type CommunicationEventRow = {
+  id: string;
+  lead_id: string | null;
+  booking_id: string | null;
+  channel: string;
+  direction: string;
+  event_type: string;
+  subject: string | null;
+  body: string | null;
+  actor: string | null;
+  status: string;
+  created_at: string;
+};
+
 type DashboardData = {
   profile: AdminProfile;
   leads: LeadRow[];
@@ -59,6 +73,11 @@ type LoadState =
   | { status: "loading" }
   | { status: "ready"; data: DashboardData }
   | { status: "error"; message: string };
+
+type DetailSelection =
+  | { type: "lead"; id: string }
+  | { type: "booking"; id: string }
+  | null;
 
 const leadQuickStatuses = ["In Prüfung", "Kontaktiert", "Kein Interesse"] as const;
 const bookingStatuses = ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen", "Storniert"] as const;
@@ -105,6 +124,10 @@ function getBookingLabel(booking: BookingRow) {
     getPayloadText(booking.payload, ["packageName", "stayName", "guestName", "customerName"]) ||
     booking.status
   );
+}
+
+function getInternalNote(payload: Record<string, unknown>) {
+  return getPayloadText(payload, ["internalNote", "note", "notes"]) || "";
 }
 
 export function AdminDashboardClient() {
@@ -241,11 +264,77 @@ function AdminDashboardView({
   const [dataState, setDataState] = useState(initialData);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [selection, setSelection] = useState<DetailSelection>(null);
+  const [communicationEvents, setCommunicationEvents] = useState<CommunicationEventRow[]>([]);
+  const [drawerNote, setDrawerNote] = useState("");
+  const [drawerMessage, setDrawerMessage] = useState<string | null>(null);
+  const [isDrawerLoading, setIsDrawerLoading] = useState(false);
   const data = dataState;
   const openLeads = useMemo(() => getOpenLeads(data.leads), [data.leads]);
   const paidBookings = data.bookings.filter((booking) => booking.payment_status === "bezahlt");
   const openSupport = data.supportMessages.filter((message) => message.status !== "closed");
   const displayName = data.profile.name || data.profile.email;
+  const selectedLead = selection?.type === "lead"
+    ? data.leads.find((lead) => lead.id === selection.id) ?? null
+    : null;
+  const selectedBooking = selection?.type === "booking"
+    ? data.bookings.find((booking) => booking.id === selection.id) ?? null
+    : null;
+
+  useEffect(() => {
+    if (!selection) {
+      setCommunicationEvents([]);
+      setDrawerNote("");
+      setDrawerMessage(null);
+      return;
+    }
+
+    const currentPayload = selection.type === "lead"
+      ? data.leads.find((lead) => lead.id === selection.id)?.payload
+      : data.bookings.find((booking) => booking.id === selection.id)?.payload;
+
+    setDrawerNote(currentPayload ? getInternalNote(currentPayload) : "");
+    setDrawerMessage(null);
+
+    let isMounted = true;
+    const activeSelection = selection;
+
+    async function loadEvents() {
+      setIsDrawerLoading(true);
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const query = supabase
+          .from("communication_events")
+          .select("id,lead_id,booking_id,channel,direction,event_type,subject,body,actor,status,created_at")
+          .order("created_at", { ascending: false })
+          .limit(40);
+        const { data: events, error } = activeSelection.type === "lead"
+          ? await query.eq("lead_id", activeSelection.id)
+          : await query.eq("booking_id", activeSelection.id);
+
+        if (!isMounted) return;
+        if (error) {
+          setDrawerMessage("Historie konnte nicht geladen werden.");
+          setCommunicationEvents([]);
+          return;
+        }
+
+        setCommunicationEvents((events ?? []) as CommunicationEventRow[]);
+      } catch {
+        if (!isMounted) return;
+        setDrawerMessage("Historie konnte nicht geladen werden.");
+        setCommunicationEvents([]);
+      } finally {
+        if (isMounted) setIsDrawerLoading(false);
+      }
+    }
+
+    void loadEvents();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selection, data.leads, data.bookings]);
 
   async function writeAuditLog({
     action,
@@ -459,6 +548,92 @@ function AdminDashboardView({
     }
   }
 
+  async function saveDrawerNote() {
+    if (!selection) return;
+
+    const actionKey = `drawer-note-${selection.type}-${selection.id}`;
+    setPendingAction(actionKey);
+    setDrawerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const isLead = selection.type === "lead";
+      const currentEntity = isLead
+        ? data.leads.find((lead) => lead.id === selection.id)
+        : data.bookings.find((booking) => booking.id === selection.id);
+
+      if (!currentEntity) throw new Error("Missing entity");
+
+      const payload = {
+        ...currentEntity.payload,
+        internalNote: drawerNote,
+        updatedAt: new Date().toISOString(),
+      };
+      const table = isLead ? "leads" : "bookings";
+      const { error } = await supabase
+        .from(table)
+        .update({ payload, updated_at: new Date().toISOString() })
+        .eq("id", selection.id);
+
+      if (error) throw error;
+
+      const eventResult = await supabase
+        .from("communication_events")
+        .insert({
+          lead_id: isLead ? selection.id : null,
+          booking_id: isLead ? null : selection.id,
+          channel: "note",
+          direction: "internal",
+          event_type: "note",
+          subject: "Interne Notiz",
+          body: drawerNote || "Notiz aktualisiert.",
+          actor: data.profile.email,
+          status: "recorded",
+          payload: {
+            source: "next-admin",
+            entityType: selection.type,
+            entityId: selection.id,
+          },
+        })
+        .select("id,lead_id,booking_id,channel,direction,event_type,subject,body,actor,status,created_at")
+        .single();
+
+      if (eventResult.error) throw eventResult.error;
+
+      setDataState((current) => ({
+        ...current,
+        leads: isLead
+          ? current.leads.map((lead) => (lead.id === selection.id ? { ...lead, payload } : lead))
+          : current.leads,
+        bookings: isLead
+          ? current.bookings
+          : current.bookings.map((booking) =>
+              booking.id === selection.id ? { ...booking, payload } : booking,
+            ),
+      }));
+      setCommunicationEvents((current) => [
+        eventResult.data as CommunicationEventRow,
+        ...current,
+      ]);
+
+      await writeAuditLog({
+        action: "internal_note_updated",
+        entityType: selection.type,
+        entityId: selection.id,
+        entityLabel: isLead
+          ? getLeadLabel(currentEntity as LeadRow)
+          : getBookingLabel(currentEntity as BookingRow),
+        payload: { noteLength: drawerNote.length },
+      });
+
+      setDrawerMessage("Notiz gespeichert.");
+    } catch {
+      setDrawerMessage("Notiz konnte nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
   return (
     <main className="admin-shell admin-dashboard">
       <header className="admin-header">
@@ -521,6 +696,9 @@ function AdminDashboardView({
                   <em>{lead.status}</em>
                 </div>
                 <div className="admin-row-actions">
+                  <button onClick={() => setSelection({ type: "lead", id: lead.id })} type="button">
+                    Details
+                  </button>
                   {leadQuickStatuses.map((status) => (
                     <button
                       disabled={pendingAction === `lead-${lead.id}-${status}`}
@@ -560,6 +738,12 @@ function AdminDashboardView({
                   </em>
                 </div>
                 <div className="admin-row-actions">
+                  <button
+                    onClick={() => setSelection({ type: "booking", id: booking.id })}
+                    type="button"
+                  >
+                    Details
+                  </button>
                   {bookingStatuses.map((status) => (
                     <button
                       disabled={pendingAction === `booking-${booking.id}-${status}`}
@@ -604,6 +788,133 @@ function AdminDashboardView({
           </div>
         </article>
       </section>
+      <AdminDetailDrawer
+        booking={selectedBooking}
+        communicationEvents={communicationEvents}
+        isLoading={isDrawerLoading}
+        message={drawerMessage}
+        note={drawerNote}
+        lead={selectedLead}
+        onClose={() => setSelection(null)}
+        onNoteChange={setDrawerNote}
+        onSaveNote={saveDrawerNote}
+        pending={Boolean(pendingAction?.startsWith("drawer-note"))}
+      />
     </main>
+  );
+}
+
+function AdminDetailDrawer({
+  booking,
+  communicationEvents,
+  isLoading,
+  lead,
+  message,
+  note,
+  onClose,
+  onNoteChange,
+  onSaveNote,
+  pending,
+}: {
+  booking: BookingRow | null;
+  communicationEvents: CommunicationEventRow[];
+  isLoading: boolean;
+  lead: LeadRow | null;
+  message: string | null;
+  note: string;
+  onClose: () => void;
+  onNoteChange: (value: string) => void;
+  onSaveNote: () => void;
+  pending: boolean;
+}) {
+  if (!lead && !booking) return null;
+
+  const title = lead ? getLeadLabel(lead) : getBookingLabel(booking as BookingRow);
+  const status = lead ? lead.status : `${booking?.status} · ${booking?.payment_status}`;
+  const payload = lead?.payload ?? booking?.payload ?? {};
+  const email = lead?.email || getPayloadText(payload, ["email"]);
+  const phone = lead?.phone || getPayloadText(payload, ["phone"]);
+  const packageName =
+    getPayloadText(payload, ["packageName", "packageTitle", "stayName", "packageSlug"]) ||
+    lead?.package_slug;
+  const selectedDate = getPayloadText(payload, [
+    "selectedDate",
+    "dateLabel",
+    "travelDate",
+    "arrivalDate",
+    "bookingDate",
+  ]);
+
+  return (
+    <div className="admin-drawer-layer" role="presentation">
+      <button className="admin-drawer-backdrop" onClick={onClose} type="button" />
+      <aside className="admin-drawer" aria-label="Details">
+        <header>
+          <div>
+            <p className="admin-eyebrow">{lead ? "Anfrage" : "Buchung"}</p>
+            <h2>{title}</h2>
+            <span>{status}</span>
+          </div>
+          <button aria-label="Details schließen" onClick={onClose} type="button">
+            Schließen
+          </button>
+        </header>
+
+        <section className="admin-drawer-grid">
+          <article>
+            <small>E-Mail</small>
+            <strong>
+              {email ? <a href={`mailto:${email}`}>{email}</a> : "nicht angegeben"}
+            </strong>
+          </article>
+          <article>
+            <small>Telefon</small>
+            <strong>
+              {phone ? <a href={`tel:${phone}`}>{phone}</a> : "nicht angegeben"}
+            </strong>
+          </article>
+          <article>
+            <small>Auszeit</small>
+            <strong>{packageName || "nicht zugeordnet"}</strong>
+          </article>
+          <article>
+            <small>Termin</small>
+            <strong>{selectedDate || "offen"}</strong>
+          </article>
+        </section>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Interne Notiz</p>
+          <textarea
+            onChange={(event) => onNoteChange(event.target.value)}
+            placeholder="Gespräch, nächster Schritt oder wichtige Einschätzung festhalten."
+            rows={5}
+            value={note}
+          />
+          <button className="admin-button" disabled={pending} onClick={onSaveNote} type="button">
+            {pending ? "Speichern" : "Notiz speichern"}
+          </button>
+          {message ? <p className="admin-drawer-message">{message}</p> : null}
+        </section>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Historie</p>
+          {isLoading ? <p className="admin-drawer-message">Historie wird geladen.</p> : null}
+          <div className="admin-timeline">
+            {communicationEvents.length ? (
+              communicationEvents.map((event) => (
+                <article key={event.id}>
+                  <small>{formatDate(event.created_at)}</small>
+                  <strong>{event.subject || event.event_type}</strong>
+                  <p>{event.body || `${event.channel} · ${event.direction}`}</p>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">Noch keine Historie vorhanden.</p>
+            )}
+          </div>
+        </section>
+      </aside>
+    </div>
   );
 }
