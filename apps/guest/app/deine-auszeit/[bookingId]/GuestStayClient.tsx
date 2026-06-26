@@ -91,6 +91,124 @@ type GuestStayPayload = {
   package?: GuestPackage;
 };
 
+const devGuestStayPayload: GuestStayPayload = {
+  booking: {
+    id: "11111111-1111-4111-8111-111111111111",
+    leadId: "11111111-1111-4111-8111-111111111111",
+    customerId: "11111111-1111-4111-8111-111111111111",
+    status: "Vor Anreise",
+    paymentStatus: "bezahlt",
+    name: "Sophie Krüger",
+    customerName: "Sophie Krüger",
+    email: "sophie.krueger@example.com",
+    phone: "+49 170 0000000",
+    packageName: "Couple Reset",
+    packageSlug: "couple-reset",
+    selectedDate: "12.–16. August",
+    guests: "2",
+    dog: "nein",
+    checkInStatus: "vorbereitet",
+    experienceStatus: "vorbereitet",
+  },
+  package: {
+    id: "pkg-couple-reset",
+    slug: "couple-reset",
+    name: "Couple Reset",
+    audience: "couples",
+    location: "Sankt Peter-Ording",
+    title: "Raus aus dem Alltag. Rein in gemeinsame Zeit.",
+    description:
+      "Unterkunft, ruhiger Rhythmus und passende Empfehlungen sind vorbereitet, damit ihr ankommt, ohne vorher alles selbst zu sortieren.",
+    image: "/brand/generated/morrow-spo-couple.png",
+    stay: {
+      name: "Nordsee Rückzugsort",
+      location: "Sankt Peter-Ording Bad",
+      address: "Die genaue Adresse liegt vor Anreise bereit.",
+      image: "/brand/generated/morrow-spo-couple.png",
+      checkInType: "Schlüsselsafe",
+      checkInInstructions: "Check-in ab 16 Uhr. Den finalen Code erhaltet ihr kurz vor der Anreise.",
+      propertySupportType: "morrow",
+      propertySupportName: "Morrow",
+      houseRules: ["Rauchen ist nicht erlaubt.", "Ruhezeiten vor Ort beachten."],
+      amenities: ["Küche", "WLAN", "ruhiger Wohnbereich"],
+    },
+    experienceItems: [
+      {
+        title: "Ruhiger Abend zu zweit",
+        role: "included",
+        guestNotes: "Ein vorbereiteter Vorschlag für einen Abend ohne Suche und Abstimmung.",
+      },
+      {
+        title: "Wellness oder Yoga",
+        role: "optional",
+        guestNotes: "Optionaler Baustein, wenn es zu eurem Anlass und Reiserhythmus passt.",
+      },
+    ],
+  },
+};
+
+const devLocalPlaces: LocalPlace[] = [
+  {
+    id: "dev-food-arche-noah",
+    name: "Arche Noah am Strandabschnitt Bad",
+    category: "food",
+    status: "approved",
+    lat: 54.312,
+    lng: 8.603,
+    address: "Pfahlbau-Restaurant am Strandabschnitt Bad",
+    website: "https://www.arche-noah-spo.de/",
+    reservation_url: "https://www.arche-noah-spo.de/",
+    rating: 4.4,
+    payload: {
+      cuisine: "Nordsee, Fisch, unkompliziert",
+      bestFor: ["Strandtag", "gut erreichbar", "Abendessen"],
+      description: "Gut erreichbares Essen direkt am Wasser, wenn ihr nicht neu suchen möchtet.",
+    },
+  },
+  {
+    id: "dev-beach-bad",
+    name: "Strandabschnitt Bad",
+    category: "beach",
+    status: "approved",
+    lat: 54.314,
+    lng: 8.607,
+    address: "Strandabschnitt Bad, Sankt Peter-Ording",
+    payload: {
+      bestFor: ["kurze Wege", "Spaziergang", "Pfahlbauten"],
+      description: "Ein guter erster Strandmoment, wenn ihr schnell ans Wasser möchtet.",
+    },
+  },
+  {
+    id: "dev-event-market",
+    name: "Wochenmarkt im Ort",
+    category: "event",
+    status: "approved",
+    lat: 54.306,
+    lng: 8.642,
+    address: "Sankt Peter-Ording",
+    payload: {
+      bestFor: ["Vormittag", "lokal", "ruhig"],
+      description: "Kleiner lokaler Impuls, wenn er zeitlich zu eurer Auszeit passt.",
+    },
+  },
+  {
+    id: "dev-experience-watt",
+    name: "Wattmoment mit Guide",
+    category: "experience",
+    status: "approved",
+    lat: 54.301,
+    lng: 8.598,
+    payload: {
+      bestFor: ["Natur", "Nordseegefühl", "bewusst geplant"],
+      description: "Ein kuratierter Naturmoment, wenn Tide, Wetter und Tagesrhythmus passen.",
+    },
+  },
+];
+
+function isDevGuestAccess(bookingId: string, accessCode: string) {
+  return process.env.NODE_ENV !== "production" && bookingId === "dev-active" && accessCode === "MORROWDEV";
+}
+
 const viewLabels: Record<GuestView, string> = {
   home: "Start",
   plan: "Auszeit",
@@ -324,6 +442,13 @@ export function GuestStayClient({
     async function load() {
       setLoading(true);
       setError("");
+
+      if (isDevGuestAccess(bookingId, accessCode)) {
+        setPayload(devGuestStayPayload);
+        setPlaces(devLocalPlaces);
+        setLoading(false);
+        return;
+      }
 
       let supabase: ReturnType<typeof createSupabaseBrowserClient>;
 

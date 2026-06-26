@@ -11,6 +11,11 @@ Status: Next-Migration gestartet.
 - Supportnachrichten werden in `support_messages` gespeichert.
 - Feedback wird in `guest_feedback` gespeichert.
 - Admin bleibt Quelle der Wahrheit; diese App zeigt nur Gaeste-Ausschnitte.
+- Lokaler Sichttest: `/deine-auszeit/dev-active?code=MORROWDEV`
+  funktioniert nur ausserhalb von Production.
+- Supabase-Testdatensatz: `npm run supabase:seed-active-guest-test`
+  benoetigt `SUPABASE_SERVICE_ROLE_KEY` und erzeugt
+  `/deine-auszeit/11111111-1111-4111-8111-111111111111?code=MORROW1`.
 
 Naechste Ausbaustufen:
 
