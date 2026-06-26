@@ -100,6 +100,18 @@ type ExperienceBlockRow = {
   created_at: string;
 };
 
+type PackageDateRow = {
+  id: string;
+  package_id: string;
+  label: string;
+  starts_on: string | null;
+  ends_on: string | null;
+  capacity: number | null;
+  status: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
 type CommunicationEventRow = {
   id: string;
   lead_id: string | null;
@@ -124,6 +136,7 @@ type DashboardData = {
   supportMessages: SupportRow[];
   experienceProviders: ExperienceProviderRow[];
   experienceBlocks: ExperienceBlockRow[];
+  packageDates: PackageDateRow[];
 };
 
 type LoadState =
@@ -148,12 +161,17 @@ type ExperienceSelection = { id: string } | null;
 
 type ExperienceDraft = Record<string, string | boolean>;
 
+type DateSelection = { id: string } | null;
+
+type DateDraft = Record<string, string>;
+
 const leadQuickStatuses = ["In Prüfung", "Kontaktiert", "Kein Interesse"] as const;
 const bookingStatuses = ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen", "Storniert"] as const;
 const supportStatuses = ["open", "in_progress", "closed"] as const;
 const taskStatuses = ["open", "in_progress", "done"] as const;
 const experienceRoles = ["included", "optional", "recommendation", "planned"] as const;
 const experienceConfirmationStatuses = ["planned", "requested", "confirmed", "cancelled"] as const;
+const packageDateStatuses = ["available", "reserved", "sold_out", "paused"] as const;
 
 function paymentStatusForBooking(status: string) {
   return ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen"].includes(status)
@@ -288,6 +306,17 @@ function experienceConfirmationLabel(status: string) {
   return labels[status] || status;
 }
 
+function packageDateStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    available: "Verfügbar",
+    reserved: "Reserviert",
+    sold_out: "Ausgebucht",
+    paused: "Pausiert",
+  };
+
+  return labels[status] || status;
+}
+
 function getOpenLeads(leads: LeadRow[]) {
   return leads.filter((lead) => !["Bezahlt", "Abgeschlossen", "Kein Interesse"].includes(lead.status));
 }
@@ -343,6 +372,14 @@ function getProviderName(providers: ExperienceProviderRow[], providerId: string 
   return providers.find((item) => item.id === providerId)?.name || providerId;
 }
 
+function getPackageDateRange(date: PackageDateRow) {
+  if (date.starts_on && date.ends_on) {
+    return `${formatShortDate(date.starts_on)} bis ${formatShortDate(date.ends_on)}`;
+  }
+  if (date.starts_on) return `ab ${formatShortDate(date.starts_on)}`;
+  return "Zeitraum offen";
+}
+
 function taskTimingLabel(task: AdminTaskRow) {
   if (task.status === "done") return "erledigt";
   if (!task.due_at) return "ohne Datum";
@@ -361,6 +398,7 @@ function monitoringItems(data: DashboardData) {
   }> = [];
 
   data.packages.forEach((item) => {
+    const dates = data.packageDates.filter((date) => date.package_id === item.id);
     if (!item.status || item.status === "draft") {
       items.push({
         id: `package-status-${item.id}`,
@@ -368,6 +406,15 @@ function monitoringItems(data: DashboardData) {
         title: item.name || item.id,
         description: "Status, Veröffentlichung und Gastansicht prüfen.",
         severity: "medium",
+      });
+    }
+    if (dates.length === 0) {
+      items.push({
+        id: `package-dates-${item.id}`,
+        label: "Termin",
+        title: item.name || item.id,
+        description: "Noch kein buchbarer Zeitraum in Supabase gepflegt.",
+        severity: "high",
       });
     }
   });
@@ -460,6 +507,7 @@ export function AdminDashboardClient() {
           supportResult,
           providersResult,
           experiencesResult,
+          datesResult,
         ] =
           await Promise.all([
             supabase
@@ -499,6 +547,11 @@ export function AdminDashboardClient() {
               .from("experience_blocks")
               .select("id,package_id,provider_id,title,role,included_in_price,confirmation_status,payload,created_at")
               .order("created_at", { ascending: false }),
+            supabase
+              .from("package_dates")
+              .select("id,package_id,label,starts_on,ends_on,capacity,status,payload,created_at")
+              .order("starts_on", { ascending: true, nullsFirst: false })
+              .order("created_at", { ascending: false }),
           ]);
 
         if (!isMounted) return;
@@ -511,7 +564,8 @@ export function AdminDashboardClient() {
           tasksResult.error ||
           supportResult.error ||
           providersResult.error ||
-          experiencesResult.error;
+          experiencesResult.error ||
+          datesResult.error;
 
         if (firstError) {
           setState({
@@ -533,6 +587,7 @@ export function AdminDashboardClient() {
             supportMessages: (supportResult.data ?? []) as SupportRow[],
             experienceProviders: (providersResult.data ?? []) as ExperienceProviderRow[],
             experienceBlocks: (experiencesResult.data ?? []) as ExperienceBlockRow[],
+            packageDates: (datesResult.data ?? []) as PackageDateRow[],
           },
         });
       } catch {
@@ -602,6 +657,9 @@ function AdminDashboardView({
   const [experienceSelection, setExperienceSelection] = useState<ExperienceSelection>(null);
   const [experienceDraft, setExperienceDraft] = useState<ExperienceDraft>({});
   const [experienceMessage, setExperienceMessage] = useState<string | null>(null);
+  const [dateSelection, setDateSelection] = useState<DateSelection>(null);
+  const [dateDraft, setDateDraft] = useState<DateDraft>({});
+  const [dateMessage, setDateMessage] = useState<string | null>(null);
   const [communicationEvents, setCommunicationEvents] = useState<CommunicationEventRow[]>([]);
   const [drawerNote, setDrawerNote] = useState("");
   const [drawerMessage, setDrawerMessage] = useState<string | null>(null);
@@ -631,6 +689,9 @@ function AdminDashboardView({
     : null;
   const selectedExperience = experienceSelection
     ? data.experienceBlocks.find((item) => item.id === experienceSelection.id) ?? null
+    : null;
+  const selectedDate = dateSelection
+    ? data.packageDates.find((item) => item.id === dateSelection.id) ?? null
     : null;
 
   useEffect(() => {
@@ -693,6 +754,26 @@ function AdminDashboardView({
       availability_note: getPayloadText(item.payload, ["availabilityNote", "availability"]) || "",
     } : {});
   }, [experienceSelection, data.experienceBlocks]);
+
+  useEffect(() => {
+    setDateMessage(null);
+
+    if (!dateSelection) {
+      setDateDraft({});
+      return;
+    }
+
+    const item = data.packageDates.find((date) => date.id === dateSelection.id);
+    setDateDraft(item ? {
+      label: item.label || "",
+      package_id: item.package_id || "",
+      starts_on: item.starts_on || "",
+      ends_on: item.ends_on || "",
+      capacity: item.capacity?.toString() || "",
+      status: item.status || "available",
+      note: getPayloadText(item.payload, ["note", "internalNote", "availabilityNote"]) || "",
+    } : {});
+  }, [dateSelection, data.packageDates]);
 
   useEffect(() => {
     if (!selection) {
@@ -1336,6 +1417,64 @@ function AdminDashboardView({
     }
   }
 
+  async function savePackageDate() {
+    if (!dateSelection) return;
+
+    const actionKey = `date-${dateSelection.id}`;
+    setPendingAction(actionKey);
+    setDateMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const now = new Date().toISOString();
+      const currentItem = data.packageDates.find((item) => item.id === dateSelection.id);
+      if (!currentItem) throw new Error("Missing date");
+
+      const payload = {
+        ...(currentItem.payload ?? {}),
+        note: String(dateDraft.note || "").trim(),
+        updatedAt: now,
+      };
+      const updatePayload = {
+        label: String(dateDraft.label || "").trim(),
+        package_id: String(dateDraft.package_id || "").trim(),
+        starts_on: String(dateDraft.starts_on || "").trim() || null,
+        ends_on: String(dateDraft.ends_on || "").trim() || null,
+        capacity: numberOrNull(String(dateDraft.capacity || "")),
+        status: String(dateDraft.status || "available").trim(),
+        payload,
+        updated_at: now,
+      };
+      const { error } = await supabase
+        .from("package_dates")
+        .update(updatePayload)
+        .eq("id", dateSelection.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        packageDates: current.packageDates.map((item) =>
+          item.id === dateSelection.id ? { ...item, ...updatePayload } : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "package_date_updated",
+        entityType: "package_date",
+        entityId: dateSelection.id,
+        entityLabel: currentItem.label,
+        payload: updatePayload,
+      });
+
+      setDateMessage("Gespeichert.");
+    } catch {
+      setDateMessage("Der Termin konnte nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
   return (
     <main className="admin-shell admin-dashboard">
       <header className="admin-header">
@@ -1348,6 +1487,7 @@ function AdminDashboardView({
           <a href="#aufgaben">Aufgaben</a>
           <a href="#support">Support</a>
           <a href="#erlebnisse">Erlebnisse</a>
+          <a href="#termine">Termine</a>
           <a href="#bestand">Bestand</a>
           <button onClick={onLogout} type="button">
             Abmelden
@@ -1608,6 +1748,44 @@ function AdminDashboardView({
         </article>
       </section>
 
+      <section className="admin-grid" id="termine">
+        <article className="admin-card admin-card-wide">
+          <p className="admin-eyebrow">Termine</p>
+          <h2>Zeiträume und Verfügbarkeit</h2>
+          <p>
+            Diese Termine steuern, welche Auszeiten konkret angefragt und später
+            verbindlich vorbereitet werden können.
+          </p>
+          <div className="admin-list">
+            {data.packageDates.length ? (
+              data.packageDates.map((date) => (
+                <article className="admin-list-item" key={date.id}>
+                  <div>
+                    <small>
+                      {packageDateStatusLabel(date.status)} · {getPackageDateRange(date)}
+                    </small>
+                    <strong>{date.label}</strong>
+                    <em>
+                      {getPackageName(data.packages, date.package_id)} · {date.capacity ?? "Kapazität offen"} Plätze
+                    </em>
+                  </div>
+                  <div className="admin-row-actions">
+                    <button
+                      onClick={() => setDateSelection({ id: date.id })}
+                      type="button"
+                    >
+                      Bearbeiten
+                    </button>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">Noch keine Termine in Supabase vorhanden.</p>
+            )}
+          </div>
+        </article>
+      </section>
+
       <section className="admin-grid" id="bestand">
         <article className="admin-card">
           <p className="admin-eyebrow">Auszeiten</p>
@@ -1693,6 +1871,16 @@ function AdminDashboardView({
         packages={data.packages}
         pending={Boolean(pendingAction?.startsWith("experience"))}
         providers={data.experienceProviders}
+      />
+      <AdminPackageDateDrawer
+        date={selectedDate}
+        draft={dateDraft}
+        message={dateMessage}
+        onChange={(key, value) => setDateDraft((current) => ({ ...current, [key]: value }))}
+        onClose={() => setDateSelection(null)}
+        onSave={savePackageDate}
+        packages={data.packages}
+        pending={Boolean(pendingAction?.startsWith("date"))}
       />
     </main>
   );
@@ -2179,6 +2367,130 @@ function AdminExperienceDrawer({
               <input
                 onChange={(event) => onChange("availability_note", event.target.value)}
                 value={String(draft.availability_note || "")}
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="admin-drawer-section">
+          <button className="admin-button" disabled={pending} onClick={onSave} type="button">
+            {pending ? "Speichern" : "Speichern"}
+          </button>
+          {message ? <p className="admin-drawer-message">{message}</p> : null}
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+function AdminPackageDateDrawer({
+  date,
+  draft,
+  message,
+  onChange,
+  onClose,
+  onSave,
+  packages,
+  pending,
+}: {
+  date: PackageDateRow | null;
+  draft: DateDraft;
+  message: string | null;
+  onChange: (key: string, value: string) => void;
+  onClose: () => void;
+  onSave: () => void;
+  packages: SimpleRow[];
+  pending: boolean;
+}) {
+  if (!date) return null;
+
+  return (
+    <div className="admin-drawer-layer" role="presentation">
+      <button className="admin-drawer-backdrop" onClick={onClose} type="button" />
+      <aside className="admin-drawer" aria-label="Termin bearbeiten">
+        <header>
+          <div>
+            <p className="admin-eyebrow">Termin</p>
+            <h2>{date.label}</h2>
+            <span>{date.id}</span>
+          </div>
+          <button aria-label="Bearbeitung schließen" onClick={onClose} type="button">
+            Schließen
+          </button>
+        </header>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Zeitraum</p>
+          <div className="admin-form-grid">
+            <label>
+              Label
+              <input
+                onChange={(event) => onChange("label", event.target.value)}
+                value={String(draft.label || "")}
+              />
+            </label>
+            <label>
+              Auszeit
+              <select
+                onChange={(event) => onChange("package_id", event.target.value)}
+                value={String(draft.package_id || "")}
+              >
+                {packages.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name || item.id}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Start
+              <input
+                onChange={(event) => onChange("starts_on", event.target.value)}
+                type="date"
+                value={String(draft.starts_on || "")}
+              />
+            </label>
+            <label>
+              Ende
+              <input
+                onChange={(event) => onChange("ends_on", event.target.value)}
+                type="date"
+                value={String(draft.ends_on || "")}
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Verfügbarkeit</p>
+          <div className="admin-form-grid">
+            <label>
+              Kapazität
+              <input
+                inputMode="numeric"
+                onChange={(event) => onChange("capacity", event.target.value)}
+                value={String(draft.capacity || "")}
+              />
+            </label>
+            <label>
+              Status
+              <select
+                onChange={(event) => onChange("status", event.target.value)}
+                value={String(draft.status || "available")}
+              >
+                {packageDateStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {packageDateStatusLabel(status)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Interne Notiz
+              <textarea
+                onChange={(event) => onChange("note", event.target.value)}
+                rows={4}
+                value={String(draft.note || "")}
               />
             </label>
           </div>
