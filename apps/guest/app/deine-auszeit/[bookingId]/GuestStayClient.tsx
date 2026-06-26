@@ -486,6 +486,12 @@ function openingHoursText(place: LocalPlace) {
   return "";
 }
 
+function eventTimeText(place: LocalPlace) {
+  const date = payloadText(place.payload, ["eventDate", "startsOn", "date"]);
+  const time = payloadText(place.payload, ["eventTime", "time"]);
+  return [date, time].filter(Boolean).join(" · ");
+}
+
 function localPlaceToMapPlace(place: LocalPlace): GuestMapPlace | null {
   if (!Number.isFinite(place.lat) || !Number.isFinite(place.lng)) return null;
   return {
@@ -1198,6 +1204,12 @@ export function GuestStayClient({
                   <article>
                     <span>Öffnungszeiten</span>
                     <strong>{openingHoursText(selectedPlace)}</strong>
+                  </article>
+                ) : null}
+                {eventTimeText(selectedPlace) ? (
+                  <article>
+                    <span>Termin</span>
+                    <strong>{eventTimeText(selectedPlace)}</strong>
                   </article>
                 ) : null}
               </div>

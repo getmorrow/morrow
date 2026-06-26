@@ -1307,6 +1307,8 @@ function AdminDashboardView({
         rating: "",
         opening_hours: "",
         package_fit: "",
+        event_date: "",
+        event_time: "",
         description: "",
         cuisine: "",
         best_for: "",
@@ -1332,6 +1334,8 @@ function AdminDashboardView({
       package_fit: Array.isArray(item.package_fit) && item.package_fit.length
         ? item.package_fit.join("\n")
         : getPayloadLines(item.payload, ["packageFit"]),
+      event_date: getPayloadText(item.payload, ["eventDate", "startsOn", "date"]) || "",
+      event_time: getPayloadText(item.payload, ["eventTime", "time"]) || "",
       description: getPayloadText(item.payload, ["description", "guestDescription", "morrowNote", "routeNote"]) || "",
       cuisine: getPayloadText(item.payload, ["cuisine"]) || "",
       best_for: getPayloadLines(item.payload, ["bestFor", "audiences"]),
@@ -2496,6 +2500,8 @@ function AdminDashboardView({
         cuisine: String(localPlaceDraft.cuisine || "").trim(),
         openingHours: String(localPlaceDraft.opening_hours || "").trim(),
         packageFit: splitLines(String(localPlaceDraft.package_fit || "")),
+        eventDate: String(localPlaceDraft.event_date || "").trim(),
+        eventTime: String(localPlaceDraft.event_time || "").trim(),
         bestFor: splitLines(String(localPlaceDraft.best_for || "")),
         images: splitLines(String(localPlaceDraft.images || "")),
         updatedAt: now,
@@ -4462,6 +4468,22 @@ function AdminLocalPlaceDrawer({
                 onChange={(event) => onChange("opening_hours", event.target.value)}
                 placeholder="z. B. täglich ab 12 Uhr, saisonal prüfen"
                 value={String(draft.opening_hours || "")}
+              />
+            </label>
+            <label>
+              Veranstaltungsdatum
+              <input
+                onChange={(event) => onChange("event_date", event.target.value)}
+                placeholder="z. B. 12.08.2026 oder saisonal"
+                value={String(draft.event_date || "")}
+              />
+            </label>
+            <label>
+              Veranstaltungszeit
+              <input
+                onChange={(event) => onChange("event_time", event.target.value)}
+                placeholder="z. B. 18:00 Uhr"
+                value={String(draft.event_time || "")}
               />
             </label>
           </div>
