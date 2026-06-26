@@ -148,6 +148,16 @@ type CommunicationEventRow = {
   created_at: string;
 };
 
+type GuestFeedbackRow = {
+  id: string;
+  lead_id: string | null;
+  booking_id: string | null;
+  rating: number | null;
+  return_interest: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
 type AuditLogRow = {
   id: string;
   actor_email: string | null;
@@ -172,6 +182,7 @@ type DashboardData = {
   packageDates: PackageDateRow[];
   ownerProfiles: OwnerProfileRow[];
   ownerAccess: OwnerAccessRow[];
+  guestFeedback: GuestFeedbackRow[];
   auditLogs: AuditLogRow[];
 };
 
@@ -567,6 +578,44 @@ function getSupportRelationId(support: SupportRow, kind: "lead" | "booking") {
   return getPayloadText(support.payload, keys) || (kind === "lead" ? support.lead_id : null);
 }
 
+function getFeedbackText(feedback: GuestFeedbackRow) {
+  return (
+    getPayloadText(feedback.payload, ["loved", "message", "feedback", "text", "note"]) ||
+    "Kein Freitext hinterlegt."
+  );
+}
+
+function getFeedbackPackageLabel(feedback: GuestFeedbackRow, bookings: BookingRow[]) {
+  const booking = feedback.booking_id
+    ? bookings.find((item) => item.id === feedback.booking_id)
+    : null;
+
+  return (
+    getPayloadText(feedback.payload, ["packageName", "stayName"]) ||
+    (booking ? getBookingLabel(booking) : null) ||
+    "Auszeit"
+  );
+}
+
+function feedbackReturnInterestLabel(value: string | null) {
+  const labels: Record<string, string> = {
+    yes: "möchte wiederkommen",
+    maybe: "vielleicht wieder",
+    no: "aktuell kein Interesse",
+  };
+
+  return value ? labels[value] || value : "nicht angegeben";
+}
+
+function averageFeedbackRating(feedback: GuestFeedbackRow[]) {
+  const ratings = feedback
+    .map((item) => item.rating)
+    .filter((rating): rating is number => typeof rating === "number");
+
+  if (!ratings.length) return null;
+  return ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+}
+
 function getInternalNote(payload: Record<string, unknown>) {
   return getPayloadText(payload, ["internalNote", "note", "notes"]) || "";
 }
@@ -779,6 +828,7 @@ export function AdminDashboardClient() {
           datesResult,
           ownersResult,
           ownerAccessResult,
+          feedbackResult,
           auditResult,
         ] =
           await Promise.all([
@@ -833,6 +883,11 @@ export function AdminDashboardClient() {
               .select("id,owner_profile_id,property_id,role,can_view_financials,can_view_operations,created_at")
               .order("created_at", { ascending: false }),
             supabase
+              .from("guest_feedback")
+              .select("id,lead_id,booking_id,rating,return_interest,payload,created_at")
+              .order("created_at", { ascending: false })
+              .limit(40),
+            supabase
               .from("admin_audit_logs")
               .select("id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at")
               .order("created_at", { ascending: false })
@@ -875,6 +930,7 @@ export function AdminDashboardClient() {
             packageDates: (datesResult.data ?? []) as PackageDateRow[],
             ownerProfiles: ownersResult.error ? [] : (ownersResult.data ?? []) as OwnerProfileRow[],
             ownerAccess: ownerAccessResult.error ? [] : (ownerAccessResult.data ?? []) as OwnerAccessRow[],
+            guestFeedback: feedbackResult.error ? [] : (feedbackResult.data ?? []) as GuestFeedbackRow[],
             auditLogs: auditResult.error ? [] : (auditResult.data ?? []) as AuditLogRow[],
           },
         });
@@ -976,6 +1032,8 @@ function AdminDashboardView({
   const activeTasks = data.tasks.filter((task) => task.status !== "done");
   const dueTasks = activeTasks.filter((task) => task.due_at && task.due_at <= todayIsoDate());
   const monitoring = monitoringItems(data);
+  const averageRating = averageFeedbackRating(data.guestFeedback);
+  const lowFeedback = data.guestFeedback.filter((feedback) => typeof feedback.rating === "number" && feedback.rating <= 3);
   const displayName = data.profile.name || data.profile.email;
   const selectedLead = selection?.type === "lead"
     ? data.leads.find((lead) => lead.id === selection.id) ?? null
@@ -2391,6 +2449,7 @@ function AdminDashboardView({
           <a href="#buchungen">Buchungen</a>
           <a href="#aufgaben">Aufgaben</a>
           <a href="#support">Support</a>
+          <a href="#feedback">Feedback</a>
           <a href="#audit">Änderungen</a>
           <a href="#erlebnisse">Erlebnisse</a>
           <a href="#termine">Termine</a>
@@ -2432,6 +2491,11 @@ function AdminDashboardView({
           <span>Monitoring</span>
           <strong>{monitoring.length}</strong>
           <p>{openSupport.length} offene Supportfälle</p>
+        </article>
+        <article>
+          <span>Feedback</span>
+          <strong>{averageRating ? averageRating.toFixed(1) : "–"}</strong>
+          <p>{data.guestFeedback.length} Rückmeldungen geladen</p>
         </article>
       </section>
 
@@ -2635,6 +2699,57 @@ function AdminDashboardView({
               ))
             ) : (
               <p className="admin-drawer-message">Noch keine Supportnachrichten vorhanden.</p>
+            )}
+          </div>
+        </article>
+      </section>
+
+      <section className="admin-grid" id="feedback">
+        <article className="admin-card admin-card-wide">
+          <p className="admin-eyebrow">Feedback</p>
+          <h2>Rückmeldungen nach dem Aufenthalt</h2>
+          <p>
+            Hier werden Gästestimmen aus dem Gästebereich gesammelt. Niedrige
+            Bewertungen sind ein Signal für Nachfassen und Verbesserungen.
+          </p>
+          {lowFeedback.length ? (
+            <div className="admin-feedback-alert">
+              <strong>{lowFeedback.length} Rückmeldung{lowFeedback.length === 1 ? "" : "en"} prüfen</strong>
+              <span>Bewertung 3 oder niedriger</span>
+            </div>
+          ) : null}
+          <div className="admin-list">
+            {data.guestFeedback.length ? (
+              data.guestFeedback.slice(0, 10).map((feedback) => {
+                const booking = feedback.booking_id
+                  ? data.bookings.find((item) => item.id === feedback.booking_id)
+                  : null;
+
+                return (
+                  <article className="admin-list-item" key={feedback.id}>
+                    <div>
+                      <small>
+                        {formatDate(feedback.created_at)} · {feedback.rating ? `${feedback.rating}/5` : "ohne Bewertung"}
+                      </small>
+                      <strong>{getFeedbackPackageLabel(feedback, data.bookings)}</strong>
+                      <em>{feedbackReturnInterestLabel(feedback.return_interest)}</em>
+                      <p>{getFeedbackText(feedback)}</p>
+                    </div>
+                    <div className="admin-row-actions">
+                      {booking ? (
+                        <button
+                          onClick={() => setSelection({ type: "booking", id: booking.id })}
+                          type="button"
+                        >
+                          Buchung öffnen
+                        </button>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })
+            ) : (
+              <p className="admin-drawer-message">Noch kein Gästefeedback vorhanden.</p>
             )}
           </div>
         </article>

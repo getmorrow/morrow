@@ -312,6 +312,13 @@ input {
   font-weight: 760;
 }
 
+.admin-list p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 2px 0 0;
+}
+
 .admin-list strong {
   font-size: 16px;
   font-weight: 860;
@@ -359,6 +366,28 @@ input {
   margin-top: 18px;
   max-width: 520px;
   padding: 12px 14px;
+}
+
+.admin-feedback-alert {
+  align-items: center;
+  background: rgba(121, 114, 61, 0.12);
+  border: 1px solid rgba(121, 114, 61, 0.22);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 12px 14px;
+}
+
+.admin-feedback-alert strong {
+  font-size: 15px;
+  font-weight: 880;
+}
+
+.admin-feedback-alert span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 780;
 }
 
 .admin-drawer-layer {
@@ -586,7 +615,7 @@ input {
   }
 
   .admin-metrics {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 }
 
