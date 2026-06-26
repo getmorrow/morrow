@@ -151,8 +151,9 @@ type DetailSelection =
   | null;
 
 type InventorySelection =
-  | { type: "package"; id: string }
-  | { type: "property"; id: string }
+  | { mode: "create"; type: "package" | "property" }
+  | { mode: "edit"; type: "package"; id: string }
+  | { mode: "edit"; type: "property"; id: string }
   | null;
 
 type InventoryDraft = Record<string, string | boolean>;
@@ -208,6 +209,20 @@ function numberOrNull(value: string) {
   if (!trimmed) return null;
   const parsed = Number(trimmed);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ä/g, "ae")
+    .replace(/ö/g, "oe")
+    .replace(/ü/g, "ue")
+    .replace(/ß/g, "ss")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 72);
 }
 
 function formatDate(value: string) {
@@ -687,10 +702,10 @@ function AdminDashboardView({
   const selectedSupport = selection?.type === "support"
     ? data.supportMessages.find((support) => support.id === selection.id) ?? null
     : null;
-  const selectedPackage = inventorySelection?.type === "package"
+  const selectedPackage = inventorySelection?.mode === "edit" && inventorySelection.type === "package"
     ? data.packages.find((item) => item.id === inventorySelection.id) ?? null
     : null;
-  const selectedProperty = inventorySelection?.type === "property"
+  const selectedProperty = inventorySelection?.mode === "edit" && inventorySelection.type === "property"
     ? data.properties.find((item) => item.id === inventorySelection.id) ?? null
     : null;
   const selectedExperience = experienceSelection?.mode === "edit"
@@ -703,7 +718,37 @@ function AdminDashboardView({
   useEffect(() => {
     setInventoryMessage(null);
 
-    if (inventorySelection?.type === "package") {
+    if (inventorySelection?.mode === "create" && inventorySelection.type === "package") {
+      setInventoryDraft({
+        name: "",
+        slug: "",
+        status: "draft",
+        audience: "families",
+        location: "Sankt Peter-Ording",
+        property_id: "",
+        price_from: "",
+        concrete_price: "",
+      });
+      return;
+    }
+
+    if (inventorySelection?.mode === "create" && inventorySelection.type === "property") {
+      setInventoryDraft({
+        name: "",
+        status: "draft",
+        location: "Sankt Peter-Ording",
+        sleeps: "",
+        bedrooms: "",
+        bathrooms: "",
+        check_in_type: "",
+        support_type: "",
+        support_name: "",
+        image_rights_confirmed: false,
+      });
+      return;
+    }
+
+    if (inventorySelection?.mode === "edit" && inventorySelection.type === "package") {
       const item = data.packages.find((packageItem) => packageItem.id === inventorySelection.id);
       setInventoryDraft(item ? {
         name: item.name || "",
@@ -718,7 +763,7 @@ function AdminDashboardView({
       return;
     }
 
-    if (inventorySelection?.type === "property") {
+    if (inventorySelection?.mode === "edit" && inventorySelection.type === "property") {
       const item = data.properties.find((property) => property.id === inventorySelection.id);
       setInventoryDraft(item ? {
         name: item.name || "",
@@ -1290,7 +1335,9 @@ function AdminDashboardView({
   async function saveInventory() {
     if (!inventorySelection) return;
 
-    const actionKey = `inventory-${inventorySelection.type}-${inventorySelection.id}`;
+    const actionKey = inventorySelection.mode === "create"
+      ? `inventory-${inventorySelection.type}-create`
+      : `inventory-${inventorySelection.type}-${inventorySelection.id}`;
     setPendingAction(actionKey);
     setInventoryMessage(null);
 
@@ -1299,20 +1346,72 @@ function AdminDashboardView({
       const now = new Date().toISOString();
 
       if (inventorySelection.type === "package") {
+        const name = String(inventoryDraft.name || "").trim() || "Neue Auszeit";
+        const baseSlug = slugify(String(inventoryDraft.slug || "").trim() || name) || "neue-auszeit";
+        const packagePayload = {
+          updatedAt: now,
+        };
+        const packagePayloadBase = {
+          name,
+          slug: inventorySelection.mode === "create"
+            ? `${baseSlug}-${crypto.randomUUID().slice(0, 8)}`
+            : undefined,
+          audience: String(inventoryDraft.audience || "families").trim(),
+          status: String(inventoryDraft.status || "draft").trim(),
+          location: String(inventoryDraft.location || "Sankt Peter-Ording").trim(),
+          property_id: String(inventoryDraft.property_id || "").trim() || null,
+          price_from: String(inventoryDraft.price_from || "").trim() || null,
+          concrete_price: String(inventoryDraft.concrete_price || "").trim() || null,
+          payload: packagePayload,
+          updated_at: now,
+        };
+
+        if (inventorySelection.mode === "create") {
+          const insertPayload = {
+            ...packagePayloadBase,
+            id: `pkg-${crypto.randomUUID()}`,
+            slug: packagePayloadBase.slug as string,
+          };
+          const { data: inserted, error } = await supabase
+            .from("packages")
+            .insert(insertPayload)
+            .select("id,name,slug,audience,location,status,property_id,price_from,concrete_price,payload")
+            .single();
+
+          if (error) throw error;
+
+          setDataState((current) => ({
+            ...current,
+            packages: [inserted as SimpleRow, ...current.packages],
+          }));
+
+          await writeAuditLog({
+            action: "package_created",
+            entityType: "package",
+            entityId: (inserted as SimpleRow).id,
+            entityLabel: name,
+            payload: insertPayload,
+          });
+
+          setInventorySelection({ mode: "edit", type: "package", id: (inserted as SimpleRow).id });
+          setInventoryMessage("Angelegt.");
+          return;
+        }
+
         const currentItem = data.packages.find((item) => item.id === inventorySelection.id);
         if (!currentItem) throw new Error("Missing package");
 
         const payload = {
           ...(currentItem.payload ?? {}),
-          updatedAt: now,
+          ...packagePayload,
         };
         const updatePayload = {
-          name: String(inventoryDraft.name || "").trim(),
-          status: String(inventoryDraft.status || "draft").trim(),
-          location: String(inventoryDraft.location || "").trim(),
-          property_id: String(inventoryDraft.property_id || "").trim() || null,
-          price_from: String(inventoryDraft.price_from || "").trim() || null,
-          concrete_price: String(inventoryDraft.concrete_price || "").trim() || null,
+          name,
+          status: packagePayloadBase.status,
+          location: packagePayloadBase.location,
+          property_id: packagePayloadBase.property_id,
+          price_from: packagePayloadBase.price_from,
+          concrete_price: packagePayloadBase.concrete_price,
           payload,
           updated_at: now,
         };
@@ -1338,18 +1437,15 @@ function AdminDashboardView({
           payload: updatePayload,
         });
       } else {
-        const currentItem = data.properties.find((item) => item.id === inventorySelection.id);
-        if (!currentItem) throw new Error("Missing property");
-
-        const payload = {
-          ...(currentItem.payload ?? {}),
+        const name = String(inventoryDraft.name || "").trim() || "Neue Unterkunft";
+        const propertyPayload = {
           imageRightsConfirmed: Boolean(inventoryDraft.image_rights_confirmed),
           updatedAt: now,
         };
-        const updatePayload = {
-          name: String(inventoryDraft.name || "").trim(),
+        const propertyPayloadBase = {
+          name,
           status: String(inventoryDraft.status || "draft").trim(),
-          location: String(inventoryDraft.location || "").trim(),
+          location: String(inventoryDraft.location || "Sankt Peter-Ording").trim(),
           sleeps: numberOrNull(String(inventoryDraft.sleeps || "")),
           bedrooms: numberOrNull(String(inventoryDraft.bedrooms || "")),
           bathrooms: numberOrNull(String(inventoryDraft.bathrooms || "")),
@@ -1357,6 +1453,59 @@ function AdminDashboardView({
           support_type: String(inventoryDraft.support_type || "").trim() || null,
           support_name: String(inventoryDraft.support_name || "").trim() || null,
           image_rights_confirmed: Boolean(inventoryDraft.image_rights_confirmed),
+          payload: propertyPayload,
+          updated_at: now,
+        };
+
+        if (inventorySelection.mode === "create") {
+          const insertPayload = {
+            ...propertyPayloadBase,
+            id: `property-${crypto.randomUUID()}`,
+          };
+          const { data: inserted, error } = await supabase
+            .from("properties")
+            .insert(insertPayload)
+            .select("id,name,location,sleeps,bedrooms,bathrooms,check_in_type,support_type,support_name,image_rights_confirmed,status,payload")
+            .single();
+
+          if (error) throw error;
+
+          setDataState((current) => ({
+            ...current,
+            properties: [inserted as SimpleRow, ...current.properties],
+          }));
+
+          await writeAuditLog({
+            action: "property_created",
+            entityType: "property",
+            entityId: (inserted as SimpleRow).id,
+            entityLabel: name,
+            payload: insertPayload,
+          });
+
+          setInventorySelection({ mode: "edit", type: "property", id: (inserted as SimpleRow).id });
+          setInventoryMessage("Angelegt.");
+          return;
+        }
+
+        const currentItem = data.properties.find((item) => item.id === inventorySelection.id);
+        if (!currentItem) throw new Error("Missing property");
+
+        const payload = {
+          ...(currentItem.payload ?? {}),
+          ...propertyPayload,
+        };
+        const updatePayload = {
+          name,
+          status: propertyPayloadBase.status,
+          location: propertyPayloadBase.location,
+          sleeps: propertyPayloadBase.sleeps,
+          bedrooms: propertyPayloadBase.bedrooms,
+          bathrooms: propertyPayloadBase.bathrooms,
+          check_in_type: propertyPayloadBase.check_in_type,
+          support_type: propertyPayloadBase.support_type,
+          support_name: propertyPayloadBase.support_name,
+          image_rights_confirmed: propertyPayloadBase.image_rights_confirmed,
           payload,
           updated_at: now,
         };
@@ -1923,6 +2072,15 @@ function AdminDashboardView({
         <article className="admin-card">
           <p className="admin-eyebrow">Auszeiten</p>
           <h2>Angebote im System</h2>
+          <div className="admin-card-toolbar">
+            <button
+              className="admin-button secondary"
+              onClick={() => setInventorySelection({ mode: "create", type: "package" })}
+              type="button"
+            >
+              Auszeit anlegen
+            </button>
+          </div>
           <div className="admin-list">
             {data.packages.map((packageItem) => (
               <article className="admin-list-item" key={packageItem.id}>
@@ -1934,7 +2092,7 @@ function AdminDashboardView({
                 </div>
                 <div className="admin-row-actions">
                   <button
-                    onClick={() => setInventorySelection({ type: "package", id: packageItem.id })}
+                    onClick={() => setInventorySelection({ mode: "edit", type: "package", id: packageItem.id })}
                     type="button"
                   >
                     Bearbeiten
@@ -1948,6 +2106,15 @@ function AdminDashboardView({
         <article className="admin-card">
           <p className="admin-eyebrow">Objekte</p>
           <h2>Unterkünfte und Bestand</h2>
+          <div className="admin-card-toolbar">
+            <button
+              className="admin-button secondary"
+              onClick={() => setInventorySelection({ mode: "create", type: "property" })}
+              type="button"
+            >
+              Unterkunft anlegen
+            </button>
+          </div>
           <div className="admin-list">
             {data.properties.map((property) => (
               <article className="admin-list-item" key={property.id}>
@@ -1959,7 +2126,7 @@ function AdminDashboardView({
                 </div>
                 <div className="admin-row-actions">
                   <button
-                    onClick={() => setInventorySelection({ type: "property", id: property.id })}
+                    onClick={() => setInventorySelection({ mode: "edit", type: "property", id: property.id })}
                     type="button"
                   >
                     Bearbeiten
@@ -1985,6 +2152,8 @@ function AdminDashboardView({
       />
       <AdminInventoryDrawer
         draft={inventoryDraft}
+        inventoryType={inventorySelection?.type ?? null}
+        isCreating={inventorySelection?.mode === "create"}
         message={inventoryMessage}
         onChange={(key, value) => setInventoryDraft((current) => ({ ...current, [key]: value }))}
         onClose={() => setInventorySelection(null)}
@@ -2160,6 +2329,8 @@ function AdminDetailDrawer({
 
 function AdminInventoryDrawer({
   draft,
+  inventoryType,
+  isCreating,
   message,
   onChange,
   onClose,
@@ -2170,6 +2341,8 @@ function AdminInventoryDrawer({
   property,
 }: {
   draft: InventoryDraft;
+  inventoryType: "package" | "property" | null;
+  isCreating: boolean;
   message: string | null;
   onChange: (key: string, value: string | boolean) => void;
   onClose: () => void;
@@ -2179,10 +2352,16 @@ function AdminInventoryDrawer({
   properties: SimpleRow[];
   property: SimpleRow | null;
 }) {
-  if (!packageItem && !property) return null;
+  if (!packageItem && !property && !isCreating) return null;
 
-  const isPackage = Boolean(packageItem);
-  const title = isPackage ? packageItem?.name || "Auszeit bearbeiten" : property?.name || "Unterkunft bearbeiten";
+  const isPackage = inventoryType === "package" || Boolean(packageItem);
+  const title = isCreating
+    ? isPackage
+      ? "Neue Auszeit"
+      : "Neue Unterkunft"
+    : isPackage
+      ? packageItem?.name || "Auszeit bearbeiten"
+      : property?.name || "Unterkunft bearbeiten";
 
   return (
     <div className="admin-drawer-layer" role="presentation">
@@ -2192,7 +2371,9 @@ function AdminInventoryDrawer({
           <div>
             <p className="admin-eyebrow">{isPackage ? "Auszeit" : "Unterkunft"}</p>
             <h2>{title}</h2>
-            <span>{isPackage ? packageItem?.id : property?.id}</span>
+            <span>
+              {isCreating ? "wird nach dem Speichern angelegt" : isPackage ? packageItem?.id : property?.id}
+            </span>
           </div>
           <button aria-label="Bearbeitung schließen" onClick={onClose} type="button">
             Schließen
@@ -2232,11 +2413,26 @@ function AdminInventoryDrawer({
               <>
                 <label>
                   Slug
-                  <input readOnly value={String(draft.slug || "")} />
+                  <input
+                    onChange={(event) => onChange("slug", event.target.value)}
+                    placeholder="wird automatisch aus dem Namen erstellt"
+                    readOnly={!isCreating}
+                    value={String(draft.slug || "")}
+                  />
                 </label>
                 <label>
                   Zielgruppe
-                  <input readOnly value={String(draft.audience || "")} />
+                  {isCreating ? (
+                    <select
+                      onChange={(event) => onChange("audience", event.target.value)}
+                      value={String(draft.audience || "families")}
+                    >
+                      <option value="families">Familien</option>
+                      <option value="couples">Paare</option>
+                    </select>
+                  ) : (
+                    <input readOnly value={String(draft.audience || "")} />
+                  )}
                 </label>
                 <label>
                   Unterkunft
