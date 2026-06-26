@@ -25,6 +25,8 @@ type LeadRow = {
 
 type BookingRow = {
   id: string;
+  lead_id?: string | null;
+  customer_id?: string | null;
   status: string;
   payment_status: string;
   created_at: string;
@@ -157,6 +159,11 @@ type InventorySelection =
   | null;
 
 type InventoryDraft = Record<string, string | boolean>;
+
+type OutboundDraft = {
+  subject: string;
+  body: string;
+};
 
 type ExperienceSelection =
   | { mode: "create" }
@@ -538,7 +545,7 @@ export function AdminDashboardClient() {
               .limit(30),
             supabase
               .from("bookings")
-              .select("id,status,payment_status,created_at,payload")
+              .select("id,lead_id,customer_id,status,payment_status,created_at,payload")
               .order("created_at", { ascending: false })
               .limit(30),
             supabase
@@ -683,6 +690,7 @@ function AdminDashboardView({
   const [dateMessage, setDateMessage] = useState<string | null>(null);
   const [communicationEvents, setCommunicationEvents] = useState<CommunicationEventRow[]>([]);
   const [drawerNote, setDrawerNote] = useState("");
+  const [outboundDraft, setOutboundDraft] = useState<OutboundDraft>({ subject: "", body: "" });
   const [drawerMessage, setDrawerMessage] = useState<string | null>(null);
   const [isDrawerLoading, setIsDrawerLoading] = useState(false);
   const data = dataState;
@@ -859,6 +867,7 @@ function AdminDashboardView({
     if (!selection) {
       setCommunicationEvents([]);
       setDrawerNote("");
+      setOutboundDraft({ subject: "", body: "" });
       setDrawerMessage(null);
       return;
     }
@@ -870,6 +879,14 @@ function AdminDashboardView({
         : data.supportMessages.find((support) => support.id === selection.id)?.payload;
 
     setDrawerNote(currentPayload ? getInternalNote(currentPayload) : "");
+    setOutboundDraft({
+      subject: selection.type === "lead"
+        ? "Rückmeldung zu eurer Morrow Anfrage"
+        : selection.type === "booking"
+          ? "Zu eurer Morrow Auszeit"
+          : "",
+      body: "",
+    });
     setDrawerMessage(null);
 
     let isMounted = true;
@@ -1057,6 +1074,8 @@ function AdminDashboardView({
       setDataState((current) => {
         const bookingRow: BookingRow = {
           id: lead.id,
+          lead_id: lead.id,
+          customer_id: null,
           status: "Reserviert",
           payment_status: "offen",
           created_at: now,
@@ -1235,6 +1254,76 @@ function AdminDashboardView({
       setDrawerMessage("Notiz gespeichert.");
     } catch {
       setDrawerMessage("Notiz konnte nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function sendDrawerEmail() {
+    if (!selection || selection.type === "support") return;
+
+    const currentEntity = selection.type === "lead"
+      ? data.leads.find((lead) => lead.id === selection.id)
+      : data.bookings.find((booking) => booking.id === selection.id);
+
+    if (!currentEntity) return;
+
+    const payload = currentEntity.payload ?? {};
+    const recipient = selection.type === "lead"
+      ? (currentEntity as LeadRow).email || getPayloadText(payload, ["email"])
+      : getPayloadText(payload, ["email"]);
+    const subject = outboundDraft.subject.trim();
+    const body = outboundDraft.body.trim();
+
+    if (!recipient || !subject || !body) {
+      setDrawerMessage("Bitte Empfänger, Betreff und Nachricht prüfen.");
+      return;
+    }
+
+    const booking = selection.type === "booking" ? currentEntity as BookingRow : null;
+    const actionKey = `drawer-email-${selection.type}-${selection.id}`;
+    setPendingAction(actionKey);
+    setDrawerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const leadId = selection.type === "lead"
+        ? selection.id
+        : booking?.lead_id || getPayloadText(payload, ["leadId", "lead_id"]) || booking?.id;
+      const bookingId = selection.type === "booking" ? selection.id : null;
+      const customerId = booking?.customer_id || getPayloadText(payload, ["customerId", "customer_id"]);
+      const { data: result, error } = await supabase.functions.invoke("admin-send-message", {
+        body: {
+          leadId,
+          bookingId,
+          customerId,
+          recipient,
+          subject,
+          body,
+        },
+      });
+
+      if (error) throw error;
+
+      const event = (result as { event?: CommunicationEventRow | null } | null)?.event;
+      if (event) {
+        setCommunicationEvents((current) => [event, ...current]);
+      }
+
+      await writeAuditLog({
+        action: "admin_email_sent",
+        entityType: selection.type,
+        entityId: selection.id,
+        entityLabel: selection.type === "lead"
+          ? getLeadLabel(currentEntity as LeadRow)
+          : getBookingLabel(currentEntity as BookingRow),
+        payload: { recipient, subject },
+      });
+
+      setOutboundDraft((current) => ({ ...current, body: "" }));
+      setDrawerMessage("E-Mail gesendet und in der Historie gespeichert.");
+    } catch {
+      setDrawerMessage("Die E-Mail konnte nicht gesendet werden.");
     } finally {
       setPendingAction(null);
     }
@@ -2140,14 +2229,19 @@ function AdminDashboardView({
       <AdminDetailDrawer
         booking={selectedBooking}
         communicationEvents={communicationEvents}
+        canSendEmail={selection?.type === "lead" || selection?.type === "booking"}
         isLoading={isDrawerLoading}
         message={drawerMessage}
         note={drawerNote}
         lead={selectedLead}
         onClose={() => setSelection(null)}
+        onOutboundChange={(key, value) => setOutboundDraft((current) => ({ ...current, [key]: value }))}
         onNoteChange={setDrawerNote}
         onSaveNote={saveDrawerNote}
+        onSendEmail={sendDrawerEmail}
+        outboundDraft={outboundDraft}
         pending={Boolean(pendingAction?.startsWith("drawer-note"))}
+        sendPending={Boolean(pendingAction?.startsWith("drawer-email"))}
         support={selectedSupport}
       />
       <AdminInventoryDrawer
@@ -2192,27 +2286,37 @@ function AdminDashboardView({
 
 function AdminDetailDrawer({
   booking,
+  canSendEmail,
   communicationEvents,
   isLoading,
   lead,
   message,
   note,
   onClose,
+  onOutboundChange,
   onNoteChange,
   onSaveNote,
+  onSendEmail,
+  outboundDraft,
   pending,
+  sendPending,
   support,
 }: {
   booking: BookingRow | null;
+  canSendEmail: boolean;
   communicationEvents: CommunicationEventRow[];
   isLoading: boolean;
   lead: LeadRow | null;
   message: string | null;
   note: string;
   onClose: () => void;
+  onOutboundChange: (key: keyof OutboundDraft, value: string) => void;
   onNoteChange: (value: string) => void;
   onSaveNote: () => void;
+  onSendEmail: () => void;
+  outboundDraft: OutboundDraft;
   pending: boolean;
+  sendPending: boolean;
   support: SupportRow | null;
 }) {
   if (!lead && !booking && !support) return null;
@@ -2288,6 +2392,33 @@ function AdminDetailDrawer({
             <article className="admin-drawer-note-card">
               <p>{supportMessage}</p>
             </article>
+          </section>
+        ) : null}
+
+        {canSendEmail ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">E-Mail senden</p>
+            <div className="admin-form-grid">
+              <label>
+                Betreff
+                <input
+                  onChange={(event) => onOutboundChange("subject", event.target.value)}
+                  value={outboundDraft.subject}
+                />
+              </label>
+              <label>
+                Nachricht
+                <textarea
+                  onChange={(event) => onOutboundChange("body", event.target.value)}
+                  placeholder="Persönliche Rückmeldung oder nächster Schritt."
+                  rows={6}
+                  value={outboundDraft.body}
+                />
+              </label>
+            </div>
+            <button className="admin-button" disabled={sendPending} onClick={onSendEmail} type="button">
+              {sendPending ? "Senden" : "E-Mail senden"}
+            </button>
           </section>
         ) : null}
 

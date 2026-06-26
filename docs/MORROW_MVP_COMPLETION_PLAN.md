@@ -75,7 +75,7 @@ Ziel: Kommunikation ist nachvollziehbar, persoenlich und nicht verteilt ueber pr
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
 | E-Mail-Automation | Resend/Supabase Edge Functions getestet; Lead-Mails funktionieren; Feedback-Mail nach Aufenthalt laeuft serverseitig ueber Supabase-Cron; Statusmails fuer Reservierung, Zahlung/Bestaetigung und Vor Anreise sind als Admin-getriggerte Function live, dedupliziert und mit Kommunikationshistorie getestet | Spaeter weitere Statusmails, manuelle E-Mail-Komposition und bessere Template-Verwaltung | MVP-kritisch | Erledigt fuer MVP |
-| Kommunikationshistorie | `communication_events` vorhanden; Next-Admin hat Detail-Drawer fuer Anfragen, Buchungen und Support mit Historie, klickbaren Kontaktdaten und interner Notiz, die als Kommunikationsereignis gespeichert wird | E-Mail aus Anfrage/Buchung heraus senden, Support-Antworten ergaenzen und spaeter bessere Kommunikationszentrale ergaenzen | MVP-kritisch | Teilweise |
+| Kommunikationshistorie | `communication_events` vorhanden; Next-Admin hat Detail-Drawer fuer Anfragen, Buchungen und Support mit Historie, klickbaren Kontaktdaten und interner Notiz, die als Kommunikationsereignis gespeichert wird; freie E-Mail-Antworten aus Anfrage/Buchung heraus laufen ueber Resend und werden in `email_events` sowie `communication_events` dokumentiert | Support-Antworten, WhatsApp-Templates, Vorlagenbibliothek und spaeter bessere Kommunikationszentrale ergaenzen | MVP-kritisch | Teilweise |
 | WhatsApp-Opt-in | Formularabfrage/Opt-in vorhanden | Zustimmung sauber speichern, Texte/Einwilligung rechtlich pruefen, manuelle WhatsApp-Nutzung dokumentieren | MVP-kritisch | Teilweise |
 | WhatsApp-Templates | Nicht umgesetzt | V2 oder MVP-light: vorbereitete Textbausteine, noch manuell versenden | MVP-light | Offen |
 | Push-Benachrichtigungen | Nicht umgesetzt | Nicht noetig fuer ersten MVP-Start, spaeter PWA/App | V2 | Offen |
@@ -153,12 +153,12 @@ Stand: 2026-06-25
 - Die Eigentuemer-App liest kuenftig eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - Die Migration muss noch remote in Supabase angewendet werden, sobald `SUPABASE_ACCESS_TOKEN` oder Datenbankpasswort lokal verfuegbar ist.
 - `apps/admin` und `apps/guest` sind noch nicht produktiv nach Next migriert; sie bleiben der naechste grosse Architekturblock.
-- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen, erste Monitoringhinweise anzeigen sowie Auszeiten, Unterkuenfte, Termine und Erlebnisbausteine in Basisfeldern bearbeiten und neu anlegen.
+- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen, interne Notizen speichern, freie E-Mail-Antworten aus Anfrage/Buchung senden, erste Monitoringhinweise anzeigen sowie Auszeiten, Unterkuenfte, Termine und Erlebnisbausteine in Basisfeldern bearbeiten und neu anlegen.
 
 Naechste technische Prioritaet:
 
 1. Supabase Owner-Migration live anwenden und ersten echten Owner-Zugang testen.
-2. Admin-App weiter ausbauen: Kommunikationsaktionen aus Anfrage/Buchung heraus, Medien/Regeln, Detailsektionen und tieferes Monitoring migrieren.
+2. Admin-App weiter ausbauen: Kommunikationsvorlagen, Support-Antworten, Medien/Regeln, Detailsektionen und tieferes Monitoring migrieren.
 3. Guest-App danach aus dem Prototyp in `apps/guest` migrieren.
 4. Erst danach Owner-App weiter vertiefen: Abrechnung, Dokumente, Operationsstatus und Eigentuemer-Kommunikation.
 
@@ -198,6 +198,7 @@ Naechste technische Prioritaet:
 
 1. Statusbasierte E-Mails definieren und umsetzen.
 2. Kommunikationszentrale aus Lead/Buchung heraus nutzbar machen.
+   - Stand 2026-06-26: Next-Admin kann aus Anfrage/Buchung freie E-Mail-Antworten ueber `admin-send-message` senden; Versand wird in `email_events`, `communication_events` und Audit-Log dokumentiert; Build, Typecheck und Lint bestanden.
 3. WhatsApp-Opt-in rechtlich und technisch finalisieren.
 4. AGB, Buchungs-, Storno-, Zahlungsbedingungen sichtbar einbinden.
 5. Secrets und Admin-Passwort rotieren.
