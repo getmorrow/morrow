@@ -243,14 +243,14 @@ Naechste technische Prioritaet:
 
 ## Naechster Konkreter Schritt
 
-Weiter mit Owner- und Plattformfundament:
+Weiter mit Production-Rehearsal und Launch-Gates:
 
-`Owner-Migration live anwenden, ersten echten Owner-Zugang testen und die Guest-App-Migration vertiefen`
+`Live-Leadflow, Tracking, Rechtstexte, Secret-Rotation und finale Angebotsdaten fuer den ersten kontrollierten Marktstart absichern`
 
 Definition of Done:
 
-- `owner_profiles`, `owner_property_access` und `get_owner_dashboard()` sind remote in Supabase vorhanden.
-- Im Admin kann ein Eigentuemer angelegt und einer Unterkunft zugeordnet werden.
-- Der Eigentuemer kann sich einloggen und sieht nur seine freigegebenen Objekte, Termine, Buchungen und offenen Objektpunkte.
-- `admin-send-message` ist deployed und freie E-Mail-Antworten funktionieren live aus Anfrage, Buchung und Support.
-- Danach werden Karte, Wetter, Gezeiten, Veranstaltungen, Support-Chat und Nach-Aufenthalt-Modus in `apps/guest` vertieft.
+- Echte Next-Web Anfrage mit UTM landet live in Supabase, loest Lead-Mail aus und zeigt Quelle/Kampagne im Admin.
+- Consent-Tracking wird mit echten GA4-/Meta-IDs getestet und Zielereignisse fuer Anfrage/Submit werden dokumentiert.
+- Impressum, Datenschutz, AGB, Buchungs-, Storno- und Zahlungsbedingungen sind mit echten Unternehmens- und Angebotsdaten juristisch final geprueft.
+- Supabase Service Role, Resend Key, GitHub PAT und Admin-/Testpasswoerter sind rotiert und nur noch in sicheren Umgebungen hinterlegt.
+- Finale Angebotsdaten fuer die erste Auszeit sind geprueft: Unterkunft, Bilderrechte, Termin, Preis, Erlebnis, Restaurant-/Ortsempfehlungen und Supportzustaendigkeit.
