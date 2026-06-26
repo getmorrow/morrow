@@ -505,6 +505,12 @@ input {
   color: rgba(24, 23, 21, 0.48);
 }
 
+.admin-option-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
 .admin-checkbox-label {
   align-items: center;
   display: flex !important;

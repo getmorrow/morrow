@@ -158,7 +158,7 @@ type InventorySelection =
   | { mode: "edit"; type: "property"; id: string }
   | null;
 
-type InventoryDraft = Record<string, string | boolean>;
+type InventoryDraft = Record<string, string | boolean | string[]>;
 
 type OutboundDraft = {
   subject: string;
@@ -186,6 +186,30 @@ const taskStatuses = ["open", "in_progress", "done"] as const;
 const experienceRoles = ["included", "optional", "recommendation", "planned"] as const;
 const experienceConfirmationStatuses = ["planned", "requested", "confirmed", "cancelled"] as const;
 const packageDateStatuses = ["available", "reserved", "sold_out", "paused"] as const;
+const propertyAttributeOptions = [
+  { value: "sea_near", label: "Nähe zum Wasser" },
+  { value: "quiet_location", label: "Ruhige Lage" },
+  { value: "family_friendly", label: "Familienfreundlich" },
+  { value: "couple_retreat", label: "Rückzug für Paare" },
+  { value: "dog_allowed", label: "Hund möglich" },
+  { value: "sauna", label: "Sauna" },
+  { value: "fireplace", label: "Kamin" },
+  { value: "garden", label: "Garten" },
+  { value: "terrace", label: "Terrasse" },
+  { value: "workation", label: "Workation-tauglich" },
+  { value: "premium_interior", label: "Hochwertige Einrichtung" },
+  { value: "bad_weather_ready", label: "Stark bei Schietwetter" },
+] as const;
+const experienceWorldOptions = [
+  { value: "family_escape", label: "Family Escape" },
+  { value: "couple_reset", label: "Couple Reset" },
+  { value: "dog_holiday", label: "Hundeurlaub" },
+  { value: "wellness_escape", label: "Wellness-Auszeit" },
+  { value: "fireplace_season", label: "Kaminzeit" },
+  { value: "workation", label: "Workation am Meer" },
+  { value: "last_minute", label: "Last Minute" },
+  { value: "offseason_nordsee", label: "Nebensaison Nordsee" },
+] as const;
 
 function paymentStatusForBooking(status: string) {
   return ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen"].includes(status)
@@ -221,6 +245,21 @@ function getPayloadLines(payload: Record<string, unknown>, keys: string[]) {
   }
 
   return "";
+}
+
+function getPayloadStringArray(payload: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = payload[key];
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === "string");
+    }
+  }
+
+  return [];
+}
+
+function draftStringArray(value: string | boolean | string[] | undefined) {
+  return Array.isArray(value) ? value : [];
 }
 
 function splitLines(value: string) {
@@ -492,6 +531,33 @@ function monitoringItems(data: DashboardData) {
         label: "Regeln",
         title: item.name || item.id,
         description: "Mindestens zwei Unterkunftsregeln pflegen.",
+        severity: "medium",
+      });
+    }
+    if (splitLines(getPayloadLines(propertyPayload, ["amenities", "features"])).length < 3) {
+      items.push({
+        id: `property-amenities-${item.id}`,
+        label: "Ausstattung",
+        title: item.name || item.id,
+        description: "Mindestens drei relevante Ausstattungsmerkmale ergänzen.",
+        severity: "medium",
+      });
+    }
+    if (getPayloadStringArray(propertyPayload, ["attributes"]).length < 2) {
+      items.push({
+        id: `property-attributes-${item.id}`,
+        label: "Attribute",
+        title: item.name || item.id,
+        description: "Objektattribute für Erlebniswelten und Vermarktung ergänzen.",
+        severity: "medium",
+      });
+    }
+    if (getPayloadStringArray(propertyPayload, ["experienceWorlds"]).length === 0) {
+      items.push({
+        id: `property-worlds-${item.id}`,
+        label: "Erlebniswelt",
+        title: item.name || item.id,
+        description: "Mindestens eine passende Erlebniswelt zuordnen.",
         severity: "medium",
       });
     }
@@ -797,6 +863,12 @@ function AdminDashboardView({
         sleeps: "",
         bedrooms: "",
         bathrooms: "",
+        description: "",
+        owner_name: "",
+        owner_email: "",
+        owner_phone: "",
+        property_type: "",
+        current_rental: "agency",
         check_in_type: "",
         support_type: "",
         support_name: "",
@@ -804,9 +876,14 @@ function AdminDashboardView({
         earliest_arrival: "",
         latest_arrival: "",
         check_out_time: "",
+        key_safe_code: "",
         check_in_instructions: "",
+        amenities: "",
+        attributes: [],
+        experience_worlds: [],
         house_rules: "",
         media: "",
+        media_alt_texts: "",
         image_rights_confirmed: false,
       });
       return;
@@ -836,6 +913,12 @@ function AdminDashboardView({
         sleeps: item.sleeps?.toString() || "",
         bedrooms: item.bedrooms?.toString() || "",
         bathrooms: item.bathrooms?.toString() || "",
+        description: getPayloadText(item.payload ?? {}, ["description"]) || "",
+        owner_name: getPayloadText(item.payload ?? {}, ["ownerName"]) || "",
+        owner_email: getPayloadText(item.payload ?? {}, ["email", "ownerEmail"]) || "",
+        owner_phone: getPayloadText(item.payload ?? {}, ["phone", "ownerPhone"]) || "",
+        property_type: getPayloadText(item.payload ?? {}, ["propertyType"]) || "",
+        current_rental: getPayloadText(item.payload ?? {}, ["currentRental"]) || "agency",
         check_in_type: item.check_in_type || "",
         support_type: item.support_type || "",
         support_name: item.support_name || "",
@@ -843,9 +926,14 @@ function AdminDashboardView({
         earliest_arrival: getPayloadText(item.payload ?? {}, ["earliestArrival"]) || "",
         latest_arrival: getPayloadText(item.payload ?? {}, ["latestArrival"]) || "",
         check_out_time: getPayloadText(item.payload ?? {}, ["checkOutTime"]) || "",
+        key_safe_code: getPayloadText(item.payload ?? {}, ["keySafeCode"]) || "",
         check_in_instructions: getPayloadText(item.payload ?? {}, ["checkInInstructions"]) || "",
+        amenities: getPayloadLines(item.payload ?? {}, ["amenities", "features"]),
+        attributes: getPayloadStringArray(item.payload ?? {}, ["attributes"]),
+        experience_worlds: getPayloadStringArray(item.payload ?? {}, ["experienceWorlds"]),
         house_rules: getPayloadLines(item.payload ?? {}, ["houseRules"]),
         media: getPayloadLines(item.payload ?? {}, ["media"]),
+        media_alt_texts: getPayloadLines(item.payload ?? {}, ["mediaAltTexts"]),
         image_rights_confirmed: Boolean(item.image_rights_confirmed) || getPayloadBool(item.payload ?? {}, ["imageRightsConfirmed"]),
       } : {});
       return;
@@ -1605,13 +1693,24 @@ function AdminDashboardView({
       } else {
         const name = String(inventoryDraft.name || "").trim() || "Neue Unterkunft";
         const propertyPayload = {
+          description: String(inventoryDraft.description || "").trim(),
+          ownerName: String(inventoryDraft.owner_name || "").trim(),
+          email: String(inventoryDraft.owner_email || "").trim(),
+          phone: String(inventoryDraft.owner_phone || "").trim(),
+          propertyType: String(inventoryDraft.property_type || "").trim(),
+          currentRental: String(inventoryDraft.current_rental || "agency").trim(),
           address: String(inventoryDraft.address || "").trim(),
           earliestArrival: String(inventoryDraft.earliest_arrival || "").trim(),
           latestArrival: String(inventoryDraft.latest_arrival || "").trim(),
           checkOutTime: String(inventoryDraft.check_out_time || "").trim(),
+          keySafeCode: String(inventoryDraft.key_safe_code || "").trim(),
           checkInInstructions: String(inventoryDraft.check_in_instructions || "").trim(),
+          amenities: splitLines(String(inventoryDraft.amenities || "")),
+          attributes: draftStringArray(inventoryDraft.attributes),
+          experienceWorlds: draftStringArray(inventoryDraft.experience_worlds),
           houseRules: splitLines(String(inventoryDraft.house_rules || "")),
           media: splitLines(String(inventoryDraft.media || "")),
+          mediaAltTexts: splitLines(String(inventoryDraft.media_alt_texts || "")),
           imageRightsConfirmed: Boolean(inventoryDraft.image_rights_confirmed),
           updatedAt: now,
         };
@@ -2559,7 +2658,7 @@ function AdminInventoryDrawer({
   inventoryType: "package" | "property" | null;
   isCreating: boolean;
   message: string | null;
-  onChange: (key: string, value: string | boolean) => void;
+  onChange: (key: string, value: string | boolean | string[]) => void;
   onClose: () => void;
   onSave: () => void;
   packageItem: SimpleRow | null;
@@ -2577,6 +2676,17 @@ function AdminInventoryDrawer({
     : isPackage
       ? packageItem?.name || "Auszeit bearbeiten"
       : property?.name || "Unterkunft bearbeiten";
+  const selectedAttributes = draftStringArray(draft.attributes);
+  const selectedWorlds = draftStringArray(draft.experience_worlds);
+  const toggleArrayValue = (key: string, value: string) => {
+    const current = draftStringArray(draft[key]);
+    onChange(
+      key,
+      current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current, value],
+    );
+  };
 
   return (
     <div className="admin-drawer-layer" role="presentation">
@@ -2695,6 +2805,57 @@ function AdminInventoryDrawer({
             <p className="admin-eyebrow">Unterkunftsdaten</p>
             <div className="admin-form-grid">
               <label>
+                Beschreibung
+                <textarea
+                  onChange={(event) => onChange("description", event.target.value)}
+                  rows={4}
+                  value={String(draft.description || "")}
+                />
+              </label>
+              <label>
+                Objekttyp
+                <input
+                  onChange={(event) => onChange("property_type", event.target.value)}
+                  placeholder="z. B. Ferienhaus, Wohnung, Hotelzimmer"
+                  value={String(draft.property_type || "")}
+                />
+              </label>
+              <label>
+                Eigentümer
+                <input
+                  onChange={(event) => onChange("owner_name", event.target.value)}
+                  value={String(draft.owner_name || "")}
+                />
+              </label>
+              <label>
+                Eigentümer-E-Mail
+                <input
+                  onChange={(event) => onChange("owner_email", event.target.value)}
+                  type="email"
+                  value={String(draft.owner_email || "")}
+                />
+              </label>
+              <label>
+                Eigentümer-Telefon
+                <input
+                  onChange={(event) => onChange("owner_phone", event.target.value)}
+                  type="tel"
+                  value={String(draft.owner_phone || "")}
+                />
+              </label>
+              <label>
+                Aktuelle Vermietung
+                <select
+                  onChange={(event) => onChange("current_rental", event.target.value)}
+                  value={String(draft.current_rental || "agency")}
+                >
+                  <option value="self">Selbst</option>
+                  <option value="agency">Agentur</option>
+                  <option value="platforms">Plattformen</option>
+                  <option value="not-yet">Noch nicht</option>
+                </select>
+              </label>
+              <label>
                 Schlafplätze
                 <input
                   inputMode="numeric"
@@ -2720,19 +2881,29 @@ function AdminInventoryDrawer({
               </label>
               <label>
                 Check-in-Art
-                <input
+                <select
                   onChange={(event) => onChange("check_in_type", event.target.value)}
-                  placeholder="z. B. Schlüsselbox"
                   value={String(draft.check_in_type || "")}
-                />
+                >
+                  <option value="">Noch offen</option>
+                  <option value="key_safe">Schlüsselsafe</option>
+                  <option value="agency_pickup">Abholung bei Agentur</option>
+                  <option value="personal_handover">Persönliche Übergabe</option>
+                  <option value="smartlock">Smartlock</option>
+                  <option value="unknown">Unbekannt</option>
+                </select>
               </label>
               <label>
                 Support-Typ
-                <input
+                <select
                   onChange={(event) => onChange("support_type", event.target.value)}
-                  placeholder="morrow, agentur, hotel"
                   value={String(draft.support_type || "")}
-                />
+                >
+                  <option value="">Noch offen</option>
+                  <option value="morrow">Morrow</option>
+                  <option value="agency">Partneragentur</option>
+                  <option value="hotel">Hotel / Gastgeber</option>
+                </select>
               </label>
               <label>
                 Support-Name
@@ -2781,6 +2952,14 @@ function AdminInventoryDrawer({
                 />
               </label>
               <label>
+                Schlüsselcode / Smartlock
+                <input
+                  onChange={(event) => onChange("key_safe_code", event.target.value)}
+                  placeholder="Nur intern bzw. nach Buchung anzeigen"
+                  value={String(draft.key_safe_code || "")}
+                />
+              </label>
+              <label>
                 Check-in-Hinweise
                 <textarea
                   onChange={(event) => onChange("check_in_instructions", event.target.value)}
@@ -2788,6 +2967,53 @@ function AdminInventoryDrawer({
                   value={String(draft.check_in_instructions || "")}
                 />
               </label>
+            </div>
+          </section>
+        ) : null}
+
+        {!isPackage ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Ausstattung und Positionierung</p>
+            <div className="admin-form-grid">
+              <label>
+                Ausstattung
+                <textarea
+                  onChange={(event) => onChange("amenities", event.target.value)}
+                  placeholder="Ein Merkmal pro Zeile"
+                  rows={5}
+                  value={String(draft.amenities || "")}
+                />
+              </label>
+            </div>
+            <div className="admin-option-grid" aria-label="Objektattribute">
+              {propertyAttributeOptions.map((option) => (
+                <label className="admin-checkbox-label" key={option.value}>
+                  <input
+                    checked={selectedAttributes.includes(option.value)}
+                    onChange={() => toggleArrayValue("attributes", option.value)}
+                    type="checkbox"
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {!isPackage ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Erlebniswelten</p>
+            <div className="admin-option-grid" aria-label="Erlebniswelten">
+              {experienceWorldOptions.map((option) => (
+                <label className="admin-checkbox-label" key={option.value}>
+                  <input
+                    checked={selectedWorlds.includes(option.value)}
+                    onChange={() => toggleArrayValue("experience_worlds", option.value)}
+                    type="checkbox"
+                  />
+                  {option.label}
+                </label>
+              ))}
             </div>
           </section>
         ) : null}
@@ -2812,6 +3038,15 @@ function AdminInventoryDrawer({
                   placeholder="Ein Bildpfad oder eine URL pro Zeile"
                   rows={5}
                   value={String(draft.media || "")}
+                />
+              </label>
+              <label>
+                Bildbeschreibungen
+                <textarea
+                  onChange={(event) => onChange("media_alt_texts", event.target.value)}
+                  placeholder="Eine Beschreibung pro Bildzeile"
+                  rows={5}
+                  value={String(draft.media_alt_texts || "")}
                 />
               </label>
               <label className="admin-checkbox-label">
