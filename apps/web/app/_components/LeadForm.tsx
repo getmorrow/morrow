@@ -135,7 +135,7 @@ export function LeadForm({ audience, dates = [], packageName, packageSlug, type 
 
       if (error) throw error;
 
-      await supabase.functions.invoke("lead-notification", {
+      const notificationResult = await supabase.functions.invoke("lead-notification", {
         body: {
           lead: {
             ...leadPayload,
@@ -147,10 +147,14 @@ export function LeadForm({ audience, dates = [], packageName, packageSlug, type 
         },
       });
 
+      if (notificationResult.error) {
+        console.warn("Morrow lead notification failed after lead insert", notificationResult.error);
+      }
+
       setStatus("success");
       setMessage(
         type === "guest"
-          ? "Danke, eure Anfrage ist angekommen. Wir prüfen Termin, Unterkunft und Erlebnis persönlich."
+          ? "Danke, eure Anfrage ist angekommen. Wir prüfen Termin, Unterkunft und Erlebnis persönlich und melden uns mit einer klaren Rückmeldung."
           : "Danke, deine Anfrage ist angekommen. Wir melden uns persönlich mit dem nächsten Schritt.",
       );
     } catch {

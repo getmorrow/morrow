@@ -87,7 +87,7 @@ Ziel: Supabase ist die fuehrende Datenquelle fuer alles, was operativ relevant i
 
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
-| Supabase als Quelle | Leads, Kunden, Buchungen, Auszeiten, Vor-Ort-Daten, Anbieter, Agenturen, Objekte angebunden; Next-Web Anfrageformulare schreiben Gast-, Eigentümer- und Erlebnispartner-Leads direkt nach Supabase und lösen die Lead-Mailfunktion aus | LocalStorage nur noch Demo/Fallback; alle Admin-Mutationen remote bestaetigen | MVP-kritisch | Teilweise |
+| Supabase als Quelle | Leads, Kunden, Buchungen, Auszeiten, Vor-Ort-Daten, Anbieter, Agenturen, Objekte angebunden; Next-Web Anfrageformulare schreiben Gast-, Eigentümer- und Erlebnispartner-Leads direkt nach Supabase und lösen danach die Lead-Mailfunktion aus; ein Mailfehler blockiert die gespeicherte Anfrage nicht | LocalStorage nur noch Demo/Fallback; alle Admin-Mutationen remote bestaetigen | MVP-kritisch | Teilweise |
 | Relationale Struktur | Tabellen vorhanden, Payload noch stark genutzt | Buchungen, Kunden, Zahlungen, Pakete, Termine, Anbieter staerker normalisieren | MVP-light | Teilweise |
 | Zahlungen | Zahlung bleibt manuell; Next-Admin kann in Buchungen Zahlungsstatus, Betrag, Datum, Zahlungsart, Referenz und Beleglink dokumentieren und schreibt Änderungen ins Audit-Log | Payment-Provider, Rechnungslogik und automatische Zahlungsabgleiche spaeter ergaenzen | MVP-light | Teilweise |
 | Automatische Gaestebereich-Freigabe | Status `Bezahlt` schaltet frei, getestet | Freigabe an Zahlungs-/Buchungsstatus koppeln, klare Sperr-/Fehlerzustaende | MVP-kritisch | Teilweise |
