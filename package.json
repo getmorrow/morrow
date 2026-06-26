@@ -26,6 +26,7 @@
     "guest:start": "npm run -w @morrow/guest start",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "db:build": "bash scripts/build-database.sh",
+    "supabase:backup": "node scripts/export-supabase-backup.mjs",
     "events:scrape": "node scripts/scrape-spo-events.mjs",
     "supabase:seed-packages": "node scripts/seed-supabase-packages.mjs",
     "supabase:seed-local-places": "node scripts/seed-supabase-local-places.mjs",

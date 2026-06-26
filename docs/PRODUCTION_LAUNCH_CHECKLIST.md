@@ -137,7 +137,8 @@ Einmal vollständig testen:
 - Buchung/Gästebereich prüfen.
 - Supportnachricht aus Gästebereich senden.
 - Supportfall im Admin prüfen.
-- Export/Backup-Möglichkeit für Leads klären.
+- Supabase-Backup mit `npm run supabase:backup` ausführen und `manifest.json` prüfen.
+- Runbook `docs/SUPABASE_BACKUP_RECOVERY_RUNBOOK.md` lesen und sicheren Ablageort für Exporte festlegen.
 
 ## Aktueller Status
 

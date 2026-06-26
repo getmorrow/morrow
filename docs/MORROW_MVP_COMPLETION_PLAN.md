@@ -92,7 +92,7 @@ Ziel: Supabase ist die fuehrende Datenquelle fuer alles, was operativ relevant i
 | Zahlungen | Zahlung bleibt manuell; Next-Admin kann in Buchungen Zahlungsstatus, Betrag, Datum, Zahlungsart, Referenz und Beleglink dokumentieren und schreibt Änderungen ins Audit-Log | Payment-Provider, Rechnungslogik und automatische Zahlungsabgleiche spaeter ergaenzen | MVP-light | Teilweise |
 | Automatische Gaestebereich-Freigabe | Status `Bezahlt` schaltet frei, getestet | Freigabe an Zahlungs-/Buchungsstatus koppeln, klare Sperr-/Fehlerzustaende | MVP-kritisch | Teilweise |
 | Testdaten | Testdaten markiert und aus KPIs ausgeschlossen | Testfilter optional in Admin | MVP-light | Teilweise |
-| Backup/Recovery | Nicht geprueft | Supabase Backup/Export-Prozess dokumentieren | MVP-kritisch | Offen |
+| Backup/Recovery | Runbook `docs/SUPABASE_BACKUP_RECOVERY_RUNBOOK.md` vorhanden; `npm run supabase:backup` exportiert die operativ wichtigen Supabase-Tabellen als lokale JSON-Sicherung mit Manifest; `backups/` ist vom Git ausgeschlossen | Supabase Dashboard Backups/PITR vor dem ersten zahlenden Gast aktiv pruefen und spaeter verschluesselte/geplante Backups ergaenzen | MVP-kritisch | Teilweise |
 
 ## Block 5: Legal And Trust
 

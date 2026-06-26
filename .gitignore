@@ -20,6 +20,7 @@ apps/*/out/
 tmp/
 tmp-*.png
 outputs/
+backups/
 supabase/.temp/
 .github/
 
