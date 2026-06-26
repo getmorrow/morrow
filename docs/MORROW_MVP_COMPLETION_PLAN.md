@@ -45,7 +45,7 @@ Ziel: Intern muss Morrow eine Auszeit wirklich anlegen, pflegen, buchen und vorb
 | Paket-Builder fuer neue Auszeiten | Admin-Auszeiten existieren, Supabase-Sync vorhanden, Prototyp-Builder fuer Titel, Copy, Termine, Preise, Zielgruppe, Unterkunft, Medien, Erlebnisbausteine, Empfehlungen, Momente, FAQ und Status ist umgesetzt; Next-Admin kann Name, Status, Ort, Unterkunft und Preise bearbeiten | Builder im Next-Admin spaeter mit Medienbibliothek, Terminen, Copy, Erlebnisbausteinen und staerkerer Normalisierung weiter ausbauen | MVP-kritisch | Erledigt fuer MVP |
 | Unterkunftsverwaltung | Objektprofile, Agenturen, Check-in-Typ, Support-Typ, Anreise/Abreise, Medien, Bildrechte, Ausstattung, Hausregeln, Schluesselinfos und Objekt-Support sind im Prototyp pflegbar; Next-Admin kann Name, Status, Ort, Schlafplaetze, Zimmer, Check-in, Support und Bildrechte bearbeiten | Medienbibliothek, Alt-Texte, Regeln, Schluesselhinweise und staerkere Normalisierung im Next-Admin weiter ausbauen | MVP-kritisch | Erledigt fuer MVP |
 | Medienverwaltung | Bilder liegen als Assets/URLs, keine echte Medienbibliothek | Pro Unterkunft und Auszeit Medien mit Rechten, Alt-Text, Reihenfolge | MVP-kritisch | Offen |
-| Erlebnisbausteine | Erlebnisanbieter und Erlebnisbausteine existieren, Supabase-Sync vorhanden; Preis, Kapazitaet, Verfuegbarkeit, Anbieter, Rolle, Bestätigung und Gastnotiz sind im Admin pflegbar und getestet | Spaeter staerker normalisieren und Anbieter-Verfuegbarkeiten separat pflegen | MVP-kritisch | Erledigt fuer MVP |
+| Erlebnisbausteine | Erlebnisanbieter und Erlebnisbausteine existieren, Supabase-Sync vorhanden; Prototyp und Next-Admin koennen Anbieter, Auszeit-Zuordnung, Rolle, Inklusivstatus, Bestätigung, Preis-/Kapazitaets-/Verfuegbarkeitsnotiz und Gastnotiz pflegen | Spaeter staerker normalisieren, Anbieter-Verfuegbarkeiten separat pflegen und neue Erlebnisbausteine direkt im Next-Admin anlegen | MVP-kritisch | Erledigt fuer MVP |
 | Buchungen | Kunden/Buchungen in Supabase, Statuslogik, Gaestebereich-Code getestet | Buchungsstatus, Zahlung, Vorbereitung, Aufgaben und Gaestebereich noch staerker miteinander koppeln | MVP-kritisch | Teilweise |
 | Aufgaben automatisch bei Buchungsstatus | Statuswechsel erzeugen deduplizierte Standardaufgaben fuer Reserviert, Bezahlt, Vor Anreise, Aktiv und Abgeschlossen; Next-Admin liest `admin_tasks`, zeigt faellige Aufgaben und kann Aufgabenstatus aktualisieren | Spaeter je Auszeit-Typ und Saison feinere Templates ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Audit-Log | Kommunikationshistorie vorhanden, kein vollstaendiger Aenderungsverlauf | Wer hat Status, Buchung, Paket, Unterkunft, Erlebnis geaendert? | MVP-light | Offen |
@@ -153,12 +153,12 @@ Stand: 2026-06-25
 - Die Eigentuemer-App liest kuenftig eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - Die Migration muss noch remote in Supabase angewendet werden, sobald `SUPABASE_ACCESS_TOKEN` oder Datenbankpasswort lokal verfuegbar ist.
 - `apps/admin` und `apps/guest` sind noch nicht produktiv nach Next migriert; sie bleiben der naechste grosse Architekturblock.
-- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen, erste Monitoringhinweise anzeigen sowie Auszeiten und Unterkuenfte in Basisfeldern bearbeiten.
+- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen, erste Monitoringhinweise anzeigen sowie Auszeiten, Unterkuenfte und Erlebnisbausteine in Basisfeldern bearbeiten.
 
 Naechste technische Prioritaet:
 
 1. Supabase Owner-Migration live anwenden und ersten echten Owner-Zugang testen.
-2. Admin-App weiter ausbauen: Kommunikationsaktionen aus Anfrage/Buchung heraus, Erlebnisbearbeitung, Termine, Medien/Regeln und tieferes Monitoring migrieren.
+2. Admin-App weiter ausbauen: Kommunikationsaktionen aus Anfrage/Buchung heraus, Termine, Medien/Regeln, Anlage neuer Bestandseintraege und tieferes Monitoring migrieren.
 3. Guest-App danach aus dem Prototyp in `apps/guest` migrieren.
 4. Erst danach Owner-App weiter vertiefen: Abrechnung, Dokumente, Operationsstatus und Eigentuemer-Kommunikation.
 

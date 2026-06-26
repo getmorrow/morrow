@@ -478,7 +478,8 @@ input {
 }
 
 .admin-form-grid input,
-.admin-form-grid select {
+.admin-form-grid select,
+.admin-form-grid textarea {
   background: rgba(236, 230, 214, 0.38);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -486,6 +487,12 @@ input {
   font: inherit;
   min-height: 44px;
   padding: 0 12px;
+}
+
+.admin-form-grid textarea {
+  line-height: 1.5;
+  padding-block: 12px;
+  resize: vertical;
 }
 
 .admin-form-grid input[readonly] {

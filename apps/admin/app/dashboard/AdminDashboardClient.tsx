@@ -76,6 +76,30 @@ type SupportRow = {
   payload: Record<string, unknown>;
 };
 
+type ExperienceProviderRow = {
+  id: string;
+  name: string;
+  location: string | null;
+  category: string | null;
+  status: string;
+  website: string | null;
+  email: string | null;
+  phone: string | null;
+  payload: Record<string, unknown>;
+};
+
+type ExperienceBlockRow = {
+  id: string;
+  package_id: string | null;
+  provider_id: string | null;
+  title: string;
+  role: string;
+  included_in_price: boolean;
+  confirmation_status: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
 type CommunicationEventRow = {
   id: string;
   lead_id: string | null;
@@ -98,6 +122,8 @@ type DashboardData = {
   properties: SimpleRow[];
   tasks: AdminTaskRow[];
   supportMessages: SupportRow[];
+  experienceProviders: ExperienceProviderRow[];
+  experienceBlocks: ExperienceBlockRow[];
 };
 
 type LoadState =
@@ -118,10 +144,16 @@ type InventorySelection =
 
 type InventoryDraft = Record<string, string | boolean>;
 
+type ExperienceSelection = { id: string } | null;
+
+type ExperienceDraft = Record<string, string | boolean>;
+
 const leadQuickStatuses = ["In Prüfung", "Kontaktiert", "Kein Interesse"] as const;
 const bookingStatuses = ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen", "Storniert"] as const;
 const supportStatuses = ["open", "in_progress", "closed"] as const;
 const taskStatuses = ["open", "in_progress", "done"] as const;
+const experienceRoles = ["included", "optional", "recommendation", "planned"] as const;
+const experienceConfirmationStatuses = ["planned", "requested", "confirmed", "cancelled"] as const;
 
 function paymentStatusForBooking(status: string) {
   return ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen"].includes(status)
@@ -234,6 +266,28 @@ function taskReferenceLabel(type: string) {
   return labels[type] || type;
 }
 
+function experienceRoleLabel(role: string) {
+  const labels: Record<string, string> = {
+    included: "Enthalten",
+    optional: "Optional",
+    recommendation: "Empfehlung",
+    planned: "Geplant",
+  };
+
+  return labels[role] || role;
+}
+
+function experienceConfirmationLabel(status: string) {
+  const labels: Record<string, string> = {
+    planned: "Geplant",
+    requested: "Angefragt",
+    confirmed: "Bestätigt",
+    cancelled: "Abgesagt",
+  };
+
+  return labels[status] || status;
+}
+
 function getOpenLeads(leads: LeadRow[]) {
   return leads.filter((lead) => !["Bezahlt", "Abgeschlossen", "Kein Interesse"].includes(lead.status));
 }
@@ -277,6 +331,16 @@ function getSupportRelationId(support: SupportRow, kind: "lead" | "booking") {
 
 function getInternalNote(payload: Record<string, unknown>) {
   return getPayloadText(payload, ["internalNote", "note", "notes"]) || "";
+}
+
+function getPackageName(packages: SimpleRow[], packageId: string | null) {
+  if (!packageId) return "Auszeit offen";
+  return packages.find((item) => item.id === packageId)?.name || packageId;
+}
+
+function getProviderName(providers: ExperienceProviderRow[], providerId: string | null) {
+  if (!providerId) return "Anbieter offen";
+  return providers.find((item) => item.id === providerId)?.name || providerId;
 }
 
 function taskTimingLabel(task: AdminTaskRow) {
@@ -344,6 +408,18 @@ function monitoringItems(data: DashboardData) {
       });
     });
 
+  data.experienceBlocks.forEach((experience) => {
+    if (!experience.provider_id || experience.confirmation_status !== "confirmed") {
+      items.push({
+        id: `experience-${experience.id}`,
+        label: "Erlebnis",
+        title: experience.title,
+        description: `${experience.provider_id ? "Bestätigung prüfen" : "Anbieter verbinden"} · ${experienceRoleLabel(experience.role)}`,
+        severity: experience.role === "included" ? "high" : "medium",
+      });
+    }
+  });
+
   return items.sort((a, b) => {
     const weight = { high: 0, medium: 1, low: 2 };
     return weight[a.severity] - weight[b.severity] || a.title.localeCompare(b.title);
@@ -375,7 +451,16 @@ export function AdminDashboardClient() {
           return;
         }
 
-        const [leadsResult, bookingsResult, packagesResult, propertiesResult, tasksResult, supportResult] =
+        const [
+          leadsResult,
+          bookingsResult,
+          packagesResult,
+          propertiesResult,
+          tasksResult,
+          supportResult,
+          providersResult,
+          experiencesResult,
+        ] =
           await Promise.all([
             supabase
               .from("leads")
@@ -406,6 +491,14 @@ export function AdminDashboardClient() {
               .select("id,lead_id,category,message,status,urgency,created_at,payload")
               .order("created_at", { ascending: false })
               .limit(20),
+            supabase
+              .from("experience_providers")
+              .select("id,name,location,category,status,website,email,phone,payload")
+              .order("name"),
+            supabase
+              .from("experience_blocks")
+              .select("id,package_id,provider_id,title,role,included_in_price,confirmation_status,payload,created_at")
+              .order("created_at", { ascending: false }),
           ]);
 
         if (!isMounted) return;
@@ -416,7 +509,9 @@ export function AdminDashboardClient() {
           packagesResult.error ||
           propertiesResult.error ||
           tasksResult.error ||
-          supportResult.error;
+          supportResult.error ||
+          providersResult.error ||
+          experiencesResult.error;
 
         if (firstError) {
           setState({
@@ -436,6 +531,8 @@ export function AdminDashboardClient() {
             properties: (propertiesResult.data ?? []) as SimpleRow[],
             tasks: (tasksResult.data ?? []) as AdminTaskRow[],
             supportMessages: (supportResult.data ?? []) as SupportRow[],
+            experienceProviders: (providersResult.data ?? []) as ExperienceProviderRow[],
+            experienceBlocks: (experiencesResult.data ?? []) as ExperienceBlockRow[],
           },
         });
       } catch {
@@ -502,6 +599,9 @@ function AdminDashboardView({
   const [inventorySelection, setInventorySelection] = useState<InventorySelection>(null);
   const [inventoryDraft, setInventoryDraft] = useState<InventoryDraft>({});
   const [inventoryMessage, setInventoryMessage] = useState<string | null>(null);
+  const [experienceSelection, setExperienceSelection] = useState<ExperienceSelection>(null);
+  const [experienceDraft, setExperienceDraft] = useState<ExperienceDraft>({});
+  const [experienceMessage, setExperienceMessage] = useState<string | null>(null);
   const [communicationEvents, setCommunicationEvents] = useState<CommunicationEventRow[]>([]);
   const [drawerNote, setDrawerNote] = useState("");
   const [drawerMessage, setDrawerMessage] = useState<string | null>(null);
@@ -528,6 +628,9 @@ function AdminDashboardView({
     : null;
   const selectedProperty = inventorySelection?.type === "property"
     ? data.properties.find((item) => item.id === inventorySelection.id) ?? null
+    : null;
+  const selectedExperience = experienceSelection
+    ? data.experienceBlocks.find((item) => item.id === experienceSelection.id) ?? null
     : null;
 
   useEffect(() => {
@@ -567,6 +670,29 @@ function AdminDashboardView({
 
     setInventoryDraft({});
   }, [inventorySelection, data.packages, data.properties]);
+
+  useEffect(() => {
+    setExperienceMessage(null);
+
+    if (!experienceSelection) {
+      setExperienceDraft({});
+      return;
+    }
+
+    const item = data.experienceBlocks.find((experience) => experience.id === experienceSelection.id);
+    setExperienceDraft(item ? {
+      title: item.title,
+      package_id: item.package_id || "",
+      provider_id: item.provider_id || "",
+      role: item.role || "planned",
+      confirmation_status: item.confirmation_status || "planned",
+      included_in_price: Boolean(item.included_in_price),
+      guest_note: getPayloadText(item.payload, ["guestNote", "guestNotes", "description"]) || "",
+      price_note: getPayloadText(item.payload, ["priceNote", "price", "cost"]) || "",
+      capacity_note: getPayloadText(item.payload, ["capacityNote", "capacity"]) || "",
+      availability_note: getPayloadText(item.payload, ["availabilityNote", "availability"]) || "",
+    } : {});
+  }, [experienceSelection, data.experienceBlocks]);
 
   useEffect(() => {
     if (!selection) {
@@ -1149,6 +1275,67 @@ function AdminDashboardView({
     }
   }
 
+  async function saveExperience() {
+    if (!experienceSelection) return;
+
+    const actionKey = `experience-${experienceSelection.id}`;
+    setPendingAction(actionKey);
+    setExperienceMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const now = new Date().toISOString();
+      const currentItem = data.experienceBlocks.find((item) => item.id === experienceSelection.id);
+      if (!currentItem) throw new Error("Missing experience");
+
+      const payload = {
+        ...(currentItem.payload ?? {}),
+        guestNote: String(experienceDraft.guest_note || "").trim(),
+        priceNote: String(experienceDraft.price_note || "").trim(),
+        capacityNote: String(experienceDraft.capacity_note || "").trim(),
+        availabilityNote: String(experienceDraft.availability_note || "").trim(),
+        updatedAt: now,
+      };
+      const updatePayload = {
+        title: String(experienceDraft.title || "").trim(),
+        package_id: String(experienceDraft.package_id || "").trim() || null,
+        provider_id: String(experienceDraft.provider_id || "").trim() || null,
+        role: String(experienceDraft.role || "planned").trim(),
+        included_in_price: Boolean(experienceDraft.included_in_price),
+        confirmation_status: String(experienceDraft.confirmation_status || "planned").trim(),
+        payload,
+        updated_at: now,
+      };
+      const { error } = await supabase
+        .from("experience_blocks")
+        .update(updatePayload)
+        .eq("id", experienceSelection.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        experienceBlocks: current.experienceBlocks.map((item) =>
+          item.id === experienceSelection.id ? { ...item, ...updatePayload } : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "experience_updated",
+        entityType: "experience",
+        entityId: experienceSelection.id,
+        entityLabel: currentItem.title,
+        payload: updatePayload,
+      });
+
+      setExperienceMessage("Gespeichert.");
+    } catch {
+      setExperienceMessage("Das Erlebnis konnte nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
   return (
     <main className="admin-shell admin-dashboard">
       <header className="admin-header">
@@ -1160,6 +1347,7 @@ function AdminDashboardView({
           <a href="#buchungen">Buchungen</a>
           <a href="#aufgaben">Aufgaben</a>
           <a href="#support">Support</a>
+          <a href="#erlebnisse">Erlebnisse</a>
           <a href="#bestand">Bestand</a>
           <button onClick={onLogout} type="button">
             Abmelden
@@ -1382,6 +1570,44 @@ function AdminDashboardView({
         </article>
       </section>
 
+      <section className="admin-grid" id="erlebnisse">
+        <article className="admin-card admin-card-wide">
+          <p className="admin-eyebrow">Erlebnisse</p>
+          <h2>Bausteine der Auszeiten</h2>
+          <p>
+            Erlebnisbausteine verbinden Auszeit, Anbieter und Gastversprechen.
+            Enthaltene Bausteine sollten vor der Freigabe bestätigt sein.
+          </p>
+          <div className="admin-list">
+            {data.experienceBlocks.length ? (
+              data.experienceBlocks.map((experience) => (
+                <article className="admin-list-item" key={experience.id}>
+                  <div>
+                    <small>
+                      {experienceRoleLabel(experience.role)} · {experienceConfirmationLabel(experience.confirmation_status)}
+                    </small>
+                    <strong>{experience.title}</strong>
+                    <em>
+                      {getPackageName(data.packages, experience.package_id)} · {getProviderName(data.experienceProviders, experience.provider_id)}
+                    </em>
+                  </div>
+                  <div className="admin-row-actions">
+                    <button
+                      onClick={() => setExperienceSelection({ id: experience.id })}
+                      type="button"
+                    >
+                      Bearbeiten
+                    </button>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">Noch keine Erlebnisbausteine vorhanden.</p>
+            )}
+          </div>
+        </article>
+      </section>
+
       <section className="admin-grid" id="bestand">
         <article className="admin-card">
           <p className="admin-eyebrow">Auszeiten</p>
@@ -1456,6 +1682,17 @@ function AdminDashboardView({
         properties={data.properties}
         property={selectedProperty}
         packageItem={selectedPackage}
+      />
+      <AdminExperienceDrawer
+        draft={experienceDraft}
+        experience={selectedExperience}
+        message={experienceMessage}
+        onChange={(key, value) => setExperienceDraft((current) => ({ ...current, [key]: value }))}
+        onClose={() => setExperienceSelection(null)}
+        onSave={saveExperience}
+        packages={data.packages}
+        pending={Boolean(pendingAction?.startsWith("experience"))}
+        providers={data.experienceProviders}
       />
     </main>
   );
@@ -1781,6 +2018,171 @@ function AdminInventoryDrawer({
             </div>
           </section>
         )}
+
+        <section className="admin-drawer-section">
+          <button className="admin-button" disabled={pending} onClick={onSave} type="button">
+            {pending ? "Speichern" : "Speichern"}
+          </button>
+          {message ? <p className="admin-drawer-message">{message}</p> : null}
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+function AdminExperienceDrawer({
+  draft,
+  experience,
+  message,
+  onChange,
+  onClose,
+  onSave,
+  packages,
+  pending,
+  providers,
+}: {
+  draft: ExperienceDraft;
+  experience: ExperienceBlockRow | null;
+  message: string | null;
+  onChange: (key: string, value: string | boolean) => void;
+  onClose: () => void;
+  onSave: () => void;
+  packages: SimpleRow[];
+  pending: boolean;
+  providers: ExperienceProviderRow[];
+}) {
+  if (!experience) return null;
+
+  return (
+    <div className="admin-drawer-layer" role="presentation">
+      <button className="admin-drawer-backdrop" onClick={onClose} type="button" />
+      <aside className="admin-drawer" aria-label="Erlebnis bearbeiten">
+        <header>
+          <div>
+            <p className="admin-eyebrow">Erlebnis</p>
+            <h2>{experience.title}</h2>
+            <span>{experience.id}</span>
+          </div>
+          <button aria-label="Bearbeitung schließen" onClick={onClose} type="button">
+            Schließen
+          </button>
+        </header>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Zuordnung</p>
+          <div className="admin-form-grid">
+            <label>
+              Titel
+              <input
+                onChange={(event) => onChange("title", event.target.value)}
+                value={String(draft.title || "")}
+              />
+            </label>
+            <label>
+              Auszeit
+              <select
+                onChange={(event) => onChange("package_id", event.target.value)}
+                value={String(draft.package_id || "")}
+              >
+                <option value="">Nicht verbunden</option>
+                {packages.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name || item.id}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Anbieter
+              <select
+                onChange={(event) => onChange("provider_id", event.target.value)}
+                value={String(draft.provider_id || "")}
+              >
+                <option value="">Anbieter offen</option>
+                {providers.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Paketlogik</p>
+          <div className="admin-form-grid">
+            <label>
+              Rolle
+              <select
+                onChange={(event) => onChange("role", event.target.value)}
+                value={String(draft.role || "planned")}
+              >
+                {experienceRoles.map((role) => (
+                  <option key={role} value={role}>
+                    {experienceRoleLabel(role)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Bestätigung
+              <select
+                onChange={(event) => onChange("confirmation_status", event.target.value)}
+                value={String(draft.confirmation_status || "planned")}
+              >
+                {experienceConfirmationStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {experienceConfirmationLabel(status)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="admin-checkbox-label">
+              <input
+                checked={Boolean(draft.included_in_price)}
+                onChange={(event) => onChange("included_in_price", event.target.checked)}
+                type="checkbox"
+              />
+              Im Preis enthalten
+            </label>
+          </div>
+        </section>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Gast- und Operationshinweise</p>
+          <div className="admin-form-grid">
+            <label>
+              Gastnotiz
+              <textarea
+                onChange={(event) => onChange("guest_note", event.target.value)}
+                rows={4}
+                value={String(draft.guest_note || "")}
+              />
+            </label>
+            <label>
+              Preisnotiz
+              <input
+                onChange={(event) => onChange("price_note", event.target.value)}
+                value={String(draft.price_note || "")}
+              />
+            </label>
+            <label>
+              Kapazität
+              <input
+                onChange={(event) => onChange("capacity_note", event.target.value)}
+                value={String(draft.capacity_note || "")}
+              />
+            </label>
+            <label>
+              Verfügbarkeit
+              <input
+                onChange={(event) => onChange("availability_note", event.target.value)}
+                value={String(draft.availability_note || "")}
+              />
+            </label>
+          </div>
+        </section>
 
         <section className="admin-drawer-section">
           <button className="admin-button" disabled={pending} onClick={onSave} type="button">
