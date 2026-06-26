@@ -333,6 +333,63 @@ button {
   padding-top: clamp(24px, 5vw, 56px);
 }
 
+.owner-contact-card {
+  align-items: start;
+}
+
+.owner-contact-card h2 {
+  max-width: 680px;
+}
+
+.owner-contact-form {
+  display: grid;
+  gap: 14px;
+}
+
+.owner-contact-form label {
+  color: rgba(24, 23, 21, 0.66);
+  display: grid;
+  font-size: 12px;
+  font-weight: 840;
+  gap: 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.owner-contact-form select,
+.owner-contact-form textarea {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--offblack);
+  font: inherit;
+  padding: 13px 14px;
+  width: 100%;
+}
+
+.owner-contact-form select {
+  min-height: 48px;
+}
+
+.owner-contact-form textarea {
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.owner-contact-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.owner-contact-actions p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 0;
+}
+
 .owner-object-card {
   overflow: hidden;
   padding: 0;
@@ -573,6 +630,10 @@ button {
 
   .owner-highlight-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .owner-contact-card {
+    grid-template-columns: minmax(0, 0.82fr) minmax(360px, 0.62fr);
   }
 
   .owner-section-head {

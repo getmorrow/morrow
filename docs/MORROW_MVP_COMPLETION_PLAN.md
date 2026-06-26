@@ -148,6 +148,7 @@ Stand: 2026-06-26
 
 - `apps/web` enthaelt die migrierte oeffentliche SEO-Website mit Startseite, Auszeiten, Eigentuemerpfad, Erlebnispartnerpfad und Ratgeber.
 - `apps/owner` ist als geschuetzte Eigentuemer-App gestartet und zeigt MVP-Light Objekttransparenz, freie Zeitraeume, Buchungen, Lueckenmarketing-Light, Vermarktungslogik, offene Objektpunkte, Operationsstatus, Dokumenthinweise und Abrechnungsausblick.
+- Eigentümer können im Next-Owner-Dashboard strukturierte Rückfragen zu Objekt, Buchung oder Abrechnung senden; diese landen über `support_messages` im Admin-Supportfluss und sind per RLS auf aktive `owner_profiles` begrenzt.
 - Der Eigentuemerzugriff ist strukturell ueber `owner_profiles` und `owner_property_access` vorbereitet und im Next-Admin pflegbar.
 - Die Eigentuemer-App liest eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - `apps/admin` und `apps/owner` mappen lokale `VITE_SUPABASE_*` Public-Variablen auf `NEXT_PUBLIC_SUPABASE_*`, damit lokale Next-Tests denselben Supabase-Zugang wie der Prototyp nutzen koennen.

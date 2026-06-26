@@ -660,9 +660,10 @@ function getSupportLabel(support: SupportRow) {
 
 function getSupportContactLabel(support: SupportRow) {
   return (
-    getPayloadText(support.payload, ["guestName", "customerName", "name", "leadName"]) ||
+    getPayloadText(support.payload, ["ownerName", "guestName", "customerName", "name", "leadName"]) ||
     getPayloadText(support.payload, ["email", "phone"]) ||
-    "Gast"
+    getPayloadText(support.payload, ["ownerEmail", "ownerPhone"]) ||
+    "Kontakt"
   );
 }
 

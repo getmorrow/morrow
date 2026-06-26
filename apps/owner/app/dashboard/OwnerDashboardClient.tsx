@@ -21,6 +21,15 @@ type OwnerGap = OwnerDashboardDate & {
   urgency: "high" | "medium" | "low";
 };
 
+type OwnerContactCategory = "general" | "property" | "booking" | "accounting";
+
+const ownerContactCategoryLabels: Record<OwnerContactCategory, string> = {
+  general: "Allgemeine Rückfrage",
+  property: "Objekt oder Ausstattung",
+  booking: "Buchung oder Zeitraum",
+  accounting: "Abrechnung",
+};
+
 function formatDateRange(booking: OwnerDashboardBooking) {
   if (booking.dateLabel) return booking.dateLabel;
   if (!booking.startsOn || !booking.endsOn) return "Termin wird ergänzt";
@@ -327,6 +336,10 @@ function OwnerDashboardView({
   data: OwnerDashboardData;
   onLogout: () => void;
 }) {
+  const [contactCategory, setContactCategory] = useState<OwnerContactCategory>("general");
+  const [contactPropertyId, setContactPropertyId] = useState(data.properties[0]?.id ?? "");
+  const [contactMessage, setContactMessage] = useState("");
+  const [contactStatus, setContactStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const nextBookings = useMemo(() => getNextBookings(data.bookings), [data.bookings]);
   const upcomingDates = useMemo(() => getUpcomingDates(data.dates ?? []), [data.dates]);
   const openNotes = useMemo(() => getOpenPropertyNotes(data.properties), [data.properties]);
@@ -346,6 +359,43 @@ function OwnerDashboardView({
     })),
   );
   const displayName = data.profile.displayName || "dein Objekt";
+  const selectedContactProperty = data.properties.find((property) => property.id === contactPropertyId) ?? data.properties[0] ?? null;
+
+  async function sendOwnerMessage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!contactMessage.trim() || contactStatus === "sending") return;
+
+    setContactStatus("sending");
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase.from("support_messages").insert({
+        id: crypto.randomUUID(),
+        category: `owner_${contactCategory}`,
+        message: contactMessage.trim(),
+        urgency: contactCategory === "accounting" ? "soon" : "normal",
+        payload: {
+          source: "next-owner",
+          subject: ownerContactCategoryLabels[contactCategory],
+          categoryLabel: "Eigentümeranliegen",
+          ownerProfileId: data.profile.id,
+          ownerName: data.profile.displayName,
+          ownerEmail: data.profile.email,
+          ownerPhone: data.profile.phone,
+          propertyId: selectedContactProperty?.id ?? null,
+          propertyName: selectedContactProperty?.name ?? null,
+          supportCategory: contactCategory,
+        },
+      });
+
+      if (error) throw error;
+
+      setContactMessage("");
+      setContactStatus("sent");
+    } catch {
+      setContactStatus("error");
+    }
+  }
 
   return (
     <main className="owner-shell owner-dashboard">
@@ -426,6 +476,71 @@ function OwnerDashboardView({
               Zahlungsstatus und spätere Auszahlung werden hier zusammengeführt.
             </p>
           </article>
+        </section>
+
+        <section className="owner-section owner-card owner-contact-card" id="kontakt">
+          <div>
+            <p className="eyebrow">Direkter Draht</p>
+            <h2>Eine Rückfrage, die direkt im Morrow Admin landet.</h2>
+            <p>
+              Für Objekt, Buchung oder Abrechnung kannst du hier eine kurze
+              Nachricht senden. Morrow ordnet sie intern deinem Profil und dem
+              passenden Objekt zu.
+            </p>
+          </div>
+          <form className="owner-contact-form" onSubmit={sendOwnerMessage}>
+            <label>
+              Thema
+              <select
+                onChange={(event) => setContactCategory(event.target.value as OwnerContactCategory)}
+                value={contactCategory}
+              >
+                {(Object.keys(ownerContactCategoryLabels) as OwnerContactCategory[]).map((category) => (
+                  <option key={category} value={category}>
+                    {ownerContactCategoryLabels[category]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Objektbezug
+              <select
+                disabled={!data.properties.length}
+                onChange={(event) => setContactPropertyId(event.target.value)}
+                value={contactPropertyId}
+              >
+                {data.properties.map((property) => (
+                  <option key={property.id} value={property.id}>
+                    {property.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="owner-contact-message">
+              Nachricht
+              <textarea
+                onChange={(event) => {
+                  setContactMessage(event.target.value);
+                  if (contactStatus !== "idle") setContactStatus("idle");
+                }}
+                placeholder="Was sollen wir für dich prüfen?"
+                required
+                rows={4}
+                value={contactMessage}
+              />
+            </label>
+            <div className="owner-contact-actions">
+              <button className="owner-button" disabled={contactStatus === "sending"} type="submit">
+                {contactStatus === "sending" ? "Wird gesendet" : "Nachricht senden"}
+              </button>
+              {contactStatus === "sent" ? (
+                <p>Nachricht ist angekommen und wird im Admin weiterbearbeitet.</p>
+              ) : null}
+              {contactStatus === "error" ? (
+                <p>Die Nachricht konnte nicht gesendet werden. Bitte später erneut versuchen.</p>
+              ) : null}
+            </div>
+          </form>
         </section>
 
         <section className="owner-section owner-object-grid" id="objekte">
