@@ -279,6 +279,10 @@ input {
   gap: 18px;
 }
 
+.admin-card-wide {
+  grid-column: 1 / -1;
+}
+
 .admin-list {
   display: grid;
   gap: 10px;
@@ -456,6 +460,19 @@ input {
   line-height: 1.5;
   padding: 14px;
   resize: vertical;
+}
+
+.admin-drawer-note-card {
+  background: rgba(236, 230, 214, 0.48);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.admin-drawer-note-card p {
+  color: rgba(24, 23, 21, 0.72);
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 0;
 }
 
 .admin-drawer-message {

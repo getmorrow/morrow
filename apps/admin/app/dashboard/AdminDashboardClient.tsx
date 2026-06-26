@@ -40,6 +40,9 @@ type SimpleRow = {
 
 type SupportRow = {
   id: string;
+  lead_id: string | null;
+  category: string;
+  message: string;
   status: string;
   urgency: string | null;
   created_at: string;
@@ -77,10 +80,12 @@ type LoadState =
 type DetailSelection =
   | { type: "lead"; id: string }
   | { type: "booking"; id: string }
+  | { type: "support"; id: string }
   | null;
 
 const leadQuickStatuses = ["In Prüfung", "Kontaktiert", "Kein Interesse"] as const;
 const bookingStatuses = ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen", "Storniert"] as const;
+const supportStatuses = ["open", "in_progress", "closed"] as const;
 
 function paymentStatusForBooking(status: string) {
   return ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen"].includes(status)
@@ -106,6 +111,28 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function supportStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    open: "Offen",
+    in_progress: "In Klärung",
+    closed: "Erledigt",
+  };
+
+  return labels[status] || status;
+}
+
+function supportUrgencyLabel(urgency: string | null) {
+  const labels: Record<string, string> = {
+    low: "Normal",
+    normal: "Normal",
+    medium: "Mittel",
+    high: "Dringend",
+    urgent: "Dringend",
+  };
+
+  return urgency ? labels[urgency] || urgency : "Normal";
+}
+
 function getOpenLeads(leads: LeadRow[]) {
   return leads.filter((lead) => !["Bezahlt", "Abgeschlossen", "Kein Interesse"].includes(lead.status));
 }
@@ -124,6 +151,27 @@ function getBookingLabel(booking: BookingRow) {
     getPayloadText(booking.payload, ["packageName", "stayName", "guestName", "customerName"]) ||
     booking.status
   );
+}
+
+function getSupportLabel(support: SupportRow) {
+  return (
+    getPayloadText(support.payload, ["subject", "title", "supportName", "categoryLabel"]) ||
+    support.category ||
+    "Supportfall"
+  );
+}
+
+function getSupportContactLabel(support: SupportRow) {
+  return (
+    getPayloadText(support.payload, ["guestName", "customerName", "name", "leadName"]) ||
+    getPayloadText(support.payload, ["email", "phone"]) ||
+    "Gast"
+  );
+}
+
+function getSupportRelationId(support: SupportRow, kind: "lead" | "booking") {
+  const keys = kind === "lead" ? ["leadId", "lead_id"] : ["bookingId", "booking_id"];
+  return getPayloadText(support.payload, keys) || (kind === "lead" ? support.lead_id : null);
 }
 
 function getInternalNote(payload: Record<string, unknown>) {
@@ -171,7 +219,7 @@ export function AdminDashboardClient() {
             supabase.from("properties").select("id,name,status").order("name"),
             supabase
               .from("support_messages")
-              .select("id,status,urgency,created_at,payload")
+              .select("id,lead_id,category,message,status,urgency,created_at,payload")
               .order("created_at", { ascending: false })
               .limit(20),
           ]);
@@ -280,6 +328,9 @@ function AdminDashboardView({
   const selectedBooking = selection?.type === "booking"
     ? data.bookings.find((booking) => booking.id === selection.id) ?? null
     : null;
+  const selectedSupport = selection?.type === "support"
+    ? data.supportMessages.find((support) => support.id === selection.id) ?? null
+    : null;
 
   useEffect(() => {
     if (!selection) {
@@ -291,7 +342,9 @@ function AdminDashboardView({
 
     const currentPayload = selection.type === "lead"
       ? data.leads.find((lead) => lead.id === selection.id)?.payload
-      : data.bookings.find((booking) => booking.id === selection.id)?.payload;
+      : selection.type === "booking"
+        ? data.bookings.find((booking) => booking.id === selection.id)?.payload
+        : data.supportMessages.find((support) => support.id === selection.id)?.payload;
 
     setDrawerNote(currentPayload ? getInternalNote(currentPayload) : "");
     setDrawerMessage(null);
@@ -308,9 +361,26 @@ function AdminDashboardView({
           .select("id,lead_id,booking_id,channel,direction,event_type,subject,body,actor,status,created_at")
           .order("created_at", { ascending: false })
           .limit(40);
+        const selectedSupportCase = activeSelection.type === "support"
+          ? data.supportMessages.find((support) => support.id === activeSelection.id)
+          : null;
+        const supportLeadId = selectedSupportCase
+          ? getSupportRelationId(selectedSupportCase, "lead")
+          : null;
+        const supportBookingId = selectedSupportCase
+          ? getSupportRelationId(selectedSupportCase, "booking")
+          : null;
         const { data: events, error } = activeSelection.type === "lead"
           ? await query.eq("lead_id", activeSelection.id)
-          : await query.eq("booking_id", activeSelection.id);
+          : activeSelection.type === "booking"
+            ? await query.eq("booking_id", activeSelection.id)
+            : supportLeadId && supportBookingId
+              ? await query.or(`lead_id.eq.${supportLeadId},booking_id.eq.${supportBookingId}`)
+              : supportLeadId
+                ? await query.eq("lead_id", supportLeadId)
+                : supportBookingId
+                  ? await query.eq("booking_id", supportBookingId)
+                  : await query.eq("event_type", `support:${activeSelection.id}`);
 
         if (!isMounted) return;
         if (error) {
@@ -334,7 +404,7 @@ function AdminDashboardView({
     return () => {
       isMounted = false;
     };
-  }, [selection, data.leads, data.bookings]);
+  }, [selection, data.leads, data.bookings, data.supportMessages]);
 
   async function writeAuditLog({
     action,
@@ -558,9 +628,12 @@ function AdminDashboardView({
     try {
       const supabase = createSupabaseBrowserClient();
       const isLead = selection.type === "lead";
+      const isBooking = selection.type === "booking";
       const currentEntity = isLead
         ? data.leads.find((lead) => lead.id === selection.id)
-        : data.bookings.find((booking) => booking.id === selection.id);
+        : isBooking
+          ? data.bookings.find((booking) => booking.id === selection.id)
+          : data.supportMessages.find((support) => support.id === selection.id);
 
       if (!currentEntity) throw new Error("Missing entity");
 
@@ -569,7 +642,7 @@ function AdminDashboardView({
         internalNote: drawerNote,
         updatedAt: new Date().toISOString(),
       };
-      const table = isLead ? "leads" : "bookings";
+      const table = isLead ? "leads" : isBooking ? "bookings" : "support_messages";
       const { error } = await supabase
         .from(table)
         .update({ payload, updated_at: new Date().toISOString() })
@@ -577,15 +650,18 @@ function AdminDashboardView({
 
       if (error) throw error;
 
+      const supportCase = !isLead && !isBooking ? currentEntity as SupportRow : null;
+      const supportLeadId = supportCase ? getSupportRelationId(supportCase, "lead") : null;
+      const supportBookingId = supportCase ? getSupportRelationId(supportCase, "booking") : null;
       const eventResult = await supabase
         .from("communication_events")
         .insert({
-          lead_id: isLead ? selection.id : null,
-          booking_id: isLead ? null : selection.id,
+          lead_id: isLead ? selection.id : supportLeadId,
+          booking_id: isBooking ? selection.id : supportBookingId,
           channel: "note",
           direction: "internal",
           event_type: "note",
-          subject: "Interne Notiz",
+          subject: isLead || isBooking ? "Interne Notiz" : "Interne Support-Notiz",
           body: drawerNote || "Notiz aktualisiert.",
           actor: data.profile.email,
           status: "recorded",
@@ -605,10 +681,15 @@ function AdminDashboardView({
         leads: isLead
           ? current.leads.map((lead) => (lead.id === selection.id ? { ...lead, payload } : lead))
           : current.leads,
-        bookings: isLead
+        bookings: isLead || !isBooking
           ? current.bookings
           : current.bookings.map((booking) =>
               booking.id === selection.id ? { ...booking, payload } : booking,
+            ),
+        supportMessages: isLead || isBooking
+          ? current.supportMessages
+          : current.supportMessages.map((support) =>
+              support.id === selection.id ? { ...support, payload } : support,
             ),
       }));
       setCommunicationEvents((current) => [
@@ -622,13 +703,61 @@ function AdminDashboardView({
         entityId: selection.id,
         entityLabel: isLead
           ? getLeadLabel(currentEntity as LeadRow)
-          : getBookingLabel(currentEntity as BookingRow),
+          : isBooking
+            ? getBookingLabel(currentEntity as BookingRow)
+            : getSupportLabel(currentEntity as SupportRow),
         payload: { noteLength: drawerNote.length },
       });
 
       setDrawerMessage("Notiz gespeichert.");
     } catch {
       setDrawerMessage("Notiz konnte nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function updateSupportStatus(support: SupportRow, status: string) {
+    const actionKey = `support-${support.id}-${status}`;
+    setPendingAction(actionKey);
+    setActionMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const payload = {
+        ...support.payload,
+        status,
+        updatedAt: new Date().toISOString(),
+      };
+      const { error } = await supabase
+        .from("support_messages")
+        .update({
+          status,
+          payload,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", support.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        supportMessages: current.supportMessages.map((item) =>
+          item.id === support.id ? { ...item, status, payload } : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "support_status_updated",
+        entityType: "support",
+        entityId: support.id,
+        entityLabel: getSupportLabel(support),
+        payload: { from: support.status, to: status },
+      });
+
+      setActionMessage("Supportfall aktualisiert.");
+    } catch {
+      setActionMessage("Der Supportfall konnte nicht aktualisiert werden.");
     } finally {
       setPendingAction(null);
     }
@@ -643,6 +772,7 @@ function AdminDashboardView({
         <nav aria-label="Admin Navigation">
           <a href="#anfragen">Anfragen</a>
           <a href="#buchungen">Buchungen</a>
+          <a href="#support">Support</a>
           <a href="#bestand">Bestand</a>
           <button onClick={onLogout} type="button">
             Abmelden
@@ -761,6 +891,54 @@ function AdminDashboardView({
         </article>
       </section>
 
+      <section className="admin-grid" id="support">
+        <article className="admin-card admin-card-wide">
+          <p className="admin-eyebrow">Gästesupport</p>
+          <h2>Nachrichten aus dem Gästebereich</h2>
+          <p>
+            Hier landen Fragen und Probleme aus der Gäste-App. Jeder Fall bleibt mit
+            der passenden Buchung oder Anfrage verbunden.
+          </p>
+          <div className="admin-list">
+            {data.supportMessages.length ? (
+              data.supportMessages.slice(0, 10).map((support) => (
+                <article className="admin-list-item" key={support.id}>
+                  <div>
+                    <small>
+                      {formatDate(support.created_at)} · {supportUrgencyLabel(support.urgency)}
+                    </small>
+                    <strong>{getSupportContactLabel(support)}</strong>
+                    <em>
+                      {getSupportLabel(support)} · {supportStatusLabel(support.status)}
+                    </em>
+                  </div>
+                  <div className="admin-row-actions">
+                    <button
+                      onClick={() => setSelection({ type: "support", id: support.id })}
+                      type="button"
+                    >
+                      Details
+                    </button>
+                    {supportStatuses.map((status) => (
+                      <button
+                        disabled={pendingAction === `support-${support.id}-${status}`}
+                        key={status}
+                        onClick={() => updateSupportStatus(support, status)}
+                        type="button"
+                      >
+                        {supportStatusLabel(status)}
+                      </button>
+                    ))}
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">Noch keine Supportnachrichten vorhanden.</p>
+            )}
+          </div>
+        </article>
+      </section>
+
       <section className="admin-grid" id="bestand">
         <article className="admin-card">
           <p className="admin-eyebrow">Auszeiten</p>
@@ -799,6 +977,7 @@ function AdminDashboardView({
         onNoteChange={setDrawerNote}
         onSaveNote={saveDrawerNote}
         pending={Boolean(pendingAction?.startsWith("drawer-note"))}
+        support={selectedSupport}
       />
     </main>
   );
@@ -815,6 +994,7 @@ function AdminDetailDrawer({
   onNoteChange,
   onSaveNote,
   pending,
+  support,
 }: {
   booking: BookingRow | null;
   communicationEvents: CommunicationEventRow[];
@@ -826,12 +1006,21 @@ function AdminDetailDrawer({
   onNoteChange: (value: string) => void;
   onSaveNote: () => void;
   pending: boolean;
+  support: SupportRow | null;
 }) {
-  if (!lead && !booking) return null;
+  if (!lead && !booking && !support) return null;
 
-  const title = lead ? getLeadLabel(lead) : getBookingLabel(booking as BookingRow);
-  const status = lead ? lead.status : `${booking?.status} · ${booking?.payment_status}`;
-  const payload = lead?.payload ?? booking?.payload ?? {};
+  const title = lead
+    ? getLeadLabel(lead)
+    : booking
+      ? getBookingLabel(booking)
+      : getSupportContactLabel(support as SupportRow);
+  const status = lead
+    ? lead.status
+    : booking
+      ? `${booking.status} · ${booking.payment_status}`
+      : `${getSupportLabel(support as SupportRow)} · ${supportStatusLabel((support as SupportRow).status)}`;
+  const payload = lead?.payload ?? booking?.payload ?? support?.payload ?? {};
   const email = lead?.email || getPayloadText(payload, ["email"]);
   const phone = lead?.phone || getPayloadText(payload, ["phone"]);
   const packageName =
@@ -844,6 +1033,9 @@ function AdminDetailDrawer({
     "arrivalDate",
     "bookingDate",
   ]);
+  const drawerType = lead ? "Anfrage" : booking ? "Buchung" : "Support";
+  const supportMessage = support?.message || getPayloadText(payload, ["message", "note"]);
+  const supportCategory = support?.category || getPayloadText(payload, ["category", "categoryLabel"]);
 
   return (
     <div className="admin-drawer-layer" role="presentation">
@@ -851,7 +1043,7 @@ function AdminDetailDrawer({
       <aside className="admin-drawer" aria-label="Details">
         <header>
           <div>
-            <p className="admin-eyebrow">{lead ? "Anfrage" : "Buchung"}</p>
+            <p className="admin-eyebrow">{drawerType}</p>
             <h2>{title}</h2>
             <span>{status}</span>
           </div>
@@ -874,14 +1066,23 @@ function AdminDetailDrawer({
             </strong>
           </article>
           <article>
-            <small>Auszeit</small>
-            <strong>{packageName || "nicht zugeordnet"}</strong>
+            <small>{support ? "Kategorie" : "Auszeit"}</small>
+            <strong>{support ? supportCategory || "Allgemein" : packageName || "nicht zugeordnet"}</strong>
           </article>
           <article>
-            <small>Termin</small>
-            <strong>{selectedDate || "offen"}</strong>
+            <small>{support ? "Dringlichkeit" : "Termin"}</small>
+            <strong>{support ? supportUrgencyLabel(support.urgency) : selectedDate || "offen"}</strong>
           </article>
         </section>
+
+        {supportMessage ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Nachricht</p>
+            <article className="admin-drawer-note-card">
+              <p>{supportMessage}</p>
+            </article>
+          </section>
+        ) : null}
 
         <section className="admin-drawer-section">
           <p className="admin-eyebrow">Interne Notiz</p>
