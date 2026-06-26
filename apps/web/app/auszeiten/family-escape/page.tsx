@@ -1,6 +1,7 @@
 import { publicRoutes, stayDetails } from "@morrow/domain";
 import { Button, Card, Container, Eyebrow, SectionHeader } from "@morrow/ui";
 import { JsonLd } from "../../_components/JsonLd";
+import { LeadForm } from "../../_components/LeadForm";
 import { SiteHeader } from "../../_components/SiteHeader";
 import { stayStructuredData } from "../../_lib/structuredData";
 
@@ -176,19 +177,13 @@ export default function FamilyEscapePage() {
             title={stay.request.title}
           />
           <Card className="request-card">
-            <Eyebrow>Was wir abfragen</Eyebrow>
-            <div className="request-field-grid">
-              {stay.request.fields.map((field) => (
-                <span key={field}>{field}</span>
-              ))}
-            </div>
-            <Button
-              data-conversion="stay_request_mailto"
-              data-conversion-label="Family Escape Anfrage per E-Mail"
-              href="mailto:auszeiten@getmorrow.de?subject=Anfrage%20Family%20Escape"
-            >
-              Anfrage per E-Mail starten
-            </Button>
+            <LeadForm
+              audience={stay.audience}
+              dates={stay.dates}
+              packageName={stay.title}
+              packageSlug={stay.slug}
+              type="guest"
+            />
           </Card>
         </Container>
       </section>

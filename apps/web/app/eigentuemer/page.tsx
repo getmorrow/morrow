@@ -1,6 +1,7 @@
 import { ownersPageContent } from "@morrow/domain";
 import { Button, Card, Container, Eyebrow, SectionHeader } from "@morrow/ui";
 import { JsonLd } from "../_components/JsonLd";
+import { LeadForm } from "../_components/LeadForm";
 import { SiteHeader } from "../_components/SiteHeader";
 import { ownersStructuredData } from "../_lib/structuredData";
 
@@ -126,19 +127,7 @@ export default function OwnersPage() {
             title={ownersPageContent.request.title}
           />
           <Card className="request-card">
-            <Eyebrow>Was wir abfragen</Eyebrow>
-            <div className="request-field-grid">
-              {ownersPageContent.request.fields.map((field) => (
-                <span key={field}>{field}</span>
-              ))}
-            </div>
-            <Button
-              data-conversion="owner_request_mailto"
-              data-conversion-label="Eigentümer Ertragspotenzial anfordern"
-              href="mailto:auszeiten@getmorrow.de?subject=Immobilie%20vorstellen"
-            >
-              Ertragspotenzial anfordern
-            </Button>
+            <LeadForm type="owner" />
           </Card>
         </Container>
       </section>

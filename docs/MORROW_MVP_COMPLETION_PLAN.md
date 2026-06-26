@@ -87,7 +87,7 @@ Ziel: Supabase ist die fuehrende Datenquelle fuer alles, was operativ relevant i
 
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
-| Supabase als Quelle | Leads, Kunden, Buchungen, Auszeiten, Vor-Ort-Daten, Anbieter, Agenturen, Objekte angebunden | LocalStorage nur noch Demo/Fallback; alle Admin-Mutationen remote bestaetigen | MVP-kritisch | Teilweise |
+| Supabase als Quelle | Leads, Kunden, Buchungen, Auszeiten, Vor-Ort-Daten, Anbieter, Agenturen, Objekte angebunden; Next-Web Anfrageformulare schreiben Gast-, Eigentümer- und Erlebnispartner-Leads direkt nach Supabase und lösen die Lead-Mailfunktion aus | LocalStorage nur noch Demo/Fallback; alle Admin-Mutationen remote bestaetigen | MVP-kritisch | Teilweise |
 | Relationale Struktur | Tabellen vorhanden, Payload noch stark genutzt | Buchungen, Kunden, Zahlungen, Pakete, Termine, Anbieter staerker normalisieren | MVP-light | Teilweise |
 | Zahlungen | Zahlung bleibt manuell; Next-Admin kann in Buchungen Zahlungsstatus, Betrag, Datum, Zahlungsart, Referenz und Beleglink dokumentieren und schreibt Änderungen ins Audit-Log | Payment-Provider, Rechnungslogik und automatische Zahlungsabgleiche spaeter ergaenzen | MVP-light | Teilweise |
 | Automatische Gaestebereich-Freigabe | Status `Bezahlt` schaltet frei, getestet | Freigabe an Zahlungs-/Buchungsstatus koppeln, klare Sperr-/Fehlerzustaende | MVP-kritisch | Teilweise |
@@ -118,7 +118,7 @@ Ziel: Morrow kann Nachfrage erzeugen und messen, ohne direkt zu ueberautomatisie
 | Ratgeberbereich | Vorhanden | Systematischer Ausbau mit Keyword-Clustern und interner Verlinkung | MVP-kritisch | Teilweise |
 | Keyword-Cluster | Dokument `SEO_GEO_KEYWORD_PLAN.md` vorhanden | SPO/Familienurlaub/Paar-Auszeit/Nordsee priorisieren, Artikelplan pflegen | MVP-kritisch | Teilweise |
 | Schema.org | Next-Web gibt strukturierte Daten fuer Organisation, Website, Auszeiten-Listen, Auszeit-Angebote, FAQ, Breadcrumbs, Ratgeber-Artikel, Eigentuemer- und Erlebnispartner-Service aus | Spaeter mit echten Review-/Availability-/LocalBusiness-Daten und Search Console Validierung erweitern | MVP-light | Teilweise |
-| Conversion-Tracking | Zentrale Web-Analytics-Komponente vorhanden; CTA-Klicks auf Auszeiten, Anfrage, Eigentuemer, Erlebnispartner und Ratgeber werden ueber `data-conversion` an GA/Meta gemeldet, wenn die Public IDs gesetzt sind und Consent erteilt wurde | Events live mit echten GA4-/Meta-Pixel-IDs und Test-Events pruefen | MVP-kritisch | Teilweise |
+| Conversion-Tracking | Zentrale Web-Analytics-Komponente vorhanden; CTA-Klicks und Formular-Submits auf Auszeiten, Anfrage, Eigentuemer, Erlebnispartner und Ratgeber werden ueber `data-conversion` an GA/Meta gemeldet, wenn die Public IDs gesetzt sind und Consent erteilt wurde | Events live mit echten GA4-/Meta-Pixel-IDs und Test-Events pruefen | MVP-kritisch | Teilweise |
 | Meta/Google Ads messen | GA4/Meta-Pixel sind env-gesteuert vorbereitet; PageView und Custom-CTA-Events werden bei gesetzten IDs erst nach Consent ausgelöst | Pixel/Conversions/UTM in Production sauber testen und Zielereignisse in Meta/Google Ads anlegen | MVP-kritisch | Teilweise |
 | Landingpages pro Auszeit/Zielgruppe | Paketseiten vorhanden | Kampagnenspezifische Landingpages optional fuer Ads | MVP-light | Teilweise |
 | E-Mail-Nurturing | Nicht umgesetzt | Fuer MVP reicht manuelle Nachfassung plus Statusmails | MVP-light | Offen |

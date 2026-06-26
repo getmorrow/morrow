@@ -1,6 +1,7 @@
 import { experiencePartnersPageContent } from "@morrow/domain";
 import { Button, Card, Container, Eyebrow, SectionHeader } from "@morrow/ui";
 import { JsonLd } from "../_components/JsonLd";
+import { LeadForm } from "../_components/LeadForm";
 import { SiteHeader } from "../_components/SiteHeader";
 import { partnersStructuredData } from "../_lib/structuredData";
 
@@ -116,19 +117,7 @@ export default function ExperiencePartnersPage() {
             title={experiencePartnersPageContent.request.title}
           />
           <Card className="request-card">
-            <Eyebrow>Was wir abfragen</Eyebrow>
-            <div className="request-field-grid">
-              {experiencePartnersPageContent.request.fields.map((field) => (
-                <span key={field}>{field}</span>
-              ))}
-            </div>
-            <Button
-              data-conversion="partner_request_mailto"
-              data-conversion-label="Erlebnispartner Kooperation anfragen"
-              href="mailto:auszeiten@getmorrow.de?subject=Erlebnis%20vorschlagen"
-            >
-              Kooperation anfragen
-            </Button>
+            <LeadForm type="experience" />
           </Card>
         </Container>
       </section>
