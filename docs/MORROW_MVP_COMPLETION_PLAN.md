@@ -57,7 +57,7 @@ Ziel: Nach der Buchung fuehlt sich Morrow wie Komfort an, nicht wie eine lose E-
 
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
-| Gaestebereich | Live-Zugang per Buchungscode getestet, App-artige Struktur vorhanden; abgeschlossene Buchungen wechseln in reduzierten Nach-Aufenthalt-Modus mit Rückblick, Feedback und neuen Auszeiten | Inhalte pro Buchung weiter vollstaendig aus Admin-Daten speisen und echten 1-Tag-Feedback-Test abschliessen | MVP-kritisch | Teilweise |
+| Gaestebereich | Live-Zugang per Buchungscode getestet; Prototyp enthaelt volle App-Logik; `apps/guest` ist als Next-App gestartet und laedt Buchung/Auszeit ueber `get_guest_stay()`, zeigt Start, Auszeit, Buchung, Vor Ort, Hilfe und Feedback als mobil-first App-Shell | Interaktive Karte, Wetter/Gezeiten/Veranstaltungen, feinere Support- und Nach-Aufenthalt-Logik aus dem Prototyp migrieren | MVP-kritisch | Teilweise |
 | Anreise, Schluessel, Unterkunftsregeln | Check-in-Daten, Adresse, Regeln, Check-out und Support-Zustaendigkeit sind am Paket/Objekt pflegbar; Buchungsseite im Gaestebereich zeigt die Infos klar aus Admin-Daten | Spaeter buchungsspezifische Sonderhinweise und echte Freigabezeitpunkte pro Buchung ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Tagesplan / Meine Auszeit | Eigener Bereich im Gaestebereich vorhanden; Ablaufpunkte sind pro Auszeit im Admin pflegbar und erscheinen als kompakte Timeline mit Detail-Drawer | Spaeter buchungsspezifische Abweichungen und echte Tageszeiten pro Buchung ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Kuratierte Karte | Karte, Filter, Pins, Drawer, Restaurants, Orte, Veranstaltungen vorhanden | Datenqualitaet weiter kuratieren, Kategorien finalisieren, Pin-/Drawer-UX fortlaufend testen | MVP-kritisch | Teilweise |
@@ -151,14 +151,14 @@ Stand: 2026-06-26
 - Der Eigentuemerzugriff ist strukturell ueber `owner_profiles` und `owner_property_access` vorbereitet und im Next-Admin pflegbar.
 - Die Eigentuemer-App liest eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - Die Migration muss noch remote in Supabase angewendet werden, sobald `SUPABASE_ACCESS_TOKEN` oder Datenbankpasswort lokal verfuegbar ist.
-- `apps/guest` ist noch nicht produktiv nach Next migriert und bleibt der naechste grosse Architekturblock.
+- `apps/guest` ist als Next-App gestartet und liest codegeschuetzte Buchungen ueber `get_guest_stay()`; die tieferen Prototyp-Funktionen muessen schrittweise migriert werden.
 - `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen, interne Notizen speichern, freie E-Mail-Antworten aus Anfrage/Buchung/Support senden, Monitoringhinweise anzeigen, Eigentuemerprofile/Objektzugriffe vorbereiten sowie Auszeiten, Termine und Erlebnisbausteine bearbeiten/neu anlegen und Unterkuenfte inklusive operativer Anreise-/Regel-/Medienfelder, Ausstattung, Objektattributen und Erlebniswelten pflegen.
 
 Naechste technische Prioritaet:
 
 1. Supabase Owner-Migration live anwenden, `admin-send-message` deployen und ersten echten Owner-Zugang testen.
 2. Admin-App weiter ausbauen: Kommunikationsvorlagen, echte Medienbibliothek, Detailsektionen und tieferes Monitoring migrieren.
-3. Guest-App danach aus dem Prototyp in `apps/guest` migrieren.
+3. Guest-App vertiefen: interaktive Karte, lokale Detail-Drawer, Wetter, Gezeiten, Veranstaltungen, Support-Chat und Nach-Aufenthalt-Modus aus dem Prototyp ueberfuehren.
 4. Owner-App danach vertiefen: Abrechnung, Dokumente, Operationsstatus und Eigentuemer-Kommunikation.
 
 ## Empfohlene Umsetzungsreihenfolge
@@ -241,7 +241,7 @@ Naechste technische Prioritaet:
 
 Weiter mit Owner- und Plattformfundament:
 
-`Owner-Migration live anwenden, ersten echten Owner-Zugang testen und danach die Guest-App aus dem Prototyp migrieren`
+`Owner-Migration live anwenden, ersten echten Owner-Zugang testen und die Guest-App-Migration vertiefen`
 
 Definition of Done:
 
@@ -249,4 +249,4 @@ Definition of Done:
 - Im Admin kann ein Eigentuemer angelegt und einer Unterkunft zugeordnet werden.
 - Der Eigentuemer kann sich einloggen und sieht nur seine freigegebenen Objekte, Termine, Buchungen und offenen Objektpunkte.
 - `admin-send-message` ist deployed und freie E-Mail-Antworten funktionieren live aus Anfrage, Buchung und Support.
-- Danach beginnt die Migration des Gaestebereichs nach `apps/guest`.
+- Danach werden Karte, Wetter, Gezeiten, Veranstaltungen, Support-Chat und Nach-Aufenthalt-Modus in `apps/guest` vertieft.

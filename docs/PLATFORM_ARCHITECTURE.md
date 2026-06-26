@@ -1,6 +1,6 @@
 # Morrow Plattformarchitektur
 
-Stand: 2026-06-24
+Stand: 2026-06-26
 
 Dieses Dokument beschreibt die Zielarchitektur der Morrow-Plattform, bevor weitere groessere Features gebaut werden. Es ergaenzt `docs/MORROW_MASTER_FRAME.md`, `docs/STRATEGIC_FOUNDATION_MORROW.md` und `docs/PLATFORM_MODEL_PHASE2.md`.
 
@@ -33,8 +33,8 @@ Prioritaet:
 1. Vite-Prototyp einfrieren und nur kritische Fixes umsetzen.
 2. Neues Plattform-Fundament als Monorepo aufsetzen.
 3. Zuerst die oeffentliche Website migrieren: Startseite, Auszeiten, Eigentuemerseite, Ratgeber, SEO, Sitemap, `robots.txt`, Schema.org.
-4. Danach Gaeste-App und Admin-App schrittweise migrieren.
-5. Eigentuemer-App erst bauen, wenn Admin-, Objekt- und Buchungsdaten stabil sind.
+4. Danach Gaeste-App, Admin-App und Eigentuemer-App schrittweise migrieren.
+5. Eigentuemer-App vertiefen, sobald Admin-, Objekt- und Buchungsdaten stabil genug sind.
 
 Arbeitsregel:
 
@@ -42,14 +42,16 @@ Arbeitsregel:
 - Oeffentliche Website-Entscheidungen muessen ab jetzt SEO-/SSR-/SSG-faehig gedacht werden.
 - Admin bleibt Quelle der Wahrheit; Web, Guest und Owner lesen gezielte Ausschnitte aus Supabase/domain-Modellen.
 
-Umsetzungsstand 2026-06-24:
+Umsetzungsstand 2026-06-26:
 
 - Das npm-Workspace-Monorepo ist angelegt.
 - `apps/web` ist als erste Next.js-App aktiv und erzeugt statische Seiten inklusive `sitemap.xml` und `robots.txt`.
-- `apps/guest`, `apps/admin` und `apps/owner` existieren bewusst als Platzhalter-Workspaces.
+- `apps/admin` ist als Next-App aktiv und uebernimmt erste operative Admin-Funktionen direkt aus Supabase.
+- `apps/owner` ist als geschuetzte MVP-Light Eigentuemer-App gestartet.
+- `apps/guest` ist als Next-App gestartet und bildet den ersten codegeschuetzten Gaestebereich fuer Buchung, Auszeit, Vor-Ort-Hinweise, Hilfe und Feedback ab.
 - `packages/ui`, `packages/domain` und `packages/supabase` existieren als erste Shared-Packages.
 - Der bisherige Vite-Code bleibt unveraendert als Prototyp im Root und wird ueber `prototype:*` Scripts betrieben.
-- Die naechste produktive Arbeit ist die Migration der oeffentlichen Website nach `apps/web`.
+- Die naechste produktive Arbeit ist die Vertiefung der Guest-App-Migration aus dem Vite-Prototyp, besonders Karte, Wetter, Gezeiten, Veranstaltungen, Support-Chat und Feedback-/Wiederbuchungslogik.
 
 ## Grundentscheidung
 
