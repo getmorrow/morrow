@@ -89,6 +89,15 @@ type LocalPlace = {
   payload?: Record<string, unknown>;
 };
 
+type WeatherDay = {
+  date: string;
+  min: number;
+  max: number;
+  code: number;
+  precipitation: number;
+  wind: number;
+};
+
 type GuestStayPayload = {
   booking?: GuestBooking;
   package?: GuestPackage;
@@ -300,6 +309,24 @@ const tidePreview = [
   { label: "Nachmittags", value: "Wasser kommt", detail: "Strandspaziergänge lieber nah am Übergang planen." },
   { label: "Hinweis", value: "Tagesaktuell", detail: "Live-Werte werden als eigener Datenbaustein ergänzt." },
 ];
+
+function weatherCodeLabel(code: number) {
+  if ([0, 1].includes(code)) return "hell";
+  if ([2, 3].includes(code)) return "bewölkt";
+  if ([45, 48].includes(code)) return "neblig";
+  if ([51, 53, 55, 56, 57].includes(code)) return "Nieselregen";
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "Regen";
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return "Schnee";
+  if ([95, 96, 99].includes(code)) return "Gewitter";
+  return "wechselhaft";
+}
+
+function formatWeatherDate(value: string, index: number) {
+  if (index === 0) return "Heute";
+  if (index === 1) return "Morgen";
+  const date = new Date(`${value}T00:00:00`);
+  return new Intl.DateTimeFormat("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" }).format(date);
+}
 
 function text(value: unknown, fallback = "") {
   return typeof value === "string" && value.trim() ? value.trim() : fallback;
@@ -515,6 +542,9 @@ export function GuestStayClient({
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [localFilter, setLocalFilter] = useState<LocalFilter>("all");
   const [selectedPlace, setSelectedPlace] = useState<LocalPlace | null>(null);
+  const [weatherDays, setWeatherDays] = useState<WeatherDay[]>([]);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherRange, setWeatherRange] = useState<"today" | "3" | "14">("today");
 
   useEffect(() => {
     let cancelled = false;
@@ -631,6 +661,53 @@ export function GuestStayClient({
   const navItems: GuestView[] = completed
     ? ["home", "booking", "feedback", "again"]
     : ["home", "plan", "booking", "local", "help"];
+  const weatherPlace = stayMapPlace(packageItem);
+  const visibleWeatherDays = weatherRange === "today"
+    ? weatherDays.slice(0, 1)
+    : weatherRange === "3"
+      ? weatherDays.slice(0, 3)
+      : weatherDays.slice(0, 14);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadWeather() {
+      if (!packageItem) return;
+      setWeatherLoading(true);
+
+      try {
+        const params = new URLSearchParams({
+          latitude: String(weatherPlace.lat),
+          longitude: String(weatherPlace.lng),
+          daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max",
+          timezone: "Europe/Berlin",
+          forecast_days: "14",
+        });
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`);
+        if (!response.ok) throw new Error("weather request failed");
+        const data = await response.json();
+        const days: WeatherDay[] = (data.daily?.time ?? []).map((date: string, index: number) => ({
+          date,
+          min: Number(data.daily?.temperature_2m_min?.[index] ?? 0),
+          max: Number(data.daily?.temperature_2m_max?.[index] ?? 0),
+          code: Number(data.daily?.weather_code?.[index] ?? 3),
+          precipitation: Number(data.daily?.precipitation_sum?.[index] ?? 0),
+          wind: Number(data.daily?.wind_speed_10m_max?.[index] ?? 0),
+        }));
+        if (!cancelled) setWeatherDays(days);
+      } catch {
+        if (!cancelled) setWeatherDays([]);
+      } finally {
+        if (!cancelled) setWeatherLoading(false);
+      }
+    }
+
+    void loadWeather();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [packageItem, weatherPlace.lat, weatherPlace.lng]);
 
   async function sendSupport() {
     if (!supportMessage.trim()) return;
@@ -903,17 +980,39 @@ export function GuestStayClient({
               <section className="guest-local-module" aria-label="Wetter">
                 <div className="guest-module-head">
                   <span>Wetter</span>
-                  <strong>Nordsee im Blick behalten</strong>
+                  <strong>{weatherDays.length ? "Aktuelle Vorschau für SPO" : "Nordsee im Blick behalten"}</strong>
+                </div>
+                <div className="guest-weather-range" aria-label="Wetter Zeitraum">
+                  {[
+                    { id: "today", label: "Heute" },
+                    { id: "3", label: "3 Tage" },
+                    { id: "14", label: "14 Tage" },
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      className={weatherRange === item.id ? "is-active" : ""}
+                      type="button"
+                      onClick={() => setWeatherRange(item.id as "today" | "3" | "14")}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
                 </div>
                 <div className="guest-horizontal-cards">
-                  {weatherPreview.map((item) => (
-                    <article key={item.label}>
-                      <span>{item.label}</span>
-                      <strong>{item.value}</strong>
-                      <p>{item.detail}</p>
+                  {(visibleWeatherDays.length ? visibleWeatherDays : weatherPreview).map((item, index) => (
+                    <article key={"date" in item ? item.date : item.label}>
+                      <span>{"date" in item ? formatWeatherDate(item.date, index) : item.label}</span>
+                      <strong>{"date" in item ? `${Math.round(item.max)}° / ${Math.round(item.min)}°` : item.value}</strong>
+                      <p>
+                        {"date" in item
+                          ? `${weatherCodeLabel(item.code)}, ${Math.round(item.wind)} km/h Wind, ${item.precipitation.toLocaleString("de-DE", { maximumFractionDigits: 1 })} mm Regen.`
+                          : item.detail}
+                      </p>
                     </article>
                   ))}
                 </div>
+                {weatherLoading ? <p className="guest-live-note">Wetter wird aktualisiert.</p> : null}
+                {weatherDays.length ? <p className="guest-live-note">Live-Daten über Open-Meteo. Vor Aktivitäten am Wasser bitte am Reisetag erneut prüfen.</p> : null}
               </section>
             )}
 

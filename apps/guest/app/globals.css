@@ -739,6 +739,36 @@ a {
   display: none;
 }
 
+.guest-weather-range {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding-bottom: 0.1rem;
+  scrollbar-width: none;
+}
+
+.guest-weather-range::-webkit-scrollbar {
+  display: none;
+}
+
+.guest-weather-range button {
+  min-height: 2.35rem;
+  border: 1px solid rgba(25, 24, 23, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 252, 244, 0.72);
+  color: rgba(25, 24, 23, 0.68);
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 900;
+  padding: 0.55rem 0.82rem;
+}
+
+.guest-weather-range button.is-active {
+  border-color: transparent;
+  background: #191817;
+  color: #fffaf0;
+}
+
 .guest-horizontal-cards article,
 .guest-empty-state {
   border: 1px solid rgba(25, 24, 23, 0.1);
@@ -768,6 +798,13 @@ a {
   color: rgba(25, 24, 23, 0.64);
   font-size: 0.94rem;
   line-height: 1.43;
+}
+
+.guest-live-note {
+  margin: 0;
+  color: rgba(25, 24, 23, 0.58);
+  font-size: 0.88rem;
+  line-height: 1.38;
 }
 
 .guest-place-list article {
