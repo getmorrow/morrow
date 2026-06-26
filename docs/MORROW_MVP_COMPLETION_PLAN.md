@@ -118,7 +118,7 @@ Ziel: Morrow kann Nachfrage erzeugen und messen, ohne direkt zu ueberautomatisie
 | Ratgeberbereich | Vorhanden | Systematischer Ausbau mit Keyword-Clustern und interner Verlinkung | MVP-kritisch | Teilweise |
 | Keyword-Cluster | Dokument `SEO_GEO_KEYWORD_PLAN.md` vorhanden | SPO/Familienurlaub/Paar-Auszeit/Nordsee priorisieren, Artikelplan pflegen | MVP-kritisch | Teilweise |
 | Schema.org | Next-Web gibt strukturierte Daten fuer Organisation, Website, Auszeiten-Listen, Auszeit-Angebote, FAQ, Breadcrumbs, Ratgeber-Artikel, Eigentuemer- und Erlebnispartner-Service aus | Spaeter mit echten Review-/Availability-/LocalBusiness-Daten und Search Console Validierung erweitern | MVP-light | Teilweise |
-| Conversion-Tracking | Zentrale Web-Analytics-Komponente vorhanden; CTA-Klicks und Formular-Submits auf Auszeiten, Anfrage, Eigentuemer, Erlebnispartner und Ratgeber werden ueber `data-conversion` an GA/Meta gemeldet, wenn die Public IDs gesetzt sind und Consent erteilt wurde | Events live mit echten GA4-/Meta-Pixel-IDs und Test-Events pruefen | MVP-kritisch | Teilweise |
+| Conversion-Tracking | Zentrale Web-Analytics-Komponente vorhanden; CTA-Klicks und Formular-Submits auf Auszeiten, Anfrage, Eigentuemer, Erlebnispartner und Ratgeber werden ueber `data-conversion` an GA/Meta gemeldet, wenn die Public IDs gesetzt sind und Consent erteilt wurde; `npm run qa:production` prueft Formulare, Consent-Gate und optional Live-Testlead | Events live mit echten GA4-/Meta-Pixel-IDs und Test-Events pruefen | MVP-kritisch | Teilweise |
 | Meta/Google Ads messen | GA4/Meta-Pixel sind env-gesteuert vorbereitet; PageView und Custom-CTA-Events werden bei gesetzten IDs erst nach Consent ausgelöst | Pixel/Conversions/UTM in Production sauber testen und Zielereignisse in Meta/Google Ads anlegen | MVP-kritisch | Teilweise |
 | Landingpages pro Auszeit/Zielgruppe | Paketseiten vorhanden | Kampagnenspezifische Landingpages optional fuer Ads | MVP-light | Teilweise |
 | E-Mail-Nurturing | Nicht umgesetzt | Fuer MVP reicht manuelle Nachfassung plus Statusmails | MVP-light | Offen |
@@ -249,7 +249,7 @@ Weiter mit Production-Rehearsal und Launch-Gates:
 
 Definition of Done:
 
-- Echte Next-Web Anfrage mit UTM landet live in Supabase, loest Lead-Mail aus und zeigt Quelle/Kampagne im Admin.
+- Echte Next-Web Anfrage mit UTM landet live in Supabase, loest Lead-Mail aus und zeigt Quelle/Kampagne im Admin; Basischeck ueber `QA_BASE_URL=https://www.getmorrow.de npm run qa:production`.
 - Consent-Tracking wird mit echten GA4-/Meta-IDs getestet und Zielereignisse fuer Anfrage/Submit werden dokumentiert.
 - Impressum, Datenschutz, AGB, Buchungs-, Storno- und Zahlungsbedingungen sind mit echten Unternehmens- und Angebotsdaten juristisch final geprueft.
 - Supabase Service Role, Resend Key, GitHub PAT und Admin-/Testpasswoerter sind rotiert und nur noch in sicheren Umgebungen hinterlegt.

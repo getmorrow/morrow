@@ -1,6 +1,6 @@
 # Morrow Production Launch Checklist
 
-Stand: 2026-06-04
+Stand: 2026-06-26
 
 Ziel: Morrow sicher von lokalem MVP zu einer öffentlich erreichbaren Phase-1-Version bringen.
 
@@ -126,6 +126,35 @@ Vor öffentlichem Traffic:
 - Verantwortlichkeit bei Objektproblemen je Auszeit dokumentiert.
 
 ## 8. Production Rehearsal
+
+Automatisierter Basischeck:
+
+```bash
+QA_BASE_URL=https://www.getmorrow.de npm run qa:production
+```
+
+Dieser Check prüft:
+- öffentliche Kernseiten inklusive Rechteseiten
+- `robots.txt` und `sitemap.xml`
+- Leadformulare für Gäste, Eigentümer und Erlebnispartner
+- dass keine Mailto-Links mehr im Anfragefluss hängen
+- Consent-Verhalten, wenn GA/Meta-IDs gesetzt sind
+
+Optionaler echter Testlead:
+
+```bash
+MORROW_QA_SUBMIT_LEAD=1 QA_BASE_URL=https://www.getmorrow.de npm run qa:production
+```
+
+Mit Supabase-Verifikation:
+
+```bash
+MORROW_QA_SUBMIT_LEAD=1 \
+QA_BASE_URL=https://www.getmorrow.de \
+SUPABASE_URL=https://haifftleyussrokyafqq.supabase.co \
+SUPABASE_SERVICE_ROLE_KEY=<service-role-key> \
+npm run qa:production
+```
 
 Einmal vollständig testen:
 - echte Anfrage über `getmorrow.de`.

@@ -42,6 +42,7 @@
     "instagram:post": "node scripts/instagram-publisher.mjs post due",
     "instagram:insights": "node scripts/instagram-publisher.mjs insights",
     "qa:smoke": "node scripts/qa-smoke.mjs",
+    "qa:production": "node scripts/qa-production-rehearsal.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },
