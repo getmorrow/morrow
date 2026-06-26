@@ -211,6 +211,25 @@ function getPayloadBool(payload: Record<string, unknown>, keys: string[]) {
   return false;
 }
 
+function getPayloadLines(payload: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = payload[key];
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === "string").join("\n");
+    }
+    if (typeof value === "string" && value.trim()) return value;
+  }
+
+  return "";
+}
+
+function splitLines(value: string) {
+  return value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
 function numberOrNull(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -448,6 +467,7 @@ function monitoringItems(data: DashboardData) {
   });
 
   data.properties.forEach((item) => {
+    const propertyPayload = item.payload ?? {};
     if (!item.status || item.status === "draft") {
       items.push({
         id: `property-status-${item.id}`,
@@ -455,6 +475,33 @@ function monitoringItems(data: DashboardData) {
         title: item.name || item.id,
         description: "Objektdaten, Regeln, Check-in und Rechte prüfen.",
         severity: "medium",
+      });
+    }
+    if (!getPayloadText(propertyPayload, ["address"]) || !getPayloadText(propertyPayload, ["checkInInstructions"])) {
+      items.push({
+        id: `property-checkin-${item.id}`,
+        label: "Check-in",
+        title: item.name || item.id,
+        description: "Adresse und Check-in-Hinweise fehlen oder sind unvollständig.",
+        severity: "high",
+      });
+    }
+    if (splitLines(getPayloadLines(propertyPayload, ["houseRules"])).length < 2) {
+      items.push({
+        id: `property-rules-${item.id}`,
+        label: "Regeln",
+        title: item.name || item.id,
+        description: "Mindestens zwei Unterkunftsregeln pflegen.",
+        severity: "medium",
+      });
+    }
+    if (splitLines(getPayloadLines(propertyPayload, ["media"])).length === 0 || !item.image_rights_confirmed) {
+      items.push({
+        id: `property-media-${item.id}`,
+        label: "Medien",
+        title: item.name || item.id,
+        description: "Bilder und bestätigte Bildrechte ergänzen.",
+        severity: "high",
       });
     }
   });
@@ -751,6 +798,13 @@ function AdminDashboardView({
         check_in_type: "",
         support_type: "",
         support_name: "",
+        address: "",
+        earliest_arrival: "",
+        latest_arrival: "",
+        check_out_time: "",
+        check_in_instructions: "",
+        house_rules: "",
+        media: "",
         image_rights_confirmed: false,
       });
       return;
@@ -783,6 +837,13 @@ function AdminDashboardView({
         check_in_type: item.check_in_type || "",
         support_type: item.support_type || "",
         support_name: item.support_name || "",
+        address: getPayloadText(item.payload ?? {}, ["address"]) || "",
+        earliest_arrival: getPayloadText(item.payload ?? {}, ["earliestArrival"]) || "",
+        latest_arrival: getPayloadText(item.payload ?? {}, ["latestArrival"]) || "",
+        check_out_time: getPayloadText(item.payload ?? {}, ["checkOutTime"]) || "",
+        check_in_instructions: getPayloadText(item.payload ?? {}, ["checkInInstructions"]) || "",
+        house_rules: getPayloadLines(item.payload ?? {}, ["houseRules"]),
+        media: getPayloadLines(item.payload ?? {}, ["media"]),
         image_rights_confirmed: Boolean(item.image_rights_confirmed) || getPayloadBool(item.payload ?? {}, ["imageRightsConfirmed"]),
       } : {});
       return;
@@ -1528,6 +1589,13 @@ function AdminDashboardView({
       } else {
         const name = String(inventoryDraft.name || "").trim() || "Neue Unterkunft";
         const propertyPayload = {
+          address: String(inventoryDraft.address || "").trim(),
+          earliestArrival: String(inventoryDraft.earliest_arrival || "").trim(),
+          latestArrival: String(inventoryDraft.latest_arrival || "").trim(),
+          checkOutTime: String(inventoryDraft.check_out_time || "").trim(),
+          checkInInstructions: String(inventoryDraft.check_in_instructions || "").trim(),
+          houseRules: splitLines(String(inventoryDraft.house_rules || "")),
+          media: splitLines(String(inventoryDraft.media || "")),
           imageRightsConfirmed: Boolean(inventoryDraft.image_rights_confirmed),
           updatedAt: now,
         };
@@ -2657,6 +2725,79 @@ function AdminInventoryDrawer({
                   value={String(draft.support_name || "")}
                 />
               </label>
+            </div>
+          </section>
+        )}
+
+        {!isPackage ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Anreise und Aufenthalt</p>
+            <div className="admin-form-grid">
+              <label>
+                Adresse
+                <input
+                  onChange={(event) => onChange("address", event.target.value)}
+                  value={String(draft.address || "")}
+                />
+              </label>
+              <label>
+                Früheste Anreise
+                <input
+                  onChange={(event) => onChange("earliest_arrival", event.target.value)}
+                  placeholder="z. B. 15:00"
+                  value={String(draft.earliest_arrival || "")}
+                />
+              </label>
+              <label>
+                Späteste Anreise
+                <input
+                  onChange={(event) => onChange("latest_arrival", event.target.value)}
+                  placeholder="z. B. 18:00"
+                  value={String(draft.latest_arrival || "")}
+                />
+              </label>
+              <label>
+                Check-out
+                <input
+                  onChange={(event) => onChange("check_out_time", event.target.value)}
+                  placeholder="z. B. 10:00"
+                  value={String(draft.check_out_time || "")}
+                />
+              </label>
+              <label>
+                Check-in-Hinweise
+                <textarea
+                  onChange={(event) => onChange("check_in_instructions", event.target.value)}
+                  rows={4}
+                  value={String(draft.check_in_instructions || "")}
+                />
+              </label>
+            </div>
+          </section>
+        ) : null}
+
+        {!isPackage ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Regeln und Medien</p>
+            <div className="admin-form-grid">
+              <label>
+                Unterkunftsregeln
+                <textarea
+                  onChange={(event) => onChange("house_rules", event.target.value)}
+                  placeholder="Eine Regel pro Zeile"
+                  rows={5}
+                  value={String(draft.house_rules || "")}
+                />
+              </label>
+              <label>
+                Medien
+                <textarea
+                  onChange={(event) => onChange("media", event.target.value)}
+                  placeholder="Ein Bildpfad oder eine URL pro Zeile"
+                  rows={5}
+                  value={String(draft.media || "")}
+                />
+              </label>
               <label className="admin-checkbox-label">
                 <input
                   checked={Boolean(draft.image_rights_confirmed)}
@@ -2667,7 +2808,7 @@ function AdminInventoryDrawer({
               </label>
             </div>
           </section>
-        )}
+        ) : null}
 
         <section className="admin-drawer-section">
           <button className="admin-button" disabled={pending} onClick={onSave} type="button">

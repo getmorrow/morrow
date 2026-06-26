@@ -43,7 +43,7 @@ Ziel: Intern muss Morrow eine Auszeit wirklich anlegen, pflegen, buchen und vorb
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
 | Paket-Builder fuer neue Auszeiten | Admin-Auszeiten existieren, Supabase-Sync vorhanden, Prototyp-Builder fuer Titel, Copy, Termine, Preise, Zielgruppe, Unterkunft, Medien, Erlebnisbausteine, Empfehlungen, Momente, FAQ und Status ist umgesetzt; Next-Admin kann Auszeiten neu anlegen, Name, Status, Ort, Unterkunft, Preise und Termine/Verfuegbarkeiten bearbeiten sowie Termine neu anlegen | Builder im Next-Admin spaeter mit Medienbibliothek, Copy, Detailsektionen und staerkerer Normalisierung weiter ausbauen | MVP-kritisch | Erledigt fuer MVP |
-| Unterkunftsverwaltung | Objektprofile, Agenturen, Check-in-Typ, Support-Typ, Anreise/Abreise, Medien, Bildrechte, Ausstattung, Hausregeln, Schluesselinfos und Objekt-Support sind im Prototyp pflegbar; Next-Admin kann Unterkuenfte neu anlegen und Name, Status, Ort, Schlafplaetze, Zimmer, Check-in, Support und Bildrechte bearbeiten | Medienbibliothek, Alt-Texte, Regeln, Schluesselhinweise und staerkere Normalisierung im Next-Admin weiter ausbauen | MVP-kritisch | Erledigt fuer MVP |
+| Unterkunftsverwaltung | Objektprofile, Agenturen, Check-in-Typ, Support-Typ, Anreise/Abreise, Medien, Bildrechte, Ausstattung, Hausregeln, Schluesselinfos und Objekt-Support sind im Prototyp pflegbar; Next-Admin kann Unterkuenfte neu anlegen und Name, Status, Ort, Schlafplaetze, Zimmer, Check-in, Support, Adresse, Anreisefenster, Check-out, Check-in-Hinweise, Regeln, Medien und Bildrechte bearbeiten | Medienbibliothek, Alt-Texte, Ausstattung und staerkere Normalisierung im Next-Admin weiter ausbauen | MVP-kritisch | Erledigt fuer MVP |
 | Medienverwaltung | Bilder liegen als Assets/URLs, keine echte Medienbibliothek | Pro Unterkunft und Auszeit Medien mit Rechten, Alt-Text, Reihenfolge | MVP-kritisch | Offen |
 | Erlebnisbausteine | Erlebnisanbieter und Erlebnisbausteine existieren, Supabase-Sync vorhanden; Prototyp und Next-Admin koennen Anbieter, Auszeit-Zuordnung, Rolle, Inklusivstatus, Bestätigung, Preis-/Kapazitaets-/Verfuegbarkeitsnotiz und Gastnotiz pflegen; neue Erlebnisbausteine koennen direkt im Next-Admin angelegt werden | Spaeter staerker normalisieren, Anbieter-Verfuegbarkeiten separat pflegen und Medien/Verfuegbarkeitsregeln erweitern | MVP-kritisch | Erledigt fuer MVP |
 | Buchungen | Kunden/Buchungen in Supabase, Statuslogik, Gaestebereich-Code getestet | Buchungsstatus, Zahlung, Vorbereitung, Aufgaben und Gaestebereich noch staerker miteinander koppeln | MVP-kritisch | Teilweise |
@@ -153,12 +153,12 @@ Stand: 2026-06-25
 - Die Eigentuemer-App liest kuenftig eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - Die Migration muss noch remote in Supabase angewendet werden, sobald `SUPABASE_ACCESS_TOKEN` oder Datenbankpasswort lokal verfuegbar ist.
 - `apps/admin` und `apps/guest` sind noch nicht produktiv nach Next migriert; sie bleiben der naechste grosse Architekturblock.
-- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen, interne Notizen speichern, freie E-Mail-Antworten aus Anfrage/Buchung senden, erste Monitoringhinweise anzeigen sowie Auszeiten, Unterkuenfte, Termine und Erlebnisbausteine in Basisfeldern bearbeiten und neu anlegen.
+- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen, interne Notizen speichern, freie E-Mail-Antworten aus Anfrage/Buchung senden, Monitoringhinweise anzeigen sowie Auszeiten, Termine und Erlebnisbausteine bearbeiten/neu anlegen und Unterkuenfte inklusive operativer Anreise-/Regel-/Medienfelder pflegen.
 
 Naechste technische Prioritaet:
 
 1. Supabase Owner-Migration live anwenden und ersten echten Owner-Zugang testen.
-2. Admin-App weiter ausbauen: Kommunikationsvorlagen, Support-Antworten, Medien/Regeln, Detailsektionen und tieferes Monitoring migrieren.
+2. Admin-App weiter ausbauen: Kommunikationsvorlagen, Support-Antworten, Medienbibliothek, Ausstattung, Detailsektionen und tieferes Monitoring migrieren.
 3. Guest-App danach aus dem Prototyp in `apps/guest` migrieren.
 4. Erst danach Owner-App weiter vertiefen: Abrechnung, Dokumente, Operationsstatus und Eigentuemer-Kommunikation.
 
@@ -173,6 +173,7 @@ Naechste technische Prioritaet:
 2. Unterkunftsverwaltung erweitern: Medien, Rechte, Regeln, Check-in, Ausstattung.
    - Stand 2026-06-05: Objektprofile erweitert; Build, Smoke-Test und End-to-End-Test mit temporaerem Testobjekt bestanden.
    - Stand 2026-06-26: Next-Admin kann Unterkuenfte neu als Entwurf anlegen und Basis-/Check-in-/Supportdaten pflegen; Build und Typecheck bestanden.
+   - Stand 2026-06-26: Next-Admin kann Adresse, Anreisefenster, Check-out, Check-in-Hinweise, Regeln, Medienliste und Bildrechte pflegen; Monitoring weist fehlende Check-in-/Regel-/Medienangaben aus; Build, Typecheck und Lint bestanden.
 3. Erlebnisbausteine erweitern: Anbieter, Preis, Kapazitaet, Verfuegbarkeit.
    - Stand 2026-06-05: Erlebnis-Drawer und Erlebniskarten erweitert; Build, Smoke-Test und Speichern/Ruecksetzen-Test bestanden.
    - Stand 2026-06-26: Next-Admin kann Erlebnisbausteine neu anlegen und mit Auszeit/Anbieter verbinden; Build und Typecheck bestanden.
