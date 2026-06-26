@@ -324,6 +324,20 @@ function payloadList(payload: Record<string, unknown> | undefined, keys: string[
   return [];
 }
 
+function payloadImages(payload: Record<string, unknown> | undefined) {
+  if (!payload) return [];
+  for (const key of ["images", "gallery", "media"]) {
+    const value = payload[key];
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+    }
+    if (typeof value === "string" && value.trim()) {
+      return value.split(/\n|,/).map((item) => item.trim()).filter(Boolean);
+    }
+  }
+  return [];
+}
+
 function firstName(name: string) {
   return name.trim().split(/\s+/)[0] || "schön";
 }
@@ -405,9 +419,12 @@ function normalizeCategory(category: string): LocalFilter {
 
 function placeDescription(place: LocalPlace) {
   return (
-    place.address ||
-    payloadText(place.payload, ["description", "guestDescription", "routeNote", "morrowNote"], "Für eure Auszeit kuratiert.")
+    payloadText(place.payload, ["description", "guestDescription", "routeNote", "morrowNote"], place.address || "Für eure Auszeit kuratiert.")
   );
+}
+
+function placeDetailImage(place: LocalPlace, packageItem?: GuestPackage | null) {
+  return payloadText(place.payload, ["image"]) || payloadImages(place.payload)[0] || packageImage(packageItem);
 }
 
 function placeMeta(place: LocalPlace) {
@@ -451,6 +468,7 @@ export function GuestStayClient({
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [localFilter, setLocalFilter] = useState<LocalFilter>("all");
+  const [selectedPlace, setSelectedPlace] = useState<LocalPlace | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -553,6 +571,7 @@ export function GuestStayClient({
     ? localPlaces.slice(0, 10)
     : localPlaces.filter((place) => normalizeCategory(place.category) === localFilter).slice(0, 12);
   const selectedFilterLabel = localFilterLabels[localFilter];
+  const showPlaceResults = localFilter !== "weather" && localFilter !== "tide";
   const navItems: GuestView[] = completed
     ? ["home", "booking", "feedback", "again"]
     : ["home", "plan", "booking", "local", "help"];
@@ -801,7 +820,10 @@ export function GuestStayClient({
                   key={filter}
                   className={localFilter === filter ? "is-active" : ""}
                   type="button"
-                  onClick={() => setLocalFilter(filter)}
+                  onClick={() => {
+                    setLocalFilter(filter);
+                    setSelectedPlace(null);
+                  }}
                 >
                   {localFilterLabels[filter]}
                 </button>
@@ -844,45 +866,42 @@ export function GuestStayClient({
               </section>
             )}
 
-            <section className="guest-local-module">
-              <div className="guest-module-head">
-                <span>{selectedFilterLabel}</span>
-                <strong>{localFilter === "all" ? "Kuratierte Auswahl" : `${filteredLocalPlaces.length} passende Orte`}</strong>
-              </div>
-              {filteredLocalPlaces.length ? (
-                <div className="guest-place-list">
-                  {filteredLocalPlaces.map((place) => {
-                    const actions = placeActions(place);
-                    const bestFor = payloadList(place.payload, ["bestFor", "audiences"]).slice(0, 3);
+            {showPlaceResults ? (
+              <section className="guest-local-module">
+                <div className="guest-module-head">
+                  <span>{selectedFilterLabel}</span>
+                  <strong>{localFilter === "all" ? "Kuratierte Auswahl" : `${filteredLocalPlaces.length} passende Orte`}</strong>
+                </div>
+                {filteredLocalPlaces.length ? (
+                  <div className="guest-place-list">
+                    {filteredLocalPlaces.map((place) => {
+                      const bestFor = payloadList(place.payload, ["bestFor", "audiences"]).slice(0, 3);
 
-                    return (
-                      <article key={place.id}>
-                        <span>{placeMeta(place)}</span>
-                        <strong>{place.name}</strong>
-                        <p>{placeDescription(place)}</p>
-                        {bestFor.length ? (
-                          <div className="guest-place-tags">
-                            {bestFor.map((item) => <small key={item}>{item}</small>)}
-                          </div>
-                        ) : null}
-                        {actions.length ? (
-                          <div>
-                            {actions.map((action) => (
-                              <a key={action.label} href={action.href} target="_blank" rel="noreferrer">{action.label}</a>
-                            ))}
-                          </div>
-                        ) : null}
-                      </article>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="guest-empty-state">
-                  <strong>Noch keine freigegebenen Orte</strong>
-                  <p>Wenn diese Kategorie zur Auszeit passt, ergänzt Morrow hier bewusst kuratierte Empfehlungen.</p>
-                </div>
-              )}
-            </section>
+                      return (
+                        <article key={place.id}>
+                          <span>{placeMeta(place)}</span>
+                          <strong>{place.name}</strong>
+                          <p>{placeDescription(place)}</p>
+                          {bestFor.length ? (
+                            <div className="guest-place-tags">
+                              {bestFor.map((item) => <small key={item}>{item}</small>)}
+                            </div>
+                          ) : null}
+                          <button type="button" onClick={() => setSelectedPlace(place)}>
+                            Details ansehen
+                          </button>
+                        </article>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="guest-empty-state">
+                    <strong>Noch keine freigegebenen Orte</strong>
+                    <p>Wenn diese Kategorie zur Auszeit passt, ergänzt Morrow hier bewusst kuratierte Empfehlungen.</p>
+                  </div>
+                )}
+              </section>
+            ) : null}
           </section>
         )}
 
@@ -966,14 +985,73 @@ export function GuestStayClient({
         )}
       </div>
 
-      <nav className="guest-bottom-nav" aria-label="Gästebereich Navigation">
-        {navItems.map((item) => (
-          <button key={item} className={activeView === item ? "is-active" : ""} type="button" onClick={() => setActiveView(item)}>
-            <span>{viewIcons[item]}</span>
-            {viewLabels[item]}
-          </button>
-        ))}
-      </nav>
+      {selectedPlace ? (
+        <div className="guest-drawer-backdrop" onClick={() => setSelectedPlace(null)}>
+          <aside className="guest-detail-drawer" onClick={(event) => event.stopPropagation()} aria-label={`${selectedPlace.name} Details`}>
+            <span className="guest-drawer-handle" aria-hidden="true" />
+            <img alt="" src={placeDetailImage(selectedPlace, packageItem)} />
+            <div className="guest-drawer-content">
+              <p className="eyebrow">{categoryLabel(selectedPlace.category)}</p>
+              <h2>{selectedPlace.name}</h2>
+              <p>{placeDescription(selectedPlace)}</p>
+
+              <div className="guest-drawer-facts">
+                {selectedPlace.rating ? (
+                  <article>
+                    <span>Bewertung</span>
+                    <strong>{selectedPlace.rating.toFixed(1)}</strong>
+                  </article>
+                ) : null}
+                {payloadText(selectedPlace.payload, ["cuisine"]) ? (
+                  <article>
+                    <span>Küche</span>
+                    <strong>{payloadText(selectedPlace.payload, ["cuisine"])}</strong>
+                  </article>
+                ) : null}
+                {selectedPlace.address ? (
+                  <article>
+                    <span>Adresse</span>
+                    <strong>{selectedPlace.address}</strong>
+                  </article>
+                ) : null}
+              </div>
+
+              {payloadList(selectedPlace.payload, ["bestFor", "audiences"]).length ? (
+                <div className="guest-place-tags">
+                  {payloadList(selectedPlace.payload, ["bestFor", "audiences"]).slice(0, 5).map((item) => (
+                    <small key={item}>{item}</small>
+                  ))}
+                </div>
+              ) : null}
+
+              {placeActions(selectedPlace).length ? (
+                <div className="guest-drawer-actions">
+                  {placeActions(selectedPlace).map((action) => (
+                    <a key={action.label} href={action.href} target="_blank" rel="noreferrer">
+                      {action.label}
+                    </a>
+                  ))}
+                </div>
+              ) : null}
+
+              <button type="button" onClick={() => setSelectedPlace(null)}>
+                Zurück
+              </button>
+            </div>
+          </aside>
+        </div>
+      ) : null}
+
+      {!selectedPlace ? (
+        <nav className="guest-bottom-nav" aria-label="Gästebereich Navigation">
+          {navItems.map((item) => (
+            <button key={item} className={activeView === item ? "is-active" : ""} type="button" onClick={() => setActiveView(item)}>
+              <span>{viewIcons[item]}</span>
+              {viewLabels[item]}
+            </button>
+          ))}
+        </nav>
+      ) : null}
     </main>
   );
 }
