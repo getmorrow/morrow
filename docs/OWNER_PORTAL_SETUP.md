@@ -92,3 +92,36 @@ Die alten `VITE_...` Variablen bleiben nur fuer den Prototyp und einige lokale S
    - `owner_property_access.property_id` verweist auf bestehende `properties.id`
    - `packages.property_id` verweist auf dieselbe Immobilie
    - `package_dates.package_id` und `bookings.package_id` sind gesetzt
+
+## Automatischer Verifikationstest
+
+Der Owner-Zugang kann strukturell und optional mit einem echten Owner-Login geprueft werden:
+
+```bash
+export SUPABASE_URL="https://haifftleyussrokyafqq.supabase.co"
+export SUPABASE_SERVICE_ROLE_KEY="<service-role-key>"
+npm run supabase:verify-owner
+```
+
+Dieser Test prueft:
+
+- `owner_profiles`
+- `owner_property_access`
+- `properties`
+- `packages`
+- `package_dates`
+- `bookings`
+- `get_owner_dashboard()`
+
+Mit echtem Owner-Login:
+
+```bash
+export SUPABASE_URL="https://haifftleyussrokyafqq.supabase.co"
+export SUPABASE_SERVICE_ROLE_KEY="<service-role-key>"
+export SUPABASE_ANON_KEY="<anon-key>"
+export OWNER_EMAIL="eigentuemer@example.com"
+export OWNER_PASSWORD="<owner-password>"
+npm run supabase:verify-owner
+```
+
+Dann prueft der Test zusaetzlich, ob sich der Eigentuemer anmelden kann und ob `get_owner_dashboard()` fuer diesen Zugang eigene Objekte, Auszeiten, Termine und Buchungen liefert.
