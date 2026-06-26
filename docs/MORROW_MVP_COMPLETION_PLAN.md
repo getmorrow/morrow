@@ -42,8 +42,8 @@ Ziel: Intern muss Morrow eine Auszeit wirklich anlegen, pflegen, buchen und vorb
 
 | Thema | Haben Wir | Brauchen Wir | MVP-Klasse | Status |
 | --- | --- | --- | --- | --- |
-| Paket-Builder fuer neue Auszeiten | Admin-Auszeiten existieren, Supabase-Sync vorhanden, Builder fuer Titel, Copy, Termine, Preise, Zielgruppe, Unterkunft, Medien, Erlebnisbausteine, Empfehlungen, Momente, FAQ und Status ist umgesetzt und end-to-end getestet | Builder spaeter mit Medienbibliothek und stärkerer Normalisierung weiter ausbauen | MVP-kritisch | Erledigt fuer MVP |
-| Unterkunftsverwaltung | Objektprofile, Agenturen, Check-in-Typ, Support-Typ, Anreise/Abreise, Medien, Bildrechte, Ausstattung, Hausregeln, Schluesselinfos und Objekt-Support sind pflegbar und end-to-end getestet | Medienbibliothek, Alt-Texte und staerkere Normalisierung spaeter ausbauen | MVP-kritisch | Erledigt fuer MVP |
+| Paket-Builder fuer neue Auszeiten | Admin-Auszeiten existieren, Supabase-Sync vorhanden, Prototyp-Builder fuer Titel, Copy, Termine, Preise, Zielgruppe, Unterkunft, Medien, Erlebnisbausteine, Empfehlungen, Momente, FAQ und Status ist umgesetzt; Next-Admin kann Name, Status, Ort, Unterkunft und Preise bearbeiten | Builder im Next-Admin spaeter mit Medienbibliothek, Terminen, Copy, Erlebnisbausteinen und staerkerer Normalisierung weiter ausbauen | MVP-kritisch | Erledigt fuer MVP |
+| Unterkunftsverwaltung | Objektprofile, Agenturen, Check-in-Typ, Support-Typ, Anreise/Abreise, Medien, Bildrechte, Ausstattung, Hausregeln, Schluesselinfos und Objekt-Support sind im Prototyp pflegbar; Next-Admin kann Name, Status, Ort, Schlafplaetze, Zimmer, Check-in, Support und Bildrechte bearbeiten | Medienbibliothek, Alt-Texte, Regeln, Schluesselhinweise und staerkere Normalisierung im Next-Admin weiter ausbauen | MVP-kritisch | Erledigt fuer MVP |
 | Medienverwaltung | Bilder liegen als Assets/URLs, keine echte Medienbibliothek | Pro Unterkunft und Auszeit Medien mit Rechten, Alt-Text, Reihenfolge | MVP-kritisch | Offen |
 | Erlebnisbausteine | Erlebnisanbieter und Erlebnisbausteine existieren, Supabase-Sync vorhanden; Preis, Kapazitaet, Verfuegbarkeit, Anbieter, Rolle, Bestätigung und Gastnotiz sind im Admin pflegbar und getestet | Spaeter staerker normalisieren und Anbieter-Verfuegbarkeiten separat pflegen | MVP-kritisch | Erledigt fuer MVP |
 | Buchungen | Kunden/Buchungen in Supabase, Statuslogik, Gaestebereich-Code getestet | Buchungsstatus, Zahlung, Vorbereitung, Aufgaben und Gaestebereich noch staerker miteinander koppeln | MVP-kritisch | Teilweise |
@@ -153,12 +153,12 @@ Stand: 2026-06-25
 - Die Eigentuemer-App liest kuenftig eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - Die Migration muss noch remote in Supabase angewendet werden, sobald `SUPABASE_ACCESS_TOKEN` oder Datenbankpasswort lokal verfuegbar ist.
 - `apps/admin` und `apps/guest` sind noch nicht produktiv nach Next migriert; sie bleiben der naechste grosse Architekturblock.
-- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen und erste Monitoringhinweise anzeigen.
+- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen, erste Monitoringhinweise anzeigen sowie Auszeiten und Unterkuenfte in Basisfeldern bearbeiten.
 
 Naechste technische Prioritaet:
 
 1. Supabase Owner-Migration live anwenden und ersten echten Owner-Zugang testen.
-2. Admin-App weiter ausbauen: Kommunikationsaktionen aus Anfrage/Buchung heraus, Paket-/Objekt-/Erlebnisbearbeitung und tieferes Monitoring migrieren.
+2. Admin-App weiter ausbauen: Kommunikationsaktionen aus Anfrage/Buchung heraus, Erlebnisbearbeitung, Termine, Medien/Regeln und tieferes Monitoring migrieren.
 3. Guest-App danach aus dem Prototyp in `apps/guest` migrieren.
 4. Erst danach Owner-App weiter vertiefen: Abrechnung, Dokumente, Operationsstatus und Eigentuemer-Kommunikation.
 

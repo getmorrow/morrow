@@ -38,6 +38,17 @@ type SimpleRow = {
   status?: string;
   location?: string;
   payload?: Record<string, unknown>;
+  audience?: string;
+  property_id?: string | null;
+  price_from?: string | null;
+  concrete_price?: string | null;
+  sleeps?: number | null;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  check_in_type?: string | null;
+  support_type?: string | null;
+  support_name?: string | null;
+  image_rights_confirmed?: boolean | null;
 };
 
 type AdminTaskRow = {
@@ -100,6 +111,13 @@ type DetailSelection =
   | { type: "support"; id: string }
   | null;
 
+type InventorySelection =
+  | { type: "package"; id: string }
+  | { type: "property"; id: string }
+  | null;
+
+type InventoryDraft = Record<string, string | boolean>;
+
 const leadQuickStatuses = ["In Prüfung", "Kontaktiert", "Kein Interesse"] as const;
 const bookingStatuses = ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen", "Storniert"] as const;
 const supportStatuses = ["open", "in_progress", "closed"] as const;
@@ -118,6 +136,22 @@ function getPayloadText(payload: Record<string, unknown>, keys: string[]) {
   }
 
   return null;
+}
+
+function getPayloadBool(payload: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = payload[key];
+    if (typeof value === "boolean") return value;
+  }
+
+  return false;
+}
+
+function numberOrNull(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function formatDate(value: string) {
@@ -353,8 +387,14 @@ export function AdminDashboardClient() {
               .select("id,status,payment_status,created_at,payload")
               .order("created_at", { ascending: false })
               .limit(30),
-            supabase.from("packages").select("id,name,slug,status,location,payload").order("name"),
-            supabase.from("properties").select("id,name,status,location,payload").order("name"),
+            supabase
+              .from("packages")
+              .select("id,name,slug,audience,location,status,property_id,price_from,concrete_price,payload")
+              .order("name"),
+            supabase
+              .from("properties")
+              .select("id,name,location,sleeps,bedrooms,bathrooms,check_in_type,support_type,support_name,image_rights_confirmed,status,payload")
+              .order("name"),
             supabase
               .from("admin_tasks")
               .select("id,title,reference_type,reference_id,reference_label,due_at,status,priority,note,payload,created_at")
@@ -459,6 +499,9 @@ function AdminDashboardView({
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [selection, setSelection] = useState<DetailSelection>(null);
+  const [inventorySelection, setInventorySelection] = useState<InventorySelection>(null);
+  const [inventoryDraft, setInventoryDraft] = useState<InventoryDraft>({});
+  const [inventoryMessage, setInventoryMessage] = useState<string | null>(null);
   const [communicationEvents, setCommunicationEvents] = useState<CommunicationEventRow[]>([]);
   const [drawerNote, setDrawerNote] = useState("");
   const [drawerMessage, setDrawerMessage] = useState<string | null>(null);
@@ -480,6 +523,50 @@ function AdminDashboardView({
   const selectedSupport = selection?.type === "support"
     ? data.supportMessages.find((support) => support.id === selection.id) ?? null
     : null;
+  const selectedPackage = inventorySelection?.type === "package"
+    ? data.packages.find((item) => item.id === inventorySelection.id) ?? null
+    : null;
+  const selectedProperty = inventorySelection?.type === "property"
+    ? data.properties.find((item) => item.id === inventorySelection.id) ?? null
+    : null;
+
+  useEffect(() => {
+    setInventoryMessage(null);
+
+    if (inventorySelection?.type === "package") {
+      const item = data.packages.find((packageItem) => packageItem.id === inventorySelection.id);
+      setInventoryDraft(item ? {
+        name: item.name || "",
+        slug: item.slug || "",
+        status: item.status || "draft",
+        audience: item.audience || "",
+        location: item.location || "",
+        property_id: item.property_id || "",
+        price_from: item.price_from || "",
+        concrete_price: item.concrete_price || "",
+      } : {});
+      return;
+    }
+
+    if (inventorySelection?.type === "property") {
+      const item = data.properties.find((property) => property.id === inventorySelection.id);
+      setInventoryDraft(item ? {
+        name: item.name || "",
+        status: item.status || "draft",
+        location: item.location || "",
+        sleeps: item.sleeps?.toString() || "",
+        bedrooms: item.bedrooms?.toString() || "",
+        bathrooms: item.bathrooms?.toString() || "",
+        check_in_type: item.check_in_type || "",
+        support_type: item.support_type || "",
+        support_name: item.support_name || "",
+        image_rights_confirmed: Boolean(item.image_rights_confirmed) || getPayloadBool(item.payload ?? {}, ["imageRightsConfirmed"]),
+      } : {});
+      return;
+    }
+
+    setInventoryDraft({});
+  }, [inventorySelection, data.packages, data.properties]);
 
   useEffect(() => {
     if (!selection) {
@@ -958,6 +1045,110 @@ function AdminDashboardView({
     }
   }
 
+  async function saveInventory() {
+    if (!inventorySelection) return;
+
+    const actionKey = `inventory-${inventorySelection.type}-${inventorySelection.id}`;
+    setPendingAction(actionKey);
+    setInventoryMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const now = new Date().toISOString();
+
+      if (inventorySelection.type === "package") {
+        const currentItem = data.packages.find((item) => item.id === inventorySelection.id);
+        if (!currentItem) throw new Error("Missing package");
+
+        const payload = {
+          ...(currentItem.payload ?? {}),
+          updatedAt: now,
+        };
+        const updatePayload = {
+          name: String(inventoryDraft.name || "").trim(),
+          status: String(inventoryDraft.status || "draft").trim(),
+          location: String(inventoryDraft.location || "").trim(),
+          property_id: String(inventoryDraft.property_id || "").trim() || null,
+          price_from: String(inventoryDraft.price_from || "").trim() || null,
+          concrete_price: String(inventoryDraft.concrete_price || "").trim() || null,
+          payload,
+          updated_at: now,
+        };
+        const { error } = await supabase
+          .from("packages")
+          .update(updatePayload)
+          .eq("id", inventorySelection.id);
+
+        if (error) throw error;
+
+        setDataState((current) => ({
+          ...current,
+          packages: current.packages.map((item) =>
+            item.id === inventorySelection.id ? { ...item, ...updatePayload } : item,
+          ),
+        }));
+
+        await writeAuditLog({
+          action: "package_updated",
+          entityType: "package",
+          entityId: inventorySelection.id,
+          entityLabel: currentItem.name || inventorySelection.id,
+          payload: updatePayload,
+        });
+      } else {
+        const currentItem = data.properties.find((item) => item.id === inventorySelection.id);
+        if (!currentItem) throw new Error("Missing property");
+
+        const payload = {
+          ...(currentItem.payload ?? {}),
+          imageRightsConfirmed: Boolean(inventoryDraft.image_rights_confirmed),
+          updatedAt: now,
+        };
+        const updatePayload = {
+          name: String(inventoryDraft.name || "").trim(),
+          status: String(inventoryDraft.status || "draft").trim(),
+          location: String(inventoryDraft.location || "").trim(),
+          sleeps: numberOrNull(String(inventoryDraft.sleeps || "")),
+          bedrooms: numberOrNull(String(inventoryDraft.bedrooms || "")),
+          bathrooms: numberOrNull(String(inventoryDraft.bathrooms || "")),
+          check_in_type: String(inventoryDraft.check_in_type || "").trim() || null,
+          support_type: String(inventoryDraft.support_type || "").trim() || null,
+          support_name: String(inventoryDraft.support_name || "").trim() || null,
+          image_rights_confirmed: Boolean(inventoryDraft.image_rights_confirmed),
+          payload,
+          updated_at: now,
+        };
+        const { error } = await supabase
+          .from("properties")
+          .update(updatePayload)
+          .eq("id", inventorySelection.id);
+
+        if (error) throw error;
+
+        setDataState((current) => ({
+          ...current,
+          properties: current.properties.map((item) =>
+            item.id === inventorySelection.id ? { ...item, ...updatePayload } : item,
+          ),
+        }));
+
+        await writeAuditLog({
+          action: "property_updated",
+          entityType: "property",
+          entityId: inventorySelection.id,
+          entityLabel: currentItem.name || inventorySelection.id,
+          payload: updatePayload,
+        });
+      }
+
+      setInventoryMessage("Gespeichert.");
+    } catch {
+      setInventoryMessage("Die Daten konnten nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
   return (
     <main className="admin-shell admin-dashboard">
       <header className="admin-header">
@@ -1197,10 +1388,22 @@ function AdminDashboardView({
           <h2>Angebote im System</h2>
           <div className="admin-list">
             {data.packages.map((packageItem) => (
-              <span key={packageItem.id}>
-                <strong>{packageItem.name || packageItem.id}</strong>
-                <em>{packageItem.status || "ohne Status"}</em>
-              </span>
+              <article className="admin-list-item" key={packageItem.id}>
+                <div>
+                  <strong>{packageItem.name || packageItem.id}</strong>
+                  <em>
+                    {packageItem.status || "ohne Status"} · {packageItem.location || "Ort offen"}
+                  </em>
+                </div>
+                <div className="admin-row-actions">
+                  <button
+                    onClick={() => setInventorySelection({ type: "package", id: packageItem.id })}
+                    type="button"
+                  >
+                    Bearbeiten
+                  </button>
+                </div>
+              </article>
             ))}
           </div>
         </article>
@@ -1210,10 +1413,22 @@ function AdminDashboardView({
           <h2>Unterkünfte und Bestand</h2>
           <div className="admin-list">
             {data.properties.map((property) => (
-              <span key={property.id}>
-                <strong>{property.name || property.id}</strong>
-                <em>{property.status || "ohne Status"}</em>
-              </span>
+              <article className="admin-list-item" key={property.id}>
+                <div>
+                  <strong>{property.name || property.id}</strong>
+                  <em>
+                    {property.status || "ohne Status"} · {property.location || "Ort offen"}
+                  </em>
+                </div>
+                <div className="admin-row-actions">
+                  <button
+                    onClick={() => setInventorySelection({ type: "property", id: property.id })}
+                    type="button"
+                  >
+                    Bearbeiten
+                  </button>
+                </div>
+              </article>
             ))}
           </div>
         </article>
@@ -1230,6 +1445,17 @@ function AdminDashboardView({
         onSaveNote={saveDrawerNote}
         pending={Boolean(pendingAction?.startsWith("drawer-note"))}
         support={selectedSupport}
+      />
+      <AdminInventoryDrawer
+        draft={inventoryDraft}
+        message={inventoryMessage}
+        onChange={(key, value) => setInventoryDraft((current) => ({ ...current, [key]: value }))}
+        onClose={() => setInventorySelection(null)}
+        onSave={saveInventory}
+        pending={Boolean(pendingAction?.startsWith("inventory"))}
+        properties={data.properties}
+        property={selectedProperty}
+        packageItem={selectedPackage}
       />
     </main>
   );
@@ -1366,6 +1592,201 @@ function AdminDetailDrawer({
               <p className="admin-drawer-message">Noch keine Historie vorhanden.</p>
             )}
           </div>
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+function AdminInventoryDrawer({
+  draft,
+  message,
+  onChange,
+  onClose,
+  onSave,
+  packageItem,
+  pending,
+  properties,
+  property,
+}: {
+  draft: InventoryDraft;
+  message: string | null;
+  onChange: (key: string, value: string | boolean) => void;
+  onClose: () => void;
+  onSave: () => void;
+  packageItem: SimpleRow | null;
+  pending: boolean;
+  properties: SimpleRow[];
+  property: SimpleRow | null;
+}) {
+  if (!packageItem && !property) return null;
+
+  const isPackage = Boolean(packageItem);
+  const title = isPackage ? packageItem?.name || "Auszeit bearbeiten" : property?.name || "Unterkunft bearbeiten";
+
+  return (
+    <div className="admin-drawer-layer" role="presentation">
+      <button className="admin-drawer-backdrop" onClick={onClose} type="button" />
+      <aside className="admin-drawer" aria-label="Bestand bearbeiten">
+        <header>
+          <div>
+            <p className="admin-eyebrow">{isPackage ? "Auszeit" : "Unterkunft"}</p>
+            <h2>{title}</h2>
+            <span>{isPackage ? packageItem?.id : property?.id}</span>
+          </div>
+          <button aria-label="Bearbeitung schließen" onClick={onClose} type="button">
+            Schließen
+          </button>
+        </header>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Basisdaten</p>
+          <div className="admin-form-grid">
+            <label>
+              Name
+              <input
+                onChange={(event) => onChange("name", event.target.value)}
+                value={String(draft.name || "")}
+              />
+            </label>
+            <label>
+              Status
+              <select
+                onChange={(event) => onChange("status", event.target.value)}
+                value={String(draft.status || "draft")}
+              >
+                <option value="draft">Entwurf</option>
+                <option value="review">Prüfen</option>
+                <option value="published">Veröffentlicht</option>
+                <option value="paused">Pausiert</option>
+              </select>
+            </label>
+            <label>
+              Ort
+              <input
+                onChange={(event) => onChange("location", event.target.value)}
+                value={String(draft.location || "")}
+              />
+            </label>
+            {isPackage ? (
+              <>
+                <label>
+                  Slug
+                  <input readOnly value={String(draft.slug || "")} />
+                </label>
+                <label>
+                  Zielgruppe
+                  <input readOnly value={String(draft.audience || "")} />
+                </label>
+                <label>
+                  Unterkunft
+                  <select
+                    onChange={(event) => onChange("property_id", event.target.value)}
+                    value={String(draft.property_id || "")}
+                  >
+                    <option value="">Nicht verbunden</option>
+                    {properties.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name || item.id}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            ) : null}
+          </div>
+        </section>
+
+        {isPackage ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Preis und Verbindung</p>
+            <div className="admin-form-grid">
+              <label>
+                Preis ab
+                <input
+                  onChange={(event) => onChange("price_from", event.target.value)}
+                  placeholder="z. B. ab 1.190 €"
+                  value={String(draft.price_from || "")}
+                />
+              </label>
+              <label>
+                Konkreter Preis
+                <input
+                  onChange={(event) => onChange("concrete_price", event.target.value)}
+                  placeholder="z. B. 1.190 €"
+                  value={String(draft.concrete_price || "")}
+                />
+              </label>
+            </div>
+          </section>
+        ) : (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Unterkunftsdaten</p>
+            <div className="admin-form-grid">
+              <label>
+                Schlafplätze
+                <input
+                  inputMode="numeric"
+                  onChange={(event) => onChange("sleeps", event.target.value)}
+                  value={String(draft.sleeps || "")}
+                />
+              </label>
+              <label>
+                Schlafzimmer
+                <input
+                  inputMode="numeric"
+                  onChange={(event) => onChange("bedrooms", event.target.value)}
+                  value={String(draft.bedrooms || "")}
+                />
+              </label>
+              <label>
+                Badezimmer
+                <input
+                  inputMode="numeric"
+                  onChange={(event) => onChange("bathrooms", event.target.value)}
+                  value={String(draft.bathrooms || "")}
+                />
+              </label>
+              <label>
+                Check-in-Art
+                <input
+                  onChange={(event) => onChange("check_in_type", event.target.value)}
+                  placeholder="z. B. Schlüsselbox"
+                  value={String(draft.check_in_type || "")}
+                />
+              </label>
+              <label>
+                Support-Typ
+                <input
+                  onChange={(event) => onChange("support_type", event.target.value)}
+                  placeholder="morrow, agentur, hotel"
+                  value={String(draft.support_type || "")}
+                />
+              </label>
+              <label>
+                Support-Name
+                <input
+                  onChange={(event) => onChange("support_name", event.target.value)}
+                  value={String(draft.support_name || "")}
+                />
+              </label>
+              <label className="admin-checkbox-label">
+                <input
+                  checked={Boolean(draft.image_rights_confirmed)}
+                  onChange={(event) => onChange("image_rights_confirmed", event.target.checked)}
+                  type="checkbox"
+                />
+                Bildrechte bestätigt
+              </label>
+            </div>
+          </section>
+        )}
+
+        <section className="admin-drawer-section">
+          <button className="admin-button" disabled={pending} onClick={onSave} type="button">
+            {pending ? "Speichern" : "Speichern"}
+          </button>
+          {message ? <p className="admin-drawer-message">{message}</p> : null}
         </section>
       </aside>
     </div>

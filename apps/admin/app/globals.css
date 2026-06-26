@@ -462,6 +462,50 @@ input {
   resize: vertical;
 }
 
+.admin-form-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-form-grid label {
+  color: rgba(24, 23, 21, 0.62);
+  display: grid;
+  font-size: 12px;
+  font-weight: 840;
+  gap: 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-form-grid input,
+.admin-form-grid select {
+  background: rgba(236, 230, 214, 0.38);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--offblack);
+  font: inherit;
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+.admin-form-grid input[readonly] {
+  color: rgba(24, 23, 21, 0.48);
+}
+
+.admin-checkbox-label {
+  align-items: center;
+  display: flex !important;
+  flex-direction: row;
+  gap: 10px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.admin-checkbox-label input {
+  min-height: 0;
+  width: 18px;
+}
+
 .admin-drawer-note-card {
   background: rgba(236, 230, 214, 0.48);
   border-radius: 8px;
