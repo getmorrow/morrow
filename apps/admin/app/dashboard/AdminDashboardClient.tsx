@@ -36,6 +36,22 @@ type SimpleRow = {
   name?: string;
   slug?: string;
   status?: string;
+  location?: string;
+  payload?: Record<string, unknown>;
+};
+
+type AdminTaskRow = {
+  id: string;
+  title: string;
+  reference_type: string;
+  reference_id: string;
+  reference_label: string | null;
+  due_at: string | null;
+  status: string;
+  priority: string;
+  note: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
 };
 
 type SupportRow = {
@@ -69,6 +85,7 @@ type DashboardData = {
   bookings: BookingRow[];
   packages: SimpleRow[];
   properties: SimpleRow[];
+  tasks: AdminTaskRow[];
   supportMessages: SupportRow[];
 };
 
@@ -86,6 +103,7 @@ type DetailSelection =
 const leadQuickStatuses = ["In Prüfung", "Kontaktiert", "Kein Interesse"] as const;
 const bookingStatuses = ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen", "Storniert"] as const;
 const supportStatuses = ["open", "in_progress", "closed"] as const;
+const taskStatuses = ["open", "in_progress", "done"] as const;
 
 function paymentStatusForBooking(status: string) {
   return ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen"].includes(status)
@@ -111,6 +129,19 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function formatShortDate(value: string | null) {
+  if (!value) return "ohne Datum";
+
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+  }).format(new Date(value));
+}
+
+function todayIsoDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function supportStatusLabel(status: string) {
   const labels: Record<string, string> = {
     open: "Offen",
@@ -131,6 +162,42 @@ function supportUrgencyLabel(urgency: string | null) {
   };
 
   return urgency ? labels[urgency] || urgency : "Normal";
+}
+
+function taskStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    open: "Offen",
+    in_progress: "In Arbeit",
+    done: "Erledigt",
+  };
+
+  return labels[status] || status;
+}
+
+function taskPriorityLabel(priority: string) {
+  const labels: Record<string, string> = {
+    low: "Niedrig",
+    medium: "Mittel",
+    high: "Hoch",
+  };
+
+  return labels[priority] || priority;
+}
+
+function taskReferenceLabel(type: string) {
+  const labels: Record<string, string> = {
+    lead: "Anfrage",
+    booking: "Buchung",
+    package: "Auszeit",
+    property: "Unterkunft",
+    owner: "Eigentümer",
+    experience: "Erlebnis",
+    experienceProvider: "Erlebnisanbieter",
+    localPlace: "Vor Ort",
+    support: "Support",
+  };
+
+  return labels[type] || type;
 }
 
 function getOpenLeads(leads: LeadRow[]) {
@@ -178,6 +245,77 @@ function getInternalNote(payload: Record<string, unknown>) {
   return getPayloadText(payload, ["internalNote", "note", "notes"]) || "";
 }
 
+function taskTimingLabel(task: AdminTaskRow) {
+  if (task.status === "done") return "erledigt";
+  if (!task.due_at) return "ohne Datum";
+  if (task.due_at < todayIsoDate()) return "überfällig";
+  if (task.due_at === todayIsoDate()) return "heute";
+  return formatShortDate(task.due_at);
+}
+
+function monitoringItems(data: DashboardData) {
+  const items: Array<{
+    id: string;
+    label: string;
+    title: string;
+    description: string;
+    severity: "high" | "medium" | "low";
+  }> = [];
+
+  data.packages.forEach((item) => {
+    if (!item.status || item.status === "draft") {
+      items.push({
+        id: `package-status-${item.id}`,
+        label: "Auszeit",
+        title: item.name || item.id,
+        description: "Status, Veröffentlichung und Gastansicht prüfen.",
+        severity: "medium",
+      });
+    }
+  });
+
+  data.properties.forEach((item) => {
+    if (!item.status || item.status === "draft") {
+      items.push({
+        id: `property-status-${item.id}`,
+        label: "Unterkunft",
+        title: item.name || item.id,
+        description: "Objektdaten, Regeln, Check-in und Rechte prüfen.",
+        severity: "medium",
+      });
+    }
+  });
+
+  data.bookings.forEach((booking) => {
+    if (booking.status === "Reserviert" || booking.payment_status !== "bezahlt") {
+      items.push({
+        id: `booking-payment-${booking.id}`,
+        label: "Buchung",
+        title: getBookingLabel(booking),
+        description: "Zahlung, Bestätigung und Gästebereich-Freigabe prüfen.",
+        severity: "high",
+      });
+    }
+  });
+
+  data.supportMessages
+    .filter((support) => support.status !== "closed")
+    .forEach((support) => {
+      items.push({
+        id: `support-${support.id}`,
+        label: "Support",
+        title: getSupportContactLabel(support),
+        description: `${getSupportLabel(support)} · ${supportUrgencyLabel(support.urgency)}`,
+        severity: support.urgency === "high" || support.urgency === "urgent" ? "high" : "medium",
+      });
+    });
+
+  return items.sort((a, b) => {
+    const weight = { high: 0, medium: 1, low: 2 };
+    return weight[a.severity] - weight[b.severity] || a.title.localeCompare(b.title);
+  });
+}
+
 export function AdminDashboardClient() {
   const router = useRouter();
   const [state, setState] = useState<LoadState>({ status: "loading" });
@@ -203,7 +341,7 @@ export function AdminDashboardClient() {
           return;
         }
 
-        const [leadsResult, bookingsResult, packagesResult, propertiesResult, supportResult] =
+        const [leadsResult, bookingsResult, packagesResult, propertiesResult, tasksResult, supportResult] =
           await Promise.all([
             supabase
               .from("leads")
@@ -215,8 +353,14 @@ export function AdminDashboardClient() {
               .select("id,status,payment_status,created_at,payload")
               .order("created_at", { ascending: false })
               .limit(30),
-            supabase.from("packages").select("id,name,slug,status").order("name"),
-            supabase.from("properties").select("id,name,status").order("name"),
+            supabase.from("packages").select("id,name,slug,status,location,payload").order("name"),
+            supabase.from("properties").select("id,name,status,location,payload").order("name"),
+            supabase
+              .from("admin_tasks")
+              .select("id,title,reference_type,reference_id,reference_label,due_at,status,priority,note,payload,created_at")
+              .order("due_at", { ascending: true, nullsFirst: false })
+              .order("created_at", { ascending: false })
+              .limit(40),
             supabase
               .from("support_messages")
               .select("id,lead_id,category,message,status,urgency,created_at,payload")
@@ -231,6 +375,7 @@ export function AdminDashboardClient() {
           bookingsResult.error ||
           packagesResult.error ||
           propertiesResult.error ||
+          tasksResult.error ||
           supportResult.error;
 
         if (firstError) {
@@ -249,6 +394,7 @@ export function AdminDashboardClient() {
             bookings: (bookingsResult.data ?? []) as BookingRow[],
             packages: (packagesResult.data ?? []) as SimpleRow[],
             properties: (propertiesResult.data ?? []) as SimpleRow[],
+            tasks: (tasksResult.data ?? []) as AdminTaskRow[],
             supportMessages: (supportResult.data ?? []) as SupportRow[],
           },
         });
@@ -321,6 +467,9 @@ function AdminDashboardView({
   const openLeads = useMemo(() => getOpenLeads(data.leads), [data.leads]);
   const paidBookings = data.bookings.filter((booking) => booking.payment_status === "bezahlt");
   const openSupport = data.supportMessages.filter((message) => message.status !== "closed");
+  const activeTasks = data.tasks.filter((task) => task.status !== "done");
+  const dueTasks = activeTasks.filter((task) => task.due_at && task.due_at <= todayIsoDate());
+  const monitoring = monitoringItems(data);
   const displayName = data.profile.name || data.profile.email;
   const selectedLead = selection?.type === "lead"
     ? data.leads.find((lead) => lead.id === selection.id) ?? null
@@ -763,6 +912,52 @@ function AdminDashboardView({
     }
   }
 
+  async function updateTaskStatus(task: AdminTaskRow, status: string) {
+    const actionKey = `task-${task.id}-${status}`;
+    setPendingAction(actionKey);
+    setActionMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const payload = {
+        ...task.payload,
+        status,
+        updatedAt: new Date().toISOString(),
+      };
+      const { error } = await supabase
+        .from("admin_tasks")
+        .update({
+          status,
+          payload,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", task.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        tasks: current.tasks.map((item) =>
+          item.id === task.id ? { ...item, status, payload } : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "task_status_updated",
+        entityType: "admin_task",
+        entityId: task.id,
+        entityLabel: task.title,
+        payload: { from: task.status, to: status },
+      });
+
+      setActionMessage("Aufgabe aktualisiert.");
+    } catch {
+      setActionMessage("Die Aufgabe konnte nicht aktualisiert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
   return (
     <main className="admin-shell admin-dashboard">
       <header className="admin-header">
@@ -772,6 +967,7 @@ function AdminDashboardView({
         <nav aria-label="Admin Navigation">
           <a href="#anfragen">Anfragen</a>
           <a href="#buchungen">Buchungen</a>
+          <a href="#aufgaben">Aufgaben</a>
           <a href="#support">Support</a>
           <a href="#bestand">Bestand</a>
           <button onClick={onLogout} type="button">
@@ -802,14 +998,70 @@ function AdminDashboardView({
           <p>{paidBookings.length} bezahlt markiert</p>
         </article>
         <article>
-          <span>Auszeiten</span>
-          <strong>{data.packages.length}</strong>
-          <p>in Supabase</p>
+          <span>Heute fällig</span>
+          <strong>{dueTasks.length}</strong>
+          <p>{activeTasks.length} aktive Aufgaben</p>
         </article>
         <article>
-          <span>Support</span>
-          <strong>{openSupport.length}</strong>
-          <p>offene Fälle</p>
+          <span>Monitoring</span>
+          <strong>{monitoring.length}</strong>
+          <p>{openSupport.length} offene Supportfälle</p>
+        </article>
+      </section>
+
+      <section className="admin-grid" id="aufgaben">
+        <article className="admin-card">
+          <p className="admin-eyebrow">Aufgaben</p>
+          <h2>Heute im Blick</h2>
+          <div className="admin-list">
+            {(dueTasks.length ? dueTasks : activeTasks.slice(0, 6)).map((task) => (
+              <article className="admin-list-item" key={task.id}>
+                <div>
+                  <small>
+                    {taskTimingLabel(task)} · {taskPriorityLabel(task.priority)}
+                  </small>
+                  <strong>{task.title}</strong>
+                  <em>
+                    {taskReferenceLabel(task.reference_type)} · {task.reference_label || task.reference_id}
+                  </em>
+                </div>
+                <div className="admin-row-actions">
+                  {taskStatuses.map((status) => (
+                    <button
+                      disabled={pendingAction === `task-${task.id}-${status}`}
+                      key={status}
+                      onClick={() => updateTaskStatus(task, status)}
+                      type="button"
+                    >
+                      {taskStatusLabel(status)}
+                    </button>
+                  ))}
+                </div>
+              </article>
+            ))}
+            {activeTasks.length === 0 ? (
+              <p className="admin-drawer-message">Keine offenen Aufgaben vorhanden.</p>
+            ) : null}
+          </div>
+        </article>
+
+        <article className="admin-card">
+          <p className="admin-eyebrow">Monitoring</p>
+          <h2>Fehlende Daten und Risiken</h2>
+          <div className="admin-list">
+            {monitoring.slice(0, 8).map((item) => (
+              <article className="admin-list-item" key={item.id}>
+                <div>
+                  <small>{item.label} · {item.severity === "high" ? "hoch" : "prüfen"}</small>
+                  <strong>{item.title}</strong>
+                  <em>{item.description}</em>
+                </div>
+              </article>
+            ))}
+            {monitoring.length === 0 ? (
+              <p className="admin-drawer-message">Keine akuten Monitoringhinweise vorhanden.</p>
+            ) : null}
+          </div>
         </article>
       </section>
 

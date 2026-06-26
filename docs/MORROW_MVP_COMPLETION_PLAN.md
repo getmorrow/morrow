@@ -47,9 +47,9 @@ Ziel: Intern muss Morrow eine Auszeit wirklich anlegen, pflegen, buchen und vorb
 | Medienverwaltung | Bilder liegen als Assets/URLs, keine echte Medienbibliothek | Pro Unterkunft und Auszeit Medien mit Rechten, Alt-Text, Reihenfolge | MVP-kritisch | Offen |
 | Erlebnisbausteine | Erlebnisanbieter und Erlebnisbausteine existieren, Supabase-Sync vorhanden; Preis, Kapazitaet, Verfuegbarkeit, Anbieter, Rolle, Bestätigung und Gastnotiz sind im Admin pflegbar und getestet | Spaeter staerker normalisieren und Anbieter-Verfuegbarkeiten separat pflegen | MVP-kritisch | Erledigt fuer MVP |
 | Buchungen | Kunden/Buchungen in Supabase, Statuslogik, Gaestebereich-Code getestet | Buchungsstatus, Zahlung, Vorbereitung, Aufgaben und Gaestebereich noch staerker miteinander koppeln | MVP-kritisch | Teilweise |
-| Aufgaben automatisch bei Buchungsstatus | Statuswechsel erzeugen deduplizierte Standardaufgaben fuer Reserviert, Bezahlt, Vor Anreise, Aktiv und Abgeschlossen; Vorschau im Buchungs-Drawer und Test mit Testbuchung bestanden | Spaeter je Auszeit-Typ und Saison feinere Templates ergaenzen | MVP-kritisch | Erledigt fuer MVP |
+| Aufgaben automatisch bei Buchungsstatus | Statuswechsel erzeugen deduplizierte Standardaufgaben fuer Reserviert, Bezahlt, Vor Anreise, Aktiv und Abgeschlossen; Next-Admin liest `admin_tasks`, zeigt faellige Aufgaben und kann Aufgabenstatus aktualisieren | Spaeter je Auszeit-Typ und Saison feinere Templates ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Audit-Log | Kommunikationshistorie vorhanden, kein vollstaendiger Aenderungsverlauf | Wer hat Status, Buchung, Paket, Unterkunft, Erlebnis geaendert? | MVP-light | Offen |
-| Monitoring fehlender Daten | Zentrale Liste fehlender Pflichtdaten pro Auszeit, Buchung, Unterkunft und Erlebnis auf der Admin-Uebersicht vorhanden; direkte Sprungziele in Datensaetze getestet | Spaeter um lokale Orte, Partnerprofile und automatische Eskalation erweitern | MVP-kritisch | Erledigt fuer MVP |
+| Monitoring fehlender Daten | Zentrale Liste fehlender Pflichtdaten pro Auszeit, Buchung, Unterkunft und Support auf der neuen Next-Admin-Uebersicht vorhanden; Prototyp enthaelt zusaetzlich tiefere Detail-Sprungziele | Spaeter um lokale Orte, Partnerprofile, Erlebnisse und automatische Eskalation im Next-Admin erweitern | MVP-kritisch | Erledigt fuer MVP |
 
 ## Block 2: Guest Comfort
 
@@ -153,12 +153,12 @@ Stand: 2026-06-25
 - Die Eigentuemer-App liest kuenftig eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - Die Migration muss noch remote in Supabase angewendet werden, sobald `SUPABASE_ACCESS_TOKEN` oder Datenbankpasswort lokal verfuegbar ist.
 - `apps/admin` und `apps/guest` sind noch nicht produktiv nach Next migriert; sie bleiben der naechste grosse Architekturblock.
-- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login erste operative Supabase-Daten lesen, Anfrage- und Buchungsstatus aktualisieren sowie Detail-Drawer mit Kommunikationshistorie und interner Notiz nutzen.
+- `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen und erste Monitoringhinweise anzeigen.
 
 Naechste technische Prioritaet:
 
 1. Supabase Owner-Migration live anwenden und ersten echten Owner-Zugang testen.
-2. Admin-App weiter ausbauen: Aufgaben, Monitoring, Support-Detailansicht und Kommunikationsaktionen aus Anfrage/Buchung heraus.
+2. Admin-App weiter ausbauen: Kommunikationsaktionen aus Anfrage/Buchung heraus, Paket-/Objekt-/Erlebnisbearbeitung und tieferes Monitoring migrieren.
 3. Guest-App danach aus dem Prototyp in `apps/guest` migrieren.
 4. Erst danach Owner-App weiter vertiefen: Abrechnung, Dokumente, Operationsstatus und Eigentuemer-Kommunikation.
 
