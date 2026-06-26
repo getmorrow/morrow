@@ -5,6 +5,8 @@ import { createSupabaseBrowserClient } from "@morrow/supabase";
 
 type GuestView = "home" | "plan" | "booking" | "local" | "help" | "feedback" | "again";
 type LocalFilter = "all" | "weather" | "tide" | "beach" | "food" | "experience" | "event" | "shopping" | "emergency";
+type SupportCategory = "general" | "arrival" | "property" | "experience" | "local";
+type SupportUrgency = "normal" | "soon" | "urgent";
 
 type GuestBooking = {
   id?: string;
@@ -110,6 +112,20 @@ const viewIcons: Record<GuestView, string> = {
 };
 
 const allowedStatuses = ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen"];
+
+const supportCategoryLabels: Record<SupportCategory, string> = {
+  general: "Allgemeine Frage",
+  arrival: "Anreise",
+  property: "Unterkunft",
+  experience: "Erlebnis",
+  local: "Vor Ort",
+};
+
+const supportUrgencyLabels: Record<SupportUrgency, string> = {
+  normal: "Normal",
+  soon: "Bald klären",
+  urgent: "Dringend",
+};
 
 const localFilterOrder: LocalFilter[] = [
   "all",
@@ -294,6 +310,8 @@ export function GuestStayClient({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [supportMessage, setSupportMessage] = useState("");
+  const [supportCategory, setSupportCategory] = useState<SupportCategory>("general");
+  const [supportUrgency, setSupportUrgency] = useState<SupportUrgency>("normal");
   const [supportSent, setSupportSent] = useState(false);
   const [feedbackRating, setFeedbackRating] = useState("5");
   const [feedbackText, setFeedbackText] = useState("");
@@ -361,6 +379,9 @@ export function GuestStayClient({
   const packageItem = payload?.package;
   const completed = booking?.status === "Abgeschlossen";
   const guestName = text(booking?.name, text(booking?.customerName, "eure"));
+  const propertySupportType = packageItem?.stay?.propertySupportType ?? "morrow";
+  const propertySupportName = packageItem?.stay?.propertySupportName || (propertySupportType === "morrow" ? "Morrow" : "den Unterkunftspartner");
+  const morrowHandlesProperty = propertySupportType === "morrow";
   const stayDate = formatStayDate(booking?.selectedDate ?? booking?.dateLabel);
   const countdown = daysUntilFromLabel(booking?.selectedDate ?? booking?.dateLabel);
   const localPlaces = useMemo(() => visibleLocalPlaces(places, packageItem), [places, packageItem]);
@@ -393,13 +414,17 @@ export function GuestStayClient({
     const { error: supportError } = await supabase.from("support_messages").insert({
       id: crypto.randomUUID(),
       lead_id: booking?.leadId ?? null,
-      category: "general",
+      category: supportCategory,
       message: supportMessage.trim(),
-      urgency: "normal",
+      urgency: supportUrgency,
       payload: {
         bookingId,
         source: "next-guest",
         guestName,
+        supportCategory,
+        supportUrgency,
+        propertySupportType,
+        propertySupportName,
         packageName: booking?.packageName ?? packageItem?.name ?? null,
       },
     });
@@ -407,6 +432,8 @@ export function GuestStayClient({
     if (!supportError) {
       setSupportSent(true);
       setSupportMessage("");
+      setSupportCategory("general");
+      setSupportUrgency("normal");
     }
   }
 
@@ -673,7 +700,41 @@ export function GuestStayClient({
           <section className="guest-content-card">
             <p className="eyebrow">Hilfe</p>
             <h2>Schreibt uns, wenn ihr Orientierung braucht.</h2>
-            <p>Für Fragen zur Auszeit, Empfehlung oder zum Ablauf. Objektprobleme werden je nach Unterkunft an den zuständigen Partner weitergegeben.</p>
+            <p>Für Fragen zur Auszeit, Empfehlung oder zum Ablauf. Wir sortieren eure Nachricht direkt richtig ein.</p>
+            <div className="guest-support-routing">
+              <article>
+                <span>Auszeit & Empfehlungen</span>
+                <strong>Morrow</strong>
+                <p>Fragen zu Ablauf, Erlebnis, Empfehlungen oder Orientierung vor Ort laufen über uns.</p>
+              </article>
+              <article>
+                <span>Unterkunft</span>
+                <strong>{propertySupportName}</strong>
+                <p>
+                  {morrowHandlesProperty
+                    ? "Bei dieser Unterkunft kümmern wir uns auch um Objektfragen und leiten intern weiter."
+                    : "Bei konkreten Objektfragen beziehen wir den zuständigen Unterkunftspartner ein."}
+                </p>
+              </article>
+            </div>
+            <div className="guest-form-grid">
+              <label>
+                Thema
+                <select value={supportCategory} onChange={(event) => setSupportCategory(event.target.value as SupportCategory)}>
+                  {(Object.keys(supportCategoryLabels) as SupportCategory[]).map((category) => (
+                    <option key={category} value={category}>{supportCategoryLabels[category]}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Dringlichkeit
+                <select value={supportUrgency} onChange={(event) => setSupportUrgency(event.target.value as SupportUrgency)}>
+                  {(Object.keys(supportUrgencyLabels) as SupportUrgency[]).map((urgency) => (
+                    <option key={urgency} value={urgency}>{supportUrgencyLabels[urgency]}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
             <textarea value={supportMessage} onChange={(event) => setSupportMessage(event.target.value)} placeholder="Was können wir für euch klären?" />
             <button type="button" onClick={sendSupport}>{supportSent ? "Nachricht gesendet" : "Nachricht senden"}</button>
           </section>

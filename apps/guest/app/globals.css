@@ -267,7 +267,8 @@ a {
 
 .guest-detail-grid article,
 .guest-info-block,
-.guest-list article {
+.guest-list article,
+.guest-support-routing article {
   background: rgba(235, 229, 215, 0.56);
 }
 
@@ -285,6 +286,51 @@ a {
 .guest-place-list {
   display: grid;
   gap: 0.9rem;
+}
+
+.guest-support-routing,
+.guest-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.8rem;
+}
+
+.guest-support-routing article {
+  border-radius: 1.05rem;
+  padding: 1.05rem;
+}
+
+.guest-support-routing span,
+.guest-form-grid label {
+  color: rgba(25, 24, 23, 0.58);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.guest-support-routing strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 1.1rem;
+}
+
+.guest-support-routing p {
+  margin: 0.5rem 0 0;
+  color: rgba(25, 24, 23, 0.64);
+  font-size: 0.95rem;
+  line-height: 1.42;
+}
+
+.guest-form-grid label {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.guest-form-grid select {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 750;
 }
 
 .guest-local-map-preview {
@@ -529,7 +575,9 @@ a {
   }
 
   .guest-card-grid,
-  .guest-detail-grid {
+  .guest-detail-grid,
+  .guest-support-routing,
+  .guest-form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
