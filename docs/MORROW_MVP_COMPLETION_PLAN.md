@@ -147,7 +147,7 @@ Diese Punkte bleiben bewusst nachgelagert:
 Stand: 2026-06-26
 
 - `apps/web` enthaelt die migrierte oeffentliche SEO-Website mit Startseite, Auszeiten, Eigentuemerpfad, Erlebnispartnerpfad und Ratgeber.
-- `apps/owner` ist als geschuetzte Eigentuemer-App gestartet und zeigt MVP-Light Objekttransparenz, freie Zeitraeume, Buchungen, Vermarktungslogik, offene Objektpunkte und Abrechnungsausblick.
+- `apps/owner` ist als geschuetzte Eigentuemer-App gestartet und zeigt MVP-Light Objekttransparenz, freie Zeitraeume, Buchungen, Lueckenmarketing-Light, Vermarktungslogik, offene Objektpunkte, Operationsstatus, Dokumenthinweise und Abrechnungsausblick.
 - Der Eigentuemerzugriff ist strukturell ueber `owner_profiles` und `owner_property_access` vorbereitet und im Next-Admin pflegbar.
 - Die Eigentuemer-App liest eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - `apps/admin` und `apps/owner` mappen lokale `VITE_SUPABASE_*` Public-Variablen auf `NEXT_PUBLIC_SUPABASE_*`, damit lokale Next-Tests denselben Supabase-Zugang wie der Prototyp nutzen koennen.
@@ -161,7 +161,7 @@ Naechste technische Prioritaet:
 1. Supabase Owner-Migration live anwenden, `admin-send-message` deployen und ersten echten Owner-Zugang testen.
 2. Admin-App weiter ausbauen: Kommunikationsvorlagen, echte Medienbibliothek, Detailsektionen und tieferes Monitoring migrieren.
 3. Guest-App vertiefen: interaktive Karte, lokale Detail-Drawer, Wetter, Gezeiten, Veranstaltungen, Support-Chat und Nach-Aufenthalt-Modus aus dem Prototyp ueberfuehren.
-4. Owner-App danach vertiefen: Abrechnung, Dokumente, Operationsstatus und Eigentuemer-Kommunikation.
+4. Owner-App danach vertiefen: echte Abrechnungsdatensaetze, Dokumentenablage, Operationshistorie und Eigentuemer-Kommunikation.
 5. Fuer die Next-Guest-App einen aktiven Supabase-Testdatensatz mit gueltigem Access-Code live pflegen; lokaler Dev-Zugang ist vorhanden, Live-Seed wartet auf `SUPABASE_SERVICE_ROLE_KEY`.
 
 ## Empfohlene Umsetzungsreihenfolge

@@ -16,6 +16,11 @@ type LoadState =
   | { status: "empty" }
   | { status: "error"; message: string };
 
+type OwnerGap = OwnerDashboardDate & {
+  actionLabel: string;
+  urgency: "high" | "medium" | "low";
+};
+
 function formatDateRange(booking: OwnerDashboardBooking) {
   if (booking.dateLabel) return booking.dateLabel;
   if (!booking.startsOn || !booking.endsOn) return "Termin wird ergänzt";
@@ -68,6 +73,36 @@ function getPayloadLines(payload: Record<string, unknown>, keys: string[]) {
   return [];
 }
 
+function parseMoney(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value !== "string") return 0;
+  const normalized = value
+    .replace(/[^\d,.-]/g, "")
+    .replace(/\./g, "")
+    .replace(",", ".");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("de-DE", {
+    currency: "EUR",
+    maximumFractionDigits: 0,
+    style: "currency",
+  }).format(value);
+}
+
+function dateDistanceLabel(startsOn: string | null) {
+  if (!startsOn) return "Termin offen";
+  const today = new Date();
+  const start = new Date(`${startsOn}T00:00:00`);
+  const days = Math.ceil((start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  if (days < 0) return "liegt zurück";
+  if (days === 0) return "heute";
+  if (days === 1) return "morgen";
+  return `in ${days} Tagen`;
+}
+
 function propertyImage(property: OwnerDashboardProperty) {
   const media = getPayloadLines(property.payload ?? {}, ["media"]);
   return getPayloadText(property.payload ?? {}, ["image"]) || media[0] || "/brand/generated/morrow-spo-interior.png";
@@ -113,6 +148,61 @@ function getUpcomingDates(dates: OwnerDashboardDate[]) {
       return aDate - bDate;
     })
     .slice(0, 5);
+}
+
+function getVisibleGaps(dates: OwnerDashboardDate[]): OwnerGap[] {
+  return [...dates]
+    .filter((date) => date.status === "available")
+    .sort((a, b) => {
+      const aDate = a.startsOn ? new Date(a.startsOn).getTime() : Number.MAX_SAFE_INTEGER;
+      const bDate = b.startsOn ? new Date(b.startsOn).getTime() : Number.MAX_SAFE_INTEGER;
+      return aDate - bDate;
+    })
+    .slice(0, 6)
+    .map((date) => {
+      const distance = date.startsOn
+        ? Math.ceil((new Date(`${date.startsOn}T00:00:00`).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        : 999;
+      return {
+        ...date,
+        actionLabel: distance <= 14 ? "Aktiv vermarkten" : distance <= 45 ? "Kampagne vorbereiten" : "Beobachten",
+        urgency: distance <= 14 ? "high" : distance <= 45 ? "medium" : "low",
+      };
+    });
+}
+
+function bookingRevenue(bookings: OwnerDashboardBooking[]) {
+  return bookings.reduce((sum, booking) => {
+    const payload = booking.payload ?? {};
+    return sum + parseMoney(
+      payload.paymentAmount ??
+      payload.amountPaid ??
+      payload.price ??
+      payload.concretePrice ??
+      payload.packagePrice,
+    );
+  }, 0);
+}
+
+function payoutEstimate(bookings: OwnerDashboardBooking[]) {
+  const revenue = bookingRevenue(bookings);
+  if (!revenue) return 0;
+  return Math.round(revenue * 0.82);
+}
+
+function propertyOperations(property: OwnerDashboardProperty) {
+  const payload = property.payload ?? {};
+  const cleaningStatus = getPayloadText(payload, ["cleaningStatus", "cleaning", "housekeepingStatus"]) || "wird nach Buchung geplant";
+  const maintenanceStatus = getPayloadText(payload, ["maintenanceStatus", "damageStatus", "operationsStatus"]) || "keine offenen Meldungen";
+  const lastCheck = getPayloadText(payload, ["lastCheck", "lastInspection", "lastUpdated"]) || "noch nicht dokumentiert";
+  const documentLinks = getPayloadLines(payload, ["documents", "documentLinks", "ownerDocuments"]);
+
+  return {
+    cleaningStatus,
+    documentLinks,
+    lastCheck,
+    maintenanceStatus,
+  };
 }
 
 function getOpenPropertyNotes(properties: OwnerDashboardProperty[]) {
@@ -240,12 +330,21 @@ function OwnerDashboardView({
   const nextBookings = useMemo(() => getNextBookings(data.bookings), [data.bookings]);
   const upcomingDates = useMemo(() => getUpcomingDates(data.dates ?? []), [data.dates]);
   const openNotes = useMemo(() => getOpenPropertyNotes(data.properties), [data.properties]);
+  const visibleGaps = useMemo(() => getVisibleGaps(data.dates ?? []), [data.dates]);
   const activePackages = data.packages.filter((packageItem) =>
     ["active", "published"].includes(packageItem.status),
   );
   const paidBookings = data.bookings.filter((booking) => booking.paymentStatus === "bezahlt");
   const reservedBookings = data.bookings.filter((booking) => booking.status === "Reserviert");
-  const visibleGaps = upcomingDates.filter((date) => date.status === "available");
+  const documentedRevenue = bookingRevenue(paidBookings);
+  const estimatedPayout = payoutEstimate(paidBookings);
+  const ownerDocuments = data.properties.flatMap((property) =>
+    propertyOperations(property).documentLinks.map((document, index) => ({
+      href: document,
+      id: `${property.id}-${index}`,
+      label: `${property.name} · Dokument öffnen`,
+    })),
+  );
   const displayName = data.profile.displayName || "dein Objekt";
 
   return (
@@ -258,7 +357,9 @@ function OwnerDashboardView({
           <nav className="owner-dashboard-nav" aria-label="Eigentümerbereich">
             <a href="#objekte">Objekte</a>
             <a href="#buchungen">Buchungen</a>
+            <a href="#luecken">Lücken</a>
             <a href="#vermarktung">Vermarktung</a>
+            <a href="#operations">Operations</a>
             <a href="#abrechnung">Abrechnung</a>
             <button className="owner-nav-button" onClick={onLogout} type="button">
               Abmelden
@@ -319,10 +420,10 @@ function OwnerDashboardView({
           </article>
           <article className="owner-card owner-highlight-card">
             <p className="eyebrow">Abrechnung</p>
-            <h2>{paidBookings.length ? `${paidBookings.length} bezahlte Buchung${paidBookings.length === 1 ? "" : "en"}` : "Noch keine bezahlte Buchung"}</h2>
+            <h2>{documentedRevenue ? `${formatCurrency(documentedRevenue)} dokumentiert` : "Noch kein Umsatz dokumentiert"}</h2>
             <p>
-              Umsatz, Kosten und Nettoauszahlung werden hier als nächster Schritt
-              nachvollziehbar zusammengeführt.
+              Die Abrechnung bleibt bewusst nachvollziehbar: Buchungen,
+              Zahlungsstatus und spätere Auszahlung werden hier zusammengeführt.
             </p>
           </article>
         </section>
@@ -384,10 +485,13 @@ function OwnerDashboardView({
             <div className="owner-status-list">
               {upcomingDates.length ? (
                 upcomingDates.map((date) => (
-                  <span key={date.id}>
-                    {formatDate(date)}
+                  <article className="owner-status-item" key={date.id}>
+                    <span className="owner-status-copy">
+                      <b>{formatDate(date)}</b>
+                      <small>{dateDistanceLabel(date.startsOn)}</small>
+                    </span>
                     <strong>{date.packageName || date.status}</strong>
-                  </span>
+                  </article>
                 ))
               ) : (
                 <p>Noch keine kommenden Zeiträume sichtbar.</p>
@@ -401,16 +505,48 @@ function OwnerDashboardView({
             <div className="owner-status-list">
               {nextBookings.length ? (
                 nextBookings.map((booking) => (
-                  <span key={booking.id}>
-                    {formatDateRange(booking)}
+                  <article className="owner-status-item" key={booking.id}>
+                    <span className="owner-status-copy">
+                      <b>{formatDateRange(booking)}</b>
+                      <small>{booking.propertyName || booking.status}</small>
+                    </span>
                     <strong>{booking.packageName || booking.status}</strong>
-                  </span>
+                  </article>
                 ))
               ) : (
                 <p>Noch keine aktiven Buchungen sichtbar.</p>
               )}
             </div>
           </article>
+        </section>
+
+        <section className="owner-section owner-card" id="luecken">
+          <div className="owner-section-head">
+            <div>
+              <p className="eyebrow">Lückenmarketing Light</p>
+              <h2>Freie Zeiträume, aus denen Nachfrage entstehen kann.</h2>
+            </div>
+            <p>
+              Morrow bewertet freie Termine nicht als Leerstand, sondern als
+              konkrete Vermarktungschance mit passender Auszeit und Zielgruppe.
+            </p>
+          </div>
+          <div className="owner-gap-list">
+            {visibleGaps.length ? (
+              visibleGaps.map((gap) => (
+                <article className={`owner-gap-item is-${gap.urgency}`} key={gap.id}>
+                  <div>
+                    <small>{gap.packageName || "Auszeit"} · {dateDistanceLabel(gap.startsOn)}</small>
+                    <strong>{formatDate(gap)}</strong>
+                    <p>{gap.capacity ? `${gap.capacity} Plätze/Kapazität offen` : "Kapazität wird intern geprüft"}</p>
+                  </div>
+                  <span>{gap.actionLabel}</span>
+                </article>
+              ))
+            ) : (
+              <p>Aktuell sind keine freigegebenen Lücken sichtbar.</p>
+            )}
+          </div>
         </section>
 
         <section className="owner-section owner-dashboard-grid" id="vermarktung">
@@ -447,23 +583,83 @@ function OwnerDashboardView({
           </article>
         </section>
 
+        <section className="owner-section owner-dashboard-grid" id="operations">
+          <article className="owner-card">
+            <p className="eyebrow">Operations</p>
+            <h2>Objektstatus ohne Blackbox</h2>
+            <div className="owner-status-list">
+              {data.properties.map((property) => {
+                const operations = propertyOperations(property);
+                return (
+                  <article className="owner-status-item" key={property.id}>
+                    <span className="owner-status-copy">
+                      <b>{property.name}</b>
+                      <small>Letzte Prüfung: {operations.lastCheck}</small>
+                    </span>
+                    <strong>{property.canViewOperations ? operations.maintenanceStatus : "intern geführt"}</strong>
+                  </article>
+                );
+              })}
+            </div>
+          </article>
+
+          <article className="owner-card">
+            <p className="eyebrow">Reinigung und Vorbereitung</p>
+            <h2>Was vor Aufenthalten wichtig wird</h2>
+            <div className="owner-process-list">
+              {data.properties.map((property) => (
+                <span key={property.id}>
+                  {property.name}
+                  <strong>{property.canViewOperations ? propertyOperations(property).cleaningStatus : "nicht freigegeben"}</strong>
+                </span>
+              ))}
+            </div>
+          </article>
+        </section>
+
         <section className="owner-section owner-dashboard-grid" id="abrechnung">
           <article className="owner-card">
             <p className="eyebrow">Abrechnung</p>
             <h2>Monatsstatus statt Blackbox</h2>
-            <p>
-              Umsatz, Kosten, Provision, Nettoauszahlung, Belege und der Stand
-              der Monatsabrechnung werden hier nachvollziehbar zusammengeführt.
-            </p>
+            {data.properties.some((property) => property.canViewFinancials) ? (
+              <div className="owner-finance-grid">
+                <article>
+                  <span>Dokumentierter Umsatz</span>
+                  <strong>{documentedRevenue ? formatCurrency(documentedRevenue) : "offen"}</strong>
+                </article>
+                <article>
+                  <span>Orientierung Auszahlung</span>
+                  <strong>{estimatedPayout ? formatCurrency(estimatedPayout) : "offen"}</strong>
+                </article>
+                <article>
+                  <span>Bezahlte Buchungen</span>
+                  <strong>{paidBookings.length}</strong>
+                </article>
+              </div>
+            ) : (
+              <p>Finanzdaten sind für diesen Zugang nicht freigeschaltet.</p>
+            )}
           </article>
 
           <article className="owner-card">
-            <p className="eyebrow">Rechte</p>
-            <h2>Nur die passenden Daten</h2>
+            <p className="eyebrow">Dokumente und Kommunikation</p>
+            <h2>Alles bleibt nachvollziehbar.</h2>
             <p>
-              Dieser Zugang zeigt nur Objekte, Auszeiten und Buchungen, die dem
-              Eigentümerprofil freigeschaltet wurden.
+              Monatsabrechnung, Vereinbarungen und Rückfragen werden hier
+              schrittweise ergänzt. Bis dahin bleibt Morrow persönlich
+              Ansprechpartner und pflegt die Daten im Admin.
             </p>
+            <div className="owner-document-list">
+              {ownerDocuments.length ? (
+                ownerDocuments.map((document) => (
+                  <a href={document.href} key={document.id} target="_blank" rel="noreferrer">
+                    {document.label}
+                  </a>
+                ))
+              ) : (
+                <span>Noch keine Dokumente für diesen Zugang hinterlegt.</span>
+              )}
+            </div>
           </article>
         </section>
       </div>

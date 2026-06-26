@@ -52,6 +52,7 @@ Umsetzungsstand 2026-06-26:
 - `packages/ui`, `packages/domain` und `packages/supabase` existieren als erste Shared-Packages.
 - Der bisherige Vite-Code bleibt unveraendert als Prototyp im Root und wird ueber `prototype:*` Scripts betrieben.
 - Die naechste produktive Arbeit ist die Vertiefung der Guest-App-Migration aus dem Vite-Prototyp, besonders Karte, Wetter, Gezeiten, Veranstaltungen, Support-Chat und Feedback-/Wiederbuchungslogik.
+- Der Eigentuemerbereich zeigt im Next-Fundament erste Objekt-, Buchungs-, Lueckenmarketing-, Operations- und Abrechnungsinformationen als begrenzten Ausschnitt aus Admin-/Supabase-Daten.
 
 ## Grundentscheidung
 
