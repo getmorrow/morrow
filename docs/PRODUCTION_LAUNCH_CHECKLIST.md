@@ -37,19 +37,31 @@ Noch prüfen:
 - Passwort-Recovery-Link testen.
 - Nicht freigegebener Auth-User muss im Admin blockiert werden.
 
-## 3. Vercel Environment
+## 3. Vercel Project Und Environment
 
-Erledigt im Code:
-- `vercel.json` ergänzt, damit direkte SPA-Routen wie `/admin`, `/ratgeber/...` und `/deine-auszeit/...` auf `index.html` zeigen.
-- Asset-Caching für `assets/` und `brand/` definiert.
+Wichtig ab Next-Migration:
+
+- Die öffentliche Website muss als eigenes Vercel-Projekt aus `apps/web` deployen.
+- Root Directory in Vercel: `apps/web`.
+- Framework Preset: Next.js.
+- Die Root-`vercel.json` gehört zum alten Vite-Prototyp und darf nicht die Produktions-Website unter `getmorrow.de` steuern.
+- `apps/web/vercel.json` setzt Install- und Build-Command so, dass die Monorepo-Workspace-Pakete aus dem Repo-Root installiert und gebaut werden.
+
+Soft-404-Pruefung:
+
+- Wenn `https://www.getmorrow.de/agb`, `https://www.getmorrow.de/sitemap.xml` oder andere Next-Web-Routen den Text `Diese Seite gibt es noch nicht` mit HTTP 200 zeigen, ist die Domain sehr wahrscheinlich noch auf das alte Root/Vite-Deployment oder ein altes Deployment geroutet.
+- Dann in Vercel das Projekt/Root Directory pruefen und erneut deployen.
 
 In Vercel setzen:
 
 ```bash
-VITE_SUPABASE_URL=https://haifftleyussrokyafqq.supabase.co
-VITE_SUPABASE_ANON_KEY=...
-VITE_ENABLE_EMAIL_AUTOMATION=true
+NEXT_PUBLIC_SUPABASE_URL=https://haifftleyussrokyafqq.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+NEXT_PUBLIC_GA_MEASUREMENT_ID=...
+NEXT_PUBLIC_META_PIXEL_ID=...
 ```
+
+`NEXT_PUBLIC_GA_MEASUREMENT_ID` und `NEXT_PUBLIC_META_PIXEL_ID` nur setzen, wenn Tracking/Consent final gewollt ist. Ohne diese Werte rendert kein Tracking-Banner und keine Tracking-Skripte.
 
 Nicht in Vercel-Frontend setzen:
 - `RESEND_API_KEY`
@@ -139,6 +151,7 @@ Dieser Check prüft:
 - Leadformulare für Gäste, Eigentümer und Erlebnispartner
 - dass keine Mailto-Links mehr im Anfragefluss hängen
 - Consent-Verhalten, wenn GA/Meta-IDs gesetzt sind
+- Soft-404-Seiten, bei denen Vercel/SPA-Fallback eine Morrow-404 mit HTTP 200 ausliefert
 
 Optionaler echter Testlead:
 
