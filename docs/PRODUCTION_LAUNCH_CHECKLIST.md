@@ -108,6 +108,15 @@ OWNER_VERIFY_DOCUMENT_ACCESS=1 \
 npm run supabase:verify-owner
 ```
 
+Ohne gepflegte Owner-Credentials kann alternativ ein temporaerer Eigentuemer-Testzugang erzeugt und wieder geloescht werden:
+
+```bash
+OWNER_VERIFY_TEMP_OWNER=1 \
+OWNER_VERIFY_SUPPORT_INSERT=1 \
+OWNER_VERIFY_DOCUMENT_ACCESS=1 \
+npm run supabase:verify-owner
+```
+
 ## 3a. MVP Completion Vor Erstem Zahlenden Gast
 
 Vor dem ersten zahlenden Gast muessen die MVP-kritischen Punkte aus `docs/MORROW_MVP_COMPLETION_PLAN.md` geprueft werden:

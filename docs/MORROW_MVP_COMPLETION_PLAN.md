@@ -154,8 +154,8 @@ Stand: 2026-06-26
 - Die Eigentuemer-App liest eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - Eigentümerdokumente sind als eigene Tabelle `owner_documents` normalisiert, werden im Next-Admin pro Unterkunft gepflegt und über `get_owner_dashboard().documents` nur für freigegebene Objektzugriffe sichtbar gemacht.
 - `apps/admin` und `apps/owner` mappen lokale `VITE_SUPABASE_*` Public-Variablen auf `NEXT_PUBLIC_SUPABASE_*`, damit lokale Next-Tests denselben Supabase-Zugang wie der Prototyp nutzen koennen.
-- `npm run supabase:verify-owner` prueft die Owner-Tabellen, `get_owner_dashboard()` und optional mit `OWNER_EMAIL`/`OWNER_PASSWORD` einen echten freigeschalteten Eigentuemerzugang; mit `OWNER_VERIFY_SUPPORT_INSERT=1` prueft der Test zusaetzlich den Owner-Support-Rueckkanal in `support_messages`.
-- Die Owner-Migrationen bis `202606260003` sind remote in Supabase angewendet; ein freigeschalteter Owner-Testzugang wurde mit `Nordlicht Lodge` verknuepft und der Support-Rueckkanal wurde live getestet.
+- `npm run supabase:verify-owner` prueft die Owner-Tabellen, `get_owner_dashboard()` und optional mit `OWNER_EMAIL`/`OWNER_PASSWORD` einen echten freigeschalteten Eigentuemerzugang; mit `OWNER_VERIFY_TEMP_OWNER=1` erzeugt der Test alternativ einen temporaeren Eigentuemerzugang, prueft Login/RPC/Support/Dokumente und raeumt ihn wieder auf.
+- Die Owner-Migrationen bis `202606270003` sind remote in Supabase angewendet; ein temporaerer Owner-E2E-Test mit `Nordlicht Lodge` hat Login, Dashboard-RPC, Supportnachricht, Eigenbelegungs-/Verfügbarkeitsanfrage und Dokumentensichtbarkeit erfolgreich geprueft.
 - `apps/web`, `apps/admin`, `apps/guest` und `apps/owner` besitzen eigene Vercel-Konfigurationen fuer getrennte Next.js-Projekte aus dem Monorepo.
 - `apps/web` kann `/admin`, `/deine-auszeit/...`, `/owner` und `/app/eigentuemer` per `MORROW_ADMIN_APP_URL`, `MORROW_GUEST_APP_URL` und `MORROW_OWNER_APP_URL` auf die jeweiligen App-Projekte weiterleiten.
 - Alle vier Next-Apps haben einen `/health` Endpunkt zur Deployment- und App-Identitaetspruefung.

@@ -1,13 +1,19 @@
 import { createClient } from '@supabase/supabase-js'
-import { randomUUID } from 'node:crypto'
+import { randomBytes, randomUUID } from 'node:crypto'
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const ownerEmail = process.env.OWNER_EMAIL
-const ownerPassword = process.env.OWNER_PASSWORD
+let ownerEmail = process.env.OWNER_EMAIL
+let ownerPassword = process.env.OWNER_PASSWORD
 const verifySupportInsert = process.env.OWNER_VERIFY_SUPPORT_INSERT === '1'
 const verifyDocumentAccess = process.env.OWNER_VERIFY_DOCUMENT_ACCESS === '1'
+const verifyTempOwner = process.env.OWNER_VERIFY_TEMP_OWNER === '1'
+const tempOwner = {
+  authUserId: null,
+  profileId: null,
+  supportMessageIds: [],
+}
 
 function requireEnv(value, name) {
   if (!value) {
@@ -54,8 +60,65 @@ if (rpcStructureError) fail('RPC get_owner_dashboard is missing or not executabl
 console.log('ok rpc get_owner_dashboard executable')
 
 if (!ownerEmail || !ownerPassword) {
-  console.log('owner-login-check-skipped: set OWNER_EMAIL and OWNER_PASSWORD to test real owner access')
-  process.exit(0)
+  if (!verifyTempOwner) {
+    console.log('owner-login-check-skipped: set OWNER_EMAIL and OWNER_PASSWORD to test real owner access')
+    process.exit(0)
+  }
+
+  requireEnv(anonKey, 'SUPABASE_ANON_KEY/VITE_SUPABASE_ANON_KEY/NEXT_PUBLIC_SUPABASE_ANON_KEY')
+
+  const { data: property, error: propertyError } = await serviceClient
+    .from('properties')
+    .select('id,name')
+    .limit(1)
+    .single()
+
+  if (propertyError || !property?.id) fail('No property available for temporary owner verification', propertyError)
+
+  const marker = `owner-verify-${Date.now()}`
+  ownerEmail = `${marker}@getmorrow.de`
+  ownerPassword = `Morrow-${randomBytes(18).toString('base64url')}!1`
+
+  const { data: authData, error: authCreateError } = await serviceClient.auth.admin.createUser({
+    email: ownerEmail,
+    password: ownerPassword,
+    email_confirm: true,
+    user_metadata: {
+      source: 'owner-portal-verification',
+      qaMarker: marker,
+    },
+  })
+
+  if (authCreateError) fail('Temporary owner auth user could not be created', authCreateError)
+  tempOwner.authUserId = authData.user.id
+
+  const { data: ownerProfile, error: ownerProfileError } = await serviceClient
+    .from('owner_profiles')
+    .insert({
+      email: ownerEmail,
+      auth_user_id: tempOwner.authUserId,
+      display_name: 'Owner Portal Verification',
+      status: 'active',
+      updated_at: new Date().toISOString(),
+    })
+    .select('id')
+    .single()
+
+  if (ownerProfileError) fail('Temporary owner profile could not be created', ownerProfileError)
+  tempOwner.profileId = ownerProfile.id
+
+  const { error: accessError } = await serviceClient.from('owner_property_access').insert({
+    owner_profile_id: tempOwner.profileId,
+    property_id: property.id,
+    role: 'owner',
+    can_view_financials: true,
+    can_view_operations: true,
+    updated_at: new Date().toISOString(),
+  })
+
+  if (accessError) fail('Temporary owner property access could not be created', accessError)
+
+  console.log(`ok temporary owner seeded property=${property.name ?? property.id}`)
 }
 
 requireEnv(anonKey, 'SUPABASE_ANON_KEY/VITE_SUPABASE_ANON_KEY/NEXT_PUBLIC_SUPABASE_ANON_KEY')
@@ -98,6 +161,7 @@ if (verifySupportInsert) {
 
   const supportMessageId = `owner-support-verify-${Date.now()}`
   const availabilityMessageId = `owner-availability-verify-${Date.now()}`
+  tempOwner.supportMessageIds.push(supportMessageId, availabilityMessageId)
   const { error: supportInsertError } = await ownerClient.from('support_messages').insert([
     {
       id: supportMessageId,
@@ -215,3 +279,33 @@ if (verifyDocumentAccess) {
 }
 
 await ownerClient.auth.signOut()
+
+if (tempOwner.supportMessageIds.length > 0) {
+  const { error: supportCleanupError } = await serviceClient
+    .from('support_messages')
+    .delete()
+    .in('id', tempOwner.supportMessageIds)
+
+  if (supportCleanupError) fail('Temporary owner support cleanup failed', supportCleanupError)
+}
+
+if (tempOwner.profileId) {
+  const { error: accessCleanupError } = await serviceClient
+    .from('owner_property_access')
+    .delete()
+    .eq('owner_profile_id', tempOwner.profileId)
+
+  if (accessCleanupError) fail('Temporary owner access cleanup failed', accessCleanupError)
+
+  const { error: profileCleanupError } = await serviceClient
+    .from('owner_profiles')
+    .delete()
+    .eq('id', tempOwner.profileId)
+
+  if (profileCleanupError) fail('Temporary owner profile cleanup failed', profileCleanupError)
+}
+
+if (tempOwner.authUserId) {
+  const { error: authCleanupError } = await serviceClient.auth.admin.deleteUser(tempOwner.authUserId)
+  if (authCleanupError) fail('Temporary owner auth cleanup failed', authCleanupError)
+}

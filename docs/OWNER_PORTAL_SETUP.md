@@ -138,6 +138,20 @@ npm run supabase:verify-owner
 
 Dann prueft der Test zusaetzlich, ob sich der Eigentuemer anmelden kann und ob `get_owner_dashboard()` fuer diesen Zugang eigene Objekte, Auszeiten, Termine, Buchungen und Dokumente liefert.
 
+Ohne echten Owner-Login kann der Test einen temporaeren Eigentuemer mit Objektzugriff erzeugen, den Zugang pruefen und am Ende wieder aufraeumen:
+
+```bash
+export SUPABASE_URL="https://haifftleyussrokyafqq.supabase.co"
+export SUPABASE_SERVICE_ROLE_KEY="<service-role-key>"
+export SUPABASE_ANON_KEY="<anon-key>"
+export OWNER_VERIFY_TEMP_OWNER=1
+export OWNER_VERIFY_SUPPORT_INSERT=1
+export OWNER_VERIFY_DOCUMENT_ACCESS=1
+npm run supabase:verify-owner
+```
+
+Das ist der bevorzugte Smoke-Test, wenn kein echter Eigentuemer-Testzugang in `.env.local` gepflegt werden soll.
+
 Mit Support-Rueckkanal:
 
 ```bash
