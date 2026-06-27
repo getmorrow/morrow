@@ -25,6 +25,9 @@ const tables = [
   'admin_audit_logs',
   'owner_profiles',
   'owner_property_access',
+  'owner_documents',
+  'owner_operations',
+  'owner_statements',
   'agencies',
 ]
 

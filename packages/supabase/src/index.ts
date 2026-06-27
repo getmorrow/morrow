@@ -105,6 +105,22 @@ export type OwnerDashboardStatement = {
   updatedAt: string | null;
 };
 
+export type OwnerOperation = {
+  id: string;
+  propertyId: string;
+  propertyName: string | null;
+  title: string;
+  operationType: string;
+  status: string;
+  visibility: string;
+  scheduledFor: string | null;
+  completedAt: string | null;
+  note: string | null;
+  payload: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string | null;
+};
+
 export type OwnerDashboardData = {
   profile: {
     id: string;
@@ -120,6 +136,7 @@ export type OwnerDashboardData = {
   documents?: OwnerDashboardDocument[];
   messages?: OwnerDashboardMessage[];
   statements?: OwnerDashboardStatement[];
+  operations?: OwnerOperation[];
 };
 
 export function createSupabaseBrowserClient() {

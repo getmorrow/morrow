@@ -20,6 +20,7 @@ Die Eigentuemer-App liest danach nur:
 - damit verbundene Buchungen
 - freigegebene Eigentümerdokumente wie Vereinbarungen, Abrechnungen, Belege, Reports und Übergaben
 - freigegebene Monatsabrechnungen aus `owner_statements`, sofern der Objektzugriff Finanzdaten erlaubt
+- freigegebene Operationsmeldungen aus `owner_operations`, sofern der Objektzugriff Operationsdaten erlaubt
 - strukturierte Rückfragen, die der Eigentümer an Morrow sendet, werden als `support_messages` gespeichert
 
 Admin bleibt die Quelle der Wahrheit.
@@ -38,6 +39,7 @@ Die relevante Migration liegt hier:
 supabase/migrations/202606250001_owner_portal_access.sql
 supabase/migrations/202606270001_owner_documents.sql
 supabase/migrations/202606270005_owner_statements.sql
+supabase/migrations/202606270006_owner_operations.sql
 ```
 
 Sie legt an:
@@ -46,8 +48,10 @@ Sie legt an:
 - `owner_property_access`
 - `owner_documents`
 - `owner_statements`
+- `owner_operations`
 - `is_morrow_owner_for_property(property_id)`
 - `get_owner_dashboard()`
+- `get_owner_operations()`
 - RLS Policies fuer Eigentuemerzugriff
 
 Remote-Anwendung per Supabase CLI:
@@ -107,6 +111,7 @@ Die alten `VITE_...` Variablen bleiben nur fuer den Prototyp und einige lokale S
    - `package_dates.package_id` und `bookings.package_id` sind gesetzt
    - sichtbare Dokumente liegen in `owner_documents.status = visible`
    - sichtbare oder ausgezahlte Abrechnungen liegen in `owner_statements.status in (visible, paid)` und der Objektzugriff hat `can_view_financials = true`
+   - sichtbare Operationsmeldungen liegen in `owner_operations.visibility = owner_visible` und der Objektzugriff hat `can_view_operations = true`
 
 ## Automatischer Verifikationstest
 
@@ -128,7 +133,9 @@ Dieser Test prueft:
 - `bookings`
 - `owner_documents`
 - `owner_statements`
+- `owner_operations`
 - `get_owner_dashboard()`
+- `get_owner_operations()`
 
 Mit echtem Owner-Login:
 
@@ -153,6 +160,7 @@ export OWNER_VERIFY_TEMP_OWNER=1
 export OWNER_VERIFY_SUPPORT_INSERT=1
 export OWNER_VERIFY_DOCUMENT_ACCESS=1
 export OWNER_VERIFY_STATEMENT_ACCESS=1
+export OWNER_VERIFY_OPERATION_ACCESS=1
 npm run supabase:verify-owner
 ```
 
@@ -186,3 +194,12 @@ npm run supabase:verify-owner
 ```
 
 Dann legt der Test mit Service Role eine temporaere sichtbare Monatsabrechnung fuer das erste freigeschaltete Objekt an, liest sie als eingeloggter Eigentuemer ueber `get_owner_dashboard().statements` und loescht sie danach wieder. Das prueft den Weg von Admin-Abrechnung zu sichtbarem Owner-Finanzstatus inklusive Finanzfreigabe.
+
+Mit Operations-Zugriff:
+
+```bash
+export OWNER_VERIFY_OPERATION_ACCESS=1
+npm run supabase:verify-owner
+```
+
+Dann legt der Test mit Service Role einen temporaeren sichtbaren Operationsdatensatz fuer das erste freigeschaltete Objekt an, liest ihn als eingeloggter Eigentuemer ueber `get_owner_operations()` und loescht ihn danach wieder. Das prueft den Weg von Admin-Operation zu sichtbarem Owner-Objektstatus inklusive Operationsfreigabe.

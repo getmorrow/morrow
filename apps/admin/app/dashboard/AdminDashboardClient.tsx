@@ -184,6 +184,20 @@ type OwnerStatementRow = {
   created_at: string;
 };
 
+type OwnerOperationRow = {
+  id: string;
+  property_id: string;
+  title: string;
+  operation_type: string;
+  status: string;
+  visibility: string;
+  scheduled_for: string | null;
+  completed_at: string | null;
+  note: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
 type AgencyRow = {
   id: string;
   name: string;
@@ -250,6 +264,7 @@ type DashboardData = {
   ownerAccess: OwnerAccessRow[];
   ownerDocuments: OwnerDocumentRow[];
   ownerStatements: OwnerStatementRow[];
+  ownerOperations: OwnerOperationRow[];
   agencies: AgencyRow[];
   guestFeedback: GuestFeedbackRow[];
   auditLogs: AuditLogRow[];
@@ -338,6 +353,17 @@ type OwnerStatementDraft = {
   paid_at: string;
 };
 
+type OwnerOperationDraft = {
+  property_id: string;
+  title: string;
+  operation_type: string;
+  status: string;
+  visibility: string;
+  scheduled_for: string;
+  completed_at: string;
+  note: string;
+};
+
 type AgencyDraft = {
   id: string;
   name: string;
@@ -392,6 +418,9 @@ const packageDateStatuses = ["available", "reserved", "sold_out", "paused"] as c
 const ownerDocumentTypes = ["agreement", "statement", "invoice", "report", "handover", "document"] as const;
 const ownerDocumentStatuses = ["draft", "visible", "archived"] as const;
 const ownerStatementStatuses = ["draft", "visible", "paid", "archived"] as const;
+const ownerOperationTypes = ["cleaning", "inspection", "maintenance", "repair", "handover", "note"] as const;
+const ownerOperationStatuses = ["planned", "in_progress", "done", "blocked", "archived"] as const;
+const ownerOperationVisibilities = ["owner_visible", "internal"] as const;
 const ownerDocumentTypeLabels: Record<string, string> = {
   agreement: "Vereinbarung",
   statement: "Abrechnung",
@@ -405,6 +434,25 @@ const ownerStatementStatusLabels: Record<string, string> = {
   draft: "Entwurf",
   paid: "Ausgezahlt",
   visible: "Sichtbar",
+};
+const ownerOperationTypeLabels: Record<string, string> = {
+  cleaning: "Reinigung",
+  handover: "Übergabe",
+  inspection: "Kontrolle",
+  maintenance: "Objektstatus",
+  note: "Hinweis",
+  repair: "Mangel",
+};
+const ownerOperationStatusLabels: Record<string, string> = {
+  archived: "Archiviert",
+  blocked: "Klärung nötig",
+  done: "Erledigt",
+  in_progress: "In Arbeit",
+  planned: "Geplant",
+};
+const ownerOperationVisibilityLabels: Record<string, string> = {
+  internal: "Intern",
+  owner_visible: "Eigentümer sichtbar",
 };
 const propertyAttributeOptions = [
   { value: "sea_near", label: "Nähe zum Wasser" },
@@ -1128,6 +1176,7 @@ export function AdminDashboardClient() {
           ownerAccessResult,
           ownerDocumentsResult,
           ownerStatementsResult,
+          ownerOperationsResult,
           agenciesResult,
           feedbackResult,
           auditResult,
@@ -1198,6 +1247,11 @@ export function AdminDashboardClient() {
               .order("period_start", { ascending: false, nullsFirst: false })
               .order("created_at", { ascending: false }),
             supabase
+              .from("owner_operations")
+              .select("id,property_id,title,operation_type,status,visibility,scheduled_for,completed_at,note,payload,created_at")
+              .order("scheduled_for", { ascending: false, nullsFirst: false })
+              .order("created_at", { ascending: false }),
+            supabase
               .from("agencies")
               .select("id,name,contact_name,email,phone,location,status,managed_property_ids,response_due_days,available_dates_note,payload,created_at")
               .order("name"),
@@ -1253,6 +1307,7 @@ export function AdminDashboardClient() {
             ownerAccess: ownerAccessResult.error ? [] : (ownerAccessResult.data ?? []) as OwnerAccessRow[],
             ownerDocuments: ownerDocumentsResult.error ? [] : (ownerDocumentsResult.data ?? []) as OwnerDocumentRow[],
             ownerStatements: ownerStatementsResult.error ? [] : (ownerStatementsResult.data ?? []) as OwnerStatementRow[],
+            ownerOperations: ownerOperationsResult.error ? [] : (ownerOperationsResult.data ?? []) as OwnerOperationRow[],
             agencies: agenciesResult.error ? [] : (agenciesResult.data ?? []) as AgencyRow[],
             guestFeedback: feedbackResult.error ? [] : (feedbackResult.data ?? []) as GuestFeedbackRow[],
             auditLogs: auditResult.error ? [] : (auditResult.data ?? []) as AuditLogRow[],
@@ -1364,6 +1419,16 @@ function AdminDashboardView({
     owner_payout: "",
     document_url: "",
     paid_at: "",
+  });
+  const [ownerOperationDraft, setOwnerOperationDraft] = useState<OwnerOperationDraft>({
+    property_id: "",
+    title: "",
+    operation_type: "maintenance",
+    status: "planned",
+    visibility: "owner_visible",
+    scheduled_for: "",
+    completed_at: "",
+    note: "",
   });
   const [agencyDraft, setAgencyDraft] = useState<AgencyDraft>({
     id: "",
@@ -2434,6 +2499,120 @@ function AdminDashboardView({
       );
     } catch {
       setOwnerMessage("Der Abrechnungsstatus konnte nicht aktualisiert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function createOwnerOperation() {
+    const propertyId = ownerOperationDraft.property_id;
+    const title = ownerOperationDraft.title.trim();
+
+    if (!propertyId || !title) {
+      setOwnerMessage("Bitte Unterkunft und Operationstitel eintragen.");
+      return;
+    }
+
+    setPendingAction("owner-operation-create");
+    setOwnerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const insertPayload = {
+        property_id: propertyId,
+        title,
+        operation_type: ownerOperationDraft.operation_type || "maintenance",
+        status: ownerOperationDraft.status || "planned",
+        visibility: ownerOperationDraft.visibility || "owner_visible",
+        scheduled_for: ownerOperationDraft.scheduled_for || null,
+        completed_at: ownerOperationDraft.completed_at || null,
+        note: ownerOperationDraft.note.trim() || null,
+        payload: {
+          source: "next-admin",
+          updatedAt: new Date().toISOString(),
+        },
+      };
+      const { data: inserted, error } = await supabase
+        .from("owner_operations")
+        .insert(insertPayload)
+        .select("id,property_id,title,operation_type,status,visibility,scheduled_for,completed_at,note,payload,created_at")
+        .single();
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        ownerOperations: [inserted as OwnerOperationRow, ...current.ownerOperations],
+      }));
+
+      await writeAuditLog({
+        action: "owner_operation_created",
+        entityType: "owner_operation",
+        entityId: (inserted as OwnerOperationRow).id,
+        entityLabel: title,
+        payload: insertPayload,
+      });
+
+      setOwnerOperationDraft({
+        property_id: propertyId,
+        title: "",
+        operation_type: "maintenance",
+        status: "planned",
+        visibility: "owner_visible",
+        scheduled_for: "",
+        completed_at: "",
+        note: "",
+      });
+      setOwnerMessage("Operation gespeichert.");
+    } catch {
+      setOwnerMessage("Die Operation konnte nicht gespeichert werden. Ist die Owner-Operations-Migration live?");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function updateOwnerOperationStatus(operation: OwnerOperationRow, status: string) {
+    setPendingAction(`owner-operation-status-${operation.id}`);
+    setOwnerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data: updated, error } = await supabase
+        .from("owner_operations")
+        .update({
+          status,
+          completed_at: status === "done" ? (operation.completed_at || todayIsoDate()) : operation.completed_at,
+          updated_at: new Date().toISOString(),
+          payload: {
+            ...(operation.payload ?? {}),
+            statusUpdatedAt: new Date().toISOString(),
+            source: "next-admin",
+          },
+        })
+        .eq("id", operation.id)
+        .select("id,property_id,title,operation_type,status,visibility,scheduled_for,completed_at,note,payload,created_at")
+        .single();
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        ownerOperations: current.ownerOperations.map((item) =>
+          item.id === operation.id ? updated as OwnerOperationRow : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "owner_operation_status_updated",
+        entityType: "owner_operation",
+        entityId: operation.id,
+        entityLabel: operation.title,
+        payload: { from: operation.status, to: status },
+      });
+
+      setOwnerMessage("Operationsstatus aktualisiert.");
+    } catch {
+      setOwnerMessage("Der Operationsstatus konnte nicht aktualisiert werden.");
     } finally {
       setPendingAction(null);
     }
@@ -4672,6 +4851,110 @@ function AdminDashboardView({
         </article>
 
         <article className="admin-card admin-card-wide">
+          <p className="admin-eyebrow">Operations</p>
+          <h2>Objektarbeit sichtbar machen</h2>
+          <p>
+            Reinigung, Kontrolle, Mängel oder Übergaben werden pro Unterkunft
+            geführt. Nur freigegebene Einträge erscheinen im Eigentümerbereich.
+          </p>
+          <div className="admin-form-grid">
+            <label>
+              Unterkunft
+              <select
+                onChange={(event) => setOwnerOperationDraft((current) => ({ ...current, property_id: event.target.value }))}
+                value={ownerOperationDraft.property_id}
+              >
+                <option value="">Auswählen</option>
+                {data.properties.map((property) => (
+                  <option key={property.id} value={property.id}>
+                    {property.name || property.id}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Titel
+              <input
+                onChange={(event) => setOwnerOperationDraft((current) => ({ ...current, title: event.target.value }))}
+                placeholder="Reinigung nach Aufenthalt geplant"
+                value={ownerOperationDraft.title}
+              />
+            </label>
+            <label>
+              Typ
+              <select
+                onChange={(event) => setOwnerOperationDraft((current) => ({ ...current, operation_type: event.target.value }))}
+                value={ownerOperationDraft.operation_type}
+              >
+                {ownerOperationTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {ownerOperationTypeLabels[type]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Status
+              <select
+                onChange={(event) => setOwnerOperationDraft((current) => ({ ...current, status: event.target.value }))}
+                value={ownerOperationDraft.status}
+              >
+                {ownerOperationStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {ownerOperationStatusLabels[status]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Sichtbarkeit
+              <select
+                onChange={(event) => setOwnerOperationDraft((current) => ({ ...current, visibility: event.target.value }))}
+                value={ownerOperationDraft.visibility}
+              >
+                {ownerOperationVisibilities.map((visibility) => (
+                  <option key={visibility} value={visibility}>
+                    {ownerOperationVisibilityLabels[visibility]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Geplant am
+              <input
+                onChange={(event) => setOwnerOperationDraft((current) => ({ ...current, scheduled_for: event.target.value }))}
+                type="date"
+                value={ownerOperationDraft.scheduled_for}
+              />
+            </label>
+            <label>
+              Erledigt am
+              <input
+                onChange={(event) => setOwnerOperationDraft((current) => ({ ...current, completed_at: event.target.value }))}
+                type="date"
+                value={ownerOperationDraft.completed_at}
+              />
+            </label>
+            <label className="admin-form-grid-full">
+              Notiz
+              <textarea
+                onChange={(event) => setOwnerOperationDraft((current) => ({ ...current, note: event.target.value }))}
+                placeholder="Kurz erklären, was passiert ist oder als Nächstes passiert."
+                value={ownerOperationDraft.note}
+              />
+            </label>
+          </div>
+          <button
+            className="admin-button"
+            disabled={pendingAction === "owner-operation-create"}
+            onClick={createOwnerOperation}
+            type="button"
+          >
+            Operation speichern
+          </button>
+        </article>
+
+        <article className="admin-card admin-card-wide">
           <p className="admin-eyebrow">Freigaben</p>
           <h2>Aktive Eigentümerzugriffe</h2>
           <div className="admin-list">
@@ -4805,6 +5088,53 @@ function AdminDashboardView({
             ) : (
               <p className="admin-drawer-message">
                 Noch keine Eigentümerabrechnungen vorhanden oder Owner-Abrechnungs-Migration noch nicht live angewendet.
+              </p>
+            )}
+          </div>
+        </article>
+
+        <article className="admin-card admin-card-wide">
+          <p className="admin-eyebrow">Operationsverlauf</p>
+          <h2>Reinigung, Kontrolle und Mängel</h2>
+          <div className="admin-list">
+            {data.ownerOperations.length ? (
+              data.ownerOperations.map((operation) => (
+                <article className="admin-list-item" key={operation.id}>
+                  <div>
+                    <small>
+                      {ownerOperationTypeLabels[operation.operation_type] || operation.operation_type}
+                      {" · "}
+                      {ownerOperationStatusLabels[operation.status] || operation.status}
+                      {" · "}
+                      {ownerOperationVisibilityLabels[operation.visibility] || operation.visibility}
+                      {operation.scheduled_for ? ` · ${formatShortDate(operation.scheduled_for)}` : ""}
+                    </small>
+                    <strong>{operation.title}</strong>
+                    <em>
+                      {getPropertyName(data.properties, operation.property_id)}
+                      {operation.note ? ` · ${operation.note}` : ""}
+                    </em>
+                  </div>
+                  <div className="admin-row-actions">
+                    {ownerOperationStatuses
+                      .filter((status) => status !== operation.status)
+                      .map((status) => (
+                        <button
+                          className={status === "archived" ? "is-danger" : undefined}
+                          disabled={pendingAction === `owner-operation-status-${operation.id}`}
+                          key={status}
+                          onClick={() => updateOwnerOperationStatus(operation, status)}
+                          type="button"
+                        >
+                          {ownerOperationStatusLabels[status]}
+                        </button>
+                      ))}
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">
+                Noch keine Operationsdatensätze vorhanden oder Owner-Operations-Migration noch nicht live angewendet.
               </p>
             )}
           </div>

@@ -18,11 +18,12 @@ Status: MVP-Light gestartet.
   wieder im Dashboard angezeigt, inklusive Status, Objektbezug und Zeitraum.
 - Freigegebene Monatsabrechnungen werden aus `owner_statements` gelesen und
   nur bei Finanzfreigabe des Objektzugriffs angezeigt.
+- Freigegebene Operationsmeldungen werden aus `owner_operations` gelesen und
+  nur bei Operationsfreigabe des Objektzugriffs angezeigt.
 - Admin bleibt Quelle der Wahrheit.
 
 Naechste Ausbaustufen:
 
-- Operationsstatus/Reinigung/Maengel
 - Eigentuemer-Kommunikation mit Antworten und Vorlagen
 - Freigaben fuer Eigenbelegung und Verfuegbarkeiten spaeter mit echter
   Statushistorie und Kalenderwirkung verbinden

@@ -93,7 +93,7 @@ Diese bleiben ausschließlich in Supabase Edge Function Secrets.
 
 Owner-App zusaetzlich pruefen:
 - Freigeschalteter Owner-Testzugang kann sich einloggen.
-- `get_owner_dashboard()` liefert nur verknuepfte Objekte/Auszeiten/Termine/Buchungen/Dokumente/Abrechnungen.
+- `get_owner_dashboard()` und `get_owner_operations()` liefern nur verknuepfte Objekte/Auszeiten/Termine/Buchungen/Dokumente/Abrechnungen/Operationsmeldungen.
 - Owner-Supportnachricht landet in `support_messages` und ist im Admin sichtbar.
 - Automatischer Check lokal:
 
@@ -106,6 +106,7 @@ OWNER_PASSWORD=<owner-password> \
 OWNER_VERIFY_SUPPORT_INSERT=1 \
 OWNER_VERIFY_DOCUMENT_ACCESS=1 \
 OWNER_VERIFY_STATEMENT_ACCESS=1 \
+OWNER_VERIFY_OPERATION_ACCESS=1 \
 npm run supabase:verify-owner
 ```
 
@@ -116,6 +117,7 @@ OWNER_VERIFY_TEMP_OWNER=1 \
 OWNER_VERIFY_SUPPORT_INSERT=1 \
 OWNER_VERIFY_DOCUMENT_ACCESS=1 \
 OWNER_VERIFY_STATEMENT_ACCESS=1 \
+OWNER_VERIFY_OPERATION_ACCESS=1 \
 npm run supabase:verify-owner
 ```
 

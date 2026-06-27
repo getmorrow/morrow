@@ -9,11 +9,13 @@ let ownerPassword = process.env.OWNER_PASSWORD
 const verifySupportInsert = process.env.OWNER_VERIFY_SUPPORT_INSERT === '1'
 const verifyDocumentAccess = process.env.OWNER_VERIFY_DOCUMENT_ACCESS === '1'
 const verifyStatementAccess = process.env.OWNER_VERIFY_STATEMENT_ACCESS === '1'
+const verifyOperationAccess = process.env.OWNER_VERIFY_OPERATION_ACCESS === '1'
 const verifyTempOwner = process.env.OWNER_VERIFY_TEMP_OWNER === '1'
 const tempOwner = {
   authUserId: null,
   profileId: null,
   supportMessageIds: [],
+  operationId: null,
   statementId: null,
 }
 
@@ -56,10 +58,16 @@ await checkTable(serviceClient, 'packages', 'id')
 await checkTable(serviceClient, 'package_dates', 'id')
 await checkTable(serviceClient, 'bookings', 'id')
 await checkTable(serviceClient, 'owner_documents', 'id')
+await checkTable(serviceClient, 'owner_operations', 'id')
+await checkTable(serviceClient, 'owner_statements', 'id')
 
 const { error: rpcStructureError } = await serviceClient.rpc('get_owner_dashboard')
 if (rpcStructureError) fail('RPC get_owner_dashboard is missing or not executable', rpcStructureError)
 console.log('ok rpc get_owner_dashboard executable')
+
+const { error: operationsRpcStructureError } = await serviceClient.rpc('get_owner_operations')
+if (operationsRpcStructureError) fail('RPC get_owner_operations is missing or not executable', operationsRpcStructureError)
+console.log('ok rpc get_owner_operations executable')
 
 if (!ownerEmail || !ownerPassword) {
   if (!verifyTempOwner) {
@@ -333,6 +341,46 @@ if (verifyStatementAccess) {
   )
 }
 
+if (verifyOperationAccess) {
+  const property = ownerDashboard.properties?.[0]
+  if (!property?.id) fail('Owner dashboard has no property for operation access verification')
+
+  const operationId = randomUUID()
+  tempOwner.operationId = operationId
+  const { error: operationInsertError } = await serviceClient.from('owner_operations').insert({
+    id: operationId,
+    property_id: property.id,
+    title: `Owner portal verification operation ${operationId}`,
+    operation_type: 'inspection',
+    status: 'planned',
+    visibility: 'owner_visible',
+    scheduled_for: '2026-09-15',
+    note: 'QA operation visibility check',
+    payload: {
+      source: 'owner-portal-verification',
+      qaMarker: operationId,
+    },
+  })
+
+  if (operationInsertError) fail('Owner operation insert failed', operationInsertError)
+
+  const { data: ownerOperations, error: operationRpcError } = await ownerClient.rpc('get_owner_operations')
+  if (operationRpcError) fail('Owner operations RPC failed after operation insert', operationRpcError)
+
+  const visibleOperation = ownerOperations?.find((operation) => operation.id === operationId)
+  if (!visibleOperation) fail('Inserted visible owner operation was not returned to signed-in owner')
+  if (visibleOperation.operationType !== 'inspection') fail('Owner operation type value mismatch')
+
+  console.log(
+    [
+      'ok owner operation access',
+      `id=${operationId}`,
+      `property=${property.name ?? property.id}`,
+      `status=${visibleOperation.status}`,
+    ].join(' '),
+  )
+}
+
 await ownerClient.auth.signOut()
 
 if (tempOwner.supportMessageIds.length > 0) {
@@ -367,6 +415,15 @@ if (tempOwner.statementId) {
     .eq('id', tempOwner.statementId)
 
   if (statementCleanupError) fail('Temporary owner statement cleanup failed', statementCleanupError)
+}
+
+if (tempOwner.operationId) {
+  const { error: operationCleanupError } = await serviceClient
+    .from('owner_operations')
+    .delete()
+    .eq('id', tempOwner.operationId)
+
+  if (operationCleanupError) fail('Temporary owner operation cleanup failed', operationCleanupError)
 }
 
 if (tempOwner.authUserId) {

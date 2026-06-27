@@ -50,6 +50,21 @@ const ownerMessageStatusLabels: Record<string, string> = {
   open: "Offen",
   waiting: "Wartet",
 };
+const ownerOperationTypeLabels: Record<string, string> = {
+  cleaning: "Reinigung",
+  handover: "Übergabe",
+  inspection: "Kontrolle",
+  maintenance: "Objektstatus",
+  note: "Hinweis",
+  repair: "Mangel",
+};
+const ownerOperationStatusLabels: Record<string, string> = {
+  archived: "Archiviert",
+  blocked: "Klärung nötig",
+  done: "Erledigt",
+  in_progress: "In Arbeit",
+  planned: "Geplant",
+};
 
 function formatDateRange(booking: OwnerDashboardBooking) {
   if (booking.dateLabel) return booking.dateLabel;
@@ -271,6 +286,13 @@ function formatOwnerStatementStatus(statement: OwnerDashboardStatement) {
   return labels[statement.status] || statement.status;
 }
 
+function formatOperationLabel(type: string, status: string) {
+  return [
+    ownerOperationTypeLabels[type] || type,
+    ownerOperationStatusLabels[status] || status,
+  ].join(" · ");
+}
+
 function getOpenPropertyNotes(properties: OwnerDashboardProperty[]) {
   return properties.flatMap((property) => {
     const notes: string[] = [];
@@ -303,11 +325,14 @@ export function OwnerDashboardClient() {
           return;
         }
 
-        const { data, error } = await supabase.rpc("get_owner_dashboard");
+        const [dashboardResult, operationsResult] = await Promise.all([
+          supabase.rpc("get_owner_dashboard"),
+          supabase.rpc("get_owner_operations"),
+        ]);
 
         if (!isMounted) return;
 
-        if (error) {
+        if (dashboardResult.error) {
           setState({
             status: "error",
             message: "Der Eigentümerbereich konnte nicht geladen werden.",
@@ -315,12 +340,18 @@ export function OwnerDashboardClient() {
           return;
         }
 
-        if (!data) {
+        if (!dashboardResult.data) {
           setState({ status: "empty" });
           return;
         }
 
-        setState({ status: "ready", data: data as OwnerDashboardData });
+        setState({
+          status: "ready",
+          data: {
+            ...(dashboardResult.data as OwnerDashboardData),
+            operations: operationsResult.error ? [] : ((operationsResult.data as OwnerDashboardData["operations"]) ?? []),
+          },
+        });
       } catch {
         if (!isMounted) return;
         setState({
@@ -412,6 +443,7 @@ function OwnerDashboardView({
   const ownerDocuments = data.documents ?? [];
   const ownerMessages = data.messages ?? [];
   const ownerStatements = data.statements ?? [];
+  const ownerOperations = data.operations ?? [];
   const latestStatement = ownerStatements[0] ?? null;
   const statementRevenue = ownerStatements.reduce((sum, statement) => sum + Number(statement.grossRevenue || 0), 0);
   const statementPayout = ownerStatements.reduce((sum, statement) => sum + Number(statement.ownerPayout || 0), 0);
@@ -867,18 +899,34 @@ function OwnerDashboardView({
             <p className="eyebrow">Operations</p>
             <h2>Objektstatus ohne Blackbox</h2>
             <div className="owner-status-list">
-              {data.properties.map((property) => {
-                const operations = propertyOperations(property);
-                return (
-                  <article className="owner-status-item" key={property.id}>
+              {ownerOperations.length ? (
+                ownerOperations.map((operation) => (
+                  <article className="owner-status-item" key={operation.id}>
                     <span className="owner-status-copy">
-                      <b>{property.name}</b>
-                      <small>Letzte Prüfung: {operations.lastCheck}</small>
+                      <b>{operation.title}</b>
+                      <small>
+                        {formatOperationLabel(operation.operationType, operation.status)}
+                        {operation.scheduledFor ? ` · ${formatDateTime(operation.scheduledFor)}` : ""}
+                      </small>
+                      {operation.note ? <small>{operation.note}</small> : null}
                     </span>
-                    <strong>{property.canViewOperations ? operations.maintenanceStatus : "intern geführt"}</strong>
+                    <strong>{operation.propertyName || "Objekt"}</strong>
                   </article>
-                );
-              })}
+                ))
+              ) : (
+                data.properties.map((property) => {
+                  const operations = propertyOperations(property);
+                  return (
+                    <article className="owner-status-item" key={property.id}>
+                      <span className="owner-status-copy">
+                        <b>{property.name}</b>
+                        <small>Letzte Prüfung: {operations.lastCheck}</small>
+                      </span>
+                      <strong>{property.canViewOperations ? operations.maintenanceStatus : "intern geführt"}</strong>
+                    </article>
+                  );
+                })
+              )}
             </div>
           </article>
 
@@ -886,12 +934,23 @@ function OwnerDashboardView({
             <p className="eyebrow">Reinigung und Vorbereitung</p>
             <h2>Was vor Aufenthalten wichtig wird</h2>
             <div className="owner-process-list">
-              {data.properties.map((property) => (
-                <span key={property.id}>
-                  {property.name}
-                  <strong>{property.canViewOperations ? propertyOperations(property).cleaningStatus : "nicht freigegeben"}</strong>
-                </span>
-              ))}
+              {ownerOperations
+                .filter((operation) => ["cleaning", "handover", "inspection"].includes(operation.operationType))
+                .slice(0, 4)
+                .map((operation) => (
+                  <span key={operation.id}>
+                    {operation.propertyName || "Objekt"}
+                    <strong>{operation.title}</strong>
+                  </span>
+                ))}
+              {!ownerOperations.some((operation) => ["cleaning", "handover", "inspection"].includes(operation.operationType))
+                ? data.properties.map((property) => (
+                    <span key={property.id}>
+                      {property.name}
+                      <strong>{property.canViewOperations ? propertyOperations(property).cleaningStatus : "nicht freigegeben"}</strong>
+                    </span>
+                  ))
+                : null}
             </div>
           </article>
         </section>
