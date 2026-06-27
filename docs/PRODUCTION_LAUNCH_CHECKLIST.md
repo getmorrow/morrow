@@ -93,7 +93,7 @@ Diese bleiben ausschließlich in Supabase Edge Function Secrets.
 
 Owner-App zusaetzlich pruefen:
 - Freigeschalteter Owner-Testzugang kann sich einloggen.
-- `get_owner_dashboard()` liefert nur verknuepfte Objekte/Auszeiten/Termine/Buchungen.
+- `get_owner_dashboard()` liefert nur verknuepfte Objekte/Auszeiten/Termine/Buchungen/Dokumente.
 - Owner-Supportnachricht landet in `support_messages` und ist im Admin sichtbar.
 - Automatischer Check lokal:
 
@@ -104,6 +104,7 @@ SUPABASE_ANON_KEY=<anon-key> \
 OWNER_EMAIL=<owner-email> \
 OWNER_PASSWORD=<owner-password> \
 OWNER_VERIFY_SUPPORT_INSERT=1 \
+OWNER_VERIFY_DOCUMENT_ACCESS=1 \
 npm run supabase:verify-owner
 ```
 
@@ -291,6 +292,7 @@ Dieser Check prueft:
 - Loginseiten zeigen die erwarteten Morrow-Inhalte.
 - Admin-Login fuehrt bei gesetzten Zugangsdaten zum Dashboard.
 - Eigentuemer-Login fuehrt bei freigeschaltetem Owner zum Dashboard.
+- Eigentuemer-Dashboard enthaelt die erwarteten Bereiche Objekte, Buchungen, Luecken, Abrechnung und Dokumente.
 - Gaeste-App oeffnet bei gesetzter Buchung und Code den persoenlichen Aufenthaltsbereich.
 - Screenshots werden unter `tmp/qa/apps-production/` abgelegt.
 

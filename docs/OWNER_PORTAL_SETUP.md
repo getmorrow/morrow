@@ -93,9 +93,9 @@ Die alten `VITE_...` Variablen bleiben nur fuer den Prototyp und einige lokale S
 4. In Supabase pruefen:
    - `owner_profiles.status = active`
    - `owner_property_access.property_id` verweist auf bestehende `properties.id`
-  - `packages.property_id` verweist auf dieselbe Immobilie
-  - `package_dates.package_id` und `bookings.package_id` sind gesetzt
-  - sichtbare Dokumente liegen in `owner_documents.status = visible`
+   - `packages.property_id` verweist auf dieselbe Immobilie
+   - `package_dates.package_id` und `bookings.package_id` sind gesetzt
+   - sichtbare Dokumente liegen in `owner_documents.status = visible`
 
 ## Automatischer Verifikationstest
 
@@ -139,3 +139,12 @@ npm run supabase:verify-owner
 ```
 
 Dann sendet der Test als eingeloggter Eigentuemer eine strukturierte Supportnachricht in `support_messages` und liest sie mit Service Role wieder aus. Das prueft den Weg von Eigentuemer-App zu Admin-Supportfluss.
+
+Mit Dokument-Zugriff:
+
+```bash
+export OWNER_VERIFY_DOCUMENT_ACCESS=1
+npm run supabase:verify-owner
+```
+
+Dann legt der Test mit Service Role ein temporaeres sichtbares Dokument fuer das erste freigeschaltete Objekt an, liest es als eingeloggter Eigentuemer ueber `get_owner_dashboard()` und loescht es danach wieder. Das prueft den Weg von Admin-Dokument zu sichtbarem Owner-Dokument.

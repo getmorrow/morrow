@@ -13,6 +13,7 @@ const targets = [
       email: process.env.ADMIN_EMAIL,
       password: process.env.ADMIN_PASSWORD,
       dashboardText: /Anfragen|Buchungen|Support|Morrow Admin/i,
+      requiredDashboardTexts: [/Anfragen/i, /Buchungen/i, /Support/i],
     },
   },
   {
@@ -24,6 +25,7 @@ const targets = [
       email: process.env.OWNER_EMAIL,
       password: process.env.OWNER_PASSWORD,
       dashboardText: /Guten Überblick|Objekte|Auszeiten|Buchungen/i,
+      requiredDashboardTexts: [/Objekte/i, /Buchungen/i, /Lücken/i, /Abrechnung/i, /Dokumente/i],
     },
   },
   {
@@ -99,10 +101,17 @@ async function checkLogin(page, target) {
   const body = await readBody(page)
   assertNoSoft404(`${target.name} dashboard`, body)
   assert(target.login.dashboardText.test(body), `${target.name} dashboard text did not match`)
+  for (const requiredText of target.login.requiredDashboardTexts ?? []) {
+    assert(requiredText.test(body), `${target.name} dashboard is missing expected section ${requiredText}`)
+  }
 
   await page.screenshot({ path: `${screenshotsDir}/${target.key}-dashboard.png`, fullPage: false })
 
-  return { checked: true, screenshot: `${screenshotsDir}/${target.key}-dashboard.png` }
+  return {
+    checked: true,
+    requiredSections: (target.login.requiredDashboardTexts ?? []).length,
+    screenshot: `${screenshotsDir}/${target.key}-dashboard.png`,
+  }
 }
 
 async function checkGuestStay(page, target) {
