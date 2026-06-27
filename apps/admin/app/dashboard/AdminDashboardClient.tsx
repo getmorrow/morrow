@@ -287,6 +287,16 @@ type LeadScopeFilter = "active" | "archived";
 type LeadTypeFilter = "all" | LeadRow["type"];
 type LeadStatusFilter = "all" | string;
 type LeadWorkFilter = "all" | "due" | "new" | "review";
+type AdminWorkspace =
+  | "overview"
+  | "crm"
+  | "tasks"
+  | "support"
+  | "operations"
+  | "inventory"
+  | "partners"
+  | "owners"
+  | "activity";
 
 type CustomerRow = {
   id: string;
@@ -505,6 +515,67 @@ const ownerOperationVisibilityLabels: Record<string, string> = {
   internal: "Intern",
   owner_visible: "Eigentümer sichtbar",
 };
+const adminWorkspaces: Array<{
+  id: AdminWorkspace;
+  label: string;
+  title: string;
+  text: string;
+}> = [
+  {
+    id: "overview",
+    label: "Übersicht",
+    title: "Guten Überblick.",
+    text: "Tagessteuerung mit Kennzahlen, Monitoring und aktuellen Änderungen.",
+  },
+  {
+    id: "crm",
+    label: "CRM",
+    title: "Anfragen, Kunden und Buchungen.",
+    text: "Gastkontakte von der ersten Anfrage bis zur verbindlichen Buchung führen.",
+  },
+  {
+    id: "tasks",
+    label: "Aufgaben",
+    title: "Operative To-dos steuern.",
+    text: "Aufgaben mit Bezug, Fälligkeit und Priorität anlegen und abarbeiten.",
+  },
+  {
+    id: "support",
+    label: "Support",
+    title: "Gäste begleiten und Feedback prüfen.",
+    text: "Supportfälle, Nachrichten aus dem Gästebereich und Rückmeldungen nach dem Aufenthalt.",
+  },
+  {
+    id: "operations",
+    label: "Operations",
+    title: "Vor Ort, Erlebnisse und Termine.",
+    text: "Kuratierte Orte, Erlebnisbausteine und buchbare Zeiträume pflegen.",
+  },
+  {
+    id: "inventory",
+    label: "Bestand",
+    title: "Auszeiten und Unterkünfte.",
+    text: "Paket- und Objektbestand als Grundlage der Plattform pflegen.",
+  },
+  {
+    id: "partners",
+    label: "Partner",
+    title: "Agenturen und Startpartner.",
+    text: "Phase-1-Partner, Objektzugang und Verfügbarkeitsabsprachen steuern.",
+  },
+  {
+    id: "owners",
+    label: "Eigentümer",
+    title: "Eigentümerdaten und Freigaben.",
+    text: "Profile, Objektzugriffe, Dokumente, Abrechnungen und Objektarbeit verwalten.",
+  },
+  {
+    id: "activity",
+    label: "Aktivität",
+    title: "Änderungen nachvollziehen.",
+    text: "Audit-Log und letzte operative Änderungen prüfen.",
+  },
+];
 const propertyAttributeOptions = [
   { value: "sea_near", label: "Nähe zum Wasser" },
   { value: "quiet_location", label: "Ruhige Lage" },
@@ -1709,6 +1780,7 @@ function AdminDashboardView({
   const [dataState, setDataState] = useState(initialData);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [activeWorkspace, setActiveWorkspace] = useState<AdminWorkspace>("overview");
   const [selection, setSelection] = useState<DetailSelection>(null);
   const [customerPhaseFilter, setCustomerPhaseFilter] = useState<CustomerPhaseFilter>("all");
   const [leadScopeFilter, setLeadScopeFilter] = useState<LeadScopeFilter>("active");
@@ -1884,6 +1956,7 @@ function AdminDashboardView({
   const selectedDate = dateSelection?.mode === "edit"
     ? data.packageDates.find((item) => item.id === dateSelection.id) ?? null
     : null;
+  const workspace = adminWorkspaces.find((item) => item.id === activeWorkspace) ?? adminWorkspaces[0];
 
   useEffect(() => {
     setInventoryMessage(null);
@@ -3835,29 +3908,34 @@ function AdminDashboardView({
 
   function openTaskReference(task: AdminTaskRow) {
     if (task.reference_type === "lead") {
+      setActiveWorkspace("crm");
       setSelection({ type: "lead", id: task.reference_id });
       return;
     }
     if (task.reference_type === "booking") {
+      setActiveWorkspace("crm");
       setSelection({ type: "booking", id: task.reference_id });
       return;
     }
     if (task.reference_type === "support") {
+      setActiveWorkspace("support");
       setSelection({ type: "support", id: task.reference_id });
       return;
     }
     if (task.reference_type === "package") {
+      setActiveWorkspace("inventory");
       setInventorySelection({ mode: "edit", type: "package", id: task.reference_id });
       return;
     }
     if (task.reference_type === "property") {
+      setActiveWorkspace("inventory");
       setInventorySelection({ mode: "edit", type: "property", id: task.reference_id });
       return;
     }
     if (task.reference_type === "owner") {
       const owner = data.ownerProfiles.find((item) => item.id === task.reference_id);
       if (owner) editOwnerProfile(owner);
-      document.getElementById("eigentuemer")?.scrollIntoView({ behavior: "smooth" });
+      setActiveWorkspace("owners");
       return;
     }
     if (task.reference_type === "experience" || task.reference_type === "experienceProvider") {
@@ -3865,17 +3943,19 @@ function AdminDashboardView({
         ? data.experienceBlocks.find((item) => item.id === task.reference_id)
         : null;
       if (experience) {
+        setActiveWorkspace("operations");
         setExperienceSelection({ mode: "edit", id: experience.id });
         return;
       }
-      document.getElementById("erlebnisse")?.scrollIntoView({ behavior: "smooth" });
+      setActiveWorkspace("operations");
       return;
     }
     if (task.reference_type === "localPlace") {
+      setActiveWorkspace("operations");
       setLocalPlaceSelection({ mode: "edit", id: task.reference_id });
       return;
     }
-    document.getElementById("aufgaben")?.scrollIntoView({ behavior: "smooth" });
+    setActiveWorkspace("tasks");
   }
 
   async function saveInventory() {
@@ -4425,19 +4505,17 @@ function AdminDashboardView({
           <img alt="morrow" src="/brand/morrow-wordmark-offblack.svg" />
         </a>
         <nav aria-label="Admin Navigation">
-          <a href="#anfragen">Anfragen</a>
-          <a href="#kunden">Kunden</a>
-          <a href="#buchungen">Buchungen</a>
-          <a href="#aufgaben">Aufgaben</a>
-          <a href="#support">Support</a>
-          <a href="#feedback">Feedback</a>
-          <a href="#audit">Änderungen</a>
-          <a href="#vor-ort">Vor Ort</a>
-          <a href="#erlebnisse">Erlebnisse</a>
-          <a href="#termine">Termine</a>
-          <a href="#bestand">Bestand</a>
-          <a href="#agenturen">Agenturen</a>
-          <a href="#eigentuemer">Eigentümer</a>
+          {adminWorkspaces.map((item) => (
+            <button
+              aria-pressed={activeWorkspace === item.id}
+              className={activeWorkspace === item.id ? "is-active" : undefined}
+              key={item.id}
+              onClick={() => setActiveWorkspace(item.id)}
+              type="button"
+            >
+              {item.label}
+            </button>
+          ))}
           <button onClick={onLogout} type="button">
             Abmelden
           </button>
@@ -4446,15 +4524,13 @@ function AdminDashboardView({
 
       <section className="admin-hero">
         <p className="admin-eyebrow">Morrow Admin</p>
-        <h1>Guten Überblick, {displayName}.</h1>
-        <p>
-          Diese Next-Version bildet den neuen operativen Kern ab: erst lesen,
-          dann Schritt für Schritt die geprüften Prototyp-Funktionen migrieren.
-        </p>
+        <h1>{workspace.title}</h1>
+        <p>{workspace.text}</p>
+        <p className="admin-hero-meta">Angemeldet als {displayName}</p>
         {actionMessage ? <p className="admin-action-message">{actionMessage}</p> : null}
       </section>
 
-      <section className="admin-metrics" aria-label="Kennzahlen">
+      <section className="admin-metrics" aria-label="Kennzahlen" hidden={activeWorkspace !== "overview"}>
         <article>
           <span>Offene Anfragen</span>
           <strong>{openLeads.length}</strong>
@@ -4492,7 +4568,8 @@ function AdminDashboardView({
         </article>
       </section>
 
-      <section className="admin-grid" id="aufgaben">
+      <section className="admin-grid" id="aufgaben" hidden={!["overview", "tasks", "activity"].includes(activeWorkspace)}>
+        {activeWorkspace === "tasks" ? (
         <article className="admin-card admin-card-wide">
           <p className="admin-eyebrow">Aufgaben</p>
           <h2>Heute im Blick</h2>
@@ -4622,7 +4699,9 @@ function AdminDashboardView({
             ) : null}
           </div>
         </article>
+        ) : null}
 
+        {activeWorkspace === "overview" ? (
         <article className="admin-card">
           <p className="admin-eyebrow">Monitoring</p>
           <h2>Fehlende Daten und Risiken</h2>
@@ -4641,7 +4720,9 @@ function AdminDashboardView({
             ) : null}
           </div>
         </article>
+        ) : null}
 
+        {["overview", "activity"].includes(activeWorkspace) ? (
         <article className="admin-card admin-card-wide" id="audit">
           <p className="admin-eyebrow">Änderungen</p>
           <h2>Letzte Aktivitäten</h2>
@@ -4664,9 +4745,10 @@ function AdminDashboardView({
             )}
           </div>
         </article>
+        ) : null}
       </section>
 
-      <section className="admin-grid" id="anfragen">
+      <section className="admin-grid" id="anfragen" hidden={activeWorkspace !== "crm"}>
         <article className="admin-card">
           <p className="admin-eyebrow">Anfragen</p>
           <h2>{leadScopeFilter === "archived" ? "Archivierte Anfragen" : "Aktive Anfragen"}</h2>
@@ -4904,7 +4986,7 @@ function AdminDashboardView({
         </article>
       </section>
 
-      <section className="admin-grid" id="support">
+      <section className="admin-grid" id="support" hidden={activeWorkspace !== "support"}>
         <article className="admin-card admin-card-wide">
           <p className="admin-eyebrow">Gästesupport</p>
           <h2>Nachrichten aus dem Gästebereich</h2>
@@ -4952,7 +5034,7 @@ function AdminDashboardView({
         </article>
       </section>
 
-      <section className="admin-grid" id="feedback">
+      <section className="admin-grid" id="feedback" hidden={activeWorkspace !== "support"}>
         <article className="admin-card admin-card-wide">
           <p className="admin-eyebrow">Feedback</p>
           <h2>Rückmeldungen nach dem Aufenthalt</h2>
@@ -5003,7 +5085,7 @@ function AdminDashboardView({
         </article>
       </section>
 
-      <section className="admin-grid" id="vor-ort">
+      <section className="admin-grid" id="vor-ort" hidden={activeWorkspace !== "operations"}>
         <article className="admin-card admin-card-wide">
           <p className="admin-eyebrow">Vor Ort</p>
           <h2>Kuratierte Orte und Empfehlungen</h2>
@@ -5052,7 +5134,7 @@ function AdminDashboardView({
         </article>
       </section>
 
-      <section className="admin-grid" id="erlebnisse">
+      <section className="admin-grid" id="erlebnisse" hidden={activeWorkspace !== "operations"}>
         <article className="admin-card admin-card-wide">
           <p className="admin-eyebrow">Erlebnisse</p>
           <h2>Bausteine der Auszeiten</h2>
@@ -5099,7 +5181,7 @@ function AdminDashboardView({
         </article>
       </section>
 
-      <section className="admin-grid" id="termine">
+      <section className="admin-grid" id="termine" hidden={activeWorkspace !== "operations"}>
         <article className="admin-card admin-card-wide">
           <p className="admin-eyebrow">Termine</p>
           <h2>Zeiträume und Verfügbarkeit</h2>
@@ -5146,7 +5228,7 @@ function AdminDashboardView({
         </article>
       </section>
 
-      <section className="admin-grid" id="bestand">
+      <section className="admin-grid" id="bestand" hidden={activeWorkspace !== "inventory"}>
         <article className="admin-card">
           <p className="admin-eyebrow">Auszeiten</p>
           <h2>Angebote im System</h2>
@@ -5216,7 +5298,7 @@ function AdminDashboardView({
         </article>
       </section>
 
-      <section className="admin-grid" id="agenturen">
+      <section className="admin-grid" id="agenturen" hidden={activeWorkspace !== "partners"}>
         <article className="admin-card">
           <p className="admin-eyebrow">Agenturen</p>
           <h2>Phase-1-Partner pflegen</h2>
@@ -5402,7 +5484,7 @@ function AdminDashboardView({
         </article>
       </section>
 
-      <section className="admin-grid" id="eigentuemer">
+      <section className="admin-grid" id="eigentuemer" hidden={activeWorkspace !== "owners"}>
         <article className="admin-card">
           <p className="admin-eyebrow">Eigentümer</p>
           <h2>Zugänge freischalten</h2>

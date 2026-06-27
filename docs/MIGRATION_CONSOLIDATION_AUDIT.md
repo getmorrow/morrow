@@ -78,7 +78,7 @@ Rolle ab jetzt:
 
 - Enthalten: Supabase-Login, Rollencheck, operative Uebersicht, Kennzahlen, Monitoring, Leads, Buchungen, Support, Feedback, lokale Orte, Erlebnisbausteine, Termine, Auszeiten, Unterkuenfte, Agenturen, Eigentuemerprofile, Objektzugriffe, Dokumente, Abrechnungen, Operationsmeldungen, Audit-Log.
 - Status: echte operative Funktionen vorhanden, aber noch kein vollstaendiger Ersatz fuer alten Vite-Admin.
-- Fehlend/Offen: CRM-Paritaet pruefen und Luecken schliessen, Navigation/Informationsarchitektur als CRM statt lange Dashboard-Seite, dedizierter Kundendetail-Drawer, Aufgabenbearbeitung/-archivierung, Medienbibliothek, Kommunikationsvorlagen, tiefere Filter, vollstaendige Detailseiten, konsolidierte Domain-/Mutation-Layer.
+- Fehlend/Offen: CRM-Paritaet pruefen und Luecken schliessen, spaetere Entscheidung zu echten Admin-Routen statt clientseitiger Arbeitsbereiche, dedizierter Kundendetail-Drawer, Aufgabenbearbeitung/-archivierung, Medienbibliothek, Kommunikationsvorlagen, tiefere Filter, vollstaendige Detailseiten, konsolidierte Domain-/Mutation-Layer.
 
 ### Supabase
 
@@ -108,7 +108,7 @@ Risiko:
 | Rechtstexte | Prototyp/Footer | `apps/web/app/agb`, `datenschutz`, `buchungsbedingungen`, `stornobedingungen`, `zahlungsbedingungen` | migriert / teilweise | hoch | Juristische Finalpruefung offen. |
 | Leadformulare | Vite-Formulare + `morrowBackend.ts` | `apps/web/app/_components/LeadForm.tsx`, Supabase Edge Functions | migriert | hoch | Mailfehler duerfen Lead nicht blockieren; Tracking/UTM live pruefen. |
 | Admin-Login/Rollen | `src/App.tsx` AdminAccess | `apps/admin/app/page.tsx`, `AdminLoginForm`, Supabase Auth/RPC | migriert | kritisch | Admin-Userpflege/Rotation operativ dokumentieren. |
-| Admin-Uebersicht | Vite `overview` | `apps/admin/app/dashboard/AdminDashboardClient.tsx` | teilweise | kritisch | Next ist eine lange Seite statt Bereichsnavigation; Tages-CRM braucht Struktur und Paritaetscheck. |
+| Admin-Uebersicht | Vite `overview` | `apps/admin/app/dashboard/AdminDashboardClient.tsx` | teilweise | kritisch | Next hat clientseitige Arbeitsbereiche fuer Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer und Aktivitaet; echte Routen bleiben spaetere Architekturentscheidung. |
 | Anfragen/Leads | Vite `leads`, Lead-Drawer | `apps/admin` Leads-Sektion | teilweise | kritisch | Status, Reservierung, Aktiv-/Archivfilter, Wiedervorlage, Reaktivierung und Testloeschung vorhanden; tiefe Lead-Detailbearbeitung, Spam-Policy und relationale Wiedervorlage-Spalte pruefen. |
 | Kunden | Vite `customers` | `apps/admin` | teilweise | kritisch | Next leitet Kunden aus Gastanfragen und Buchungen ab, zeigt Kontaktlinks, Anfrage-/Buchungsbezug und naechsten Schritt; dedizierter Kundendetail-Drawer mit kompletter Historie bleibt offen. |
 | Buchungen | Vite `bookings`, Booking-Drawer | `apps/admin` Buchungssektion | teilweise | kritisch | Status, Zahlung, Operationsdaten vorhanden; vollstaendige Buchungsdetailseite, Kundenbezug und Aufgabenfluss pruefen. |
@@ -153,7 +153,7 @@ Risiko:
 - Kundenbereich mit Anfrage- und Buchungshistorie.
 - Aufgabenbearbeitung und Loesch-/Archivierungsflow.
 - Tiefe Lead-Detailbearbeitung, Spam-Policy und relationale Wiedervorlage-Spalte pruefen.
-- Dichte Bereichsnavigation statt langer Dashboard-Seite.
+- Pruefen, ob clientseitige Arbeitsbereiche fuer MVP reichen oder echte Admin-Routen noetig werden.
 - Voller Auszeiten-Builder inklusive Copy, FAQ, Medien, Momente, Empfehlungen und Launch-Check.
 - Voller Unterkunfts-Editor inklusive Medienreihenfolge, Rechteworkflow und strukturierter Attribute ohne Payload-Drift.
 - Voller Erlebnisanbieter-/Eigentuemer-/Agentur-Akquise-CRM mit Follow-ups und Statushistorie.
@@ -240,7 +240,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 
 1. `apps/admin` gegen alten Vite-Admin bereichsweise abnehmen.
 2. Admin-README und Plattformdoku auf realen Stand bringen.
-3. Entscheiden, ob `apps/admin` als lange Einseiten-App bleibt oder eine echte CRM-Navigation/Routenstruktur bekommt.
+3. Clientseitige Admin-Arbeitsbereiche gegen reale Nutzung testen und spaeter entscheiden, ob echte Admin-Routen noetig werden.
 4. Kundenbereich in `apps/admin` paritaetisch weiterfuehren: dedizierter Kundendetail-Drawer, vollstaendige Historie, Buchungen, Kommunikation.
 5. Aufgabenbereich paritaetisch weiterfuehren: Bearbeiten, Loeschen/Archivieren und dedizierte Anbieterbearbeitung.
 6. Lead-Detailbearbeitung, Spam-/Loeschpolicy und relationale Wiedervorlage-Spalte pruefen/entscheiden.

@@ -223,13 +223,26 @@ input {
   padding: 10px 14px;
 }
 
-.admin-header nav button {
+.admin-header nav button.is-active,
+.admin-header nav button[aria-pressed="true"] {
+  background: var(--offblack);
+  border-color: var(--offblack);
+  color: var(--offwhite);
+}
+
+.admin-header nav button:last-child {
   background: transparent;
   border-color: transparent;
 }
 
 .admin-hero {
   padding-bottom: clamp(30px, 5vw, 62px);
+}
+
+.admin-hero-meta {
+  color: rgba(24, 23, 21, 0.56);
+  font-size: 14px;
+  font-weight: 780;
 }
 
 .admin-center-state {

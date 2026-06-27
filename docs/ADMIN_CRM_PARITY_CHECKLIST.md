@@ -28,7 +28,7 @@ Bis dahin gilt:
 
 | Bereich | Vite-Referenz | Next-Stand | Status | Naechste Arbeit | Abnahmekriterium |
 | --- | --- | --- | --- | --- | --- |
-| Admin-Shell | `AdminSection` mit Bereichen `overview`, `leads`, `tasks`, `guestSupport`, `customers`, `bookings`, `packages`, `experiences`, `localPlaces`, `owners`, `agencies`, `experienceProviders`, `activity` | Lange Dashboard-Seite mit Anchor-Navigation und gemischten Sektionen | teilweise | Entscheiden und umsetzen: echte Bereichsnavigation/Ansichten statt langer Seite oder bewusst dokumentierte Einseiten-Variante | Jeder alte Kernbereich ist in `apps/admin` eindeutig erreichbar, nicht nur als Kartenblock. |
+| Admin-Shell | `AdminSection` mit Bereichen `overview`, `leads`, `tasks`, `guestSupport`, `customers`, `bookings`, `packages`, `experiences`, `localPlaces`, `owners`, `agencies`, `experienceProviders`, `activity` | Clientseitige Arbeitsbereichsnavigation mit Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer, Aktivitaet | teilweise | Pruefen, ob spaeter echte Routen statt clientseitiger Bereiche noetig sind | Jeder alte Kernbereich ist in `apps/admin` eindeutig erreichbar, nicht nur als Kartenblock. |
 | Uebersicht | Tagesboard, Faelligkeiten, Wiedervorlagen, kommende Termine, aktive Arbeit | Kennzahlen, Aufgaben, Monitoring, Audit, Feedback | teilweise | Uebersicht auf Tagesarbeit fokussieren und zu Detailbereichen verlinken | Uebersicht zeigt nur Tagessteuerung; Detailarbeit findet in Bereichen statt. |
 | Leads/Anfragen | Status, Filter aktiv/archiviert, Typ/Status/Arbeitsstand, Wiedervorlage, Archiv, Reaktivierung, Testloeschung, Drawer | Leads laden, filtern, Status aendern, Wiedervorlage setzen, archivieren, reaktivieren, Testdatensaetze loeschen, Reservierung anlegen, Drawer fuer Notiz/E-Mail/Historie | teilweise | Tiefe Lead-Detailbearbeitung, Spam-/Loeschpolicy und ggf. eigene Wiedervorlage-Spalte pruefen | Ein Lead kann von neu bis archiviert und reaktiviert komplett in Next bearbeitet werden; Historie bleibt sichtbar. |
 | Kunden | Kundensatz aus Gastanfragen, Kunden-Cards, Kontaktlinks, Anfragehistorie, Buchungshistorie, Filter Anfrage/Buchung/faellig | Eigener Kundenbereich leitet Gastkontakte aus `leads` + `bookings` ab, zeigt Kontaktlinks, Anfrage-/Buchungsanzahl, naechsten Schritt und oeffnet Lead-/Buchungsdrawer | teilweise | Dedizierten Kundendetail-Drawer mit kompletter Kommunikationshistorie und interner Kundennotiz pruefen/umsetzen | Ein Gastkontakt ist unabhaengig von einzelner Anfrage auffindbar, mit Kontakt, Anfragen, Buchungen und naechstem Schritt. |
@@ -158,15 +158,17 @@ Problem:
 
 Umsetzung:
 
-- Entscheidung dokumentieren: echte interne Views/Routen oder clientseitige Bereichsnavigation.
-- Bereiche mindestens: Uebersicht, Anfragen, Kunden, Buchungen, Aufgaben, Support, Auszeiten, Unterkuenfte, Erlebnisse, Vor Ort, Partner, Eigentuemer, Aktivitaet.
-- Uebersicht bleibt kurz und verweist auf Detailbereiche.
+- Entscheidung: Fuer den Konsolidierungsschritt wird eine clientseitige Arbeitsbereichsnavigation umgesetzt. Damit bleiben die bestehenden Drawer und Mutationen stabil, waehrend die lange Seite in Arbeitsbereiche aufgeteilt wird.
+- Bereiche vorhanden: Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer, Aktivitaet.
+- Uebersicht bleibt kurz und zeigt Kennzahlen, Monitoring und Aktivitaet.
+- Detailarbeit ist jeweils in einem sichtbaren Arbeitsbereich gebuendelt.
+- Offene Architekturentscheidung: spaeter echte interne Routen, falls Admin weiter waechst.
 
 Abnahme:
 
-- Nutzer kann gezielt in einen Arbeitsbereich wechseln.
-- Keine zentrale Seite muss alle Detailarbeit gleichzeitig tragen.
-- Mobile/kleine Viewports bleiben bedienbar.
+- Nutzer kann gezielt in einen Arbeitsbereich wechseln. Stand: umgesetzt.
+- Keine zentrale Seite muss alle Detailarbeit gleichzeitig tragen. Stand: umgesetzt durch `activeWorkspace`.
+- Mobile/kleine Viewports bleiben bedienbar. Stand: technisch umgesetzt mit bestehender flexibler Navigation; visuelle QA auf echten Viewports bleibt sinnvoll.
 
 ## QA-Gates Fuer Admin-Paritaet
 
