@@ -117,6 +117,16 @@ OWNER_VERIFY_DOCUMENT_ACCESS=1 \
 npm run supabase:verify-owner
 ```
 
+Guest-App zusaetzlich pruefen:
+- `get_guest_stay()` liefert fuer Buchungs-ID plus Access-Code genau eine sichtbare Buchung.
+- Der Gaestebereich rendert mobil Start, Auszeit, Buchung, Vor Ort und Hilfe.
+- Automatischer Check lokal oder gegen Production:
+
+```bash
+GUEST_VERIFY_SEED=1 npm run supabase:verify-guest
+GUEST_BASE_URL=https://<guest-app-domain> npm run supabase:verify-guest
+```
+
 ## 3a. MVP Completion Vor Erstem Zahlenden Gast
 
 Vor dem ersten zahlenden Gast muessen die MVP-kritischen Punkte aus `docs/MORROW_MVP_COMPLETION_PLAN.md` geprueft werden:

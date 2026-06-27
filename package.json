@@ -28,6 +28,7 @@
     "db:build": "bash scripts/build-database.sh",
     "supabase:backup": "node scripts/export-supabase-backup.mjs",
     "supabase:verify-owner": "node scripts/verify-supabase-owner-portal.mjs",
+    "supabase:verify-guest": "node scripts/verify-supabase-guest-stay.mjs",
     "events:scrape": "node scripts/scrape-spo-events.mjs",
     "supabase:seed-packages": "node scripts/seed-supabase-packages.mjs",
     "supabase:seed-local-places": "node scripts/seed-supabase-local-places.mjs",
