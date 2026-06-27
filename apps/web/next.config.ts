@@ -23,12 +23,31 @@ function appRedirects(sourcePrefix: string, destinationBaseUrl?: string) {
   ];
 }
 
+function guestAppRedirects(destinationBaseUrl?: string) {
+  if (!destinationBaseUrl) return [];
+
+  const destination = withoutTrailingSlash(destinationBaseUrl);
+
+  return [
+    {
+      source: "/deine-auszeit",
+      destination,
+      permanent: false,
+    },
+    {
+      source: "/deine-auszeit/:path*",
+      destination: `${destination}/deine-auszeit/:path*`,
+      permanent: false,
+    },
+  ];
+}
+
 const nextConfig: NextConfig = {
   transpilePackages: ["@morrow/ui", "@morrow/domain", "@morrow/supabase"],
   async redirects() {
     return [
       ...appRedirects("/admin", process.env.MORROW_ADMIN_APP_URL),
-      ...appRedirects("/deine-auszeit", process.env.MORROW_GUEST_APP_URL),
+      ...guestAppRedirects(process.env.MORROW_GUEST_APP_URL),
       ...appRedirects("/owner", process.env.MORROW_OWNER_APP_URL),
       ...appRedirects("/app/eigentuemer", process.env.MORROW_OWNER_APP_URL),
     ];

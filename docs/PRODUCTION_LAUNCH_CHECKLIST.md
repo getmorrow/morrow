@@ -183,9 +183,20 @@ Automatisierter Basischeck:
 QA_BASE_URL=https://www.getmorrow.de npm run qa:production
 ```
 
+Mit App-Redirect-Pruefung nach Deployment der App-Projekte:
+
+```bash
+QA_BASE_URL=https://www.getmorrow.de \
+MORROW_ADMIN_APP_URL=https://<admin-app-domain> \
+MORROW_GUEST_APP_URL=https://<guest-app-domain> \
+MORROW_OWNER_APP_URL=https://<owner-app-domain> \
+npm run qa:production
+```
+
 Dieser Check prüft:
 - öffentliche Kernseiten inklusive Rechteseiten
 - `robots.txt` und `sitemap.xml`
+- optionale App-Redirects von `/admin`, `/deine-auszeit/...`, `/owner` und `/app/eigentuemer`
 - Leadformulare für Gäste, Eigentümer und Erlebnispartner
 - dass keine Mailto-Links mehr im Anfragefluss hängen
 - Consent-Verhalten, wenn GA/Meta-IDs gesetzt sind

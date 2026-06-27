@@ -5,6 +5,29 @@ const baseUrl = (process.env.QA_BASE_URL ?? 'http://localhost:3000').replace(/\/
 const submitLead = process.env.MORROW_QA_SUBMIT_LEAD === '1'
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const expectedRedirects = [
+  {
+    label: 'admin',
+    path: '/admin',
+    expectedBaseUrl: process.env.MORROW_ADMIN_APP_URL,
+  },
+  {
+    label: 'guest',
+    path: '/deine-auszeit/qa-booking?code=qa-code',
+    expectedBaseUrl: process.env.MORROW_GUEST_APP_URL,
+    expectedPathPrefix: '/deine-auszeit/qa-booking',
+  },
+  {
+    label: 'owner',
+    path: '/owner',
+    expectedBaseUrl: process.env.MORROW_OWNER_APP_URL,
+  },
+  {
+    label: 'ownerAppAlias',
+    path: '/app/eigentuemer',
+    expectedBaseUrl: process.env.MORROW_OWNER_APP_URL,
+  },
+]
 const runId = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14)
 const testEmail = `qa+${runId}@getmorrow.de`
 const campaign = `production-rehearsal-${runId}`
@@ -58,6 +81,57 @@ async function checkStaticEndpoint(page, path, expectedText) {
   const body = await page.locator('body').innerText()
   assertNoSoft404(path, body)
   assert(body.includes(expectedText), `${path} does not include ${expectedText}`)
+}
+
+async function checkRedirects() {
+  const configuredRedirects = expectedRedirects.filter((item) => item.expectedBaseUrl)
+
+  if (configuredRedirects.length === 0) {
+    return {
+      checked: false,
+      reason: 'No app redirect env vars set. Provide MORROW_ADMIN_APP_URL, MORROW_GUEST_APP_URL and/or MORROW_OWNER_APP_URL.',
+    }
+  }
+
+  const checks = []
+
+  for (const item of configuredRedirects) {
+    const response = await fetch(`${baseUrl}${item.path}`, { redirect: 'manual' })
+    assert(
+      response.status >= 300 && response.status < 400,
+      `${item.path} expected redirect, got ${response.status}`,
+    )
+
+    const location = response.headers.get('location')
+    assert(location, `${item.path} redirect did not include Location header`)
+
+    const redirectUrl = new URL(location, baseUrl)
+    const expectedBaseUrl = new URL(item.expectedBaseUrl)
+
+    assert(
+      redirectUrl.origin === expectedBaseUrl.origin,
+      `${item.path} expected redirect origin ${expectedBaseUrl.origin}, got ${redirectUrl.origin}`,
+    )
+    if (item.expectedPathPrefix) {
+      assert(
+        redirectUrl.pathname.startsWith(item.expectedPathPrefix),
+        `${item.path} expected redirect path ${item.expectedPathPrefix}, got ${redirectUrl.pathname}`,
+      )
+    }
+
+    checks.push({
+      label: item.label,
+      path: item.path,
+      status: response.status,
+      location: redirectUrl.toString(),
+    })
+  }
+
+  return {
+    checked: true,
+    count: checks.length,
+    checks,
+  }
 }
 
 async function checkForm(page, check) {
@@ -170,6 +244,7 @@ try {
 
   await checkStaticEndpoint(page, '/robots.txt', 'Sitemap:')
   await checkStaticEndpoint(page, '/sitemap.xml', '<urlset')
+  const redirects = await checkRedirects()
 
   for (const check of formChecks) {
     await checkForm(mobile, check)
@@ -198,6 +273,7 @@ try {
     baseUrl,
     checkedPages: requiredPages.length,
     checkedForms: formChecks.length,
+    redirects,
     consent,
     leadVerification,
     screenshot: `${screenshotsDir}/family-form-mobile.png`,
