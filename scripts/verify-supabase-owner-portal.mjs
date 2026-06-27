@@ -17,6 +17,7 @@ const tempOwner = {
   communicationEventIds: [],
   supportStatusEventIds: [],
   supportMessageIds: [],
+  adminTaskIds: [],
   operationId: null,
   statementId: null,
 }
@@ -240,6 +241,22 @@ if (verifySupportInsert) {
     fail('Owner availability support payload missing requested date range')
   }
 
+  const expectedAvailabilityTaskId = `owner-availability-${availabilityMessageId}`
+  tempOwner.adminTaskIds.push(expectedAvailabilityTaskId)
+  const { data: availabilityTask, error: availabilityTaskError } = await serviceClient
+    .from('admin_tasks')
+    .select('id,title,reference_type,reference_id,status,priority,payload')
+    .eq('id', expectedAvailabilityTaskId)
+    .single()
+
+  if (availabilityTaskError) fail('Owner availability support did not create an admin task', availabilityTaskError)
+  if (availabilityTask.reference_id !== availabilityMessageId) {
+    fail('Owner availability admin task does not reference the support message')
+  }
+  if (availabilityTask.payload?.requestedStartsOn !== '2026-09-10') {
+    fail('Owner availability admin task payload missing requested date range')
+  }
+
   const { data: dashboardWithMessages, error: messageDashboardError } = await ownerClient.rpc('get_owner_dashboard')
   if (messageDashboardError) fail('Owner dashboard RPC failed after support insert', messageDashboardError)
 
@@ -308,6 +325,7 @@ if (verifySupportInsert) {
       `dashboardMessages=${visibleMessages.length}`,
       `communicationEvents=${ownerCommunicationEvents?.length ?? 0}`,
       `statusEvents=${ownerStatusEvents?.length ?? 0}`,
+      `availabilityTask=${availabilityTask.id}`,
       `property=${supportMessages[0]?.payload?.propertyName ?? property.id}`,
     ].join(' '),
   )
@@ -462,6 +480,15 @@ if (tempOwner.supportStatusEventIds.length > 0) {
     .in('id', tempOwner.supportStatusEventIds)
 
   if (statusCleanupError) fail('Temporary owner support status event cleanup failed', statusCleanupError)
+}
+
+if (tempOwner.adminTaskIds.length > 0) {
+  const { error: taskCleanupError } = await serviceClient
+    .from('admin_tasks')
+    .delete()
+    .in('id', tempOwner.adminTaskIds)
+
+  if (taskCleanupError) fail('Temporary owner admin task cleanup failed', taskCleanupError)
 }
 
 if (tempOwner.supportMessageIds.length > 0) {
