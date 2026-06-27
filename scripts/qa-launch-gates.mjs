@@ -48,6 +48,22 @@ function requireEnv(name, message) {
   return false
 }
 
+function requireAnyEnv(names, message) {
+  const found = names.find((name) => process.env[name])
+
+  if (found) {
+    addPassed(`env:${names.join('|')}`, `${found} is set.`)
+    return true
+  }
+
+  addBlocker(
+    `env:${names.join('|')}`,
+    message,
+    `${names.join(' or ')} is not set`,
+  )
+  return false
+}
+
 function warnEnv(name, message) {
   if (process.env[name]) {
     addPassed(`env:${name}`, `${name} is set.`)
@@ -134,8 +150,14 @@ function checkLegalPages() {
 }
 
 function checkEnvironment() {
-  requireEnv('NEXT_PUBLIC_SUPABASE_URL', 'Production website needs NEXT_PUBLIC_SUPABASE_URL.')
-  requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'Production website needs NEXT_PUBLIC_SUPABASE_ANON_KEY.')
+  requireAnyEnv(
+    ['NEXT_PUBLIC_SUPABASE_URL', 'VITE_SUPABASE_URL'],
+    'Production website needs NEXT_PUBLIC_SUPABASE_URL or the mapped VITE_SUPABASE_URL fallback.',
+  )
+  requireAnyEnv(
+    ['NEXT_PUBLIC_SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY'],
+    'Production website needs NEXT_PUBLIC_SUPABASE_ANON_KEY or the mapped VITE_SUPABASE_ANON_KEY fallback.',
+  )
 
   requireEnv('MORROW_ADMIN_APP_URL', 'Website must know the deployed Admin-App URL before final launch.')
   requireEnv('MORROW_GUEST_APP_URL', 'Website must know the deployed Gäste-App URL before final launch.')

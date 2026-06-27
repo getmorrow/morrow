@@ -43,6 +43,12 @@ function guestAppRedirects(destinationBaseUrl?: string) {
 }
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL:
+      process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY:
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY,
+  },
   transpilePackages: ["@morrow/ui", "@morrow/domain", "@morrow/supabase"],
   async redirects() {
     return [
