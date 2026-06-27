@@ -1782,6 +1782,7 @@ function AdminDashboardView({
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [activeWorkspace, setActiveWorkspace] = useState<AdminWorkspace>("overview");
   const [selection, setSelection] = useState<DetailSelection>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [customerPhaseFilter, setCustomerPhaseFilter] = useState<CustomerPhaseFilter>("all");
   const [leadScopeFilter, setLeadScopeFilter] = useState<LeadScopeFilter>("active");
   const [leadTypeFilter, setLeadTypeFilter] = useState<LeadTypeFilter>("all");
@@ -1870,6 +1871,10 @@ function AdminDashboardView({
   const [agencyMessage, setAgencyMessage] = useState<string | null>(null);
   const [communicationEvents, setCommunicationEvents] = useState<CommunicationEventRow[]>([]);
   const [drawerAuditLogs, setDrawerAuditLogs] = useState<AuditLogRow[]>([]);
+  const [customerCommunicationEvents, setCustomerCommunicationEvents] = useState<CommunicationEventRow[]>([]);
+  const [customerAuditLogs, setCustomerAuditLogs] = useState<AuditLogRow[]>([]);
+  const [customerDrawerMessage, setCustomerDrawerMessage] = useState<string | null>(null);
+  const [isCustomerDrawerLoading, setIsCustomerDrawerLoading] = useState(false);
   const [drawerNote, setDrawerNote] = useState("");
   const [outboundDraft, setOutboundDraft] = useState<OutboundDraft>({ subject: "", body: "" });
   const [paymentDraft, setPaymentDraft] = useState<PaymentDraft>(paymentDraftFromBooking(null));
@@ -1901,6 +1906,9 @@ function AdminDashboardView({
     if (customerPhaseFilter === "due") return customer.due;
     return true;
   });
+  const selectedCustomer = selectedCustomerId
+    ? customerRows.find((customer) => customer.id === selectedCustomerId) ?? null
+    : null;
   const paidBookings = data.bookings.filter((booking) => booking.payment_status === "bezahlt");
   const openSupport = data.supportMessages.filter((message) => message.status !== "closed");
   const activeTasks = data.tasks.filter((task) => task.status !== "done");
@@ -2294,6 +2302,112 @@ function AdminDashboardView({
       isMounted = false;
     };
   }, [selection, data.leads, data.bookings, data.supportMessages]);
+
+  useEffect(() => {
+    if (!selectedCustomer) {
+      setCustomerCommunicationEvents([]);
+      setCustomerAuditLogs([]);
+      setCustomerDrawerMessage(null);
+      setIsCustomerDrawerLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    const activeCustomer = selectedCustomer;
+
+    async function loadCustomerHistory() {
+      setIsCustomerDrawerLoading(true);
+      setCustomerDrawerMessage(null);
+
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const leadIds = activeCustomer.leads.map((lead) => lead.id);
+        const bookingIds = activeCustomer.bookings.map((booking) => booking.id);
+
+        const [leadEventsResult, bookingEventsResult, leadAuditResult, bookingAuditResult] = await Promise.all([
+          leadIds.length
+            ? supabase
+                .from("communication_events")
+                .select("id,lead_id,booking_id,channel,direction,event_type,subject,body,actor,status,created_at")
+                .in("lead_id", leadIds)
+                .order("created_at", { ascending: false })
+                .limit(40)
+            : Promise.resolve({ data: [], error: null }),
+          bookingIds.length
+            ? supabase
+                .from("communication_events")
+                .select("id,lead_id,booking_id,channel,direction,event_type,subject,body,actor,status,created_at")
+                .in("booking_id", bookingIds)
+                .order("created_at", { ascending: false })
+                .limit(40)
+            : Promise.resolve({ data: [], error: null }),
+          leadIds.length
+            ? supabase
+                .from("admin_audit_logs")
+                .select("id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at")
+                .eq("entity_type", "lead")
+                .in("entity_id", leadIds)
+                .order("created_at", { ascending: false })
+                .limit(30)
+            : Promise.resolve({ data: [], error: null }),
+          bookingIds.length
+            ? supabase
+                .from("admin_audit_logs")
+                .select("id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at")
+                .eq("entity_type", "booking")
+                .in("entity_id", bookingIds)
+                .order("created_at", { ascending: false })
+                .limit(30)
+            : Promise.resolve({ data: [], error: null }),
+        ]);
+
+        if (!isMounted) return;
+        if (
+          leadEventsResult.error ||
+          bookingEventsResult.error ||
+          leadAuditResult.error ||
+          bookingAuditResult.error
+        ) {
+          setCustomerDrawerMessage("Kundenhistorie konnte nicht vollständig geladen werden.");
+        }
+
+        const eventsById = new Map(
+          [
+            ...((leadEventsResult.data ?? []) as CommunicationEventRow[]),
+            ...((bookingEventsResult.data ?? []) as CommunicationEventRow[]),
+          ].map((event) => [event.id, event]),
+        );
+        const auditsById = new Map(
+          [
+            ...((leadAuditResult.data ?? []) as AuditLogRow[]),
+            ...((bookingAuditResult.data ?? []) as AuditLogRow[]),
+          ].map((auditLog) => [auditLog.id, auditLog]),
+        );
+        const events = Array.from(eventsById.values()).sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        );
+        const audits = Array.from(auditsById.values()).sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        );
+
+        setCustomerCommunicationEvents(events.slice(0, 50));
+        setCustomerAuditLogs(audits.slice(0, 40));
+      } catch {
+        if (!isMounted) return;
+        setCustomerDrawerMessage("Kundenhistorie konnte nicht geladen werden.");
+        setCustomerCommunicationEvents([]);
+        setCustomerAuditLogs([]);
+      } finally {
+        if (isMounted) setIsCustomerDrawerLoading(false);
+      }
+    }
+
+    void loadCustomerHistory();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedCustomer]);
 
   async function writeAuditLog({
     action,
@@ -4929,6 +5043,9 @@ function AdminDashboardView({
                   <div className="admin-row-actions">
                     {customer.email ? <a href={`mailto:${customer.email}`}>{customer.email}</a> : null}
                     {customer.phone ? <a href={`tel:${customer.phone.replace(/\s+/g, "")}`}>{customer.phone}</a> : null}
+                    <button onClick={() => setSelectedCustomerId(customer.id)} type="button">
+                      Kunde öffnen
+                    </button>
                     {latestLead ? (
                       <button onClick={() => setSelection({ type: "lead", id: latestLead.id })} type="button">
                         Anfrage öffnen
@@ -6173,6 +6290,22 @@ function AdminDashboardView({
         sendPending={Boolean(pendingAction?.startsWith("drawer-email"))}
         support={selectedSupport}
       />
+      <AdminCustomerDrawer
+        auditLogs={customerAuditLogs}
+        communicationEvents={customerCommunicationEvents}
+        customer={selectedCustomer}
+        isLoading={isCustomerDrawerLoading}
+        message={customerDrawerMessage}
+        onClose={() => setSelectedCustomerId(null)}
+        onOpenBooking={(bookingId) => {
+          setSelectedCustomerId(null);
+          setSelection({ type: "booking", id: bookingId });
+        }}
+        onOpenLead={(leadId) => {
+          setSelectedCustomerId(null);
+          setSelection({ type: "lead", id: leadId });
+        }}
+      />
       <AdminInventoryDrawer
         draft={inventoryDraft}
         inventoryType={inventorySelection?.type ?? null}
@@ -6220,6 +6353,188 @@ function AdminDashboardView({
         pending={Boolean(pendingAction?.startsWith("date"))}
       />
     </main>
+  );
+}
+
+function AdminCustomerDrawer({
+  auditLogs,
+  communicationEvents,
+  customer,
+  isLoading,
+  message,
+  onClose,
+  onOpenBooking,
+  onOpenLead,
+}: {
+  auditLogs: AuditLogRow[];
+  communicationEvents: CommunicationEventRow[];
+  customer: CustomerRow | null;
+  isLoading: boolean;
+  message: string | null;
+  onClose: () => void;
+  onOpenBooking: (bookingId: string) => void;
+  onOpenLead: (leadId: string) => void;
+}) {
+  if (!customer) return null;
+
+  const internalNotes = [
+    ...customer.leads.map((lead) => ({
+      id: `lead-${lead.id}`,
+      label: `Anfrage · ${leadIntentLabel(lead)}`,
+      value: getInternalNote(lead.payload ?? {}),
+    })),
+    ...customer.bookings.map((booking) => ({
+      id: `booking-${booking.id}`,
+      label: `Buchung · ${getBookingLabel(booking)}`,
+      value: getInternalNote(booking.payload ?? {}),
+    })),
+  ].filter((item) => item.value);
+
+  return (
+    <div className="admin-drawer-layer" role="presentation">
+      <button className="admin-drawer-backdrop" onClick={onClose} type="button" />
+      <aside className="admin-drawer" aria-label="Kundendetails">
+        <header>
+          <div>
+            <p className="admin-eyebrow">Kunde</p>
+            <h2>{customer.name}</h2>
+            <span>{customerPhaseLabel(customer)} · {customer.nextStep}</span>
+          </div>
+          <button aria-label="Kundendetails schließen" onClick={onClose} type="button">
+            Schließen
+          </button>
+        </header>
+
+        <section className="admin-drawer-grid">
+          <article>
+            <small>E-Mail</small>
+            <strong>{customer.email ? <a href={`mailto:${customer.email}`}>{customer.email}</a> : "nicht angegeben"}</strong>
+          </article>
+          <article>
+            <small>Telefon</small>
+            <strong>{customer.phone ? <a href={`tel:${customer.phone.replace(/\s+/g, "")}`}>{customer.phone}</a> : "nicht angegeben"}</strong>
+          </article>
+          <article>
+            <small>Status</small>
+            <strong>{customer.latestStatus}</strong>
+          </article>
+          <article>
+            <small>Quelle</small>
+            <strong>{customer.source}</strong>
+          </article>
+        </section>
+
+        {message ? <p className="admin-drawer-message">{message}</p> : null}
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Anfragehistorie</p>
+          <div className="admin-list">
+            {customer.leads.length ? (
+              customer.leads.map((lead) => (
+                <article className="admin-list-item" key={lead.id}>
+                  <div>
+                    <small>{formatDate(lead.created_at)} · {leadWorkLabel(lead)}</small>
+                    <strong>{leadIntentLabel(lead)}</strong>
+                    <em>{lead.status} · {leadSourceLabel(lead)}</em>
+                    <p>{leadWorkMeta(lead)}</p>
+                  </div>
+                  <div className="admin-row-actions">
+                    <button onClick={() => onOpenLead(lead.id)} type="button">
+                      Anfrage öffnen
+                    </button>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">Keine Anfragehistorie vorhanden.</p>
+            )}
+          </div>
+        </section>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Buchungshistorie</p>
+          <div className="admin-list">
+            {customer.bookings.length ? (
+              customer.bookings.map((booking) => (
+                <article className="admin-list-item" key={booking.id}>
+                  <div>
+                    <small>{formatDate(booking.created_at)}</small>
+                    <strong>{getBookingLabel(booking)}</strong>
+                    <em>{booking.status} · {booking.payment_status}</em>
+                    <p>
+                      {getPayloadText(booking.payload ?? {}, ["selectedDate", "dateLabel", "travelDate"]) ||
+                        "Termin noch nicht eindeutig hinterlegt."}
+                    </p>
+                  </div>
+                  <div className="admin-row-actions">
+                    <button onClick={() => onOpenBooking(booking.id)} type="button">
+                      Buchung öffnen
+                    </button>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">Noch keine Buchung vorhanden.</p>
+            )}
+          </div>
+        </section>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Interne Notizen</p>
+          <div className="admin-timeline admin-timeline-compact">
+            {internalNotes.length ? (
+              internalNotes.map((note) => (
+                <article key={note.id}>
+                  <small>{note.label}</small>
+                  <p>{note.value}</p>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">Noch keine interne Kundennotiz an Anfrage oder Buchung hinterlegt.</p>
+            )}
+          </div>
+        </section>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Kommunikation</p>
+          {isLoading ? <p className="admin-drawer-message">Historie wird geladen.</p> : null}
+          <div className="admin-timeline admin-timeline-compact">
+            {communicationEvents.length ? (
+              communicationEvents.map((event) => (
+                <article key={event.id}>
+                  <small>
+                    {formatDate(event.created_at)} · {event.channel} · {event.direction}
+                  </small>
+                  <strong>{event.subject || event.event_type}</strong>
+                  {event.body ? <p>{event.body}</p> : null}
+                </article>
+              ))
+            ) : !isLoading ? (
+              <p className="admin-drawer-message">Noch keine Kommunikation für diesen Kunden geladen.</p>
+            ) : null}
+          </div>
+        </section>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Änderungen</p>
+          <div className="admin-timeline admin-timeline-compact">
+            {auditLogs.length ? (
+              auditLogs.map((log) => (
+                <article key={log.id}>
+                  <small>
+                    {formatDate(log.created_at)} · {log.actor_email || "Morrow"}
+                  </small>
+                  <strong>{auditActionLabel(log.action)}</strong>
+                  <p>{auditPayloadSummary(log)}</p>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">Noch keine Änderungen für diesen Kunden gefunden.</p>
+            )}
+          </div>
+        </section>
+      </aside>
+    </div>
   );
 }
 

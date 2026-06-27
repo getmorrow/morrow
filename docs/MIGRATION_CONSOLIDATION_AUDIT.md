@@ -78,7 +78,7 @@ Rolle ab jetzt:
 
 - Enthalten: Supabase-Login, Rollencheck, operative Uebersicht, Kennzahlen, Monitoring, Leads, Buchungen, Support, Feedback, lokale Orte, Erlebnisbausteine, Termine, Auszeiten, Unterkuenfte, Agenturen, Eigentuemerprofile, Objektzugriffe, Dokumente, Abrechnungen, Operationsmeldungen, Audit-Log.
 - Status: echte operative Funktionen vorhanden, aber noch kein vollstaendiger Ersatz fuer alten Vite-Admin.
-- Fehlend/Offen: CRM-Paritaet pruefen und Luecken schliessen, spaetere Entscheidung zu echten Admin-Routen statt clientseitiger Arbeitsbereiche, dedizierter Kundendetail-Drawer, Aufgabenbearbeitung/-archivierung, Medienbibliothek, Kommunikationsvorlagen, tiefere Filter, vollstaendige Detailseiten, konsolidierte Domain-/Mutation-Layer.
+- Fehlend/Offen: CRM-Paritaet pruefen und Luecken schliessen, spaetere Entscheidung zu echten Admin-Routen statt clientseitiger Arbeitsbereiche, zentrale Kundennotiz/echte Customers-Quelle entscheiden, Aufgabenbearbeitung/-archivierung, Medienbibliothek, Kommunikationsvorlagen, tiefere Filter, vollstaendige Detailseiten, konsolidierte Domain-/Mutation-Layer.
 
 ### Supabase
 
@@ -110,7 +110,7 @@ Risiko:
 | Admin-Login/Rollen | `src/App.tsx` AdminAccess | `apps/admin/app/page.tsx`, `AdminLoginForm`, Supabase Auth/RPC | migriert | kritisch | Admin-Userpflege/Rotation operativ dokumentieren. |
 | Admin-Uebersicht | Vite `overview` | `apps/admin/app/dashboard/AdminDashboardClient.tsx` | teilweise | kritisch | Next hat clientseitige Arbeitsbereiche fuer Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer und Aktivitaet; echte Routen bleiben spaetere Architekturentscheidung. |
 | Anfragen/Leads | Vite `leads`, Lead-Drawer | `apps/admin` Leads-Sektion | teilweise | kritisch | Status, Reservierung, Aktiv-/Archivfilter, Wiedervorlage, Reaktivierung und Testloeschung vorhanden; tiefe Lead-Detailbearbeitung, Spam-Policy und relationale Wiedervorlage-Spalte pruefen. |
-| Kunden | Vite `customers` | `apps/admin` | teilweise | kritisch | Next leitet Kunden aus Gastanfragen und Buchungen ab, zeigt Kontaktlinks, Anfrage-/Buchungsbezug und naechsten Schritt; dedizierter Kundendetail-Drawer mit kompletter Historie bleibt offen. |
+| Kunden | Vite `customers` | `apps/admin` | teilweise | kritisch | Next leitet Kunden aus Gastanfragen und Buchungen ab, zeigt Kontaktlinks, Anfrage-/Buchungsbezug, naechsten Schritt und Kundendetail mit Kommunikations-/Aenderungshistorie; zentrale Kundennotiz/echte Customers-Quelle bleibt offen. |
 | Buchungen | Vite `bookings`, Booking-Drawer | `apps/admin` Buchungssektion | teilweise | kritisch | Status, Zahlung, Operationsdaten vorhanden; vollstaendige Buchungsdetailseite, Kundenbezug und Aufgabenfluss pruefen. |
 | Aufgaben | Vite `tasks` | `apps/admin` Aufgabenbereich + Supabase `admin_tasks` | teilweise | kritisch | Next kann Aufgaben anlegen, filtern, Status aendern und Bezuege oeffnen; Bearbeiten, Loeschen/Archivieren und dedizierte Anbieterbearbeitung bleiben offen. |
 | Gaestesupport | Vite `guestSupport` | `apps/admin` Supportsektion + `apps/guest` Hilfe | migriert / teilweise | kritisch | Status, Notiz, E-Mail, Verlauf vorhanden; Realtime/WhatsApp/Vorlagen offen. |
@@ -241,7 +241,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 1. `apps/admin` gegen alten Vite-Admin bereichsweise abnehmen.
 2. Admin-README und Plattformdoku auf realen Stand bringen.
 3. Clientseitige Admin-Arbeitsbereiche gegen reale Nutzung testen und spaeter entscheiden, ob echte Admin-Routen noetig werden.
-4. Kundenbereich in `apps/admin` paritaetisch weiterfuehren: dedizierter Kundendetail-Drawer, vollstaendige Historie, Buchungen, Kommunikation.
+4. Kundenbereich in `apps/admin` paritaetisch weiterfuehren: zentrale Kundennotiz und Entscheidung echte `customers`-Quelle vs. Ableitung.
 5. Aufgabenbereich paritaetisch weiterfuehren: Bearbeiten, Loeschen/Archivieren und dedizierte Anbieterbearbeitung.
 6. Lead-Detailbearbeitung, Spam-/Loeschpolicy und relationale Wiedervorlage-Spalte pruefen/entscheiden.
 7. Domain-/Supabase-Typen aus App-Komponenten in `packages/domain` und `packages/supabase` ziehen.
