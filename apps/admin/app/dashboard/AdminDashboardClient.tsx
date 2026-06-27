@@ -166,6 +166,21 @@ type OwnerDocumentRow = {
   created_at: string;
 };
 
+type AgencyRow = {
+  id: string;
+  name: string;
+  contact_name: string | null;
+  email: string | null;
+  phone: string | null;
+  location: string | null;
+  status: string;
+  managed_property_ids: string[];
+  response_due_days: number | null;
+  available_dates_note: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
 type CommunicationEventRow = {
   id: string;
   lead_id: string | null;
@@ -216,6 +231,7 @@ type DashboardData = {
   ownerProfiles: OwnerProfileRow[];
   ownerAccess: OwnerAccessRow[];
   ownerDocuments: OwnerDocumentRow[];
+  agencies: AgencyRow[];
   guestFeedback: GuestFeedbackRow[];
   auditLogs: AuditLogRow[];
 };
@@ -287,6 +303,20 @@ type OwnerDocumentDraft = {
   status: string;
   url: string;
   period_label: string;
+};
+
+type AgencyDraft = {
+  id: string;
+  name: string;
+  contact_name: string;
+  email: string;
+  phone: string;
+  location: string;
+  status: string;
+  managed_property_ids: string[];
+  response_due_days: string;
+  available_dates_note: string;
+  notes: string;
 };
 
 type ExperienceSelection =
@@ -528,6 +558,9 @@ function supportStatusLabel(status: string) {
 function auditActionLabel(action: string) {
   const labels: Record<string, string> = {
     admin_email_sent: "E-Mail gesendet",
+    agency_deleted: "Agentur entfernt",
+    agency_status_updated: "Agenturstatus geändert",
+    agency_upserted: "Agentur gespeichert",
     booking_payment_documented: "Zahlung dokumentiert",
     booking_operations_updated: "Buchungsdetails aktualisiert",
     booking_status_updated: "Buchungsstatus geändert",
@@ -812,6 +845,16 @@ function averageFeedbackRating(feedback: GuestFeedbackRow[]) {
   return ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
 }
 
+function agencyStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    lead: "Kontakt prüfen",
+    active: "Aktiv",
+    paused: "Pausiert",
+  };
+
+  return labels[status] || status;
+}
+
 function getInternalNote(payload: Record<string, unknown>) {
   return getPayloadText(payload, ["internalNote", "note", "notes"]) || "";
 }
@@ -1026,6 +1069,7 @@ export function AdminDashboardClient() {
           ownersResult,
           ownerAccessResult,
           ownerDocumentsResult,
+          agenciesResult,
           feedbackResult,
           auditResult,
         ] =
@@ -1090,6 +1134,10 @@ export function AdminDashboardClient() {
               .select("id,property_id,title,document_type,status,url,period_label,payload,created_at")
               .order("created_at", { ascending: false }),
             supabase
+              .from("agencies")
+              .select("id,name,contact_name,email,phone,location,status,managed_property_ids,response_due_days,available_dates_note,payload,created_at")
+              .order("name"),
+            supabase
               .from("guest_feedback")
               .select("id,lead_id,booking_id,rating,return_interest,payload,created_at")
               .order("created_at", { ascending: false })
@@ -1140,6 +1188,7 @@ export function AdminDashboardClient() {
             ownerProfiles: ownersResult.error ? [] : (ownersResult.data ?? []) as OwnerProfileRow[],
             ownerAccess: ownerAccessResult.error ? [] : (ownerAccessResult.data ?? []) as OwnerAccessRow[],
             ownerDocuments: ownerDocumentsResult.error ? [] : (ownerDocumentsResult.data ?? []) as OwnerDocumentRow[],
+            agencies: agenciesResult.error ? [] : (agenciesResult.data ?? []) as AgencyRow[],
             guestFeedback: feedbackResult.error ? [] : (feedbackResult.data ?? []) as GuestFeedbackRow[],
             auditLogs: auditResult.error ? [] : (auditResult.data ?? []) as AuditLogRow[],
           },
@@ -1238,7 +1287,21 @@ function AdminDashboardView({
     url: "",
     period_label: "",
   });
+  const [agencyDraft, setAgencyDraft] = useState<AgencyDraft>({
+    id: "",
+    name: "",
+    contact_name: "",
+    email: "",
+    phone: "",
+    location: "Sankt Peter-Ording",
+    status: "lead",
+    managed_property_ids: [],
+    response_due_days: "2",
+    available_dates_note: "",
+    notes: "",
+  });
   const [ownerMessage, setOwnerMessage] = useState<string | null>(null);
+  const [agencyMessage, setAgencyMessage] = useState<string | null>(null);
   const [communicationEvents, setCommunicationEvents] = useState<CommunicationEventRow[]>([]);
   const [drawerAuditLogs, setDrawerAuditLogs] = useState<AuditLogRow[]>([]);
   const [drawerNote, setDrawerNote] = useState("");
@@ -1716,6 +1779,192 @@ function AdminDashboardView({
       setOwnerMessage("Eigentümerprofil gespeichert.");
     } catch {
       setOwnerMessage("Das Eigentümerprofil konnte nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  function editAgency(agency: AgencyRow) {
+    setAgencyDraft({
+      id: agency.id,
+      name: agency.name || "",
+      contact_name: agency.contact_name || "",
+      email: agency.email || "",
+      phone: agency.phone || "",
+      location: agency.location || "Sankt Peter-Ording",
+      status: agency.status || "lead",
+      managed_property_ids: agency.managed_property_ids ?? [],
+      response_due_days: agency.response_due_days?.toString() || "2",
+      available_dates_note: agency.available_dates_note || "",
+      notes: getPayloadText(agency.payload ?? {}, ["notes", "note", "internalNote"]) || "",
+    });
+    setAgencyMessage("Agentur zum Bearbeiten geladen.");
+  }
+
+  async function saveAgency() {
+    const name = agencyDraft.name.trim();
+    if (!name) {
+      setAgencyMessage("Bitte einen Agenturnamen eintragen.");
+      return;
+    }
+
+    const agencyId = agencyDraft.id || `agency-${slugify(name) || crypto.randomUUID()}`;
+    setPendingAction(`agency-save-${agencyId}`);
+    setAgencyMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const payload = {
+        source: "next-admin",
+        notes: agencyDraft.notes.trim(),
+        updatedAt: new Date().toISOString(),
+      };
+      const upsertPayload = {
+        id: agencyId,
+        name,
+        contact_name: agencyDraft.contact_name.trim() || null,
+        email: agencyDraft.email.trim() || null,
+        phone: agencyDraft.phone.trim() || null,
+        location: agencyDraft.location.trim() || null,
+        status: agencyDraft.status || "lead",
+        managed_property_ids: agencyDraft.managed_property_ids,
+        response_due_days: numberOrNull(agencyDraft.response_due_days),
+        available_dates_note: agencyDraft.available_dates_note.trim() || null,
+        payload,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data: saved, error } = await supabase
+        .from("agencies")
+        .upsert(upsertPayload)
+        .select("id,name,contact_name,email,phone,location,status,managed_property_ids,response_due_days,available_dates_note,payload,created_at")
+        .single();
+
+      if (error) throw error;
+
+      setDataState((current) => {
+        const nextAgency = saved as AgencyRow;
+        return {
+          ...current,
+          agencies: current.agencies.some((agency) => agency.id === nextAgency.id)
+            ? current.agencies.map((agency) => agency.id === nextAgency.id ? nextAgency : agency)
+            : [nextAgency, ...current.agencies],
+        };
+      });
+
+      await writeAuditLog({
+        action: "agency_upserted",
+        entityType: "agency",
+        entityId: (saved as AgencyRow).id,
+        entityLabel: name,
+        payload: upsertPayload,
+      });
+
+      setAgencyDraft({
+        id: "",
+        name: "",
+        contact_name: "",
+        email: "",
+        phone: "",
+        location: "Sankt Peter-Ording",
+        status: "lead",
+        managed_property_ids: [],
+        response_due_days: "2",
+        available_dates_note: "",
+        notes: "",
+      });
+      setAgencyMessage("Agentur gespeichert.");
+    } catch {
+      setAgencyMessage("Die Agentur konnte nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function updateAgencyStatus(agency: AgencyRow, status: string) {
+    setPendingAction(`agency-status-${agency.id}`);
+    setAgencyMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const payload = {
+        ...(agency.payload ?? {}),
+        statusUpdatedAt: new Date().toISOString(),
+        source: "next-admin",
+      };
+      const { data: updated, error } = await supabase
+        .from("agencies")
+        .update({
+          status,
+          payload,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", agency.id)
+        .select("id,name,contact_name,email,phone,location,status,managed_property_ids,response_due_days,available_dates_note,payload,created_at")
+        .single();
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        agencies: current.agencies.map((item) =>
+          item.id === agency.id ? updated as AgencyRow : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "agency_status_updated",
+        entityType: "agency",
+        entityId: agency.id,
+        entityLabel: agency.name,
+        payload: { from: agency.status, to: status },
+      });
+
+      setAgencyMessage(status === "active" ? "Agentur aktiviert." : "Agentur pausiert.");
+    } catch {
+      setAgencyMessage("Der Agenturstatus konnte nicht geändert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function deleteAgency(agency: AgencyRow) {
+    if (agency.managed_property_ids.length > 0) {
+      setAgencyMessage("Agenturen mit verbundenen Objekten erst bearbeiten, nicht löschen.");
+      return;
+    }
+
+    setPendingAction(`agency-delete-${agency.id}`);
+    setAgencyMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("agencies")
+        .delete()
+        .eq("id", agency.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        agencies: current.agencies.filter((item) => item.id !== agency.id),
+      }));
+
+      await writeAuditLog({
+        action: "agency_deleted",
+        entityType: "agency",
+        entityId: agency.id,
+        entityLabel: agency.name,
+        payload: {
+          status: agency.status,
+          location: agency.location,
+        },
+      });
+
+      setAgencyMessage("Agentur entfernt.");
+    } catch {
+      setAgencyMessage("Die Agentur konnte nicht entfernt werden.");
     } finally {
       setPendingAction(null);
     }
@@ -3141,6 +3390,7 @@ function AdminDashboardView({
           <a href="#erlebnisse">Erlebnisse</a>
           <a href="#termine">Termine</a>
           <a href="#bestand">Bestand</a>
+          <a href="#agenturen">Agenturen</a>
           <a href="#eigentuemer">Eigentümer</a>
           <button onClick={onLogout} type="button">
             Abmelden
@@ -3656,6 +3906,192 @@ function AdminDashboardView({
                 </div>
               </article>
             ))}
+          </div>
+        </article>
+      </section>
+
+      <section className="admin-grid" id="agenturen">
+        <article className="admin-card">
+          <p className="admin-eyebrow">Agenturen</p>
+          <h2>Phase-1-Partner pflegen</h2>
+          <p>
+            Agenturen liefern in der Startphase Objektzugang, freie Termine und
+            operative Hinweise. Sie bleiben intern und werden nicht als
+            Gästeversprechen kommuniziert.
+          </p>
+          <div className="admin-form-grid">
+            <label>
+              Agenturname
+              <input
+                onChange={(event) => setAgencyDraft((current) => ({ ...current, name: event.target.value }))}
+                value={agencyDraft.name}
+              />
+            </label>
+            <label>
+              Ansprechpartner
+              <input
+                onChange={(event) => setAgencyDraft((current) => ({ ...current, contact_name: event.target.value }))}
+                value={agencyDraft.contact_name}
+              />
+            </label>
+            <label>
+              E-Mail
+              <input
+                onChange={(event) => setAgencyDraft((current) => ({ ...current, email: event.target.value }))}
+                type="email"
+                value={agencyDraft.email}
+              />
+            </label>
+            <label>
+              Telefon
+              <input
+                onChange={(event) => setAgencyDraft((current) => ({ ...current, phone: event.target.value }))}
+                type="tel"
+                value={agencyDraft.phone}
+              />
+            </label>
+            <label>
+              Ort
+              <input
+                onChange={(event) => setAgencyDraft((current) => ({ ...current, location: event.target.value }))}
+                value={agencyDraft.location}
+              />
+            </label>
+            <label>
+              Status
+              <select
+                onChange={(event) => setAgencyDraft((current) => ({ ...current, status: event.target.value }))}
+                value={agencyDraft.status}
+              >
+                <option value="lead">Kontakt prüfen</option>
+                <option value="active">Aktiv</option>
+                <option value="paused">Pausiert</option>
+              </select>
+            </label>
+            <label>
+              Rückmeldung in Tagen
+              <input
+                inputMode="numeric"
+                onChange={(event) => setAgencyDraft((current) => ({ ...current, response_due_days: event.target.value }))}
+                value={agencyDraft.response_due_days}
+              />
+            </label>
+            <label className="admin-form-grid-full">
+              Freie Termine / Verfügbarkeitsnotiz
+              <textarea
+                onChange={(event) => setAgencyDraft((current) => ({ ...current, available_dates_note: event.target.value }))}
+                placeholder="Welche Termine wurden genannt, was muss nachgefragt werden?"
+                rows={3}
+                value={agencyDraft.available_dates_note}
+              />
+            </label>
+            <label className="admin-form-grid-full">
+              Interne Notiz
+              <textarea
+                onChange={(event) => setAgencyDraft((current) => ({ ...current, notes: event.target.value }))}
+                placeholder="Kooperationsstand, Qualität, offene Punkte."
+                rows={3}
+                value={agencyDraft.notes}
+              />
+            </label>
+          </div>
+          <div className="admin-option-grid">
+            {data.properties.map((property) => (
+              <label className="admin-checkbox-label" key={property.id}>
+                <input
+                  checked={agencyDraft.managed_property_ids.includes(property.id)}
+                  onChange={(event) => {
+                    setAgencyDraft((current) => ({
+                      ...current,
+                      managed_property_ids: event.target.checked
+                        ? [...current.managed_property_ids, property.id]
+                        : current.managed_property_ids.filter((id) => id !== property.id),
+                    }));
+                  }}
+                  type="checkbox"
+                />
+                {property.name || property.id}
+              </label>
+            ))}
+          </div>
+          <button
+            className="admin-button"
+            disabled={Boolean(pendingAction?.startsWith("agency-save"))}
+            onClick={saveAgency}
+            type="button"
+          >
+            Agentur speichern
+          </button>
+          {agencyMessage ? <p className="admin-drawer-message">{agencyMessage}</p> : null}
+        </article>
+
+        <article className="admin-card">
+          <p className="admin-eyebrow">Agenturbestand</p>
+          <h2>{data.agencies.length} Kontakte</h2>
+          <p>
+            Verbundene Objekte zeigen, welche Unterkunft aktuell über eine
+            externe Agentur in den Morrow-Prozess kommt.
+          </p>
+          <div className="admin-list">
+            {data.agencies.length ? (
+              data.agencies.map((agency) => {
+                const linkedPropertyNames = agency.managed_property_ids
+                  .map((propertyId) => getPropertyName(data.properties, propertyId))
+                  .join(" · ");
+                return (
+                  <article className="admin-list-item" key={agency.id}>
+                    <div>
+                      <small>
+                        {agencyStatusLabel(agency.status)} · {agency.location || "Ort offen"}
+                      </small>
+                      <strong>{agency.name}</strong>
+                      <em>
+                        {agency.contact_name || "Ansprechpartner offen"}
+                        {agency.response_due_days ? ` · Rückmeldung ${agency.response_due_days} Tage` : ""}
+                      </em>
+                      <p>{linkedPropertyNames || "Noch kein Objekt verbunden."}</p>
+                      {agency.available_dates_note ? <p>{agency.available_dates_note}</p> : null}
+                    </div>
+                    <div className="admin-row-actions">
+                      <button onClick={() => editAgency(agency)} type="button">
+                        Bearbeiten
+                      </button>
+                      {agency.email ? <a href={`mailto:${agency.email}`}>E-Mail</a> : null}
+                      {agency.phone ? <a href={`tel:${agency.phone.replace(/\s/g, "")}`}>Telefon</a> : null}
+                      {agency.status === "paused" ? (
+                        <button
+                          disabled={pendingAction === `agency-status-${agency.id}`}
+                          onClick={() => updateAgencyStatus(agency, "active")}
+                          type="button"
+                        >
+                          Aktivieren
+                        </button>
+                      ) : (
+                        <button
+                          disabled={pendingAction === `agency-status-${agency.id}`}
+                          onClick={() => updateAgencyStatus(agency, "paused")}
+                          type="button"
+                        >
+                          Pausieren
+                        </button>
+                      )}
+                      {!agency.managed_property_ids.length ? (
+                        <button
+                          className="is-danger"
+                          disabled={pendingAction === `agency-delete-${agency.id}`}
+                          onClick={() => deleteAgency(agency)}
+                          type="button"
+                        >
+                          Löschen
+                        </button>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })
+            ) : (
+              <p className="admin-drawer-message">Noch keine Agenturen angelegt oder Migration noch nicht live.</p>
+            )}
           </div>
         </article>
       </section>

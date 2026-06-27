@@ -131,7 +131,7 @@ Diese Trennung ist fachlich richtig. Der Admin denkt dadurch nicht mehr nur in L
 | Objekt einer Auszeit zuordnen | Sichtbar ueber Auszeiten/Objektprofile | Ja | Gruen | Keine echte Belegungs-/Verfuegbarkeitsverwaltung |
 | Schluesseluebergabe erfassen | Feld vorhanden | Teilweise | Gelb | Noch nicht in Buchung/Gastinfo integriert |
 | Spaeteste Anreise erfassen | Feld vorhanden | Ja | Gruen | Noch nicht pro Termin/Buchung freigebbar |
-| Agentur als Startpartner verwalten | Konzeptionell relevant | Nein | Rot | Agenturkontakte fehlen als eigener Datentyp |
+| Agentur als Startpartner verwalten | Agenturkontakte mit Ansprechpartner, Kontakt, Status, verbundenen Objekten und Verfügbarkeitsnotiz pflegen | Ja | Gruen | Später automatische Antwortfristen/Aufgaben ergänzen |
 | Eigentuemer direkt betreuen | Spaetere Phase | Teilweise | Gelb | Keine Eigentümerabrechnung, kein Portal |
 
 ## Erlebnisanbieter
@@ -234,7 +234,8 @@ Noetige Status:
 
 Warum: Phase 1 arbeitet mit Ferienagenturen. Diese sind weder Eigentümer noch normale Erlebnisanbieter.
 
-Status: Grundversion umgesetzt am 2026-05-15.
+Status: Grundversion umgesetzt am 2026-05-15 im Prototyp. Next-Admin-Erweiterung am 2026-06-27:
+Agenturen werden aus `agencies` geladen und können als Phase-1-Partner mit Ansprechpartner, Kontakt, Status, verbundenen Objekten, Rückmeldefrist und Verfügbarkeitsnotiz gepflegt werden.
 
 Datentyp:
 - Agentur

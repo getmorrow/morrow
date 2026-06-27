@@ -252,7 +252,7 @@ Umgesetzt im Code:
 - Eigentümer-/Objektprofile können aus `properties` geladen werden.
 - Erstellen, Bearbeiten, Pausieren, Profilanlage aus Eigentümeranfrage und Löschen synchronisiert nach Supabase, sobald Admin Auth aktiv ist.
 - Agenturen sind als eigene Tabelle `agencies` ergänzt.
-- Agenturen können geladen, erstellt, bearbeitet, pausiert, mit Objekten verbunden und gelöscht werden.
+- Agenturen können im Prototyp und im Next-Admin geladen, erstellt, bearbeitet, pausiert, mit Objekten verbunden und gelöscht bzw. bei verbundenen Objekten geschützt werden.
 - Seed-Skript `npm run supabase:seed-owners-agencies` schreibt die Startobjekte und Startagenturen nach Supabase.
 
 Bewusste Grenze:
