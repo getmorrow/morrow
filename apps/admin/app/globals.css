@@ -316,6 +316,51 @@ input {
   margin-top: 16px;
 }
 
+.admin-task-create {
+  align-items: end;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(180px, 1.4fr) minmax(220px, 2fr) minmax(140px, 0.8fr) minmax(130px, 0.8fr);
+}
+
+.admin-task-create label {
+  color: rgba(24, 23, 21, 0.62);
+  display: grid;
+  font-size: 12px;
+  font-weight: 840;
+  gap: 7px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-task-create input,
+.admin-task-create select,
+.admin-task-create textarea {
+  background: rgba(255, 253, 248, 0.76);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--offblack);
+  font-size: 14px;
+  font-weight: 720;
+  min-height: 42px;
+  padding: 0 12px;
+  text-transform: none;
+}
+
+.admin-task-create textarea {
+  min-height: 74px;
+  padding-block: 10px;
+  resize: vertical;
+}
+
+.admin-task-create .admin-task-note {
+  grid-column: span 3;
+}
+
+.admin-task-create .admin-button {
+  min-height: 42px;
+}
+
 .admin-list span,
 .admin-list-item {
   align-items: center;
@@ -324,6 +369,16 @@ input {
   display: grid;
   gap: 6px;
   padding: 12px 14px;
+}
+
+@media (max-width: 940px) {
+  .admin-task-create {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-task-create .admin-task-note {
+    grid-column: auto;
+  }
 }
 
 .admin-list small,

@@ -78,7 +78,7 @@ Rolle ab jetzt:
 
 - Enthalten: Supabase-Login, Rollencheck, operative Uebersicht, Kennzahlen, Monitoring, Leads, Buchungen, Support, Feedback, lokale Orte, Erlebnisbausteine, Termine, Auszeiten, Unterkuenfte, Agenturen, Eigentuemerprofile, Objektzugriffe, Dokumente, Abrechnungen, Operationsmeldungen, Audit-Log.
 - Status: echte operative Funktionen vorhanden, aber noch kein vollstaendiger Ersatz fuer alten Vite-Admin.
-- Fehlend/Offen: CRM-Paritaet pruefen und Luecken schliessen, Navigation/Informationsarchitektur als CRM statt lange Dashboard-Seite, dedizierter Kundendetail-Drawer, volle Aufgabenanlage/-bearbeitung, Medienbibliothek, Kommunikationsvorlagen, tiefere Filter, vollstaendige Detailseiten, konsolidierte Domain-/Mutation-Layer.
+- Fehlend/Offen: CRM-Paritaet pruefen und Luecken schliessen, Navigation/Informationsarchitektur als CRM statt lange Dashboard-Seite, dedizierter Kundendetail-Drawer, Aufgabenbearbeitung/-archivierung, Medienbibliothek, Kommunikationsvorlagen, tiefere Filter, vollstaendige Detailseiten, konsolidierte Domain-/Mutation-Layer.
 
 ### Supabase
 
@@ -112,7 +112,7 @@ Risiko:
 | Anfragen/Leads | Vite `leads`, Lead-Drawer | `apps/admin` Leads-Sektion | teilweise | kritisch | Status/Reservierung vorhanden; Archiv/Reaktivierung/Wiedervorlage/Prioritaet/Filtertiefe gegen Vite pruefen. |
 | Kunden | Vite `customers` | `apps/admin` | teilweise | kritisch | Next leitet Kunden aus Gastanfragen und Buchungen ab, zeigt Kontaktlinks, Anfrage-/Buchungsbezug und naechsten Schritt; dedizierter Kundendetail-Drawer mit kompletter Historie bleibt offen. |
 | Buchungen | Vite `bookings`, Booking-Drawer | `apps/admin` Buchungssektion | teilweise | kritisch | Status, Zahlung, Operationsdaten vorhanden; vollstaendige Buchungsdetailseite, Kundenbezug und Aufgabenfluss pruefen. |
-| Aufgaben | Vite `tasks` | `apps/admin` Aufgabenkarte + Statusupdate | teilweise | kritisch | Next kann Status aendern, aber direkte Erstellung, Filter, Loeschen, Bezugssprung und Verantwortliche sind nicht voll paritaetisch. |
+| Aufgaben | Vite `tasks` | `apps/admin` Aufgabenbereich + Supabase `admin_tasks` | teilweise | kritisch | Next kann Aufgaben anlegen, filtern, Status aendern und Bezuege oeffnen; Bearbeiten, Loeschen/Archivieren und dedizierte Anbieterbearbeitung bleiben offen. |
 | Gaestesupport | Vite `guestSupport` | `apps/admin` Supportsektion + `apps/guest` Hilfe | migriert / teilweise | kritisch | Status, Notiz, E-Mail, Verlauf vorhanden; Realtime/WhatsApp/Vorlagen offen. |
 | Kommunikationshistorie | Vite `communication_events` Adapter | `apps/admin` Drawer + Supabase | teilweise | kritisch | Vorlagenbibliothek, zentrale Suche, WhatsApp-Opt-in-Dokumentation und ausgehende Kommunikationszentrale offen. |
 | Auszeiten/Paket-Builder | Vite `packages` Builder | `apps/admin` Bestand + Termine + `packages` | teilweise | kritisch | Next kann Kernfelder, Termine und Unterkunft; Medien/Copy/FAQ/Detailsektionen nicht voll paritaetisch. |
@@ -151,7 +151,7 @@ Risiko:
 
 - CRM-Filter und Arbeitsansichten aus dem alten Admin.
 - Kundenbereich mit Anfrage- und Buchungshistorie.
-- Aufgabenanlage mit Bezug, Faelligkeit, Prioritaet und Loesch-/Wiederaufmachen-Flow.
+- Aufgabenbearbeitung und Loesch-/Archivierungsflow.
 - Lead-Archiv/Reaktivierung/Test- oder Spam-Loeschen wie im Vite-Admin.
 - Dichte Bereichsnavigation statt langer Dashboard-Seite.
 - Voller Auszeiten-Builder inklusive Copy, FAQ, Medien, Momente, Empfehlungen und Launch-Check.
@@ -242,7 +242,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 2. Admin-README und Plattformdoku auf realen Stand bringen.
 3. Entscheiden, ob `apps/admin` als lange Einseiten-App bleibt oder eine echte CRM-Navigation/Routenstruktur bekommt.
 4. Kundenbereich in `apps/admin` paritaetisch weiterfuehren: dedizierter Kundendetail-Drawer, vollstaendige Historie, Buchungen, Kommunikation.
-5. Aufgabenbereich paritaetisch klaeren: Anlegen, Bearbeiten, Filter, Bezugsspruenge, Loeschen/Archivieren.
+5. Aufgabenbereich paritaetisch weiterfuehren: Bearbeiten, Loeschen/Archivieren und dedizierte Anbieterbearbeitung.
 6. Lead-Archiv, Wiedervorlagen, Reaktivierung und Testloeschung in Next pruefen/erganzen.
 7. Domain-/Supabase-Typen aus App-Komponenten in `packages/domain` und `packages/supabase` ziehen.
 8. Entscheiden, welche Vite-Funktionen explizit ersetzt sind und welche als Referenz offen bleiben.

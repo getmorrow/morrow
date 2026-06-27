@@ -32,7 +32,7 @@ Bis dahin gilt:
 | Uebersicht | Tagesboard, Faelligkeiten, Wiedervorlagen, kommende Termine, aktive Arbeit | Kennzahlen, Aufgaben, Monitoring, Audit, Feedback | teilweise | Uebersicht auf Tagesarbeit fokussieren und zu Detailbereichen verlinken | Uebersicht zeigt nur Tagessteuerung; Detailarbeit findet in Bereichen statt. |
 | Leads/Anfragen | Status, Filter aktiv/archiviert, Typ/Status/Arbeitsstand, Wiedervorlage, Archiv, Reaktivierung, Testloeschung, Drawer | Leads laden, Status aendern, Reservierung anlegen, Drawer fuer Notiz/E-Mail/Historie | teilweise | Archiv/Reaktivierung, Wiedervorlage, Filtertiefe und Testloeschung ergaenzen oder bewusst anders loesen | Ein Lead kann von neu bis archiviert und reaktiviert komplett in Next bearbeitet werden; Historie bleibt sichtbar. |
 | Kunden | Kundensatz aus Gastanfragen, Kunden-Cards, Kontaktlinks, Anfragehistorie, Buchungshistorie, Filter Anfrage/Buchung/faellig | Eigener Kundenbereich leitet Gastkontakte aus `leads` + `bookings` ab, zeigt Kontaktlinks, Anfrage-/Buchungsanzahl, naechsten Schritt und oeffnet Lead-/Buchungsdrawer | teilweise | Dedizierten Kundendetail-Drawer mit kompletter Kommunikationshistorie und interner Kundennotiz pruefen/umsetzen | Ein Gastkontakt ist unabhaengig von einzelner Anfrage auffindbar, mit Kontakt, Anfragen, Buchungen und naechstem Schritt. |
-| Aufgaben | Aufgabenbereich mit direkter Anlage, Bezug, Faelligkeit, Prioritaet, Statusfilter, Bezugssprung, Loeschen, Wiedereroeffnen | Aufgaben werden geladen und Status kann aktualisiert werden; keine vollwertige Anlage/Bearbeitung/Filterung | teilweise | Aufgaben-CRUD und Filter aus Vite uebernehmen, mit Supabase/Audit statt LocalStorage | Aufgabe kann angelegt, gefiltert, geoeffnet, erledigt, wieder geoeffnet und geloescht/archiviert werden. |
+| Aufgaben | Aufgabenbereich mit direkter Anlage, Bezug, Faelligkeit, Prioritaet, Statusfilter, Bezugssprung, Loeschen, Wiedereroeffnen | Aufgaben werden geladen, koennen angelegt, gefiltert, statusgeaendert und ueber den Bezug geoeffnet werden; Audit wird geschrieben | teilweise | Aufgabenbearbeitung und Loeschen/Archivieren gezielt ergaenzen | Aufgabe kann angelegt, gefiltert, geoeffnet, erledigt, wieder geoeffnet und geloescht/archiviert werden. |
 | Buchungen | Status, Zahlung, Reisegruppe, Hund, Check-in, Erlebnis, Aufgaben, Gaestebereich-Link, Follow-up | Status, Zahlung, Operationsdaten, Drawer, E-Mail/Notiz/Historie vorhanden | teilweise | Buchungsdetail gegen Vite-Felder pruefen; Aufgabenfluss und Kundenbezug schaerfen | Eine Buchung kann operativ von Reserviert bis Abgeschlossen gesteuert werden, inklusive Zahlung, Vorbereitung, Gastzugang und Historie. |
 | Gaestesupport | Supportfaelle aus Guest-App, Dringlichkeit, Kategorie, Status, passende Buchung, Kommunikation | Supportsektion, Status, Notiz, E-Mail, `support_status_events` vorhanden | migriert/teilweise | Detailfilter, SLA/Dringlichkeit, Owner-vs-Guest-Kontext pruefen | Supportfall kann vollstaendig triagiert, beantwortet, dokumentiert und geschlossen werden. |
 | Kommunikation | Kommunikationshistorie, Notizen, E-Mail, spaeter WhatsApp | Drawer-Notiz und freie E-Mail aus Lead/Buchung/Support ueber Edge Function | teilweise | Vorlagen, zentrale Suche, WhatsApp-Opt-in-Dokumentation und Kanalfilter definieren | Alle relevanten Kontaktpunkte sind an Lead/Buchung/Support sichtbar und auditierbar. |
@@ -109,20 +109,21 @@ Problem:
 
 Umsetzung:
 
-- Eigener Aufgabenbereich mit Tabelle/Liste.
-- Aufgabe erstellen mit Titel, Bezugstyp, Bezug, Faelligkeit, Prioritaet, Notiz.
-- Filter nach Status, Bezug, Prioritaet, Faelligkeit.
-- Status: offen, in Arbeit, erledigt.
-- Bezug oeffnet passenden Datensatz.
-- Loeschen nur fuer Test/Fehleintraege oder als Archiv/Status loesen.
+- Eigener Aufgabenbereich mit Liste ist in `apps/admin` vorhanden.
+- Aufgabe erstellen mit Titel, Bezug, Faelligkeit, Prioritaet und Notiz ist in `apps/admin` vorhanden.
+- Filter nach Status, Bezug und Prioritaet sind in `apps/admin` vorhanden.
+- Status: offen, in Arbeit, erledigt ist in `apps/admin` vorhanden.
+- Bezug oeffnet passenden Datensatz oder fuehrt in den passenden Bereich. Stand: umgesetzt fuer Lead, Buchung, Support, Auszeit, Unterkunft, Vor-Ort-Ort, Owner-Profil; Anbieter-Bezug fuehrt in den Erlebnisbereich.
+- Loeschen nur fuer Test/Fehleintraege oder als Archiv/Status loesen. Stand: offen.
+- Dedizierte Aufgabenbearbeitung nach Anlage. Stand: offen.
 
 Abnahme:
 
-- Aufgabe fuer Lead/Buchung/Auszeit/Ort/Eigentuemer/Anbieter anlegen.
-- Aufgabe filtern.
-- Aufgabe erledigen und wieder oeffnen.
-- Bezug oeffnet passenden Drawer/Bereich.
-- Audit-Log wird geschrieben.
+- Aufgabe fuer Lead/Buchung/Auszeit/Ort/Eigentuemer/Anbieter anlegen. Stand: umgesetzt ueber Supabase-Insert.
+- Aufgabe filtern. Stand: umgesetzt.
+- Aufgabe erledigen und wieder oeffnen. Stand: umgesetzt ueber Statuswechsel.
+- Bezug oeffnet passenden Drawer/Bereich. Stand: teilweise umgesetzt; Anbieter-Bezug braucht spaeter dedizierte Anbieterbearbeitung.
+- Audit-Log wird geschrieben. Stand: umgesetzt fuer Anlage und Statuswechsel.
 
 ### A3 Lead-Archiv Und Wiedervorlagen
 

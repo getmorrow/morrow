@@ -298,6 +298,35 @@ type CustomerRow = {
   bookings: BookingRow[];
 };
 
+type TaskStatusFilter = "all" | "open" | "in_progress" | "done";
+type TaskReferenceFilter =
+  | "all"
+  | "lead"
+  | "booking"
+  | "support"
+  | "package"
+  | "property"
+  | "experience"
+  | "experienceProvider"
+  | "localPlace"
+  | "owner";
+type TaskPriorityFilter = "all" | "low" | "medium" | "high";
+
+type TaskReferenceOption = {
+  value: string;
+  type: string;
+  id: string;
+  label: string;
+};
+
+type TaskDraft = {
+  title: string;
+  referenceValue: string;
+  dueAt: string;
+  priority: "low" | "medium" | "high";
+  note: string;
+};
+
 type InventorySelection =
   | { mode: "create"; type: "package" | "property" }
   | { mode: "edit"; type: "package"; id: string }
@@ -706,6 +735,7 @@ function auditActionLabel(action: string) {
     property_created: "Unterkunft angelegt",
     property_updated: "Unterkunft geändert",
     support_status_updated: "Supportstatus geändert",
+    task_created: "Aufgabe angelegt",
     task_status_updated: "Aufgabe aktualisiert",
   };
 
@@ -828,6 +858,87 @@ function taskReferenceLabel(type: string) {
   };
 
   return labels[type] || type;
+}
+
+function taskReferenceFilterLabel(value: TaskReferenceFilter) {
+  const labels: Record<TaskReferenceFilter, string> = {
+    all: "Alle",
+    lead: "Anfragen",
+    booking: "Buchungen",
+    support: "Support",
+    package: "Auszeiten",
+    property: "Unterkünfte",
+    experience: "Erlebnisse",
+    experienceProvider: "Erlebnisanbieter",
+    localPlace: "Vor Ort",
+    owner: "Eigentümer",
+  };
+
+  return labels[value];
+}
+
+function taskPriorityFilterLabel(value: TaskPriorityFilter) {
+  if (value === "all") return "Alle Prioritäten";
+  return taskPriorityLabel(value);
+}
+
+function buildTaskReferenceOptions(data: DashboardData): TaskReferenceOption[] {
+  return [
+    ...data.leads.slice(0, 60).map((lead) => ({
+      value: `lead:${lead.id}`,
+      type: "lead",
+      id: lead.id,
+      label: `${getLeadLabel(lead)} · ${leadIntentLabel(lead)}`,
+    })),
+    ...data.bookings.slice(0, 60).map((booking) => ({
+      value: `booking:${booking.id}`,
+      type: "booking",
+      id: booking.id,
+      label: `${getBookingLabel(booking)} · ${booking.status}`,
+    })),
+    ...data.supportMessages.slice(0, 60).map((support) => ({
+      value: `support:${support.id}`,
+      type: "support",
+      id: support.id,
+      label: `${getSupportLabel(support)} · ${supportStatusLabel(support.status)}`,
+    })),
+    ...data.packages.map((item) => ({
+      value: `package:${item.id}`,
+      type: "package",
+      id: item.id,
+      label: `${item.name || item.id} · ${item.location || "Ort offen"}`,
+    })),
+    ...data.properties.map((item) => ({
+      value: `property:${item.id}`,
+      type: "property",
+      id: item.id,
+      label: `${item.name || item.id} · ${item.location || "Ort offen"}`,
+    })),
+    ...data.experienceBlocks.map((item) => ({
+      value: `experience:${item.id}`,
+      type: "experience",
+      id: item.id,
+      label: `${item.title} · ${experienceConfirmationLabel(item.confirmation_status)}`,
+    })),
+    ...data.localPlaces.map((item) => ({
+      value: `localPlace:${item.id}`,
+      type: "localPlace",
+      id: item.id,
+      label: `${item.name} · ${localPlaceCategoryLabel(item.category)}`,
+    })),
+    ...data.ownerProfiles.map((item) => ({
+      value: `owner:${item.id}`,
+      type: "owner",
+      id: item.id,
+      label: `${item.display_name || item.email} · ${item.status}`,
+    })),
+    ...data.experienceProviders.map((item) => ({
+      value: `experienceProvider:${item.id}`,
+      type: "experienceProvider",
+      id: item.id,
+      label: `${item.name} · ${item.category || "Kategorie offen"}`,
+    })),
+  ];
 }
 
 function experienceRoleLabel(role: string) {
@@ -1557,6 +1668,16 @@ function AdminDashboardView({
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [selection, setSelection] = useState<DetailSelection>(null);
   const [customerPhaseFilter, setCustomerPhaseFilter] = useState<CustomerPhaseFilter>("all");
+  const [taskStatusFilter, setTaskStatusFilter] = useState<TaskStatusFilter>("open");
+  const [taskReferenceFilter, setTaskReferenceFilter] = useState<TaskReferenceFilter>("all");
+  const [taskPriorityFilter, setTaskPriorityFilter] = useState<TaskPriorityFilter>("all");
+  const [taskDraft, setTaskDraft] = useState<TaskDraft>({
+    title: "",
+    referenceValue: "",
+    dueAt: todayIsoDate(),
+    priority: "medium",
+    note: "",
+  });
   const [inventorySelection, setInventorySelection] = useState<InventorySelection>(null);
   const [inventoryDraft, setInventoryDraft] = useState<InventoryDraft>({});
   const [inventoryMessage, setInventoryMessage] = useState<string | null>(null);
@@ -1652,6 +1773,25 @@ function AdminDashboardView({
   const openSupport = data.supportMessages.filter((message) => message.status !== "closed");
   const activeTasks = data.tasks.filter((task) => task.status !== "done");
   const dueTasks = activeTasks.filter((task) => task.due_at && task.due_at <= todayIsoDate());
+  const taskReferenceOptions = useMemo(() => buildTaskReferenceOptions(data), [data]);
+  const filteredTasks = useMemo(() => (
+    [...data.tasks]
+      .filter((task) => taskStatusFilter === "all" || task.status === taskStatusFilter)
+      .filter((task) => {
+        if (taskReferenceFilter === "all") return true;
+        if (taskReferenceFilter === "support") return task.reference_type === "support" ||
+          task.title.toLowerCase().startsWith("support:");
+        return task.reference_type === taskReferenceFilter;
+      })
+      .filter((task) => taskPriorityFilter === "all" || task.priority === taskPriorityFilter)
+      .sort((a, b) => {
+        if (a.status !== b.status) return Number(a.status === "done") - Number(b.status === "done");
+        if (a.due_at && b.due_at) return a.due_at.localeCompare(b.due_at);
+        if (a.due_at) return -1;
+        if (b.due_at) return 1;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      })
+  ), [data.tasks, taskPriorityFilter, taskReferenceFilter, taskStatusFilter]);
   const approvedLocalPlaces = data.localPlaces.filter((place) => place.status === "approved");
   const candidateLocalPlaces = data.localPlaces.filter((place) => place.status === "candidate");
   const monitoring = monitoringItems(data);
@@ -3423,6 +3563,125 @@ function AdminDashboardView({
     }
   }
 
+  async function createAdminTask() {
+    const referenceValue = taskDraft.referenceValue || taskReferenceOptions[0]?.value || "";
+    const reference = taskReferenceOptions.find((option) => option.value === referenceValue);
+    const title = taskDraft.title.trim();
+
+    if (!title || !reference) {
+      setActionMessage("Bitte Aufgabentitel und Bezug auswählen.");
+      return;
+    }
+
+    const id = `task-${crypto.randomUUID()}`;
+    const actionKey = `task-create-${id}`;
+    setPendingAction(actionKey);
+    setActionMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const payload = {
+        createdFrom: "next-admin",
+        note: taskDraft.note.trim() || null,
+      };
+      const { data: inserted, error } = await supabase
+        .from("admin_tasks")
+        .insert({
+          id,
+          title,
+          reference_type: reference.type,
+          reference_id: reference.id,
+          reference_label: reference.label,
+          due_at: taskDraft.dueAt || null,
+          status: "open",
+          priority: taskDraft.priority,
+          note: taskDraft.note.trim() || null,
+          payload,
+        })
+        .select("id,title,reference_type,reference_id,reference_label,due_at,status,priority,note,payload,created_at")
+        .single();
+
+      if (error) throw error;
+
+      const task = inserted as AdminTaskRow;
+      setDataState((current) => ({
+        ...current,
+        tasks: [task, ...current.tasks],
+      }));
+      setTaskDraft({
+        title: "",
+        referenceValue,
+        dueAt: todayIsoDate(),
+        priority: "medium",
+        note: "",
+      });
+
+      await writeAuditLog({
+        action: "task_created",
+        entityType: "admin_task",
+        entityId: task.id,
+        entityLabel: task.title,
+        payload: {
+          referenceType: task.reference_type,
+          referenceId: task.reference_id,
+          priority: task.priority,
+          dueAt: task.due_at,
+        },
+      });
+
+      setActionMessage("Aufgabe angelegt.");
+    } catch {
+      setActionMessage("Die Aufgabe konnte nicht angelegt werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  function openTaskReference(task: AdminTaskRow) {
+    if (task.reference_type === "lead") {
+      setSelection({ type: "lead", id: task.reference_id });
+      return;
+    }
+    if (task.reference_type === "booking") {
+      setSelection({ type: "booking", id: task.reference_id });
+      return;
+    }
+    if (task.reference_type === "support") {
+      setSelection({ type: "support", id: task.reference_id });
+      return;
+    }
+    if (task.reference_type === "package") {
+      setInventorySelection({ mode: "edit", type: "package", id: task.reference_id });
+      return;
+    }
+    if (task.reference_type === "property") {
+      setInventorySelection({ mode: "edit", type: "property", id: task.reference_id });
+      return;
+    }
+    if (task.reference_type === "owner") {
+      const owner = data.ownerProfiles.find((item) => item.id === task.reference_id);
+      if (owner) editOwnerProfile(owner);
+      document.getElementById("eigentuemer")?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    if (task.reference_type === "experience" || task.reference_type === "experienceProvider") {
+      const experience = task.reference_type === "experience"
+        ? data.experienceBlocks.find((item) => item.id === task.reference_id)
+        : null;
+      if (experience) {
+        setExperienceSelection({ mode: "edit", id: experience.id });
+        return;
+      }
+      document.getElementById("erlebnisse")?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    if (task.reference_type === "localPlace") {
+      setLocalPlaceSelection({ mode: "edit", id: task.reference_id });
+      return;
+    }
+    document.getElementById("aufgaben")?.scrollIntoView({ behavior: "smooth" });
+  }
+
   async function saveInventory() {
     if (!inventorySelection) return;
 
@@ -4038,11 +4297,102 @@ function AdminDashboardView({
       </section>
 
       <section className="admin-grid" id="aufgaben">
-        <article className="admin-card">
+        <article className="admin-card admin-card-wide">
           <p className="admin-eyebrow">Aufgaben</p>
           <h2>Heute im Blick</h2>
+          <div className="admin-task-create">
+            <label>
+              Aufgabe
+              <input
+                onChange={(event) => setTaskDraft((current) => ({ ...current, title: event.target.value }))}
+                placeholder="z. B. Zahlung prüfen"
+                value={taskDraft.title}
+              />
+            </label>
+            <label>
+              Bezug
+              <select
+                onChange={(event) => setTaskDraft((current) => ({ ...current, referenceValue: event.target.value }))}
+                value={taskDraft.referenceValue || taskReferenceOptions[0]?.value || ""}
+              >
+                {taskReferenceOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Fällig
+              <input
+                onChange={(event) => setTaskDraft((current) => ({ ...current, dueAt: event.target.value }))}
+                type="date"
+                value={taskDraft.dueAt}
+              />
+            </label>
+            <label>
+              Priorität
+              <select
+                onChange={(event) => setTaskDraft((current) => ({ ...current, priority: event.target.value as TaskDraft["priority"] }))}
+                value={taskDraft.priority}
+              >
+                <option value="low">Niedrig</option>
+                <option value="medium">Mittel</option>
+                <option value="high">Hoch</option>
+              </select>
+            </label>
+            <label className="admin-task-note">
+              Notiz
+              <textarea
+                onChange={(event) => setTaskDraft((current) => ({ ...current, note: event.target.value }))}
+                placeholder="Kurz notieren, was als Nächstes zu tun ist."
+                value={taskDraft.note}
+              />
+            </label>
+            <button
+              className="admin-button"
+              disabled={pendingAction?.startsWith("task-create") || taskReferenceOptions.length === 0}
+              onClick={createAdminTask}
+              type="button"
+            >
+              Aufgabe anlegen
+            </button>
+          </div>
+          <div className="admin-card-toolbar" aria-label="Aufgabenfilter">
+            {(["open", "in_progress", "done", "all"] as TaskStatusFilter[]).map((status) => (
+              <button
+                aria-pressed={taskStatusFilter === status}
+                className={taskStatusFilter === status ? "is-active" : undefined}
+                key={status}
+                onClick={() => setTaskStatusFilter(status)}
+                type="button"
+              >
+                {status === "all" ? "Alle Status" : taskStatusLabel(status)}
+              </button>
+            ))}
+            {(["all", "lead", "booking", "support", "package", "property", "experience", "localPlace", "owner", "experienceProvider"] as TaskReferenceFilter[]).map((filter) => (
+              <button
+                aria-pressed={taskReferenceFilter === filter}
+                className={taskReferenceFilter === filter ? "is-active" : undefined}
+                key={filter}
+                onClick={() => setTaskReferenceFilter(filter)}
+                type="button"
+              >
+                {taskReferenceFilterLabel(filter)}
+              </button>
+            ))}
+            {(["all", "high", "medium", "low"] as TaskPriorityFilter[]).map((priority) => (
+              <button
+                aria-pressed={taskPriorityFilter === priority}
+                className={taskPriorityFilter === priority ? "is-active" : undefined}
+                key={priority}
+                onClick={() => setTaskPriorityFilter(priority)}
+                type="button"
+              >
+                {taskPriorityFilterLabel(priority)}
+              </button>
+            ))}
+          </div>
           <div className="admin-list">
-            {(dueTasks.length ? dueTasks : activeTasks.slice(0, 6)).map((task) => (
+            {filteredTasks.slice(0, 12).map((task) => (
               <article className="admin-list-item" key={task.id}>
                 <div>
                   <small>
@@ -4052,8 +4402,12 @@ function AdminDashboardView({
                   <em>
                     {taskReferenceLabel(task.reference_type)} · {task.reference_label || task.reference_id}
                   </em>
+                  {task.note ? <p>{task.note}</p> : null}
                 </div>
                 <div className="admin-row-actions">
+                  <button onClick={() => openTaskReference(task)} type="button">
+                    Bezug öffnen
+                  </button>
                   {taskStatuses.map((status) => (
                     <button
                       disabled={pendingAction === `task-${task.id}-${status}`}
@@ -4067,8 +4421,8 @@ function AdminDashboardView({
                 </div>
               </article>
             ))}
-            {activeTasks.length === 0 ? (
-              <p className="admin-drawer-message">Keine offenen Aufgaben vorhanden.</p>
+            {filteredTasks.length === 0 ? (
+              <p className="admin-drawer-message">Keine passenden Aufgaben vorhanden.</p>
             ) : null}
           </div>
         </article>
