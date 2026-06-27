@@ -196,6 +196,9 @@ Felder:
 - Check-in-Status
 - Erlebnisstatus
 
+Status: Next-Admin-Erweiterung am 2026-06-27:
+Der Buchungsdetail-Drawer speichert jetzt Reservierungsfrist, Zahlungsfrist, Personen, Kinderalter, Hund, Check-in-Status, Erlebnisstatus und nächste Aufgabe im Booking-Payload und protokolliert die Änderung im Audit-Log.
+
 ### Prioritaet 2: Aufgabenmodul Light
 
 Warum: Wiedervorlagen reichen fuer Leads, aber nicht fuer Operations.

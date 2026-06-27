@@ -253,6 +253,18 @@ type PaymentDraft = {
   payment_proof_url: string;
 };
 
+type BookingOperationsDraft = {
+  reservation_deadline: string;
+  payment_due_date: string;
+  adults: string;
+  children: string;
+  children_ages: string;
+  dog: string;
+  check_in_status: string;
+  experience_status: string;
+  next_task: string;
+};
+
 type OwnerProfileDraft = {
   email: string;
   display_name: string;
@@ -365,6 +377,22 @@ function paymentDraftFromBooking(booking: BookingRow | null): PaymentDraft {
     payment_method: getPayloadText(payload, ["paymentMethod"]) || "",
     payment_reference: getPayloadText(payload, ["paymentReference", "invoiceNumber", "transactionId"]) || "",
     payment_proof_url: getPayloadText(payload, ["paymentProofUrl", "receiptUrl", "invoiceUrl"]) || "",
+  };
+}
+
+function bookingOperationsDraftFromBooking(booking: BookingRow | null): BookingOperationsDraft {
+  const payload = booking?.payload ?? {};
+
+  return {
+    reservation_deadline: getPayloadText(payload, ["reservationDeadline", "reservation_deadline"]) || "",
+    payment_due_date: getPayloadText(payload, ["paymentDueDate", "payment_due_date"]) || "",
+    adults: getPayloadText(payload, ["adults", "adultCount"]) || "",
+    children: getPayloadText(payload, ["children", "childCount", "kids"]) || "",
+    children_ages: getPayloadText(payload, ["childrenAges", "children_ages", "kidsAges"]) || "",
+    dog: getPayloadText(payload, ["dog", "dogNote", "hasDog"]) || "",
+    check_in_status: getPayloadText(payload, ["checkInStatus", "check_in_status"]) || "offen",
+    experience_status: getPayloadText(payload, ["experienceStatus", "experience_status"]) || "offen",
+    next_task: getPayloadText(payload, ["nextTask", "next_task"]) || "",
   };
 }
 
@@ -501,6 +529,7 @@ function auditActionLabel(action: string) {
   const labels: Record<string, string> = {
     admin_email_sent: "E-Mail gesendet",
     booking_payment_documented: "Zahlung dokumentiert",
+    booking_operations_updated: "Buchungsdetails aktualisiert",
     booking_status_updated: "Buchungsstatus geändert",
     date_created: "Termin angelegt",
     date_updated: "Termin geändert",
@@ -1215,6 +1244,9 @@ function AdminDashboardView({
   const [drawerNote, setDrawerNote] = useState("");
   const [outboundDraft, setOutboundDraft] = useState<OutboundDraft>({ subject: "", body: "" });
   const [paymentDraft, setPaymentDraft] = useState<PaymentDraft>(paymentDraftFromBooking(null));
+  const [bookingOperationsDraft, setBookingOperationsDraft] = useState<BookingOperationsDraft>(
+    bookingOperationsDraftFromBooking(null),
+  );
   const [drawerMessage, setDrawerMessage] = useState<string | null>(null);
   const [isDrawerLoading, setIsDrawerLoading] = useState(false);
   const data = dataState;
@@ -1497,6 +1529,7 @@ function AdminDashboardView({
       setDrawerNote("");
       setOutboundDraft({ subject: "", body: "" });
       setPaymentDraft(paymentDraftFromBooking(null));
+      setBookingOperationsDraft(bookingOperationsDraftFromBooking(null));
       setDrawerMessage(null);
       return;
     }
@@ -1519,6 +1552,9 @@ function AdminDashboardView({
     setPaymentDraft(selection.type === "booking"
       ? paymentDraftFromBooking(data.bookings.find((booking) => booking.id === selection.id) ?? null)
       : paymentDraftFromBooking(null));
+    setBookingOperationsDraft(selection.type === "booking"
+      ? bookingOperationsDraftFromBooking(data.bookings.find((booking) => booking.id === selection.id) ?? null)
+      : bookingOperationsDraftFromBooking(null));
     setDrawerMessage(null);
 
     let isMounted = true;
@@ -2202,6 +2238,72 @@ function AdminDashboardView({
       setDrawerMessage("Zahlungsdaten gespeichert.");
     } catch {
       setDrawerMessage("Zahlungsdaten konnten nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function saveBookingOperations() {
+    if (!selectedBooking) return;
+
+    const actionKey = `booking-operations-${selectedBooking.id}`;
+    setPendingAction(actionKey);
+    setDrawerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const operationsPayload = {
+        reservationDeadline: bookingOperationsDraft.reservation_deadline.trim(),
+        paymentDueDate: bookingOperationsDraft.payment_due_date.trim(),
+        adults: bookingOperationsDraft.adults.trim(),
+        children: bookingOperationsDraft.children.trim(),
+        childrenAges: bookingOperationsDraft.children_ages.trim(),
+        dog: bookingOperationsDraft.dog.trim(),
+        checkInStatus: bookingOperationsDraft.check_in_status.trim() || "offen",
+        experienceStatus: bookingOperationsDraft.experience_status.trim() || "offen",
+        nextTask: bookingOperationsDraft.next_task.trim(),
+        updatedAt: new Date().toISOString(),
+      };
+      const payload = {
+        ...selectedBooking.payload,
+        ...operationsPayload,
+      };
+      const { error } = await supabase
+        .from("bookings")
+        .update({
+          payload,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", selectedBooking.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        bookings: current.bookings.map((booking) =>
+          booking.id === selectedBooking.id
+            ? { ...booking, payload }
+            : booking,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "booking_operations_updated",
+        entityType: "booking",
+        entityId: selectedBooking.id,
+        entityLabel: getBookingLabel(selectedBooking),
+        payload: {
+          reservationDeadline: operationsPayload.reservationDeadline,
+          paymentDueDate: operationsPayload.paymentDueDate,
+          checkInStatus: operationsPayload.checkInStatus,
+          experienceStatus: operationsPayload.experienceStatus,
+          nextTask: operationsPayload.nextTask,
+        },
+      });
+
+      setDrawerMessage("Buchungsdetails gespeichert.");
+    } catch {
+      setDrawerMessage("Buchungsdetails konnten nicht gespeichert werden.");
     } finally {
       setPendingAction(null);
     }
@@ -3900,18 +4002,22 @@ function AdminDashboardView({
         communicationEvents={communicationEvents}
         canSendEmail={Boolean(selection && selectedDrawerEmail)}
         isLoading={isDrawerLoading}
+        bookingOperationsDraft={bookingOperationsDraft}
         message={drawerMessage}
         note={drawerNote}
         lead={selectedLead}
         onClose={() => setSelection(null)}
+        onBookingOperationsChange={(key, value) => setBookingOperationsDraft((current) => ({ ...current, [key]: value }))}
         onOutboundChange={(key, value) => setOutboundDraft((current) => ({ ...current, [key]: value }))}
         onNoteChange={setDrawerNote}
         onPaymentChange={(key, value) => setPaymentDraft((current) => ({ ...current, [key]: value }))}
+        onSaveBookingOperations={saveBookingOperations}
         onSaveNote={saveDrawerNote}
         onSavePayment={savePaymentInfo}
         onSendEmail={sendDrawerEmail}
         outboundDraft={outboundDraft}
         paymentDraft={paymentDraft}
+        bookingOperationsPending={pendingAction === `booking-operations-${selectedBooking?.id}`}
         paymentPending={pendingAction === `booking-payment-${selectedBooking?.id}`}
         pending={Boolean(pendingAction?.startsWith("drawer-note"))}
         sendPending={Boolean(pendingAction?.startsWith("drawer-email"))}
@@ -3970,16 +4076,20 @@ function AdminDashboardView({
 function AdminDetailDrawer({
   auditLogs,
   booking,
+  bookingOperationsDraft,
+  bookingOperationsPending,
   canSendEmail,
   communicationEvents,
   isLoading,
   lead,
   message,
   note,
+  onBookingOperationsChange,
   onClose,
   onOutboundChange,
   onNoteChange,
   onPaymentChange,
+  onSaveBookingOperations,
   onSaveNote,
   onSavePayment,
   onSendEmail,
@@ -3992,16 +4102,20 @@ function AdminDetailDrawer({
 }: {
   auditLogs: AuditLogRow[];
   booking: BookingRow | null;
+  bookingOperationsDraft: BookingOperationsDraft;
+  bookingOperationsPending: boolean;
   canSendEmail: boolean;
   communicationEvents: CommunicationEventRow[];
   isLoading: boolean;
   lead: LeadRow | null;
   message: string | null;
   note: string;
+  onBookingOperationsChange: (key: keyof BookingOperationsDraft, value: string) => void;
   onClose: () => void;
   onOutboundChange: (key: keyof OutboundDraft, value: string) => void;
   onNoteChange: (value: string) => void;
   onPaymentChange: (key: keyof PaymentDraft, value: string) => void;
+  onSaveBookingOperations: () => void;
   onSaveNote: () => void;
   onSavePayment: () => void;
   onSendEmail: () => void;
@@ -4120,6 +4234,123 @@ function AdminDetailDrawer({
             <article className="admin-drawer-note-card">
               <p>{supportMessage}</p>
             </article>
+          </section>
+        ) : null}
+
+        {booking ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Operations</p>
+            <div className="admin-drawer-context-grid">
+              <article>
+                <small>Reservierungsfrist</small>
+                <strong>{bookingOperationsDraft.reservation_deadline || "offen"}</strong>
+              </article>
+              <article>
+                <small>Zahlungsfrist</small>
+                <strong>{bookingOperationsDraft.payment_due_date || "offen"}</strong>
+              </article>
+              <article>
+                <small>Check-in</small>
+                <strong>{bookingOperationsDraft.check_in_status || "offen"}</strong>
+              </article>
+              <article>
+                <small>Erlebnis</small>
+                <strong>{bookingOperationsDraft.experience_status || "offen"}</strong>
+              </article>
+            </div>
+            <div className="admin-form-grid">
+              <label>
+                Reservierungsfrist
+                <input
+                  onChange={(event) => onBookingOperationsChange("reservation_deadline", event.target.value)}
+                  type="date"
+                  value={bookingOperationsDraft.reservation_deadline}
+                />
+              </label>
+              <label>
+                Zahlungsfrist
+                <input
+                  onChange={(event) => onBookingOperationsChange("payment_due_date", event.target.value)}
+                  type="date"
+                  value={bookingOperationsDraft.payment_due_date}
+                />
+              </label>
+              <label>
+                Erwachsene
+                <input
+                  inputMode="numeric"
+                  onChange={(event) => onBookingOperationsChange("adults", event.target.value)}
+                  placeholder="z. B. 2"
+                  value={bookingOperationsDraft.adults}
+                />
+              </label>
+              <label>
+                Kinder
+                <input
+                  inputMode="numeric"
+                  onChange={(event) => onBookingOperationsChange("children", event.target.value)}
+                  placeholder="z. B. 2"
+                  value={bookingOperationsDraft.children}
+                />
+              </label>
+              <label>
+                Alter der Kinder
+                <input
+                  onChange={(event) => onBookingOperationsChange("children_ages", event.target.value)}
+                  placeholder="z. B. 5 und 8"
+                  value={bookingOperationsDraft.children_ages}
+                />
+              </label>
+              <label>
+                Hund
+                <input
+                  onChange={(event) => onBookingOperationsChange("dog", event.target.value)}
+                  placeholder="Nein, ja oder kurze Notiz"
+                  value={bookingOperationsDraft.dog}
+                />
+              </label>
+              <label>
+                Check-in-Status
+                <select
+                  onChange={(event) => onBookingOperationsChange("check_in_status", event.target.value)}
+                  value={bookingOperationsDraft.check_in_status}
+                >
+                  <option value="offen">Offen</option>
+                  <option value="daten_geprüft">Daten geprüft</option>
+                  <option value="freigegeben">Freigegeben</option>
+                  <option value="gesendet">An Gast gesendet</option>
+                </select>
+              </label>
+              <label>
+                Erlebnisstatus
+                <select
+                  onChange={(event) => onBookingOperationsChange("experience_status", event.target.value)}
+                  value={bookingOperationsDraft.experience_status}
+                >
+                  <option value="offen">Offen</option>
+                  <option value="angefragt">Angefragt</option>
+                  <option value="bestätigt">Bestätigt</option>
+                  <option value="alternative_nötig">Alternative nötig</option>
+                </select>
+              </label>
+              <label className="admin-form-grid-full">
+                Nächste Aufgabe
+                <textarea
+                  onChange={(event) => onBookingOperationsChange("next_task", event.target.value)}
+                  placeholder="Was muss als Nächstes passieren?"
+                  rows={3}
+                  value={bookingOperationsDraft.next_task}
+                />
+              </label>
+            </div>
+            <button
+              className="admin-button"
+              disabled={bookingOperationsPending}
+              onClick={onSaveBookingOperations}
+              type="button"
+            >
+              {bookingOperationsPending ? "Speichern" : "Buchungsdetails speichern"}
+            </button>
           </section>
         ) : null}
 

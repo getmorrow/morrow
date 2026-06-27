@@ -570,6 +570,10 @@ input {
   resize: vertical;
 }
 
+.admin-form-grid-full {
+  grid-column: 1 / -1;
+}
+
 .admin-form-grid input[readonly] {
   color: rgba(24, 23, 21, 0.48);
 }
@@ -672,6 +676,10 @@ input {
 
   .admin-grid {
     grid-template-columns: minmax(0, 1fr) minmax(360px, 0.68fr);
+  }
+
+  .admin-drawer .admin-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .admin-drawer {
