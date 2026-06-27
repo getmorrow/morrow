@@ -220,11 +220,21 @@ if (verifySupportInsert) {
     fail('Owner availability support payload missing requested date range')
   }
 
+  const { data: dashboardWithMessages, error: messageDashboardError } = await ownerClient.rpc('get_owner_dashboard')
+  if (messageDashboardError) fail('Owner dashboard RPC failed after support insert', messageDashboardError)
+
+  const visibleMessages = dashboardWithMessages?.messages ?? []
+  const visibleMessageIds = new Set(visibleMessages.map((message) => message.id))
+  if (!visibleMessageIds.has(supportMessageId) || !visibleMessageIds.has(availabilityMessageId)) {
+    fail('Inserted owner support messages were not returned to signed-in owner')
+  }
+
   console.log(
     [
       'ok owner support insert',
       `count=${supportMessages.length}`,
       `categories=${supportMessages.map((message) => message.category).join(',')}`,
+      `dashboardMessages=${visibleMessages.length}`,
       `property=${supportMessages[0]?.payload?.propertyName ?? property.id}`,
     ].join(' '),
   )

@@ -159,7 +159,7 @@ export OWNER_VERIFY_SUPPORT_INSERT=1
 npm run supabase:verify-owner
 ```
 
-Dann sendet der Test als eingeloggter Eigentuemer eine strukturierte Supportnachricht und eine Verfügbarkeits-/Eigenbelegungsanfrage in `support_messages` und liest sie mit Service Role wieder aus. Das prueft den Weg von Eigentuemer-App zu Admin-Supportfluss inklusive RLS-Policy fuer `owner_availability`.
+Dann sendet der Test als eingeloggter Eigentuemer eine strukturierte Supportnachricht und eine Verfügbarkeits-/Eigenbelegungsanfrage in `support_messages`, liest sie mit Service Role wieder aus und prueft, dass beide Eintraege ueber `get_owner_dashboard().messages` im Eigentuemerbereich sichtbar werden. Das prueft den Weg von Eigentuemer-App zu Admin-Supportfluss inklusive RLS-Policy fuer `owner_availability` und Rueckkanal-Historie.
 
 Für Verfügbarkeits- und Eigenbelegungsanfragen wird dieselbe Tabelle genutzt. Die App setzt dabei `category = owner_availability` und speichert `requestedStartsOn` sowie `requestedEndsOn` im Payload.
 

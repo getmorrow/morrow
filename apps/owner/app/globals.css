@@ -601,6 +601,46 @@ button {
   gap: 10px;
 }
 
+.owner-message-list {
+  display: grid;
+  gap: 12px;
+}
+
+.owner-message-item {
+  align-items: start;
+  background: rgba(236, 230, 214, 0.5);
+  border: 1px solid rgba(24, 23, 21, 0.08);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.owner-message-item > div {
+  display: grid;
+  gap: 6px;
+}
+
+.owner-message-item span,
+.owner-message-item time,
+.owner-message-item small {
+  color: rgba(24, 23, 21, 0.58);
+  font-size: 12px;
+  font-weight: 840;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.owner-message-item strong {
+  color: var(--offblack);
+  font-size: 17px;
+  font-weight: 880;
+}
+
+.owner-message-item p {
+  max-width: 760px;
+}
+
 .owner-document-list > a,
 .owner-document-list > span {
   background: rgba(236, 230, 214, 0.5);
@@ -665,6 +705,14 @@ button {
 
   .owner-section-head {
     grid-template-columns: minmax(0, 1fr) minmax(260px, 0.48fr);
+  }
+
+  .owner-message-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .owner-message-item time {
+    text-align: right;
   }
 
   .owner-finance-grid {

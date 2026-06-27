@@ -8,6 +8,7 @@ import {
   type OwnerDashboardBooking,
   type OwnerDashboardDate,
   type OwnerDashboardDocument,
+  type OwnerDashboardMessage,
   type OwnerDashboardProperty,
 } from "@morrow/supabase";
 
@@ -41,6 +42,14 @@ const ownerDocumentTypeLabels: Record<string, string> = {
   statement: "Abrechnung",
 };
 
+const ownerMessageStatusLabels: Record<string, string> = {
+  closed: "Abgeschlossen",
+  in_progress: "In Bearbeitung",
+  new: "Neu",
+  open: "Offen",
+  waiting: "Wartet",
+};
+
 function formatDateRange(booking: OwnerDashboardBooking) {
   if (booking.dateLabel) return booking.dateLabel;
   if (!booking.startsOn || !booking.endsOn) return "Termin wird ergänzt";
@@ -54,6 +63,20 @@ function formatDateRange(booking: OwnerDashboardBooking) {
   });
 
   return `${formatter.format(start)} - ${formatter.format(end)}`;
+}
+
+function formatDateTime(value: string | null) {
+  if (!value) return "Zeitpunkt offen";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Zeitpunkt offen";
+
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
 }
 
 function formatDate(date: OwnerDashboardDate) {
@@ -229,6 +252,22 @@ function formatOwnerDocumentLabel(document: OwnerDashboardDocument) {
   return [typeLabel, propertyLabel, document.periodLabel].filter(Boolean).join(" · ");
 }
 
+function formatOwnerMessageLabel(message: OwnerDashboardMessage) {
+  const category = message.payload?.supportCategory;
+  const categoryLabel =
+    typeof category === "string" && category in ownerContactCategoryLabels
+      ? ownerContactCategoryLabels[category as OwnerContactCategory]
+      : message.subject || message.category.replace(/^owner_/, "");
+  const statusLabel = ownerMessageStatusLabels[message.status] || message.status || "Neu";
+
+  return [categoryLabel, statusLabel].filter(Boolean).join(" · ");
+}
+
+function formatOwnerMessageDateRange(message: OwnerDashboardMessage) {
+  if (!message.requestedStartsOn && !message.requestedEndsOn) return null;
+  return `${message.requestedStartsOn || "offen"} bis ${message.requestedEndsOn || "offen"}`;
+}
+
 function getOpenPropertyNotes(properties: OwnerDashboardProperty[]) {
   return properties.flatMap((property) => {
     const notes: string[] = [];
@@ -369,6 +408,7 @@ function OwnerDashboardView({
   const documentedRevenue = bookingRevenue(paidBookings);
   const estimatedPayout = payoutEstimate(paidBookings);
   const ownerDocuments = data.documents ?? [];
+  const ownerMessages = data.messages ?? [];
   const displayName = data.profile.displayName || "dein Objekt";
   const selectedContactProperty = data.properties.find((property) => property.id === contactPropertyId) ?? data.properties[0] ?? null;
   const isAvailabilityRequest = contactCategory === "availability";
@@ -444,6 +484,7 @@ function OwnerDashboardView({
             <a href="#vermarktung">Vermarktung</a>
             <a href="#operations">Operations</a>
             <a href="#abrechnung">Abrechnung</a>
+            <a href="#rueckfragen">Rückfragen</a>
             <button className="owner-nav-button" onClick={onLogout} type="button">
               Abmelden
             </button>
@@ -617,6 +658,40 @@ function OwnerDashboardView({
               ) : null}
             </div>
           </form>
+        </section>
+
+        <section className="owner-section owner-card" id="rueckfragen">
+          <div className="owner-section-head">
+            <div>
+              <p className="eyebrow">Rückfragen</p>
+              <h2>Was du an Morrow gesendet hast.</h2>
+            </div>
+            <p>
+              Damit nichts in E-Mails oder einzelnen Nachrichten verschwindet,
+              siehst du hier die letzten Anliegen, die im Admin weiterbearbeitet werden.
+            </p>
+          </div>
+          <div className="owner-message-list">
+            {ownerMessages.length ? (
+              ownerMessages.slice(0, 6).map((message) => (
+                <article className="owner-message-item" key={message.id}>
+                  <div>
+                    <span>{formatOwnerMessageLabel(message)}</span>
+                    <strong>{message.propertyName || "Allgemein"}</strong>
+                    <p>{message.message}</p>
+                    {formatOwnerMessageDateRange(message) ? (
+                      <small>Zeitraum: {formatOwnerMessageDateRange(message)}</small>
+                    ) : null}
+                  </div>
+                  <time dateTime={message.updatedAt || message.createdAt}>
+                    {formatDateTime(message.updatedAt || message.createdAt)}
+                  </time>
+                </article>
+              ))
+            ) : (
+              <p>Noch keine Rückfragen für diesen Zugang sichtbar.</p>
+            )}
+          </div>
         </section>
 
         <section className="owner-section owner-object-grid" id="objekte">

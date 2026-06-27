@@ -50,7 +50,7 @@ Ziel: Intern muss Morrow eine Auszeit wirklich anlegen, pflegen, buchen und vorb
 | Aufgaben automatisch bei Buchungsstatus | Statuswechsel erzeugen deduplizierte Standardaufgaben fuer Reserviert, Bezahlt, Vor Anreise, Aktiv und Abgeschlossen; Next-Admin liest `admin_tasks`, zeigt faellige Aufgaben und kann Aufgabenstatus aktualisieren | Spaeter je Auszeit-Typ und Saison feinere Templates ergaenzen | MVP-kritisch | Erledigt fuer MVP |
 | Audit-Log | `admin_audit_logs` ist vorhanden; Next-Admin schreibt Status-, Notiz-, Buchungs-, Aufgaben-, Bestand-, Eigentümerprofil-, Eigentümerzugriff-, Erlebnis- und Terminänderungen und zeigt letzte Änderungen sowie datensatzbezogene Änderungen im Detaildrawer | Spaeter vollständige Diff-Ansicht, Filter, Export und Pflicht-Audit fuer alle Mutationen ergaenzen | MVP-light | Teilweise |
 | Monitoring fehlender Daten | Zentrale Liste fehlender Pflichtdaten pro Auszeit, Buchung, Unterkunft und Support auf der neuen Next-Admin-Uebersicht vorhanden; Prototyp enthaelt zusaetzlich tiefere Detail-Sprungziele | Spaeter um lokale Orte, Partnerprofile, Erlebnisse und automatische Eskalation im Next-Admin erweitern | MVP-kritisch | Erledigt fuer MVP |
-| Eigentümer-Rückkanal | Next-Owner kann strukturierte Rückfragen zu Objekt, Buchung, Eigenbelegung/Verfügbarkeit und Abrechnung als `support_messages` an Admin senden; Zeitraumfragen enthalten Von-/Bis-Daten im Payload | Spaeter echte Kalenderwirkung, Statushistorie und automatische Admin-Aufgaben fuer Verfügbarkeitsfreigaben ergänzen | MVP-light | Teilweise |
+| Eigentümer-Rückkanal | Next-Owner kann strukturierte Rückfragen zu Objekt, Buchung, Eigenbelegung/Verfügbarkeit und Abrechnung als `support_messages` an Admin senden; Zeitraumfragen enthalten Von-/Bis-Daten im Payload; `get_owner_dashboard().messages` zeigt die letzten gesendeten Anliegen mit Status, Objektbezug und Zeitraum im Eigentümerbereich | Spaeter echte Kalenderwirkung, Antwortverlauf, Statushistorie und automatische Admin-Aufgaben fuer Verfügbarkeitsfreigaben ergänzen | MVP-light | Teilweise |
 
 ## Block 2: Guest Comfort
 
@@ -149,13 +149,13 @@ Stand: 2026-06-26
 
 - `apps/web` enthaelt die migrierte oeffentliche SEO-Website mit Startseite, Auszeiten, Eigentuemerpfad, Erlebnispartnerpfad und Ratgeber.
 - `apps/owner` ist als geschuetzte Eigentuemer-App gestartet und zeigt MVP-Light Objekttransparenz, freie Zeitraeume, Buchungen, Lueckenmarketing-Light, Vermarktungslogik, offene Objektpunkte, Operationsstatus, Dokumente und Abrechnungsausblick.
-- Eigentümer können im Next-Owner-Dashboard strukturierte Rückfragen zu Objekt, Buchung oder Abrechnung senden; diese landen über `support_messages` im Admin-Supportfluss und sind per RLS auf aktive `owner_profiles` begrenzt.
+- Eigentümer können im Next-Owner-Dashboard strukturierte Rückfragen zu Objekt, Buchung, Eigenbelegung/Verfügbarkeit oder Abrechnung senden; diese landen über `support_messages` im Admin-Supportfluss, sind per RLS auf aktive `owner_profiles` begrenzt und werden als Rückfragen-Historie im Eigentümerbereich angezeigt.
 - Der Eigentuemerzugriff ist strukturell ueber `owner_profiles` und `owner_property_access` vorbereitet und im Next-Admin pflegbar.
 - Die Eigentuemer-App liest eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - Eigentümerdokumente sind als eigene Tabelle `owner_documents` normalisiert, werden im Next-Admin pro Unterkunft gepflegt und über `get_owner_dashboard().documents` nur für freigegebene Objektzugriffe sichtbar gemacht.
 - `apps/web`, `apps/admin`, `apps/guest` und `apps/owner` mappen lokale `VITE_SUPABASE_*` Public-Variablen auf `NEXT_PUBLIC_SUPABASE_*`, damit lokale Next-Tests denselben Supabase-Zugang wie der Prototyp nutzen koennen.
 - `npm run supabase:verify-owner` prueft die Owner-Tabellen, `get_owner_dashboard()` und optional mit `OWNER_EMAIL`/`OWNER_PASSWORD` einen echten freigeschalteten Eigentuemerzugang; mit `OWNER_VERIFY_TEMP_OWNER=1` erzeugt der Test alternativ einen temporaeren Eigentuemerzugang, prueft Login/RPC/Support/Dokumente und raeumt ihn wieder auf.
-- Die Owner-Migrationen bis `202606270003` sind remote in Supabase angewendet; ein temporaerer Owner-E2E-Test mit `Nordlicht Lodge` hat Login, Dashboard-RPC, Supportnachricht, Eigenbelegungs-/Verfügbarkeitsanfrage und Dokumentensichtbarkeit erfolgreich geprueft.
+- Die Owner-Migrationen bis `202606270004` sind remote in Supabase angewendet; ein temporaerer Owner-E2E-Test mit `Nordlicht Lodge` hat Login, Dashboard-RPC, Supportnachricht, Eigenbelegungs-/Verfügbarkeitsanfrage, Rückfragen-Historie und Dokumentensichtbarkeit erfolgreich geprueft.
 - `apps/web`, `apps/admin`, `apps/guest` und `apps/owner` besitzen eigene Vercel-Konfigurationen fuer getrennte Next.js-Projekte aus dem Monorepo.
 - `apps/web` kann `/admin`, `/deine-auszeit/...`, `/owner` und `/app/eigentuemer` per `MORROW_ADMIN_APP_URL`, `MORROW_GUEST_APP_URL` und `MORROW_OWNER_APP_URL` auf die jeweiligen App-Projekte weiterleiten.
 - Alle vier Next-Apps haben einen `/health` Endpunkt zur Deployment- und App-Identitaetspruefung.
@@ -170,6 +170,7 @@ Naechste technische Prioritaet:
 3. Guest-App vertiefen: echte Gezeitenquelle, Veranstaltungen, Support-Chat-Antworten und Nach-Aufenthalt-Modus weiter aus dem Prototyp ueberfuehren.
 4. Owner-App danach vertiefen: echte Abrechnungsdatensaetze, Dokumentenablage, Operationshistorie und Eigentuemer-Kommunikation.
    - Stand 2026-06-27: Dokumentenablage V1 ist als `owner_documents` mit Admin-Pflege, Owner-RLS, RPC-Ausgabe und Owner-Anzeige umgesetzt; Build, Typecheck und Lint bestanden.
+   - Stand 2026-06-27: Eigentümer-Rückfragen werden im RPC als `messages` zurückgegeben, im Dashboard angezeigt und im temporären Owner-E2E-Test gegen Supabase geprüft.
 5. Fuer die Next-Guest-App einen aktiven Supabase-Testdatensatz mit gueltigem Access-Code live pflegen.
    - Stand 2026-06-27: Live-Testdatensatz `11111111-1111-4111-8111-111111111111` mit Code `MORROW1` ist gesetzt; `GUEST_VERIFY_SEED=1 npm run supabase:verify-guest` und `GUEST_BASE_URL=http://localhost:4310 npm run supabase:verify-guest` liefen erfolgreich.
 
