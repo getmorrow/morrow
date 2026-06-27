@@ -14,6 +14,7 @@ const verifyTempOwner = process.env.OWNER_VERIFY_TEMP_OWNER === '1'
 const tempOwner = {
   authUserId: null,
   profileId: null,
+  communicationEventIds: [],
   supportMessageIds: [],
   operationId: null,
   statementId: null,
@@ -68,6 +69,10 @@ console.log('ok rpc get_owner_dashboard executable')
 const { error: operationsRpcStructureError } = await serviceClient.rpc('get_owner_operations')
 if (operationsRpcStructureError) fail('RPC get_owner_operations is missing or not executable', operationsRpcStructureError)
 console.log('ok rpc get_owner_operations executable')
+
+const { error: communicationRpcStructureError } = await serviceClient.rpc('get_owner_communication_events')
+if (communicationRpcStructureError) fail('RPC get_owner_communication_events is missing or not executable', communicationRpcStructureError)
+console.log('ok rpc get_owner_communication_events executable')
 
 if (!ownerEmail || !ownerPassword) {
   if (!verifyTempOwner) {
@@ -239,12 +244,40 @@ if (verifySupportInsert) {
     fail('Inserted owner support messages were not returned to signed-in owner')
   }
 
+  const { data: insertedCommunicationEvent, error: communicationInsertError } = await serviceClient
+    .from('communication_events')
+    .insert({
+      channel: 'email',
+      direction: 'outbound',
+      event_type: `support:${supportMessageId}`,
+      subject: 'Owner verification reply',
+      body: 'This reply should be visible to the owner.',
+      actor: 'qa@getmorrow.de',
+      status: 'sent',
+      payload: {
+        source: 'owner-portal-verification',
+        supportId: supportMessageId,
+      },
+    })
+    .select('id')
+    .single()
+
+  if (communicationInsertError) fail('Owner communication event insert failed', communicationInsertError)
+  tempOwner.communicationEventIds.push(insertedCommunicationEvent.id)
+
+  const { data: ownerCommunicationEvents, error: communicationRpcError } = await ownerClient.rpc('get_owner_communication_events')
+  if (communicationRpcError) fail('Owner communication events RPC failed after insert', communicationRpcError)
+
+  const visibleCommunicationEvent = ownerCommunicationEvents?.find((event) => event.supportId === supportMessageId)
+  if (!visibleCommunicationEvent) fail('Inserted owner communication event was not returned to signed-in owner')
+
   console.log(
     [
       'ok owner support insert',
       `count=${supportMessages.length}`,
       `categories=${supportMessages.map((message) => message.category).join(',')}`,
       `dashboardMessages=${visibleMessages.length}`,
+      `communicationEvents=${ownerCommunicationEvents?.length ?? 0}`,
       `property=${supportMessages[0]?.payload?.propertyName ?? property.id}`,
     ].join(' '),
   )
@@ -382,6 +415,15 @@ if (verifyOperationAccess) {
 }
 
 await ownerClient.auth.signOut()
+
+if (tempOwner.communicationEventIds.length > 0) {
+  const { error: communicationCleanupError } = await serviceClient
+    .from('communication_events')
+    .delete()
+    .in('id', tempOwner.communicationEventIds)
+
+  if (communicationCleanupError) fail('Temporary owner communication event cleanup failed', communicationCleanupError)
+}
 
 if (tempOwner.supportMessageIds.length > 0) {
   const { error: supportCleanupError } = await serviceClient

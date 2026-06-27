@@ -688,6 +688,26 @@ button {
   max-width: 760px;
 }
 
+.owner-message-replies {
+  border-top: 1px solid rgba(24, 23, 21, 0.08);
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.owner-message-replies article {
+  background: rgba(255, 252, 246, 0.66);
+  border: 1px solid rgba(24, 23, 21, 0.06);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+}
+
+.owner-message-replies article time {
+  text-align: left;
+}
+
 .owner-document-list > a,
 .owner-document-list > span {
   background: rgba(236, 230, 214, 0.5);
@@ -756,6 +776,10 @@ button {
 
   .owner-message-item {
     grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .owner-message-replies {
+    grid-column: 1 / -1;
   }
 
   .owner-message-item time {

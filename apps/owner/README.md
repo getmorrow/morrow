@@ -16,6 +16,8 @@ Status: MVP-Light gestartet.
   `support_messages` im Admin und enthalten bei Zeitraumfragen Von-/Bis-Daten.
 - Gesendete Eigentümer-Rückfragen werden über `get_owner_dashboard().messages`
   wieder im Dashboard angezeigt, inklusive Status, Objektbezug und Zeitraum.
+- Admin-Antworten zu diesen Rückfragen werden über `get_owner_communication_events()`
+  als sichtbarer Verlauf unter dem jeweiligen Anliegen angezeigt.
 - Freigegebene Monatsabrechnungen werden aus `owner_statements` gelesen und
   nur bei Finanzfreigabe des Objektzugriffs angezeigt.
 - Freigegebene Operationsmeldungen werden aus `owner_operations` gelesen und

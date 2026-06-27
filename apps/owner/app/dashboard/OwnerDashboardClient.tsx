@@ -325,9 +325,10 @@ export function OwnerDashboardClient() {
           return;
         }
 
-        const [dashboardResult, operationsResult] = await Promise.all([
+        const [dashboardResult, operationsResult, communicationResult] = await Promise.all([
           supabase.rpc("get_owner_dashboard"),
           supabase.rpc("get_owner_operations"),
+          supabase.rpc("get_owner_communication_events"),
         ]);
 
         if (!isMounted) return;
@@ -350,6 +351,7 @@ export function OwnerDashboardClient() {
           data: {
             ...(dashboardResult.data as OwnerDashboardData),
             operations: operationsResult.error ? [] : ((operationsResult.data as OwnerDashboardData["operations"]) ?? []),
+            communicationEvents: communicationResult.error ? [] : ((communicationResult.data as OwnerDashboardData["communicationEvents"]) ?? []),
           },
         });
       } catch {
@@ -442,6 +444,7 @@ function OwnerDashboardView({
   const documentedRevenue = bookingRevenue(paidBookings);
   const ownerDocuments = data.documents ?? [];
   const ownerMessages = data.messages ?? [];
+  const ownerCommunicationEvents = data.communicationEvents ?? [];
   const ownerStatements = data.statements ?? [];
   const ownerOperations = data.operations ?? [];
   const latestStatement = ownerStatements[0] ?? null;
@@ -718,21 +721,38 @@ function OwnerDashboardView({
           </div>
           <div className="owner-message-list">
             {ownerMessages.length ? (
-              ownerMessages.slice(0, 6).map((message) => (
-                <article className="owner-message-item" key={message.id}>
-                  <div>
-                    <span>{formatOwnerMessageLabel(message)}</span>
-                    <strong>{message.propertyName || "Allgemein"}</strong>
-                    <p>{message.message}</p>
-                    {formatOwnerMessageDateRange(message) ? (
-                      <small>Zeitraum: {formatOwnerMessageDateRange(message)}</small>
+              ownerMessages.slice(0, 6).map((message) => {
+                const messageEvents = ownerCommunicationEvents
+                  .filter((event) => event.supportId === message.id)
+                  .slice(0, 2);
+                return (
+                  <article className="owner-message-item" key={message.id}>
+                    <div>
+                      <span>{formatOwnerMessageLabel(message)}</span>
+                      <strong>{message.propertyName || "Allgemein"}</strong>
+                      <p>{message.message}</p>
+                      {formatOwnerMessageDateRange(message) ? (
+                        <small>Zeitraum: {formatOwnerMessageDateRange(message)}</small>
+                      ) : null}
+                    </div>
+                    <time dateTime={message.updatedAt || message.createdAt}>
+                      {formatDateTime(message.updatedAt || message.createdAt)}
+                    </time>
+                    {messageEvents.length ? (
+                      <div className="owner-message-replies">
+                        {messageEvents.map((event) => (
+                          <article key={event.id}>
+                            <span>{event.channel === "email" ? "Antwort per E-Mail" : "Update von Morrow"}</span>
+                            <strong>{event.subject || "Rückmeldung"}</strong>
+                            {event.body ? <p>{event.body}</p> : null}
+                            <time dateTime={event.createdAt}>{formatDateTime(event.createdAt)}</time>
+                          </article>
+                        ))}
+                      </div>
                     ) : null}
-                  </div>
-                  <time dateTime={message.updatedAt || message.createdAt}>
-                    {formatDateTime(message.updatedAt || message.createdAt)}
-                  </time>
-                </article>
-              ))
+                  </article>
+                );
+              })
             ) : (
               <p>Noch keine Rückfragen für diesen Zugang sichtbar.</p>
             )}
