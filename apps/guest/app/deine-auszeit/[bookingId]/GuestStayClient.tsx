@@ -121,6 +121,13 @@ type WeatherDay = {
   wind: number;
 };
 
+type TideDay = {
+  date: string;
+  low: Date;
+  high: Date;
+  hint: string;
+};
+
 type GuestStayPayload = {
   booking?: GuestBooking;
   package?: GuestPackage;
@@ -329,11 +336,9 @@ const weatherPreview = [
   { label: "14 Tage", value: "Nordsee typisch", detail: "Vor Anreise erneut prüfen" },
 ];
 
-const tidePreview = [
-  { label: "Morgens", value: "Ebbe prüfen", detail: "Watt nur mit aktuellem Stand und sicherer Route." },
-  { label: "Nachmittags", value: "Wasser kommt", detail: "Strandspaziergänge lieber nah am Übergang planen." },
-  { label: "Hinweis", value: "Tagesaktuell", detail: "Live-Werte werden als eigener Datenbaustein ergänzt." },
-];
+const tideReferenceLow = new Date("2026-01-01T02:48:00+01:00").getTime();
+const tideHalfCycleMs = 6 * 60 * 60 * 1000 + 12 * 60 * 1000 + 30 * 1000;
+const tideFullCycleMs = tideHalfCycleMs * 2;
 
 function weatherCodeLabel(code: number) {
   if ([0, 1].includes(code)) return "hell";
@@ -351,6 +356,56 @@ function formatWeatherDate(value: string, index: number) {
   if (index === 1) return "Morgen";
   const date = new Date(`${value}T00:00:00`);
   return new Intl.DateTimeFormat("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" }).format(date);
+}
+
+function formatTideDate(value: string, index: number) {
+  if (index === 0) return "Heute";
+  if (index === 1) return "Morgen";
+  const date = new Date(`${value}T00:00:00`);
+  return new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "2-digit", month: "2-digit" }).format(date);
+}
+
+function formatTideTime(value: Date) {
+  return new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit" }).format(value);
+}
+
+function localDateKey(value: Date) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function nextTideTimeInDay(referenceMs: number, dayStartMs: number, dayEndMs: number) {
+  let value = referenceMs + Math.ceil((dayStartMs - referenceMs) / tideFullCycleMs) * tideFullCycleMs;
+  if (value >= dayEndMs) value -= tideFullCycleMs;
+  if (value < dayStartMs) value += tideFullCycleMs;
+  return value;
+}
+
+function buildTideDays(days = 4): TideDay[] {
+  const now = new Date();
+
+  return Array.from({ length: days }, (_, index) => {
+    const dayStart = new Date(now);
+    dayStart.setHours(0, 0, 0, 0);
+    dayStart.setDate(dayStart.getDate() + index);
+
+    const dayEnd = new Date(dayStart);
+    dayEnd.setDate(dayEnd.getDate() + 1);
+
+    const lowMs = nextTideTimeInDay(tideReferenceLow, dayStart.getTime(), dayEnd.getTime());
+    const highMs = nextTideTimeInDay(tideReferenceLow + tideHalfCycleMs, dayStart.getTime(), dayEnd.getTime());
+
+    const quietWindow = new Date(lowMs).getHours() < 12 ? "vormittags" : "nachmittags";
+
+    return {
+      date: localDateKey(dayStart),
+      low: new Date(lowMs),
+      high: new Date(highMs),
+      hint: `Guter Moment für weite Strand- und Wattblicke eher ${quietWindow}. Bitte vor Ort tagesaktuell prüfen.`,
+    };
+  });
 }
 
 function text(value: unknown, fallback = "") {
@@ -484,6 +539,11 @@ function normalizeCategory(category: string): LocalFilter {
   if (category === "service") return "emergency";
   if (localFilterOrder.includes(category as LocalFilter)) return category as LocalFilter;
   return "all";
+}
+
+function isStandaloneLocalCategory(category: string) {
+  const normalized = normalizeCategory(category);
+  return normalized !== "weather" && normalized !== "tide";
 }
 
 function placeDescription(place: LocalPlace) {
@@ -634,6 +694,7 @@ export function GuestStayClient({
   const [weatherDays, setWeatherDays] = useState<WeatherDay[]>([]);
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherRange, setWeatherRange] = useState<"today" | "3" | "14">("today");
+  const [tideRange, setTideRange] = useState<"today" | "3" | "4">("today");
 
   useEffect(() => {
     let cancelled = false;
@@ -742,7 +803,9 @@ export function GuestStayClient({
     return localFilterOrder.filter((filter) => categories.has(filter));
   }, [localPlaces]);
   const filteredLocalPlaces = localFilter === "all"
-    ? localPlaces.filter((place) => normalizeCategory(place.category) !== "event").slice(0, 10)
+    ? localPlaces
+      .filter((place) => normalizeCategory(place.category) !== "event" && isStandaloneLocalCategory(place.category))
+      .slice(0, 10)
     : localFilter === "event"
       ? eventPlaces.slice(0, 12)
       : localPlaces.filter((place) => normalizeCategory(place.category) === localFilter).slice(0, 12);
@@ -750,9 +813,11 @@ export function GuestStayClient({
   const showPlaceResults = localFilter !== "weather" && localFilter !== "tide" && localFilter !== "event";
   const mapPlaces = useMemo(() => {
     const stay = stayMapPlace(packageItem);
-    const sourcePlaces = localFilter === "all"
-      ? localPlaces
-      : localPlaces.filter((place) => normalizeCategory(place.category) === localFilter);
+    const sourcePlaces = localFilter === "weather" || localFilter === "tide"
+      ? []
+      : localFilter === "all"
+        ? localPlaces.filter((place) => isStandaloneLocalCategory(place.category))
+        : localPlaces.filter((place) => normalizeCategory(place.category) === localFilter);
     const placePins = sourcePlaces
       .map(localPlaceToMapPlace)
       .filter((place): place is GuestMapPlace => Boolean(place));
@@ -767,6 +832,12 @@ export function GuestStayClient({
     : weatherRange === "3"
       ? weatherDays.slice(0, 3)
       : weatherDays.slice(0, 14);
+  const tideDays = useMemo(() => buildTideDays(4), []);
+  const visibleTideDays = tideRange === "today"
+    ? tideDays.slice(0, 1)
+    : tideRange === "3"
+      ? tideDays.slice(0, 3)
+      : tideDays;
 
   useEffect(() => {
     let cancelled = false;
@@ -1137,15 +1208,32 @@ export function GuestStayClient({
                   <span>Gezeiten</span>
                   <strong>Watt und Wasser bewusst planen</strong>
                 </div>
+                <div className="guest-weather-range" aria-label="Gezeiten Zeitraum">
+                  {[
+                    { id: "today", label: "Heute" },
+                    { id: "3", label: "3 Tage" },
+                    { id: "4", label: "4 Tage" },
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      className={tideRange === item.id ? "is-active" : ""}
+                      type="button"
+                      onClick={() => setTideRange(item.id as "today" | "3" | "4")}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
                 <div className="guest-horizontal-cards">
-                  {tidePreview.map((item) => (
-                    <article key={item.label}>
-                      <span>{item.label}</span>
-                      <strong>{item.value}</strong>
-                      <p>{item.detail}</p>
+                  {visibleTideDays.map((item, index) => (
+                    <article key={item.date}>
+                      <span>{formatTideDate(item.date, index)}</span>
+                      <strong>Ebbe ca. {formatTideTime(item.low)} · Flut ca. {formatTideTime(item.high)}</strong>
+                      <p>{item.hint}</p>
                     </article>
                   ))}
                 </div>
+                <p className="guest-live-note">Gezeiten-V1 ist eine Orientierung für euren Tagesrhythmus. Vor Wattwegen oder Aktivitäten am Wasser bitte tagesaktuelle Angaben vor Ort prüfen.</p>
               </section>
             )}
 

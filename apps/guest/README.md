@@ -28,7 +28,7 @@ Status: Next-Migration gestartet.
 
 Naechste Ausbaustufen:
 
-- echte Gezeitenquelle anbinden
+- Gezeiten-V1 von berechneter Orientierung auf echte Live-/Amtsdatenquelle umstellen
 - Statusabhaengige Startseite weiter verfeinern
 - Support-Chat Richtung Realtime/WhatsApp-Templates vertiefen
 - abgeschlossene Aufenthalte mit Wiederbuchungslogik staerker ausbauen
