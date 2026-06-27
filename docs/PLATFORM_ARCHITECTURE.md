@@ -57,6 +57,7 @@ Umsetzungsstand 2026-06-26:
 - Eigentümerabrechnungen sind als eigene `owner_statements`-Datenquelle angelegt: Admin pflegt Monatsstatus, Umsatz, Morrow-Anteil, Kosten, Auszahlung und optionalen Beleglink pro Unterkunft; die Owner-App zeigt nur sichtbare oder ausgezahlte Abrechnungen zu Objekten mit Finanzfreigabe.
 - Eigentümer-Operationsmeldungen sind als eigene `owner_operations`-Datenquelle angelegt: Admin pflegt Reinigung, Kontrolle, Mängel, Reparaturen, Übergaben oder Hinweise pro Unterkunft; die Owner-App zeigt nur freigegebene Meldungen zu Objekten mit Operationsfreigabe.
 - Eigentümer können aus der Owner-App strukturierte Rückfragen senden; Eigenbelegung/Verfügbarkeit wird bereits mit Von-/Bis-Daten an Admin übergeben, bleibt im MVP aber bewusst eine zu prüfende Anfrage statt automatischer Kalenderänderung. Diese Anfragen erzeugen automatisch eine Admin-Aufgabe, damit Morrow den Zeitraum aktiv prüft. Die letzten Rückfragen werden über `get_owner_dashboard().messages` im Eigentümerbereich wieder sichtbar gemacht; sichtbare Admin-Antworten werden über `get_owner_communication_events()` und Statuswechsel über `get_owner_support_status_events()` unter dem jeweiligen Anliegen angezeigt.
+- Gäste können aus der Guest-App Supportnachrichten senden; sichtbare Morrow-Antworten werden über `get_guest_support_events()` codegeschützt wieder im Hilfe-Verlauf angezeigt. Interne Notizen bleiben im Admin.
 
 ## Grundentscheidung
 
@@ -149,6 +150,7 @@ Zweck:
 - Unterkunft, Erlebnis, Check-in, Empfehlungen und Hilfe anzeigen
 - Gaeste vor, waehrend und nach dem Aufenthalt fuehren
 - Support und Feedback einsammeln
+- sichtbare Antworten auf Supportmeldungen im eigenen Hilfe-Verlauf zeigen
 
 Bestehender Einstieg:
 

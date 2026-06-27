@@ -35,6 +35,27 @@ type GuestBooking = {
   updatedAt?: string;
 };
 
+type GuestSupportReply = {
+  id: string;
+  channel?: string | null;
+  subject?: string | null;
+  body?: string | null;
+  status?: string | null;
+  createdAt?: string | null;
+};
+
+type GuestSupportThread = {
+  id: string;
+  category: string;
+  message: string;
+  status?: string | null;
+  urgency?: string | null;
+  payload?: Record<string, unknown>;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  replies?: GuestSupportReply[];
+};
+
 type GuestPackage = {
   id?: string;
   slug?: string;
@@ -381,6 +402,18 @@ function formatStayDate(value?: string) {
   return value;
 }
 
+function formatDateTime(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 function daysUntilFromLabel(label?: string) {
   if (!label) return null;
   const match = label.match(/(\d{1,2})\.\s*([A-Za-zÄÖÜäöü]+)/);
@@ -592,6 +625,7 @@ export function GuestStayClient({
   const [supportCategory, setSupportCategory] = useState<SupportCategory>("general");
   const [supportUrgency, setSupportUrgency] = useState<SupportUrgency>("normal");
   const [supportSent, setSupportSent] = useState(false);
+  const [supportThreads, setSupportThreads] = useState<GuestSupportThread[]>([]);
   const [feedbackRating, setFeedbackRating] = useState("5");
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
@@ -611,6 +645,7 @@ export function GuestStayClient({
       if (isDevGuestAccess(bookingId, accessCode)) {
         setPayload(devGuestPayload(bookingId));
         setPlaces(devLocalPlaces);
+        setSupportThreads([]);
         setLoading(false);
         return;
       }
@@ -640,15 +675,22 @@ export function GuestStayClient({
 
       setPayload(data as GuestStayPayload);
 
-      const { data: localData } = await supabase
-        .from("local_places")
-        .select("id,name,category,status,lat,lng,address,website,reservation_url,menu_url,rating,opening_hours,package_fit,payload")
-        .eq("status", "approved")
-        .order("updated_at", { ascending: false })
-        .limit(80);
+      const [localResult, supportResult] = await Promise.all([
+        supabase
+          .from("local_places")
+          .select("id,name,category,status,lat,lng,address,website,reservation_url,menu_url,rating,opening_hours,package_fit,payload")
+          .eq("status", "approved")
+          .order("updated_at", { ascending: false })
+          .limit(80),
+        supabase.rpc("get_guest_support_events", {
+          p_booking_id: bookingId,
+          p_access_code: accessCode,
+        }),
+      ]);
 
       if (!cancelled) {
-        setPlaces((localData ?? []) as LocalPlace[]);
+        setPlaces((localResult.data ?? []) as LocalPlace[]);
+        setSupportThreads((supportResult.data ?? []) as GuestSupportThread[]);
         setLoading(false);
       }
     }
@@ -778,8 +820,10 @@ export function GuestStayClient({
       return;
     }
 
+    const supportId = crypto.randomUUID();
+    const createdAt = new Date().toISOString();
     const { error: supportError } = await supabase.from("support_messages").insert({
-      id: crypto.randomUUID(),
+      id: supportId,
       lead_id: booking?.leadId ?? null,
       category: supportCategory,
       message: supportMessage.trim(),
@@ -797,6 +841,19 @@ export function GuestStayClient({
     });
 
     if (!supportError) {
+      setSupportThreads((current) => [
+        {
+          id: supportId,
+          category: supportCategory,
+          message: supportMessage.trim(),
+          status: "open",
+          urgency: supportUrgency,
+          createdAt,
+          updatedAt: createdAt,
+          replies: [],
+        },
+        ...current,
+      ]);
       setSupportSent(true);
       setSupportMessage("");
       setSupportCategory("general");
@@ -1201,6 +1258,40 @@ export function GuestStayClient({
             </div>
             <textarea value={supportMessage} onChange={(event) => setSupportMessage(event.target.value)} placeholder="Was können wir für euch klären?" />
             <button type="button" onClick={sendSupport}>{supportSent ? "Nachricht gesendet" : "Nachricht senden"}</button>
+            <section className="guest-support-history" aria-label="Bisherige Nachrichten">
+              <div>
+                <p className="eyebrow">Verlauf</p>
+                <h3>Was schon bei Morrow liegt.</h3>
+              </div>
+              {supportThreads.length ? (
+                supportThreads.slice(0, 4).map((thread) => (
+                  <article key={thread.id}>
+                    <span>
+                      {supportCategoryLabels[thread.category as SupportCategory] ?? "Nachricht"}
+                      {thread.createdAt ? ` · ${formatDateTime(thread.createdAt)}` : ""}
+                    </span>
+                    <strong>{thread.message}</strong>
+                    <small>{thread.status === "closed" ? "Erledigt" : thread.status === "in_progress" ? "In Klärung" : "Bei Morrow"}</small>
+                    {thread.replies?.length ? (
+                      <div className="guest-support-replies">
+                        {thread.replies.slice(-2).map((reply) => (
+                          <p key={reply.id}>
+                            <b>{reply.subject || "Antwort von Morrow"}</b>
+                            {reply.body}
+                          </p>
+                        ))}
+                      </div>
+                    ) : null}
+                  </article>
+                ))
+              ) : (
+                <article>
+                  <span>Noch kein Verlauf</span>
+                  <strong>Wenn ihr uns schreibt, bleibt die Nachricht hier sichtbar.</strong>
+                  <small>Antworten erscheinen ebenfalls an dieser Stelle.</small>
+                </article>
+              )}
+            </section>
           </section>
         )}
 

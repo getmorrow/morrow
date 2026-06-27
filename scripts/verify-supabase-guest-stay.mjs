@@ -3,10 +3,12 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const bookingId = process.env.GUEST_BOOKING_ID || '11111111-1111-4111-8111-111111111111'
 const accessCode = process.env.GUEST_ACCESS_CODE || 'MORROW1'
 const guestBaseUrl = process.env.GUEST_BASE_URL?.replace(/\/$/, '')
 const shouldSeed = process.env.GUEST_VERIFY_SEED === '1'
+const shouldVerifySupportReply = process.env.GUEST_VERIFY_SUPPORT_REPLY === '1'
 const screenshotsDir = 'tmp/qa/guest-stay'
 
 function requireEnv(value, name) {
@@ -40,6 +42,15 @@ const supabase = createClient(supabaseUrl, anonKey, {
   },
 })
 
+const serviceClient = serviceRoleKey
+  ? createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  })
+  : null
+
 const { data: stay, error: stayError } = await supabase.rpc('get_guest_stay', {
   p_booking_id: bookingId,
   p_access_code: accessCode,
@@ -65,6 +76,83 @@ const result = {
     packageName: packageItem.name,
     guestName: booking.customerName ?? booking.name ?? null,
   },
+}
+
+const { data: supportEvents, error: supportEventsError } = await supabase.rpc('get_guest_support_events', {
+  p_booking_id: bookingId,
+  p_access_code: accessCode,
+})
+
+if (supportEventsError) fail('RPC get_guest_support_events failed', supportEventsError)
+assert(Array.isArray(supportEvents), 'RPC get_guest_support_events did not return an array')
+result.support = {
+  checked: true,
+  threads: supportEvents.length,
+}
+
+if (shouldVerifySupportReply) {
+  if (!serviceClient) fail('GUEST_VERIFY_SUPPORT_REPLY requires SUPABASE_SERVICE_ROLE_KEY')
+
+  const supportId = `guest-support-verify-${Date.now()}`
+  let communicationEventId = null
+
+  try {
+    const { error: supportInsertError } = await supabase.from('support_messages').insert({
+      id: supportId,
+      lead_id: booking.leadId ?? booking.lead_id ?? null,
+      category: 'general',
+      message: `Guest support verification message ${supportId}`,
+      urgency: 'normal',
+      payload: {
+        source: 'next-guest',
+        bookingId,
+        guestName: booking.customerName ?? booking.name ?? null,
+        qaMarker: supportId,
+      },
+    })
+
+    if (supportInsertError) fail('Guest support insert failed', supportInsertError)
+
+    const { data: communicationEvent, error: communicationInsertError } = await serviceClient
+      .from('communication_events')
+      .insert({
+        lead_id: booking.leadId ?? booking.lead_id ?? null,
+        booking_id: bookingId,
+        channel: 'email',
+        direction: 'outbound',
+        event_type: `support:${supportId}`,
+        subject: 'Antwort von Morrow',
+        body: 'Diese Antwort sollte im Gästebereich sichtbar sein.',
+        actor: 'qa@getmorrow.de',
+        status: 'sent',
+        payload: {
+          source: 'guest-support-verification',
+          supportId,
+        },
+      })
+      .select('id')
+      .single()
+
+    if (communicationInsertError) fail('Guest support reply insert failed', communicationInsertError)
+    communicationEventId = communicationEvent.id
+
+    const { data: supportEventsWithReply, error: supportEventsReplyError } = await supabase.rpc('get_guest_support_events', {
+      p_booking_id: bookingId,
+      p_access_code: accessCode,
+    })
+
+    if (supportEventsReplyError) fail('RPC get_guest_support_events failed after reply insert', supportEventsReplyError)
+    const visibleThread = supportEventsWithReply?.find((thread) => thread.id === supportId)
+    assert(visibleThread, 'Inserted guest support thread was not returned')
+    assert(visibleThread.replies?.length === 1, 'Inserted guest support reply was not returned')
+
+    result.support.replyChecked = true
+  } finally {
+    if (communicationEventId) {
+      await serviceClient.from('communication_events').delete().eq('id', communicationEventId)
+    }
+    await serviceClient.from('support_messages').delete().eq('id', supportId)
+  }
 }
 
 if (guestBaseUrl) {

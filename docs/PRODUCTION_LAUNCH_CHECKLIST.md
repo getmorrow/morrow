@@ -140,6 +140,7 @@ Vor dem ersten zahlenden Gast muessen die MVP-kritischen Punkte aus `docs/MORROW
 - Erlebnisbausteine mit Anbieter, Preis, Kapazitaet und Verfuegbarkeit.
 - Gaestebereich zeigt Anreise, Schluessel und Unterkunftsregeln aus Admin-Daten.
 - Support-/Problem-Ticket-Flow landet im Admin.
+- Sichtbare Support-Antwort aus Admin erscheint im Gästebereich-Hilfeverlauf.
 - Statusbasierte E-Mails mindestens fuer Anfrage, Reservierung/Bestaetigung und Vor-Anreise. Stand 2026-06-23: live als `booking-status-email`, dedupliziert und getestet.
 - Feedback-Mail nach abgeschlossenem Aufenthalt laeuft ueber serverseitigen Supabase-Cron.
 - AGB, Buchungsbedingungen, Stornobedingungen und Zahlungsbedingungen final verlinkt.
@@ -280,6 +281,7 @@ Einmal vollständig testen:
 - Buchung/Gästebereich prüfen.
 - Supportnachricht aus Gästebereich senden.
 - Supportfall im Admin prüfen.
+- Antwort aus Supportfall senden und im Gästebereich-Hilfeverlauf prüfen.
 - Supabase-Backup mit `npm run supabase:backup` ausführen und `manifest.json` prüfen.
 - Runbook `docs/SUPABASE_BACKUP_RECOVERY_RUNBOOK.md` lesen und sicheren Ablageort für Exporte festlegen.
 
