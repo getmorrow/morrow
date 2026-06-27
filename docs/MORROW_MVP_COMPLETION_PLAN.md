@@ -6,6 +6,20 @@ Dieses Dokument ist die operative Bruecke zwischen `docs/MORROW_MASTER_FRAME.md`
 
 Ziel: Morrow bleibt ein schlanker MVP, aber der Aufenthalt muss fuer Gaeste hochwertig, vorbereitet und intern sauber betreibbar sein.
 
+## Konsolidierungsstopp 2026-06-27
+
+Vor weiterem Featurebau gilt `docs/MIGRATION_CONSOLIDATION_AUDIT.md` als fuehrender Sprint-Rahmen.
+
+Die neue Next-Plattformstruktur ist grundsaetzlich richtig, aber `apps/admin` ist noch nicht als vollstaendiger Ersatz fuer den alten Vite-Admin-CRM abgenommen. Deshalb werden neue Produktfeatures geparkt, bis Bestandsaufnahme, Migrationsmatrix, Admin-Funktionsparitaet, fuehrende Apps und Dev-/Betriebsbasis konsolidiert sind.
+
+Wichtig:
+
+- `apps/web` ist fuehrend fuer die oeffentliche Website.
+- `apps/guest` ist Ziel-App fuer den Gaestebereich.
+- `apps/owner` ist Ziel-App fuer den Eigentuemerbereich.
+- `apps/admin` ist Ziel-App fuer die Quelle der Wahrheit, bleibt aber bis zur CRM-Paritaet in Konsolidierung.
+- Der Vite-Prototyp bleibt Referenz fuer noch nicht migrierte CRM-/Admin-Funktionen.
+
 ## Leitentscheidung
 
 Der MVP ist nicht mehr nur Landingpage plus Lead-System.

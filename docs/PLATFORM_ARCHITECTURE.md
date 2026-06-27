@@ -59,6 +59,14 @@ Umsetzungsstand 2026-06-26:
 - Eigentümer können aus der Owner-App strukturierte Rückfragen senden; Eigenbelegung/Verfügbarkeit wird bereits mit Von-/Bis-Daten an Admin übergeben, bleibt im MVP aber bewusst eine zu prüfende Anfrage statt automatischer Kalenderänderung. Diese Anfragen erzeugen automatisch eine Admin-Aufgabe, damit Morrow den Zeitraum aktiv prüft. Die letzten Rückfragen werden über `get_owner_dashboard().messages` im Eigentümerbereich wieder sichtbar gemacht; sichtbare Admin-Antworten werden über `get_owner_communication_events()` und Statuswechsel über `get_owner_support_status_events()` unter dem jeweiligen Anliegen angezeigt.
 - Gäste können aus der Guest-App Supportnachrichten senden; sichtbare Morrow-Antworten werden über `get_guest_support_events()` codegeschützt wieder im Hilfe-Verlauf angezeigt. Interne Notizen bleiben im Admin.
 
+Konsolidierungsentscheidung 2026-06-27:
+
+- Vor weiterem Featurebau wird die Migration konsolidiert.
+- `docs/MIGRATION_CONSOLIDATION_AUDIT.md` ist der aktuelle Arbeitsrahmen fuer Bestandsaufnahme, Migrationsmatrix, Admin-Funktionsparitaet, fuehrende Apps und Dev-/Betriebsbasis.
+- `apps/admin` ist die Ziel-App fuer die Quelle der Wahrheit, aber noch nicht als vollstaendiger Ersatz fuer den alten Vite-Admin-CRM freigegeben.
+- Der alte Vite-Admin in `src/App.tsx` bleibt temporaer Referenz fuer CRM-Paritaet, bis die offenen Luecken geschlossen und abgenommen sind.
+- Neue Produktfeatures werden geparkt, bis diese Paritaets- und Konsolidierungsarbeit erledigt ist.
+
 ## Grundentscheidung
 
 Morrow besteht nicht aus einer einzigen Website mit ein paar Unterseiten.
