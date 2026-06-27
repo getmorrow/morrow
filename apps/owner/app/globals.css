@@ -708,6 +708,18 @@ button {
   text-align: left;
 }
 
+.owner-message-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.owner-message-status span {
+  background: rgba(24, 23, 21, 0.06);
+  border-radius: 999px;
+  padding: 7px 10px;
+}
+
 .owner-document-list > a,
 .owner-document-list > span {
   background: rgba(236, 230, 214, 0.5);
@@ -779,6 +791,10 @@ button {
   }
 
   .owner-message-replies {
+    grid-column: 1 / -1;
+  }
+
+  .owner-message-status {
     grid-column: 1 / -1;
   }
 

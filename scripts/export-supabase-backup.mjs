@@ -18,6 +18,7 @@ const tables = [
   'experience_blocks',
   'local_places',
   'support_messages',
+  'support_status_events',
   'guest_feedback',
   'communication_events',
   'email_events',

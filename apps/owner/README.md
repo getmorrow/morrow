@@ -18,6 +18,8 @@ Status: MVP-Light gestartet.
   wieder im Dashboard angezeigt, inklusive Status, Objektbezug und Zeitraum.
 - Admin-Antworten zu diesen Rückfragen werden über `get_owner_communication_events()`
   als sichtbarer Verlauf unter dem jeweiligen Anliegen angezeigt.
+- Statuswechsel zu Rückfragen werden über `get_owner_support_status_events()`
+  als kleine Historie beim Anliegen sichtbar.
 - Freigegebene Monatsabrechnungen werden aus `owner_statements` gelesen und
   nur bei Finanzfreigabe des Objektzugriffs angezeigt.
 - Freigegebene Operationsmeldungen werden aus `owner_operations` gelesen und

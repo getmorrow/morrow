@@ -15,6 +15,7 @@ const tempOwner = {
   authUserId: null,
   profileId: null,
   communicationEventIds: [],
+  supportStatusEventIds: [],
   supportMessageIds: [],
   operationId: null,
   statementId: null,
@@ -73,6 +74,10 @@ console.log('ok rpc get_owner_operations executable')
 const { error: communicationRpcStructureError } = await serviceClient.rpc('get_owner_communication_events')
 if (communicationRpcStructureError) fail('RPC get_owner_communication_events is missing or not executable', communicationRpcStructureError)
 console.log('ok rpc get_owner_communication_events executable')
+
+const { error: statusEventsRpcStructureError } = await serviceClient.rpc('get_owner_support_status_events')
+if (statusEventsRpcStructureError) fail('RPC get_owner_support_status_events is missing or not executable', statusEventsRpcStructureError)
+console.log('ok rpc get_owner_support_status_events executable')
 
 if (!ownerEmail || !ownerPassword) {
   if (!verifyTempOwner) {
@@ -271,6 +276,30 @@ if (verifySupportInsert) {
   const visibleCommunicationEvent = ownerCommunicationEvents?.find((event) => event.supportId === supportMessageId)
   if (!visibleCommunicationEvent) fail('Inserted owner communication event was not returned to signed-in owner')
 
+  const { data: insertedStatusEvent, error: statusEventInsertError } = await serviceClient
+    .from('support_status_events')
+    .insert({
+      support_id: supportMessageId,
+      from_status: 'open',
+      to_status: 'in_progress',
+      actor: 'qa@getmorrow.de',
+      note: 'Owner verification status event',
+      payload: {
+        source: 'owner-portal-verification',
+      },
+    })
+    .select('id')
+    .single()
+
+  if (statusEventInsertError) fail('Owner support status event insert failed', statusEventInsertError)
+  tempOwner.supportStatusEventIds.push(insertedStatusEvent.id)
+
+  const { data: ownerStatusEvents, error: statusEventsRpcError } = await ownerClient.rpc('get_owner_support_status_events')
+  if (statusEventsRpcError) fail('Owner support status events RPC failed after insert', statusEventsRpcError)
+
+  const visibleStatusEvent = ownerStatusEvents?.find((event) => event.supportId === supportMessageId)
+  if (!visibleStatusEvent) fail('Inserted owner support status event was not returned to signed-in owner')
+
   console.log(
     [
       'ok owner support insert',
@@ -278,6 +307,7 @@ if (verifySupportInsert) {
       `categories=${supportMessages.map((message) => message.category).join(',')}`,
       `dashboardMessages=${visibleMessages.length}`,
       `communicationEvents=${ownerCommunicationEvents?.length ?? 0}`,
+      `statusEvents=${ownerStatusEvents?.length ?? 0}`,
       `property=${supportMessages[0]?.payload?.propertyName ?? property.id}`,
     ].join(' '),
   )
@@ -423,6 +453,15 @@ if (tempOwner.communicationEventIds.length > 0) {
     .in('id', tempOwner.communicationEventIds)
 
   if (communicationCleanupError) fail('Temporary owner communication event cleanup failed', communicationCleanupError)
+}
+
+if (tempOwner.supportStatusEventIds.length > 0) {
+  const { error: statusCleanupError } = await serviceClient
+    .from('support_status_events')
+    .delete()
+    .in('id', tempOwner.supportStatusEventIds)
+
+  if (statusCleanupError) fail('Temporary owner support status event cleanup failed', statusCleanupError)
 }
 
 if (tempOwner.supportMessageIds.length > 0) {

@@ -134,6 +134,17 @@ export type OwnerCommunicationEvent = {
   createdAt: string;
 };
 
+export type OwnerSupportStatusEvent = {
+  id: string;
+  supportId: string;
+  fromStatus: string | null;
+  toStatus: string;
+  note: string | null;
+  actor: string | null;
+  payload: Record<string, unknown>;
+  createdAt: string;
+};
+
 export type OwnerDashboardData = {
   profile: {
     id: string;
@@ -151,6 +162,7 @@ export type OwnerDashboardData = {
   statements?: OwnerDashboardStatement[];
   operations?: OwnerOperation[];
   communicationEvents?: OwnerCommunicationEvent[];
+  supportStatusEvents?: OwnerSupportStatusEvent[];
 };
 
 export function createSupabaseBrowserClient() {

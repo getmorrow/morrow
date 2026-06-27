@@ -23,6 +23,7 @@ Die Eigentuemer-App liest danach nur:
 - freigegebene Operationsmeldungen aus `owner_operations`, sofern der Objektzugriff Operationsdaten erlaubt
 - strukturierte Rückfragen, die der Eigentümer an Morrow sendet, werden als `support_messages` gespeichert
 - sichtbare Antworten und Updates zu eigenen Rückfragen aus `communication_events`
+- Statushistorie zu eigenen Rückfragen aus `support_status_events`
 
 Admin bleibt die Quelle der Wahrheit.
 
@@ -33,6 +34,8 @@ Eigentümer können im Dashboard Rückfragen zu Objekt, Buchung, Eigenbelegung/V
 Bei Eigenbelegung/Verfügbarkeit werden zusätzlich Von-/Bis-Daten abgefragt und im Payload der `support_messages` gespeichert. Das ist im MVP bewusst noch kein vollautomatischer Kalenderblocker: Der Fall landet zuerst im Admin, damit Morrow den Zeitraum prüft und danach sauber im operativen System bestätigt.
 
 Admin-Antworten zu Eigentümer-Rückfragen laufen über die vorhandene Kommunikationshistorie. `admin-send-message` speichert Antworten als `communication_events` mit `supportId`; die Owner-App liest diese über `get_owner_communication_events()` und zeigt sie unter dem passenden Anliegen. Interne Notizen bleiben durch `direction = internal` aus dem Eigentümerbereich ausgeblendet.
+
+Statuswechsel an Rückfragen werden zusätzlich in `support_status_events` protokolliert. Die Owner-App liest diese über `get_owner_support_status_events()` und zeigt sie als kurze Statushistorie am jeweiligen Anliegen.
 
 ## Migration anwenden
 
@@ -56,6 +59,7 @@ Sie legt an:
 - `get_owner_dashboard()`
 - `get_owner_operations()`
 - `get_owner_communication_events()`
+- `get_owner_support_status_events()`
 - RLS Policies fuer Eigentuemerzugriff
 
 Remote-Anwendung per Supabase CLI:
@@ -141,6 +145,7 @@ Dieser Test prueft:
 - `get_owner_dashboard()`
 - `get_owner_operations()`
 - `get_owner_communication_events()`
+- `get_owner_support_status_events()`
 
 Mit echtem Owner-Login:
 
@@ -178,7 +183,7 @@ export OWNER_VERIFY_SUPPORT_INSERT=1
 npm run supabase:verify-owner
 ```
 
-Dann sendet der Test als eingeloggter Eigentuemer eine strukturierte Supportnachricht und eine Verfügbarkeits-/Eigenbelegungsanfrage in `support_messages`, liest sie mit Service Role wieder aus und prueft, dass beide Eintraege ueber `get_owner_dashboard().messages` im Eigentuemerbereich sichtbar werden. Außerdem legt der Test eine Admin-Antwort als `communication_events` an und prueft `get_owner_communication_events()`. Das prueft den Weg von Eigentuemer-App zu Admin-Supportfluss inklusive RLS-Policy fuer `owner_availability` und Rueckkanal-Historie.
+Dann sendet der Test als eingeloggter Eigentuemer eine strukturierte Supportnachricht und eine Verfügbarkeits-/Eigenbelegungsanfrage in `support_messages`, liest sie mit Service Role wieder aus und prueft, dass beide Eintraege ueber `get_owner_dashboard().messages` im Eigentuemerbereich sichtbar werden. Außerdem legt der Test eine Admin-Antwort als `communication_events` und ein Statusereignis als `support_status_events` an und prueft `get_owner_communication_events()` sowie `get_owner_support_status_events()`. Das prueft den Weg von Eigentuemer-App zu Admin-Supportfluss inklusive RLS-Policy fuer `owner_availability` und Rueckkanal-Historie.
 
 Für Verfügbarkeits- und Eigenbelegungsanfragen wird dieselbe Tabelle genutzt. Die App setzt dabei `category = owner_availability` und speichert `requestedStartsOn` sowie `requestedEndsOn` im Payload.
 

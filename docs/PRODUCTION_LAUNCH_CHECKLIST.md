@@ -93,7 +93,7 @@ Diese bleiben ausschließlich in Supabase Edge Function Secrets.
 
 Owner-App zusaetzlich pruefen:
 - Freigeschalteter Owner-Testzugang kann sich einloggen.
-- `get_owner_dashboard()`, `get_owner_operations()` und `get_owner_communication_events()` liefern nur verknuepfte Objekte/Auszeiten/Termine/Buchungen/Dokumente/Abrechnungen/Operationsmeldungen/Rueckfragenverlauf.
+- `get_owner_dashboard()`, `get_owner_operations()`, `get_owner_communication_events()` und `get_owner_support_status_events()` liefern nur verknuepfte Objekte/Auszeiten/Termine/Buchungen/Dokumente/Abrechnungen/Operationsmeldungen/Rueckfragenverlauf.
 - Owner-Supportnachricht landet in `support_messages` und ist im Admin sichtbar.
 - Automatischer Check lokal:
 

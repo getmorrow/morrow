@@ -3146,6 +3146,23 @@ function AdminDashboardView({
 
       if (error) throw error;
 
+      const statusEventResult = await supabase
+        .from("support_status_events")
+        .insert({
+          support_id: support.id,
+          from_status: support.status,
+          to_status: status,
+          actor: data.profile.email,
+          payload: {
+            source: "next-admin",
+            supportLabel: getSupportLabel(support),
+          },
+        })
+        .select("id")
+        .single();
+
+      if (statusEventResult.error) throw statusEventResult.error;
+
       setDataState((current) => ({
         ...current,
         supportMessages: current.supportMessages.map((item) =>
