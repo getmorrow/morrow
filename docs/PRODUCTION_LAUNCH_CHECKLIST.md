@@ -204,6 +204,40 @@ Einmal vollständig testen:
 - Supabase-Backup mit `npm run supabase:backup` ausführen und `manifest.json` prüfen.
 - Runbook `docs/SUPABASE_BACKUP_RECOVERY_RUNBOOK.md` lesen und sicheren Ablageort für Exporte festlegen.
 
+## 8a. App Production Rehearsal
+
+Nach dem Deployment der drei App-Welten:
+
+```bash
+ADMIN_BASE_URL=https://<admin-app-domain> \
+OWNER_BASE_URL=https://<owner-app-domain> \
+GUEST_BASE_URL=https://<guest-app-domain> \
+npm run qa:apps
+```
+
+Mit echten Testzugängen:
+
+```bash
+ADMIN_BASE_URL=https://<admin-app-domain> \
+ADMIN_EMAIL=<admin-email> \
+ADMIN_PASSWORD=<admin-password> \
+OWNER_BASE_URL=https://<owner-app-domain> \
+OWNER_EMAIL=<owner-email> \
+OWNER_PASSWORD=<owner-password> \
+GUEST_BASE_URL=https://<guest-app-domain> \
+GUEST_BOOKING_ID=<booking-id> \
+GUEST_ACCESS_CODE=<guest-code> \
+npm run qa:apps
+```
+
+Dieser Check prueft:
+- Admin-, Gaeste- und Eigentuemer-App liefern keine Soft-404-Seite.
+- Loginseiten zeigen die erwarteten Morrow-Inhalte.
+- Admin-Login fuehrt bei gesetzten Zugangsdaten zum Dashboard.
+- Eigentuemer-Login fuehrt bei freigeschaltetem Owner zum Dashboard.
+- Gaeste-App oeffnet bei gesetzter Buchung und Code den persoenlichen Aufenthaltsbereich.
+- Screenshots werden unter `tmp/qa/apps-production/` abgelegt.
+
 ## Aktueller Status
 
 Technisch deutlich näher an production-ready:
