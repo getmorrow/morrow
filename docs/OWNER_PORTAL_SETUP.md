@@ -125,3 +125,12 @@ npm run supabase:verify-owner
 ```
 
 Dann prueft der Test zusaetzlich, ob sich der Eigentuemer anmelden kann und ob `get_owner_dashboard()` fuer diesen Zugang eigene Objekte, Auszeiten, Termine und Buchungen liefert.
+
+Mit Support-Rueckkanal:
+
+```bash
+export OWNER_VERIFY_SUPPORT_INSERT=1
+npm run supabase:verify-owner
+```
+
+Dann sendet der Test als eingeloggter Eigentuemer eine strukturierte Supportnachricht in `support_messages` und liest sie mit Service Role wieder aus. Das prueft den Weg von Eigentuemer-App zu Admin-Supportfluss.

@@ -5,6 +5,7 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const ownerEmail = process.env.OWNER_EMAIL
 const ownerPassword = process.env.OWNER_PASSWORD
+const verifySupportInsert = process.env.OWNER_VERIFY_SUPPORT_INSERT === '1'
 
 function requireEnv(value, name) {
   if (!value) {
@@ -83,5 +84,54 @@ console.log(
     `bookings=${ownerDashboard.bookings?.length ?? 0}`,
   ].join(' '),
 )
+
+if (verifySupportInsert) {
+  const ownerProfile = ownerDashboard.profile
+  const property = ownerDashboard.properties?.[0]
+
+  if (!ownerProfile?.id) fail('Owner dashboard has no profile id for support insert verification')
+  if (!property?.id) fail('Owner dashboard has no property for support insert verification')
+
+  const supportMessageId = `owner-support-verify-${Date.now()}`
+  const { error: supportInsertError } = await ownerClient.from('support_messages').insert({
+    id: supportMessageId,
+    category: 'owner_property',
+    message: `Owner portal verification message ${supportMessageId}`,
+    urgency: 'normal',
+    payload: {
+      source: 'next-owner',
+      subject: 'Objekt oder Ausstattung',
+      categoryLabel: 'Eigentümeranliegen',
+      ownerProfileId: ownerProfile.id,
+      ownerName: ownerProfile.displayName,
+      ownerEmail: ownerProfile.email,
+      ownerPhone: ownerProfile.phone,
+      propertyId: property.id,
+      propertyName: property.name,
+      supportCategory: 'property',
+      qaMarker: supportMessageId,
+    },
+  })
+
+  if (supportInsertError) fail('Owner support message insert failed', supportInsertError)
+
+  const { data: supportMessage, error: supportReadError } = await serviceClient
+    .from('support_messages')
+    .select('id,category,status,urgency,payload')
+    .eq('id', supportMessageId)
+    .single()
+
+  if (supportReadError) fail('Inserted owner support message is not readable by service role', supportReadError)
+
+  console.log(
+    [
+      'ok owner support insert',
+      `id=${supportMessage.id}`,
+      `category=${supportMessage.category}`,
+      `status=${supportMessage.status}`,
+      `property=${supportMessage.payload?.propertyName ?? property.id}`,
+    ].join(' '),
+  )
+}
 
 await ownerClient.auth.signOut()

@@ -152,16 +152,17 @@ Stand: 2026-06-26
 - Der Eigentuemerzugriff ist strukturell ueber `owner_profiles` und `owner_property_access` vorbereitet und im Next-Admin pflegbar.
 - Die Eigentuemer-App liest eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - `apps/admin` und `apps/owner` mappen lokale `VITE_SUPABASE_*` Public-Variablen auf `NEXT_PUBLIC_SUPABASE_*`, damit lokale Next-Tests denselben Supabase-Zugang wie der Prototyp nutzen koennen.
-- `npm run supabase:verify-owner` prueft die Owner-Tabellen, `get_owner_dashboard()` und optional mit `OWNER_EMAIL`/`OWNER_PASSWORD` einen echten freigeschalteten Eigentuemerzugang.
-- Die Migration muss noch remote in Supabase angewendet werden, sobald `SUPABASE_ACCESS_TOKEN` oder Datenbankpasswort lokal verfuegbar ist.
+- `npm run supabase:verify-owner` prueft die Owner-Tabellen, `get_owner_dashboard()` und optional mit `OWNER_EMAIL`/`OWNER_PASSWORD` einen echten freigeschalteten Eigentuemerzugang; mit `OWNER_VERIFY_SUPPORT_INSERT=1` prueft der Test zusaetzlich den Owner-Support-Rueckkanal in `support_messages`.
+- Die Owner-Migrationen bis `202606260003` sind remote in Supabase angewendet; ein freigeschalteter Owner-Testzugang wurde mit `Nordlicht Lodge` verknuepft und der Support-Rueckkanal wurde live getestet.
+- `apps/web`, `apps/admin`, `apps/guest` und `apps/owner` besitzen eigene Vercel-Konfigurationen fuer getrennte Next.js-Projekte aus dem Monorepo.
 - `apps/guest` ist als Next-App gestartet und liest codegeschuetzte Buchungen ueber `get_guest_stay()`; die tieferen Prototyp-Funktionen muessen schrittweise migriert werden.
 - `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen, interne Notizen speichern, freie E-Mail-Antworten aus Anfrage/Buchung/Support senden, Monitoringhinweise anzeigen, Eigentuemerprofile/Objektzugriffe vorbereiten, lokale Vor-Ort-Orte/Kandidaten pflegen sowie Auszeiten, Termine und Erlebnisbausteine bearbeiten/neu anlegen und Unterkuenfte inklusive operativer Anreise-/Regel-/Medienfelder, Ausstattung, Objektattributen und Erlebniswelten pflegen.
 
 Naechste technische Prioritaet:
 
-1. Supabase Owner-Migration live anwenden, `admin-send-message` deployen und ersten echten Owner-Zugang testen.
+1. Owner-, Admin- und Guest-App als getrennte Vercel-Projekte konfigurieren und mit `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` produktiv testen.
 2. Admin-App weiter ausbauen: Kommunikationsvorlagen, echte Medienbibliothek, Detailsektionen und tieferes Monitoring migrieren.
-3. Guest-App vertiefen: interaktive Karte, lokale Detail-Drawer, Wetter, Gezeiten, Veranstaltungen, Support-Chat und Nach-Aufenthalt-Modus aus dem Prototyp ueberfuehren.
+3. Guest-App vertiefen: echte Gezeitenquelle, Veranstaltungen, Support-Chat-Antworten und Nach-Aufenthalt-Modus weiter aus dem Prototyp ueberfuehren.
 4. Owner-App danach vertiefen: echte Abrechnungsdatensaetze, Dokumentenablage, Operationshistorie und Eigentuemer-Kommunikation.
 5. Fuer die Next-Guest-App einen aktiven Supabase-Testdatensatz mit gueltigem Access-Code live pflegen; lokaler Dev-Zugang ist vorhanden, Live-Seed wartet auf `SUPABASE_SERVICE_ROLE_KEY`.
 

@@ -46,6 +46,12 @@ Wichtig ab Next-Migration:
 - Framework Preset: Next.js.
 - Die Root-`vercel.json` gehört zum alten Vite-Prototyp und darf nicht die Produktions-Website unter `getmorrow.de` steuern.
 - `apps/web/vercel.json` setzt Install- und Build-Command so, dass die Monorepo-Workspace-Pakete aus dem Repo-Root installiert und gebaut werden.
+- `apps/admin`, `apps/guest` und `apps/owner` haben ebenfalls eigene `vercel.json` Dateien und sollen als getrennte Vercel-Projekte deployen, nicht ueber das Root-Prototyp-Projekt.
+- Empfohlene Projekt-Roots:
+  - Website: `apps/web`
+  - Admin-App: `apps/admin`
+  - Gaeste-App: `apps/guest`
+  - Eigentuemer-App: `apps/owner`
 
 Soft-404-Pruefung:
 
@@ -68,6 +74,22 @@ Nicht in Vercel-Frontend setzen:
 - `SUPABASE_SERVICE_ROLE_KEY`
 
 Diese bleiben ausschließlich in Supabase Edge Function Secrets.
+
+Owner-App zusaetzlich pruefen:
+- Freigeschalteter Owner-Testzugang kann sich einloggen.
+- `get_owner_dashboard()` liefert nur verknuepfte Objekte/Auszeiten/Termine/Buchungen.
+- Owner-Supportnachricht landet in `support_messages` und ist im Admin sichtbar.
+- Automatischer Check lokal:
+
+```bash
+SUPABASE_URL=https://haifftleyussrokyafqq.supabase.co \
+SUPABASE_SERVICE_ROLE_KEY=<service-role-key> \
+SUPABASE_ANON_KEY=<anon-key> \
+OWNER_EMAIL=<owner-email> \
+OWNER_PASSWORD=<owner-password> \
+OWNER_VERIFY_SUPPORT_INSERT=1 \
+npm run supabase:verify-owner
+```
 
 ## 3a. MVP Completion Vor Erstem Zahlenden Gast
 
