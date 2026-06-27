@@ -21,6 +21,7 @@ type LeadRow = {
   package_slug: string | null;
   source?: string | null;
   campaign?: string | null;
+  archived_at: string | null;
   created_at: string;
   payload: Record<string, unknown>;
 };
@@ -282,6 +283,10 @@ type DetailSelection =
   | null;
 
 type CustomerPhaseFilter = "all" | "request" | "booking" | "due";
+type LeadScopeFilter = "active" | "archived";
+type LeadTypeFilter = "all" | LeadRow["type"];
+type LeadStatusFilter = "all" | string;
+type LeadWorkFilter = "all" | "due" | "new" | "review";
 
 type CustomerRow = {
   id: string;
@@ -723,7 +728,11 @@ function auditActionLabel(action: string) {
     experience_created: "Erlebnis angelegt",
     experience_updated: "Erlebnis geändert",
     lead_reserved: "Reservierung angelegt",
+    lead_archived: "Anfrage archiviert",
+    lead_follow_up_updated: "Wiedervorlage geändert",
+    lead_reactivated: "Anfrage reaktiviert",
     lead_status_updated: "Anfragestatus geändert",
+    lead_test_deleted: "Testanfrage gelöscht",
     local_place_created: "Vor-Ort-Ort angelegt",
     local_place_updated: "Vor-Ort-Ort geändert",
     owner_profile_upserted: "Eigentümerprofil gespeichert",
@@ -975,7 +984,41 @@ function packageDateStatusLabel(status: string) {
 }
 
 function getOpenLeads(leads: LeadRow[]) {
-  return leads.filter((lead) => !["Bezahlt", "Abgeschlossen", "Kein Interesse"].includes(lead.status));
+  return leads.filter((lead) => !lead.archived_at && !["Bezahlt", "Abgeschlossen", "Kein Interesse"].includes(lead.status));
+}
+
+function getLeadFollowUpAt(lead: LeadRow) {
+  return getPayloadText(lead.payload ?? {}, ["followUpAt", "follow_up_at", "nextContactAt"]);
+}
+
+function isLeadDue(lead: LeadRow) {
+  const followUpAt = getLeadFollowUpAt(lead);
+  return Boolean(followUpAt && followUpAt.slice(0, 10) <= todayIsoDate());
+}
+
+function isLeadTest(lead: LeadRow) {
+  return isTestPayload(lead.payload ?? {}) ||
+    lead.id.startsWith("test-") ||
+    getLeadLabel(lead).toLowerCase().includes("test");
+}
+
+function leadWorkLabel(lead: LeadRow) {
+  if (lead.archived_at) return "Archiviert";
+  if (isLeadDue(lead)) return "Heute nachfassen";
+  if (lead.status === "Neu") return "Erstkontakt";
+  if (lead.status === "In Prüfung") return "Prüfen";
+  if (lead.status === "Kontaktiert") return "Rückmeldung";
+  if (lead.status === "Reserviert") return "Reservierung sichern";
+  if (lead.status === "Kein Interesse") return "Verlustgrund prüfen";
+  return "Klären";
+}
+
+function leadWorkMeta(lead: LeadRow) {
+  const followUpAt = getLeadFollowUpAt(lead);
+  if (followUpAt) return `Wiedervorlage ${formatShortDate(followUpAt)}`;
+  if (lead.archived_at) return `Archiviert ${formatDate(lead.archived_at)}`;
+  if (lead.status === "Neu") return "noch ohne Wiedervorlage";
+  return leadSourceLabel(lead);
 }
 
 function getContactEmail(payload: Record<string, unknown>, fallback?: string | null) {
@@ -1477,9 +1520,9 @@ export function AdminDashboardClient() {
           await Promise.all([
             supabase
               .from("leads")
-              .select("id,type,status,name,email,phone,package_slug,source,campaign,created_at,payload")
+              .select("id,type,status,name,email,phone,package_slug,source,campaign,archived_at,created_at,payload")
               .order("created_at", { ascending: false })
-              .limit(30),
+              .limit(120),
             supabase
               .from("bookings")
               .select("id,lead_id,customer_id,status,payment_status,created_at,payload")
@@ -1668,6 +1711,10 @@ function AdminDashboardView({
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [selection, setSelection] = useState<DetailSelection>(null);
   const [customerPhaseFilter, setCustomerPhaseFilter] = useState<CustomerPhaseFilter>("all");
+  const [leadScopeFilter, setLeadScopeFilter] = useState<LeadScopeFilter>("active");
+  const [leadTypeFilter, setLeadTypeFilter] = useState<LeadTypeFilter>("all");
+  const [leadStatusFilter, setLeadStatusFilter] = useState<LeadStatusFilter>("all");
+  const [leadWorkFilter, setLeadWorkFilter] = useState<LeadWorkFilter>("all");
   const [taskStatusFilter, setTaskStatusFilter] = useState<TaskStatusFilter>("open");
   const [taskReferenceFilter, setTaskReferenceFilter] = useState<TaskReferenceFilter>("all");
   const [taskPriorityFilter, setTaskPriorityFilter] = useState<TaskPriorityFilter>("all");
@@ -1761,6 +1808,19 @@ function AdminDashboardView({
   const [isDrawerLoading, setIsDrawerLoading] = useState(false);
   const data = dataState;
   const openLeads = useMemo(() => getOpenLeads(data.leads), [data.leads]);
+  const activeLeads = data.leads.filter((lead) => !lead.archived_at);
+  const archivedLeads = data.leads.filter((lead) => lead.archived_at);
+  const filteredLeads = data.leads
+    .filter((lead) => leadScopeFilter === "archived" ? Boolean(lead.archived_at) : !lead.archived_at)
+    .filter((lead) => leadTypeFilter === "all" || lead.type === leadTypeFilter)
+    .filter((lead) => leadStatusFilter === "all" || lead.status === leadStatusFilter)
+    .filter((lead) => {
+      if (leadWorkFilter === "due") return isLeadDue(lead);
+      if (leadWorkFilter === "new") return lead.status === "Neu";
+      if (leadWorkFilter === "review") return lead.status === "In Prüfung";
+      return true;
+    })
+    .sort((a, b) => Number(isLeadDue(b)) - Number(isLeadDue(a)) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   const customerRows = useMemo(() => buildCustomerRows(data.leads, data.bookings), [data.leads, data.bookings]);
   const activeCustomerRows = customerRows.filter((customer) => !customer.isTest);
   const filteredCustomerRows = activeCustomerRows.filter((customer) => {
@@ -2990,6 +3050,142 @@ function AdminDashboardView({
       setActionMessage("Anfrage aktualisiert.");
     } catch {
       setActionMessage("Die Anfrage konnte nicht aktualisiert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function updateLeadFollowUp(lead: LeadRow, followUpAt: string) {
+    const actionKey = `lead-${lead.id}-follow-up`;
+    setPendingAction(actionKey);
+    setActionMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const now = new Date().toISOString();
+      const previous = getLeadFollowUpAt(lead);
+      const payload = {
+        ...lead.payload,
+        followUpAt: followUpAt || null,
+        updatedAt: now,
+      };
+      const { error } = await supabase
+        .from("leads")
+        .update({
+          payload,
+          updated_at: now,
+        })
+        .eq("id", lead.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        leads: current.leads.map((item) =>
+          item.id === lead.id ? { ...item, payload } : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "lead_follow_up_updated",
+        entityType: "lead",
+        entityId: lead.id,
+        entityLabel: getLeadLabel(lead),
+        payload: { from: previous, to: followUpAt || null },
+      });
+
+      setActionMessage("Wiedervorlage gespeichert.");
+    } catch {
+      setActionMessage("Die Wiedervorlage konnte nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function updateLeadArchive(lead: LeadRow, shouldArchive: boolean) {
+    const actionKey = `lead-${lead.id}-${shouldArchive ? "archive" : "reactivate"}`;
+    setPendingAction(actionKey);
+    setActionMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const now = new Date().toISOString();
+      const archivedAt = shouldArchive ? now : null;
+      const payload = {
+        ...lead.payload,
+        archivedAt,
+        updatedAt: now,
+      };
+      const { error } = await supabase
+        .from("leads")
+        .update({
+          archived_at: archivedAt,
+          payload,
+          updated_at: now,
+        })
+        .eq("id", lead.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        leads: current.leads.map((item) =>
+          item.id === lead.id ? { ...item, archived_at: archivedAt, payload } : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: shouldArchive ? "lead_archived" : "lead_reactivated",
+        entityType: "lead",
+        entityId: lead.id,
+        entityLabel: getLeadLabel(lead),
+        payload: { from: lead.archived_at, to: archivedAt },
+      });
+
+      setActionMessage(shouldArchive ? "Anfrage archiviert." : "Anfrage reaktiviert.");
+    } catch {
+      setActionMessage(shouldArchive ? "Die Anfrage konnte nicht archiviert werden." : "Die Anfrage konnte nicht reaktiviert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function deleteTestLead(lead: LeadRow) {
+    if (!isLeadTest(lead)) {
+      setActionMessage("Nur Test- oder Spam-Anfragen können hier gelöscht werden.");
+      return;
+    }
+    if (!window.confirm(`Testanfrage "${getLeadLabel(lead)}" wirklich löschen?`)) return;
+
+    const actionKey = `lead-${lead.id}-delete`;
+    setPendingAction(actionKey);
+    setActionMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("leads")
+        .delete()
+        .eq("id", lead.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        leads: current.leads.filter((item) => item.id !== lead.id),
+      }));
+
+      await writeAuditLog({
+        action: "lead_test_deleted",
+        entityType: "lead",
+        entityId: lead.id,
+        entityLabel: getLeadLabel(lead),
+        payload: { type: lead.type, status: lead.status },
+      });
+
+      setActionMessage("Testanfrage gelöscht.");
+    } catch {
+      setActionMessage("Die Testanfrage konnte nicht gelöscht werden.");
     } finally {
       setPendingAction(null);
     }
@@ -4262,7 +4458,7 @@ function AdminDashboardView({
         <article>
           <span>Offene Anfragen</span>
           <strong>{openLeads.length}</strong>
-          <p>{data.leads.length} insgesamt geladen</p>
+          <p>{activeLeads.length} aktiv · {archivedLeads.length} archiviert</p>
         </article>
         <article>
           <span>Buchungen</span>
@@ -4473,19 +4669,80 @@ function AdminDashboardView({
       <section className="admin-grid" id="anfragen">
         <article className="admin-card">
           <p className="admin-eyebrow">Anfragen</p>
-          <h2>Neueste Kontakte</h2>
+          <h2>{leadScopeFilter === "archived" ? "Archivierte Anfragen" : "Aktive Anfragen"}</h2>
+          <div className="admin-card-toolbar" aria-label="Anfragenfilter">
+            {(["active", "archived"] as LeadScopeFilter[]).map((scope) => (
+              <button
+                aria-pressed={leadScopeFilter === scope}
+                className={leadScopeFilter === scope ? "is-active" : undefined}
+                key={scope}
+                onClick={() => setLeadScopeFilter(scope)}
+                type="button"
+              >
+                {scope === "active" ? "Aktiv" : "Archiv"}
+              </button>
+            ))}
+            {(["all", "guest", "owner", "experience"] as LeadTypeFilter[]).map((type) => (
+              <button
+                aria-pressed={leadTypeFilter === type}
+                className={leadTypeFilter === type ? "is-active" : undefined}
+                key={type}
+                onClick={() => setLeadTypeFilter(type)}
+                type="button"
+              >
+                {type === "all" ? "Alle Typen" : type === "guest" ? "Gast" : type === "owner" ? "Eigentümer" : "Erlebnis"}
+              </button>
+            ))}
+            {(["all", "Neu", "In Prüfung", "Kontaktiert", "Reserviert", "Kein Interesse"] as LeadStatusFilter[]).map((status) => (
+              <button
+                aria-pressed={leadStatusFilter === status}
+                className={leadStatusFilter === status ? "is-active" : undefined}
+                key={status}
+                onClick={() => setLeadStatusFilter(status)}
+                type="button"
+              >
+                {status === "all" ? "Alle Status" : status}
+              </button>
+            ))}
+            {(["all", "due", "new", "review"] as LeadWorkFilter[]).map((work) => (
+              <button
+                aria-pressed={leadWorkFilter === work}
+                className={leadWorkFilter === work ? "is-active" : undefined}
+                key={work}
+                onClick={() => setLeadWorkFilter(work)}
+                type="button"
+              >
+                {work === "all" ? "Alle Arbeit" : work === "due" ? "Fällig" : work === "new" ? "Neu" : "In Prüfung"}
+              </button>
+            ))}
+          </div>
           <div className="admin-list">
-            {data.leads.slice(0, 8).map((lead) => (
+            {filteredLeads.slice(0, 14).map((lead) => (
               <article className="admin-list-item" key={lead.id}>
                 <div>
-                  <small>{formatDate(lead.created_at)} · {leadSourceLabel(lead)}</small>
+                  <small>{formatDate(lead.created_at)} · {leadWorkLabel(lead)}</small>
                   <strong>{getLeadLabel(lead)}</strong>
                   <em>{lead.status} · {leadIntentLabel(lead)}</em>
+                  <p>{leadWorkMeta(lead)}</p>
                 </div>
                 <div className="admin-row-actions">
                   <button onClick={() => setSelection({ type: "lead", id: lead.id })} type="button">
                     Details
                   </button>
+                  <label className="admin-inline-date">
+                    Wiedervorlage
+                    <input
+                      defaultValue={getLeadFollowUpAt(lead) || ""}
+                      disabled={pendingAction === `lead-${lead.id}-follow-up`}
+                      onBlur={(event) => {
+                        const nextValue = event.currentTarget.value;
+                        if (nextValue !== (getLeadFollowUpAt(lead) || "")) {
+                          void updateLeadFollowUp(lead, nextValue);
+                        }
+                      }}
+                      type="date"
+                    />
+                  </label>
                   {leadQuickStatuses.map((status) => (
                     <button
                       disabled={pendingAction === `lead-${lead.id}-${status}`}
@@ -4496,7 +4753,7 @@ function AdminDashboardView({
                       {status}
                     </button>
                   ))}
-                  {lead.type === "guest" ? (
+                  {!lead.archived_at && lead.type === "guest" ? (
                     <button
                       disabled={pendingAction === `lead-${lead.id}-reserve`}
                       onClick={() => reserveLead(lead)}
@@ -4505,9 +4762,42 @@ function AdminDashboardView({
                       Reservieren
                     </button>
                   ) : null}
+                  {lead.archived_at ? (
+                    <button
+                      disabled={pendingAction === `lead-${lead.id}-reactivate`}
+                      onClick={() => updateLeadArchive(lead, false)}
+                      type="button"
+                    >
+                      Reaktivieren
+                    </button>
+                  ) : (
+                    <button
+                      className="is-danger"
+                      disabled={pendingAction === `lead-${lead.id}-archive`}
+                      onClick={() => updateLeadArchive(lead, true)}
+                      type="button"
+                    >
+                      Archivieren
+                    </button>
+                  )}
+                  {isLeadTest(lead) ? (
+                    <button
+                      className="is-danger"
+                      disabled={pendingAction === `lead-${lead.id}-delete`}
+                      onClick={() => deleteTestLead(lead)}
+                      type="button"
+                    >
+                      Test löschen
+                    </button>
+                  ) : null}
                 </div>
               </article>
             ))}
+            {filteredLeads.length === 0 ? (
+              <p className="admin-drawer-message">
+                Keine passenden {leadScopeFilter === "archived" ? "archivierten" : "aktiven"} Anfragen gefunden.
+              </p>
+            ) : null}
           </div>
         </article>
 

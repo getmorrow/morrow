@@ -109,7 +109,7 @@ Risiko:
 | Leadformulare | Vite-Formulare + `morrowBackend.ts` | `apps/web/app/_components/LeadForm.tsx`, Supabase Edge Functions | migriert | hoch | Mailfehler duerfen Lead nicht blockieren; Tracking/UTM live pruefen. |
 | Admin-Login/Rollen | `src/App.tsx` AdminAccess | `apps/admin/app/page.tsx`, `AdminLoginForm`, Supabase Auth/RPC | migriert | kritisch | Admin-Userpflege/Rotation operativ dokumentieren. |
 | Admin-Uebersicht | Vite `overview` | `apps/admin/app/dashboard/AdminDashboardClient.tsx` | teilweise | kritisch | Next ist eine lange Seite statt Bereichsnavigation; Tages-CRM braucht Struktur und Paritaetscheck. |
-| Anfragen/Leads | Vite `leads`, Lead-Drawer | `apps/admin` Leads-Sektion | teilweise | kritisch | Status/Reservierung vorhanden; Archiv/Reaktivierung/Wiedervorlage/Prioritaet/Filtertiefe gegen Vite pruefen. |
+| Anfragen/Leads | Vite `leads`, Lead-Drawer | `apps/admin` Leads-Sektion | teilweise | kritisch | Status, Reservierung, Aktiv-/Archivfilter, Wiedervorlage, Reaktivierung und Testloeschung vorhanden; tiefe Lead-Detailbearbeitung, Spam-Policy und relationale Wiedervorlage-Spalte pruefen. |
 | Kunden | Vite `customers` | `apps/admin` | teilweise | kritisch | Next leitet Kunden aus Gastanfragen und Buchungen ab, zeigt Kontaktlinks, Anfrage-/Buchungsbezug und naechsten Schritt; dedizierter Kundendetail-Drawer mit kompletter Historie bleibt offen. |
 | Buchungen | Vite `bookings`, Booking-Drawer | `apps/admin` Buchungssektion | teilweise | kritisch | Status, Zahlung, Operationsdaten vorhanden; vollstaendige Buchungsdetailseite, Kundenbezug und Aufgabenfluss pruefen. |
 | Aufgaben | Vite `tasks` | `apps/admin` Aufgabenbereich + Supabase `admin_tasks` | teilweise | kritisch | Next kann Aufgaben anlegen, filtern, Status aendern und Bezuege oeffnen; Bearbeiten, Loeschen/Archivieren und dedizierte Anbieterbearbeitung bleiben offen. |
@@ -152,7 +152,7 @@ Risiko:
 - CRM-Filter und Arbeitsansichten aus dem alten Admin.
 - Kundenbereich mit Anfrage- und Buchungshistorie.
 - Aufgabenbearbeitung und Loesch-/Archivierungsflow.
-- Lead-Archiv/Reaktivierung/Test- oder Spam-Loeschen wie im Vite-Admin.
+- Tiefe Lead-Detailbearbeitung, Spam-Policy und relationale Wiedervorlage-Spalte pruefen.
 - Dichte Bereichsnavigation statt langer Dashboard-Seite.
 - Voller Auszeiten-Builder inklusive Copy, FAQ, Medien, Momente, Empfehlungen und Launch-Check.
 - Voller Unterkunfts-Editor inklusive Medienreihenfolge, Rechteworkflow und strukturierter Attribute ohne Payload-Drift.
@@ -243,7 +243,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 3. Entscheiden, ob `apps/admin` als lange Einseiten-App bleibt oder eine echte CRM-Navigation/Routenstruktur bekommt.
 4. Kundenbereich in `apps/admin` paritaetisch weiterfuehren: dedizierter Kundendetail-Drawer, vollstaendige Historie, Buchungen, Kommunikation.
 5. Aufgabenbereich paritaetisch weiterfuehren: Bearbeiten, Loeschen/Archivieren und dedizierte Anbieterbearbeitung.
-6. Lead-Archiv, Wiedervorlagen, Reaktivierung und Testloeschung in Next pruefen/erganzen.
+6. Lead-Detailbearbeitung, Spam-/Loeschpolicy und relationale Wiedervorlage-Spalte pruefen/entscheiden.
 7. Domain-/Supabase-Typen aus App-Komponenten in `packages/domain` und `packages/supabase` ziehen.
 8. Entscheiden, welche Vite-Funktionen explizit ersetzt sind und welche als Referenz offen bleiben.
 9. QA-Gates fuer Admin-Paritaet definieren: mindestens Login, Leads, Reservierung, Buchung, Aufgabe, Supportantwort, Paket, Unterkunft, Erlebnis, Ort, Owner-Dokument, Abrechnung, Operation.
