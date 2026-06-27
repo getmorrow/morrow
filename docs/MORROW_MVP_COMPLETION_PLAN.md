@@ -8,7 +8,7 @@ Ziel: Morrow bleibt ein schlanker MVP, aber der Aufenthalt muss fuer Gaeste hoch
 
 ## Konsolidierungsstopp 2026-06-27
 
-Vor weiterem Featurebau gilt `docs/MIGRATION_CONSOLIDATION_AUDIT.md` als fuehrender Sprint-Rahmen.
+Vor weiterem Featurebau gilt `docs/MIGRATION_CONSOLIDATION_AUDIT.md` als fuehrender Sprint-Rahmen. Die konkrete Admin-CRM-Paritaet wird in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` abgearbeitet.
 
 Die neue Next-Plattformstruktur ist grundsaetzlich richtig, aber `apps/admin` ist noch nicht als vollstaendiger Ersatz fuer den alten Vite-Admin-CRM abgenommen. Deshalb werden neue Produktfeatures geparkt, bis Bestandsaufnahme, Migrationsmatrix, Admin-Funktionsparitaet, fuehrende Apps und Dev-/Betriebsbasis konsolidiert sind.
 

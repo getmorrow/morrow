@@ -4,6 +4,8 @@ Stand: 2026-06-27
 
 Dieses Dokument ist der neue Arbeitsrahmen fuer den Konsolidierungs-Sprint. Es gilt zusammen mit `docs/MORROW_MASTER_FRAME.md`, `docs/STRATEGIC_FOUNDATION_MORROW.md` und `docs/PLATFORM_ARCHITECTURE.md`.
 
+Die konkrete Admin-CRM-Paritaet wird in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` abgearbeitet.
+
 ## Leitentscheidung
 
 Bis zur Admin-CRM-Paritaet werden keine neuen Produktfeatures gebaut.
@@ -253,7 +255,7 @@ Nicht weiter Guest-/Owner-Features bauen.
 
 Als naechstes sollte ein Admin-Paritaets-Sprint beginnen:
 
-1. `apps/admin` README korrigieren.
-2. Admin-Paritaets-Checkliste aus diesem Dokument in kleine umsetzbare Tickets herunterbrechen.
-3. Mit Kunden und Aufgaben starten, weil diese im alten CRM zentrale Arbeitsbereiche waren und in Next noch nicht gleichwertig sind.
-4. Danach Lead-Archiv/Wiedervorlagen und echte Bereichsnavigation.
+1. `docs/ADMIN_CRM_PARITY_CHECKLIST.md` als fuehrende Ticketliste verwenden.
+2. Mit Kunden und Aufgaben starten, weil diese im alten CRM zentrale Arbeitsbereiche waren und in Next noch nicht gleichwertig sind.
+3. Danach Lead-Archiv/Wiedervorlagen und echte Bereichsnavigation.
+4. Erst nach diesen Gates wieder Featureideen aufnehmen.

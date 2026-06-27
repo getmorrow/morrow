@@ -11,6 +11,7 @@ Diese App befindet sich in der Migration-/Konsolidierungsphase.
 Vor weiterem Featurebau muss die CRM-Paritaet gegen den alten Vite-Prototyp aus `src/App.tsx` geprueft und geschlossen werden. Der aktuelle Arbeitsrahmen steht in:
 
 - `docs/MIGRATION_CONSOLIDATION_AUDIT.md`
+- `docs/ADMIN_CRM_PARITY_CHECKLIST.md`
 - `docs/PLATFORM_ARCHITECTURE.md`
 - `docs/STRATEGIC_FOUNDATION_MORROW.md`
 
