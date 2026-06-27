@@ -67,6 +67,23 @@ async function checkLanding(page, target) {
   assert(target.expectedLandingText.test(body), `${target.name} landing text did not match`)
 }
 
+async function checkHealth(target) {
+  const response = await fetch(`${target.baseUrl}/health`, {
+    headers: { accept: 'application/json' },
+  })
+  assert(response.ok, `${target.name} health returned ${response.status}`)
+
+  const body = await response.json()
+  assert(body.status === 'ok', `${target.name} health status expected ok, got ${body.status}`)
+  assert(body.app === target.key, `${target.name} health app expected ${target.key}, got ${body.app}`)
+
+  return {
+    app: body.app,
+    service: body.service,
+    status: body.status,
+  }
+}
+
 async function checkLogin(page, target) {
   if (!target.login?.email || !target.login?.password) {
     return { checked: false, reason: `${target.name} login skipped; credentials not set.` }
@@ -139,11 +156,13 @@ try {
 
   for (const target of configuredTargets) {
     const activePage = target.key === 'guest' ? mobile : page
+    const health = await checkHealth(target)
     await checkLanding(activePage, target)
 
     const result = {
       app: target.key,
       baseUrl: target.baseUrl,
+      health,
       landing: { checked: true },
     }
 

@@ -247,6 +247,7 @@ npm run qa:apps
 ```
 
 Dieser Check prueft:
+- `/health` pro App liefert `status=ok` und die richtige App-ID (`admin`, `guest`, `owner`).
 - Admin-, Gaeste- und Eigentuemer-App liefern keine Soft-404-Seite.
 - Loginseiten zeigen die erwarteten Morrow-Inhalte.
 - Admin-Login fuehrt bei gesetzten Zugangsdaten zum Dashboard.

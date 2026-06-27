@@ -156,7 +156,8 @@ Stand: 2026-06-26
 - Die Owner-Migrationen bis `202606260003` sind remote in Supabase angewendet; ein freigeschalteter Owner-Testzugang wurde mit `Nordlicht Lodge` verknuepft und der Support-Rueckkanal wurde live getestet.
 - `apps/web`, `apps/admin`, `apps/guest` und `apps/owner` besitzen eigene Vercel-Konfigurationen fuer getrennte Next.js-Projekte aus dem Monorepo.
 - `apps/web` kann `/admin`, `/deine-auszeit/...`, `/owner` und `/app/eigentuemer` per `MORROW_ADMIN_APP_URL`, `MORROW_GUEST_APP_URL` und `MORROW_OWNER_APP_URL` auf die jeweiligen App-Projekte weiterleiten.
-- `npm run qa:apps` prueft nach Deployment die App-Welten mit optionalen Admin-, Owner- und Gaeste-Testzugängen.
+- Alle vier Next-Apps haben einen `/health` Endpunkt zur Deployment- und App-Identitaetspruefung.
+- `npm run qa:apps` prueft nach Deployment die App-Welten inklusive `/health` und optionalen Admin-, Owner- und Gaeste-Testzugängen.
 - `apps/guest` ist als Next-App gestartet und liest codegeschuetzte Buchungen ueber `get_guest_stay()`; die tieferen Prototyp-Funktionen muessen schrittweise migriert werden.
 - `apps/admin` ist als Next-App gestartet und kann nach Admin-Login operative Supabase-Daten lesen, Anfrage-, Buchungs-, Support- und Aufgabenstatus aktualisieren, Detail-Drawer mit Kommunikationshistorie nutzen, interne Notizen speichern, freie E-Mail-Antworten aus Anfrage/Buchung/Support senden, Monitoringhinweise anzeigen, Eigentuemerprofile/Objektzugriffe vorbereiten, lokale Vor-Ort-Orte/Kandidaten pflegen sowie Auszeiten, Termine und Erlebnisbausteine bearbeiten/neu anlegen und Unterkuenfte inklusive operativer Anreise-/Regel-/Medienfelder, Ausstattung, Objektattributen und Erlebniswelten pflegen.
 
