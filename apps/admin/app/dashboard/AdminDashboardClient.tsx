@@ -593,6 +593,22 @@ function supportUrgencyLabel(urgency: string | null) {
   return urgency ? labels[urgency] || urgency : "Normal";
 }
 
+function supportCategoryLabel(category: string | null) {
+  const labels: Record<string, string> = {
+    general: "Allgemein",
+    property: "Objekt oder Ausstattung",
+    booking: "Buchung oder Zeitraum",
+    accounting: "Abrechnung",
+    owner_general: "Eigentümer · Allgemeine Rückfrage",
+    owner_property: "Eigentümer · Objekt oder Ausstattung",
+    owner_booking: "Eigentümer · Buchung oder Zeitraum",
+    owner_availability: "Eigentümer · Eigenbelegung oder Verfügbarkeit",
+    owner_accounting: "Eigentümer · Abrechnung",
+  };
+
+  return category ? labels[category] || category.replace(/_/g, " ") : "Allgemein";
+}
+
 function taskStatusLabel(status: string) {
   const labels: Record<string, string> = {
     open: "Offen",
@@ -685,7 +701,7 @@ function getBookingLabel(booking: BookingRow) {
 function getSupportLabel(support: SupportRow) {
   return (
     getPayloadText(support.payload, ["subject", "title", "supportName", "categoryLabel"]) ||
-    support.category ||
+    supportCategoryLabel(support.category) ||
     "Supportfall"
   );
 }
@@ -702,6 +718,31 @@ function getSupportContactLabel(support: SupportRow) {
 function getSupportRelationId(support: SupportRow, kind: "lead" | "booking") {
   const keys = kind === "lead" ? ["leadId", "lead_id"] : ["bookingId", "booking_id"];
   return getPayloadText(support.payload, keys) || (kind === "lead" ? support.lead_id : null);
+}
+
+function supportDateRangeLabel(payload: Record<string, unknown>) {
+  const explicitLabel = getPayloadText(payload, ["requestedDateRangeLabel", "dateRangeLabel", "dateLabel"]);
+  if (explicitLabel) return explicitLabel;
+
+  const startsOn = getPayloadText(payload, ["requestedStartsOn", "startsOn", "startDate"]);
+  const endsOn = getPayloadText(payload, ["requestedEndsOn", "endsOn", "endDate"]);
+
+  if (startsOn && endsOn) return `${startsOn} bis ${endsOn}`;
+  if (startsOn) return `ab ${startsOn}`;
+  if (endsOn) return `bis ${endsOn}`;
+  return null;
+}
+
+function getSupportContextItems(support: SupportRow) {
+  const payload = support.payload ?? {};
+  const items = [
+    ["Objekt", getPayloadText(payload, ["propertyName", "propertyTitle", "stayName"])],
+    ["Zeitraum", supportDateRangeLabel(payload)],
+    ["Eigentümer", getPayloadText(payload, ["ownerName", "ownerEmail"])],
+    ["Telefon", getPayloadText(payload, ["ownerPhone", "phone"])],
+  ];
+
+  return items.filter((item): item is [string, string] => Boolean(item[1]));
 }
 
 function getFeedbackText(feedback: GuestFeedbackRow) {
@@ -3998,7 +4039,10 @@ function AdminDetailDrawer({
   ]);
   const drawerType = lead ? "Anfrage" : booking ? "Buchung" : "Support";
   const supportMessage = support?.message || getPayloadText(payload, ["message", "note"]);
-  const supportCategory = support?.category || getPayloadText(payload, ["category", "categoryLabel"]);
+  const supportCategory = support
+    ? supportCategoryLabel(support.category || getPayloadText(payload, ["supportCategory", "category"]))
+    : null;
+  const supportContextItems = support ? getSupportContextItems(support) : [];
   const leadSource = lead ? leadSourceLabel(lead) : null;
   const leadUtm = typeof payload.utm === "object" && payload.utm !== null
     ? payload.utm as Record<string, unknown>
@@ -4055,6 +4099,20 @@ function AdminDetailDrawer({
             </>
           ) : null}
         </section>
+
+        {support && supportContextItems.length ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Kontext</p>
+            <div className="admin-drawer-context-grid">
+              {supportContextItems.map(([label, value]) => (
+                <article key={`${label}-${value}`}>
+                  <small>{label}</small>
+                  <strong>{value}</strong>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {supportMessage ? (
           <section className="admin-drawer-section">

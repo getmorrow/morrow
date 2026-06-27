@@ -97,43 +97,71 @@ if (verifySupportInsert) {
   if (!property?.id) fail('Owner dashboard has no property for support insert verification')
 
   const supportMessageId = `owner-support-verify-${Date.now()}`
-  const { error: supportInsertError } = await ownerClient.from('support_messages').insert({
-    id: supportMessageId,
-    category: 'owner_property',
-    message: `Owner portal verification message ${supportMessageId}`,
-    urgency: 'normal',
-    payload: {
-      source: 'next-owner',
-      subject: 'Objekt oder Ausstattung',
-      categoryLabel: 'Eigentümeranliegen',
-      ownerProfileId: ownerProfile.id,
-      ownerName: ownerProfile.displayName,
-      ownerEmail: ownerProfile.email,
-      ownerPhone: ownerProfile.phone,
-      propertyId: property.id,
-      propertyName: property.name,
-      supportCategory: 'property',
-      qaMarker: supportMessageId,
+  const availabilityMessageId = `owner-availability-verify-${Date.now()}`
+  const { error: supportInsertError } = await ownerClient.from('support_messages').insert([
+    {
+      id: supportMessageId,
+      category: 'owner_property',
+      message: `Owner portal verification message ${supportMessageId}`,
+      urgency: 'normal',
+      payload: {
+        source: 'next-owner',
+        subject: 'Objekt oder Ausstattung',
+        categoryLabel: 'Eigentümeranliegen',
+        ownerProfileId: ownerProfile.id,
+        ownerName: ownerProfile.displayName,
+        ownerEmail: ownerProfile.email,
+        ownerPhone: ownerProfile.phone,
+        propertyId: property.id,
+        propertyName: property.name,
+        supportCategory: 'property',
+        qaMarker: supportMessageId,
+      },
     },
-  })
+    {
+      id: availabilityMessageId,
+      category: 'owner_availability',
+      message: `Owner availability verification message ${availabilityMessageId}`,
+      urgency: 'soon',
+      payload: {
+        source: 'next-owner',
+        subject: 'Eigenbelegung oder Verfügbarkeit',
+        categoryLabel: 'Eigentümeranliegen',
+        ownerProfileId: ownerProfile.id,
+        ownerName: ownerProfile.displayName,
+        ownerEmail: ownerProfile.email,
+        ownerPhone: ownerProfile.phone,
+        propertyId: property.id,
+        propertyName: property.name,
+        supportCategory: 'availability',
+        requestedStartsOn: '2026-09-10',
+        requestedEndsOn: '2026-09-14',
+        requestedDateRangeLabel: '2026-09-10 bis 2026-09-14',
+        qaMarker: availabilityMessageId,
+      },
+    },
+  ])
 
   if (supportInsertError) fail('Owner support message insert failed', supportInsertError)
 
-  const { data: supportMessage, error: supportReadError } = await serviceClient
+  const { data: supportMessages, error: supportReadError } = await serviceClient
     .from('support_messages')
     .select('id,category,status,urgency,payload')
-    .eq('id', supportMessageId)
-    .single()
+    .in('id', [supportMessageId, availabilityMessageId])
 
   if (supportReadError) fail('Inserted owner support message is not readable by service role', supportReadError)
+  if ((supportMessages ?? []).length !== 2) fail('Expected owner support and availability messages to be readable')
+  const availabilityMessage = supportMessages.find((message) => message.id === availabilityMessageId)
+  if (availabilityMessage?.payload?.requestedStartsOn !== '2026-09-10') {
+    fail('Owner availability support payload missing requested date range')
+  }
 
   console.log(
     [
       'ok owner support insert',
-      `id=${supportMessage.id}`,
-      `category=${supportMessage.category}`,
-      `status=${supportMessage.status}`,
-      `property=${supportMessage.payload?.propertyName ?? property.id}`,
+      `count=${supportMessages.length}`,
+      `categories=${supportMessages.map((message) => message.category).join(',')}`,
+      `property=${supportMessages[0]?.payload?.propertyName ?? property.id}`,
     ].join(' '),
   )
 }

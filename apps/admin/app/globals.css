@@ -493,6 +493,34 @@ input {
   overflow-wrap: anywhere;
 }
 
+.admin-drawer-context-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-drawer-context-grid article {
+  background: rgba(112, 107, 63, 0.1);
+  border: 1px solid rgba(112, 107, 63, 0.18);
+  border-radius: 8px;
+  display: grid;
+  gap: 5px;
+  padding: 12px 14px;
+}
+
+.admin-drawer-context-grid small {
+  color: rgba(24, 23, 21, 0.56);
+  font-size: 12px;
+  font-weight: 820;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.admin-drawer-context-grid strong {
+  font-size: 15px;
+  font-weight: 860;
+  overflow-wrap: anywhere;
+}
+
 .admin-drawer-section {
   display: grid;
   gap: 12px;
