@@ -775,6 +775,41 @@ function splitLines(value: string) {
     .filter(Boolean);
 }
 
+function getInventoryPropertyIssues(draft: InventoryDraft) {
+  const issues: string[] = [];
+
+  if (!String(draft.name || "").trim()) issues.push("Objektname fehlt");
+  if (!String(draft.location || "").trim()) issues.push("Ort fehlt");
+  if (!String(draft.address || "").trim()) issues.push("Adresse fehlt");
+  if (!String(draft.property_type || "").trim()) issues.push("Objekttyp fehlt");
+  if (!String(draft.owner_name || "").trim() || !String(draft.owner_email || "").trim()) {
+    issues.push("Eigentümerkontakt unvollständig");
+  }
+  if (!String(draft.description || "").trim()) issues.push("Beschreibung fehlt");
+  if (!String(draft.check_in_type || "").trim() || String(draft.check_in_type) === "unknown") {
+    issues.push("Schlüsselübergabe offen");
+  }
+  if (
+    !String(draft.earliest_arrival || "").trim() ||
+    !String(draft.latest_arrival || "").trim() ||
+    !String(draft.check_out_time || "").trim()
+  ) {
+    issues.push("Anreise und Abreise unvollständig");
+  }
+  if (!String(draft.check_in_instructions || "").trim()) issues.push("Check-in-Hinweise fehlen");
+  if (splitLines(String(draft.amenities || "")).length < 3) issues.push("Ausstattung ergänzen");
+  if (draftStringArray(draft.attributes).length < 2) issues.push("Objektattribute ergänzen");
+  if (draftStringArray(draft.experience_worlds).length === 0) issues.push("Erlebniswelten ergänzen");
+  if (splitLines(String(draft.house_rules || "")).length < 2) issues.push("Unterkunftsregeln ergänzen");
+  if (splitLines(String(draft.media || "")).length === 0) issues.push("Medien fehlen");
+  if (!draft.image_rights_confirmed) issues.push("Bildrechte offen");
+  if (!String(draft.support_type || "").trim() || !String(draft.support_name || "").trim()) {
+    issues.push("Support-Zuständigkeit benennen");
+  }
+
+  return issues;
+}
+
 function numberOrNull(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -6758,6 +6793,7 @@ function AdminDashboardView({
         onChange={(key, value) => setInventoryDraft((current) => ({ ...current, [key]: value }))}
         onClose={() => setInventorySelection(null)}
         onSave={saveInventory}
+        packages={data.packages}
         pending={Boolean(pendingAction?.startsWith("inventory"))}
         properties={data.properties}
         property={selectedProperty}
@@ -7641,6 +7677,7 @@ function AdminInventoryDrawer({
   onClose,
   onSave,
   packageItem,
+  packages,
   pending,
   properties,
   property,
@@ -7653,6 +7690,7 @@ function AdminInventoryDrawer({
   onClose: () => void;
   onSave: () => void;
   packageItem: SimpleRow | null;
+  packages: SimpleRow[];
   pending: boolean;
   properties: SimpleRow[];
   property: SimpleRow | null;
@@ -7669,6 +7707,10 @@ function AdminInventoryDrawer({
       : property?.name || "Unterkunft bearbeiten";
   const selectedAttributes = draftStringArray(draft.attributes);
   const selectedWorlds = draftStringArray(draft.experience_worlds);
+  const propertyIssues = !isPackage ? getInventoryPropertyIssues(draft) : [];
+  const linkedPackages = property
+    ? packages.filter((item) => item.property_id === property.id)
+    : [];
   const toggleArrayValue = (key: string, value: string) => {
     const current = draftStringArray(draft[key]);
     onChange(
@@ -7906,6 +7948,27 @@ function AdminInventoryDrawer({
             </div>
           </section>
         )}
+
+        {!isPackage ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Objektprüfung</p>
+            <div className="admin-readiness-panel">
+              <div>
+                <strong>{propertyIssues.length === 0 ? "Bereit für Auszeiten" : "Noch nicht auszeitbereit"}</strong>
+                <span>
+                  {propertyIssues.length === 0
+                    ? "Objektprofil, Anreise, Regeln, Medienrechte und Support sind gepflegt."
+                    : `${propertyIssues.length} Punkt${propertyIssues.length === 1 ? "" : "e"} fehlen vor einer sauberen Veröffentlichung.`}
+                </span>
+              </div>
+              <div className="admin-readiness-list">
+                {propertyIssues.length === 0
+                  ? <span>Alle Pflichtpunkte gepflegt</span>
+                  : propertyIssues.map((issue) => <span key={issue}>{issue}</span>)}
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         {isPackage ? (
           <section className="admin-drawer-section">
@@ -8166,6 +8229,28 @@ function AdminInventoryDrawer({
                 />
                 Bildrechte bestätigt
               </label>
+            </div>
+          </section>
+        ) : null}
+
+        {!isPackage && property ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Verbundene Auszeiten</p>
+            <div className="admin-linked-list">
+              {linkedPackages.length === 0 ? (
+                <p>Noch keine Auszeit mit dieser Unterkunft verbunden.</p>
+              ) : linkedPackages.map((item) => (
+                <article key={item.id}>
+                  <div>
+                    <strong>{item.name || item.id}</strong>
+                    <span>
+                      {[item.audience, item.status, item.concrete_price || item.price_from]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                  </div>
+                </article>
+              ))}
             </div>
           </section>
         ) : null}

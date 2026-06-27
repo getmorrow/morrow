@@ -692,6 +692,59 @@ input {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
+.admin-readiness-panel,
+.admin-linked-list {
+  background: rgba(236, 230, 214, 0.34);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.admin-readiness-panel strong,
+.admin-linked-list strong {
+  color: var(--offblack);
+  display: block;
+  font-size: 15px;
+  font-weight: 860;
+}
+
+.admin-readiness-panel span,
+.admin-linked-list span,
+.admin-linked-list p {
+  color: rgba(24, 23, 21, 0.64);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.admin-readiness-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-readiness-list span {
+  background: rgba(255, 253, 247, 0.84);
+  border: 1px solid rgba(24, 23, 21, 0.1);
+  border-radius: 999px;
+  color: rgba(24, 23, 21, 0.72);
+  font-size: 12px;
+  font-weight: 780;
+  padding: 6px 10px;
+}
+
+.admin-linked-list article {
+  align-items: center;
+  background: rgba(255, 253, 247, 0.72);
+  border: 1px solid rgba(24, 23, 21, 0.08);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+}
+
 .admin-checkbox-label {
   align-items: center;
   display: flex !important;
