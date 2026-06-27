@@ -213,6 +213,8 @@ const devLocalPlaces: LocalPlace[] = [
     lng: 8.642,
     address: "Sankt Peter-Ording",
     payload: {
+      eventDate: "2026-08-13",
+      eventTime: "09:00-13:00 Uhr",
       bestFor: ["Vormittag", "lokal", "ruhig"],
       description: "Kleiner lokaler Impuls, wenn er zeitlich zu eurer Auszeit passt.",
     },
@@ -250,7 +252,7 @@ const viewLabels: Record<GuestView, string> = {
 };
 
 const viewIcons: Record<GuestView, string> = {
-  home: "⌂",
+  home: "•",
   plan: "✦",
   booking: "□",
   local: "⌖",
@@ -489,7 +491,42 @@ function openingHoursText(place: LocalPlace) {
 function eventTimeText(place: LocalPlace) {
   const date = payloadText(place.payload, ["eventDate", "startsOn", "date"]);
   const time = payloadText(place.payload, ["eventTime", "time"]);
-  return [date, time].filter(Boolean).join(" · ");
+  return [formatEventDate(date), time].filter(Boolean).join(" · ");
+}
+
+function eventTimestamp(place: LocalPlace) {
+  const value = payloadText(place.payload, ["eventDate", "startsOn", "date"]);
+  if (!value) return Number.POSITIVE_INFINITY;
+  const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) return new Date(`${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}T00:00:00`).getTime();
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
+}
+
+function formatEventDate(value: string) {
+  if (!value) return "";
+  const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!isoMatch) return value;
+  const date = new Date(`${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}T00:00:00`);
+  return new Intl.DateTimeFormat("de-DE", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+  }).format(date);
+}
+
+function upcomingEventPlaces(places: LocalPlace[]) {
+  const yesterday = new Date();
+  yesterday.setHours(0, 0, 0, 0);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  return places
+    .filter((place) => normalizeCategory(place.category) === "event")
+    .filter((place) => {
+      const timestamp = eventTimestamp(place);
+      return !Number.isFinite(timestamp) || timestamp >= yesterday.getTime();
+    })
+    .sort((a, b) => eventTimestamp(a) - eventTimestamp(b) || a.name.localeCompare(b.name, "de"));
 }
 
 function localPlaceToMapPlace(place: LocalPlace): GuestMapPlace | null {
@@ -638,6 +675,7 @@ export function GuestStayClient({
   const stayDate = formatStayDate(booking?.selectedDate ?? booking?.dateLabel);
   const countdown = daysUntilFromLabel(booking?.selectedDate ?? booking?.dateLabel);
   const localPlaces = useMemo(() => visibleLocalPlaces(places, packageItem), [places, packageItem]);
+  const eventPlaces = useMemo(() => upcomingEventPlaces(localPlaces), [localPlaces]);
   const nextEscapeCards = [
     {
       title: packageItem?.name?.includes("Couple") ? "Family Escape" : "Couple Reset",
@@ -662,10 +700,12 @@ export function GuestStayClient({
     return localFilterOrder.filter((filter) => categories.has(filter));
   }, [localPlaces]);
   const filteredLocalPlaces = localFilter === "all"
-    ? localPlaces.slice(0, 10)
-    : localPlaces.filter((place) => normalizeCategory(place.category) === localFilter).slice(0, 12);
+    ? localPlaces.filter((place) => normalizeCategory(place.category) !== "event").slice(0, 10)
+    : localFilter === "event"
+      ? eventPlaces.slice(0, 12)
+      : localPlaces.filter((place) => normalizeCategory(place.category) === localFilter).slice(0, 12);
   const selectedFilterLabel = localFilterLabels[localFilter];
-  const showPlaceResults = localFilter !== "weather" && localFilter !== "tide";
+  const showPlaceResults = localFilter !== "weather" && localFilter !== "tide" && localFilter !== "event";
   const mapPlaces = useMemo(() => {
     const stay = stayMapPlace(packageItem);
     const sourcePlaces = localFilter === "all"
@@ -1052,6 +1092,34 @@ export function GuestStayClient({
               </section>
             )}
 
+            {(localFilter === "all" || localFilter === "event") && (
+              <section className="guest-local-module" aria-label="Veranstaltungen">
+                <div className="guest-module-head">
+                  <span>Veranstaltungen</span>
+                  <strong>{eventPlaces.length ? "Was zeitlich zu eurer Auszeit passen kann" : "Noch keine freigegebenen Termine"}</strong>
+                </div>
+                {eventPlaces.length ? (
+                  <div className="guest-event-strip">
+                    {eventPlaces.slice(0, localFilter === "event" ? 8 : 4).map((eventPlace) => (
+                      <article key={eventPlace.id}>
+                        <span>{eventTimeText(eventPlace) || "Termin prüfen"}</span>
+                        <strong>{eventPlace.name}</strong>
+                        <p>{placeDescription(eventPlace)}</p>
+                        <button type="button" onClick={() => setSelectedPlace(eventPlace)}>
+                          Details
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="guest-empty-state">
+                    <strong>Bewusst leer statt beliebig</strong>
+                    <p>Morrow zeigt hier nur Termine, die freigegeben und für eure Auszeit sinnvoll sind.</p>
+                  </div>
+                )}
+              </section>
+            )}
+
             {showPlaceResults ? (
               <section className="guest-local-module">
                 <div className="guest-module-head">
@@ -1062,10 +1130,11 @@ export function GuestStayClient({
                   <div className="guest-place-list">
                     {filteredLocalPlaces.map((place) => {
                       const bestFor = payloadList(place.payload, ["bestFor", "audiences"]).slice(0, 3);
+                      const isEvent = normalizeCategory(place.category) === "event";
 
                       return (
                         <article key={place.id}>
-                          <span>{placeMeta(place)}</span>
+                          <span>{isEvent ? eventTimeText(place) || placeMeta(place) : placeMeta(place)}</span>
                           <strong>{place.name}</strong>
                           <p>{placeDescription(place)}</p>
                           {bestFor.length ? (
@@ -1244,8 +1313,8 @@ export function GuestStayClient({
         <nav className="guest-bottom-nav" aria-label="Gästebereich Navigation">
           {navItems.map((item) => (
             <button key={item} className={activeView === item ? "is-active" : ""} type="button" onClick={() => setActiveView(item)}>
-              <span>{viewIcons[item]}</span>
-              {viewLabels[item]}
+              <span aria-hidden="true">{viewIcons[item]}</span>
+              <small>{viewLabels[item]}</small>
             </button>
           ))}
         </nav>
