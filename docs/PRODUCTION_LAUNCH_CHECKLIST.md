@@ -177,6 +177,34 @@ Vor öffentlichem Traffic:
 
 ## 8. Production Rehearsal
 
+Launch-Gates vor echtem Traffic:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://haifftleyussrokyafqq.supabase.co \
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<public-anon-key> \
+MORROW_ADMIN_APP_URL=https://<admin-app-domain> \
+MORROW_GUEST_APP_URL=https://<guest-app-domain> \
+MORROW_OWNER_APP_URL=https://<owner-app-domain> \
+MORROW_LEGAL_APPROVED_AT=2026-..-.. \
+MORROW_SECRETS_ROTATED_AT=2026-..-.. \
+MORROW_OFFER_DATA_APPROVED_AT=2026-..-.. \
+MORROW_TRACKING_APPROVED_AT=2026-..-.. \
+npm run qa:launch-gates
+```
+
+Dieser Check ist bewusst streng. Er stoppt den Launch, wenn:
+- Rechtseiten noch Arbeitsfassungs-/Platzhaltertexte enthalten.
+- Supabase- oder App-URL-Variablen fuer die Next-App-Welten fehlen.
+- Secret-Rotation, finale Angebotsdaten oder Rechtsfreigabe nicht bestaetigt sind.
+- WhatsApp-Opt-in nicht optional ist.
+- Tracking nicht consent-gated ist.
+
+Fuer einen reinen lokalen Statusbericht trotz bekannter Blocker:
+
+```bash
+MORROW_QA_ALLOW_LAUNCH_BLOCKERS=1 npm run qa:launch-gates
+```
+
 Automatisierter Basischeck:
 
 ```bash

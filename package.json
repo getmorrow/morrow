@@ -44,6 +44,7 @@
     "qa:smoke": "node scripts/qa-smoke.mjs",
     "qa:production": "node scripts/qa-production-rehearsal.mjs",
     "qa:apps": "node scripts/qa-apps-production.mjs",
+    "qa:launch-gates": "node scripts/qa-launch-gates.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },
