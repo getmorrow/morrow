@@ -30,7 +30,7 @@ Bis dahin gilt:
 | --- | --- | --- | --- | --- | --- |
 | Admin-Shell | `AdminSection` mit Bereichen `overview`, `leads`, `tasks`, `guestSupport`, `customers`, `bookings`, `packages`, `experiences`, `localPlaces`, `owners`, `agencies`, `experienceProviders`, `activity` | Clientseitige Arbeitsbereichsnavigation mit Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer, Aktivitaet | teilweise | Pruefen, ob spaeter echte Routen statt clientseitiger Bereiche noetig sind | Jeder alte Kernbereich ist in `apps/admin` eindeutig erreichbar, nicht nur als Kartenblock. |
 | Uebersicht | Tagesboard, Faelligkeiten, Wiedervorlagen, kommende Termine, aktive Arbeit | Kennzahlen, Aufgaben, Monitoring, Audit, Feedback | teilweise | Uebersicht auf Tagesarbeit fokussieren und zu Detailbereichen verlinken | Uebersicht zeigt nur Tagessteuerung; Detailarbeit findet in Bereichen statt. |
-| Leads/Anfragen | Status, Filter aktiv/archiviert, Typ/Status/Arbeitsstand, Wiedervorlage, Archiv, Reaktivierung, Testloeschung, Drawer | Leads laden, filtern, Status aendern, Wiedervorlage setzen, archivieren, reaktivieren, Testdatensaetze loeschen, Reservierung anlegen, Drawer fuer Notiz/E-Mail/Historie | teilweise | Tiefe Lead-Detailbearbeitung, Spam-/Loeschpolicy und ggf. eigene Wiedervorlage-Spalte pruefen | Ein Lead kann von neu bis archiviert und reaktiviert komplett in Next bearbeitet werden; Historie bleibt sichtbar. |
+| Leads/Anfragen | Status, Filter aktiv/archiviert, Typ/Status/Arbeitsstand, Wiedervorlage, Archiv, Reaktivierung, Testloeschung, Drawer | Leads laden, filtern, Status aendern, Detaildaten bearbeiten, Wiedervorlage setzen, archivieren, reaktivieren, Testdatensaetze loeschen, Reservierung anlegen, Drawer fuer Notiz/E-Mail/Historie | weitgehend migriert | Spam-/Loeschpolicy und ggf. eigene Wiedervorlage-Spalte pruefen | Ein Lead kann von neu bis archiviert und reaktiviert komplett in Next bearbeitet werden; Historie bleibt sichtbar. |
 | Kunden | Kundensatz aus Gastanfragen, Kunden-Cards, Kontaktlinks, Anfragehistorie, Buchungshistorie, Filter Anfrage/Buchung/faellig | Eigener Kundenbereich leitet Gastkontakte aus `leads` + `bookings` ab, zeigt Kontaktlinks, naechsten Schritt, Kundendetail mit Anfrage-, Buchungs-, Kommunikations- und Aenderungshistorie | teilweise | Zentrale Kundennotiz als eigenes Feld/Tabelle pruefen; spaeter echte `customers`-Quelle entscheiden | Ein Gastkontakt ist unabhaengig von einzelner Anfrage auffindbar, mit Kontakt, Anfragen, Buchungen und naechstem Schritt. |
 | Aufgaben | Aufgabenbereich mit direkter Anlage, Bezug, Faelligkeit, Prioritaet, Statusfilter, Bezugssprung, Loeschen, Wiedereroeffnen | Aufgaben werden geladen, koennen angelegt, bearbeitet, gefiltert, statusgeaendert, geloescht und ueber den Bezug geoeffnet werden; Audit wird geschrieben | weitgehend migriert | Archivierungsstrategie statt hartem Loeschen spaeter entscheiden; dedizierte Anbieterbearbeitung bleibt offen | Aufgabe kann angelegt, gefiltert, geoeffnet, bearbeitet, erledigt, wieder geoeffnet und geloescht werden. |
 | Buchungen | Status, Zahlung, Reisegruppe, Hund, Check-in, Erlebnis, Aufgaben, Gaestebereich-Link, Follow-up | Status, Zahlung, Operationsdaten, Drawer, E-Mail/Notiz/Historie vorhanden | teilweise | Buchungsdetail gegen Vite-Felder pruefen; Aufgabenfluss und Kundenbezug schaerfen | Eine Buchung kann operativ von Reserviert bis Abgeschlossen gesteuert werden, inklusive Zahlung, Vorbereitung, Gastzugang und Historie. |
@@ -139,15 +139,16 @@ Problem:
 Umsetzung:
 
 - `archived_at` in Next-Admin sichtbar und nutzbar machen. Stand: umgesetzt.
-- Wiedervorlage/Faelligkeit pflegen. Stand: umgesetzt inline in der Leadliste ueber Payload `followUpAt`.
+- Wiedervorlage/Faelligkeit pflegen. Stand: umgesetzt inline in der Leadliste und im Lead-Drawer ueber Payload `followUpAt`.
 - Filter fuer aktiv, archiviert, faellig, Typ, Status. Stand: umgesetzt.
 - Reaktivieren. Stand: umgesetzt.
 - Test-/Spam-Loeschen nur mit Bestaetigung und Audit. Stand: umgesetzt fuer als Test erkennbare Leads.
 - Eigene relationale Wiedervorlage-Spalte statt Payload. Stand: offen/Architekturentscheidung.
-- Tiefe Lead-Detailbearbeitung im Drawer. Stand: offen.
+- Tiefe Lead-Detailbearbeitung im Drawer. Stand: umgesetzt fuer Kontakt, Typ, Status, Auszeit, Quelle/Kampagne, Termin, Personen/Kinder/Hund, Anlass, WhatsApp-Opt-in und Wiedervorlage.
 
 Abnahme:
 
+- Lead-Kontakt- und Qualifizierungsdaten koennen im Drawer bearbeitet werden. Stand: umgesetzt.
 - Lead kann archiviert und reaktiviert werden. Stand: umgesetzt.
 - Faellige Wiedervorlage erscheint in Uebersicht/Leadfilter. Stand: umgesetzt im Leadfilter; Uebersicht nutzt offene Anfragen und aktive Aufgaben.
 - Archivierte Leads verschwinden aus Tagesarbeit, bleiben auffindbar. Stand: umgesetzt ueber Aktiv/Archiv-Filter.

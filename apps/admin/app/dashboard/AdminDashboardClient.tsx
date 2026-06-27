@@ -376,6 +376,25 @@ type BookingOperationsDraft = {
   next_task: string;
 };
 
+type LeadDetailsDraft = {
+  name: string;
+  email: string;
+  phone: string;
+  type: LeadRow["type"];
+  status: string;
+  package_slug: string;
+  source: string;
+  campaign: string;
+  follow_up_at: string;
+  selected_date: string;
+  adults: string;
+  children: string;
+  children_ages: string;
+  dog: string;
+  occasion: string;
+  whatsapp_opt_in: string;
+};
+
 type OwnerProfileDraft = {
   email: string;
   display_name: string;
@@ -636,6 +655,32 @@ function bookingOperationsDraftFromBooking(booking: BookingRow | null): BookingO
   };
 }
 
+function leadDetailsDraftFromLead(lead: LeadRow | null): LeadDetailsDraft {
+  const payload = lead?.payload ?? {};
+  const whatsappValue = payload.whatsappOptIn ?? payload.whatsapp_opt_in ?? payload.whatsappConsent;
+
+  return {
+    name: lead?.name || getPayloadText(payload, ["name", "fullName", "customerName"]) || "",
+    email: lead?.email || getPayloadText(payload, ["email"]) || "",
+    phone: lead?.phone || getPayloadText(payload, ["phone", "phoneNumber"]) || "",
+    type: lead?.type || "guest",
+    status: lead?.status || "Neu",
+    package_slug: lead?.package_slug || getPayloadText(payload, ["packageSlug", "packageName", "packageId"]) || "",
+    source: lead?.source || getPayloadText(payload, ["source", "leadSource"]) || "",
+    campaign: lead?.campaign || getPayloadText(payload, ["campaign", "utm_campaign"]) || "",
+    follow_up_at: lead ? getLeadFollowUpAt(lead) || "" : "",
+    selected_date: getPayloadText(payload, ["selectedDate", "dateLabel", "travelDate", "arrivalDate"]) || "",
+    adults: getPayloadText(payload, ["adults", "adultCount"]) || "",
+    children: getPayloadText(payload, ["children", "childCount", "kids"]) || "",
+    children_ages: getPayloadText(payload, ["childrenAges", "children_ages", "kidsAges"]) || "",
+    dog: getPayloadText(payload, ["dog", "dogs", "dogNote", "pet", "hund"]) || "",
+    occasion: getPayloadText(payload, ["occasion", "reason", "anlass"]) || "",
+    whatsapp_opt_in: typeof whatsappValue === "boolean"
+      ? whatsappValue ? "yes" : "no"
+      : getPayloadText(payload, ["whatsappOptIn", "whatsapp_opt_in", "whatsappConsent"]) || "",
+  };
+}
+
 function getPayloadText(payload: Record<string, unknown>, keys: string[]) {
   for (const key of keys) {
     const value = payload[key];
@@ -802,6 +847,7 @@ function auditActionLabel(action: string) {
     lead_archived: "Anfrage archiviert",
     lead_follow_up_updated: "Wiedervorlage geändert",
     lead_reactivated: "Anfrage reaktiviert",
+    lead_details_updated: "Anfrage bearbeitet",
     lead_status_updated: "Anfragestatus geändert",
     lead_test_deleted: "Testanfrage gelöscht",
     local_place_created: "Vor-Ort-Ort angelegt",
@@ -1880,6 +1926,7 @@ function AdminDashboardView({
   const [isCustomerDrawerLoading, setIsCustomerDrawerLoading] = useState(false);
   const [drawerNote, setDrawerNote] = useState("");
   const [outboundDraft, setOutboundDraft] = useState<OutboundDraft>({ subject: "", body: "" });
+  const [leadDetailsDraft, setLeadDetailsDraft] = useState<LeadDetailsDraft>(leadDetailsDraftFromLead(null));
   const [paymentDraft, setPaymentDraft] = useState<PaymentDraft>(paymentDraftFromBooking(null));
   const [bookingOperationsDraft, setBookingOperationsDraft] = useState<BookingOperationsDraft>(
     bookingOperationsDraftFromBooking(null),
@@ -2227,6 +2274,7 @@ function AdminDashboardView({
       setDrawerAuditLogs([]);
       setDrawerNote("");
       setOutboundDraft({ subject: "", body: "" });
+      setLeadDetailsDraft(leadDetailsDraftFromLead(null));
       setPaymentDraft(paymentDraftFromBooking(null));
       setBookingOperationsDraft(bookingOperationsDraftFromBooking(null));
       setDrawerMessage(null);
@@ -2251,6 +2299,9 @@ function AdminDashboardView({
     setPaymentDraft(selection.type === "booking"
       ? paymentDraftFromBooking(data.bookings.find((booking) => booking.id === selection.id) ?? null)
       : paymentDraftFromBooking(null));
+    setLeadDetailsDraft(selection.type === "lead"
+      ? leadDetailsDraftFromLead(data.leads.find((lead) => lead.id === selection.id) ?? null)
+      : leadDetailsDraftFromLead(null));
     setBookingOperationsDraft(selection.type === "booking"
       ? bookingOperationsDraftFromBooking(data.bookings.find((booking) => booking.id === selection.id) ?? null)
       : bookingOperationsDraftFromBooking(null));
@@ -3305,6 +3356,105 @@ function AdminDashboardView({
       setActionMessage("Wiedervorlage gespeichert.");
     } catch {
       setActionMessage("Die Wiedervorlage konnte nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function saveLeadDetails(lead: LeadRow) {
+    const actionKey = `lead-${lead.id}-details`;
+    setPendingAction(actionKey);
+    setDrawerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const now = new Date().toISOString();
+      const name = leadDetailsDraft.name.trim() || null;
+      const email = leadDetailsDraft.email.trim() || null;
+      const phone = leadDetailsDraft.phone.trim() || null;
+      const packageSlug = leadDetailsDraft.package_slug.trim() || null;
+      const source = leadDetailsDraft.source.trim() || null;
+      const campaign = leadDetailsDraft.campaign.trim() || null;
+      const followUpAt = leadDetailsDraft.follow_up_at || null;
+      const payload = {
+        ...lead.payload,
+        name,
+        email,
+        phone,
+        packageSlug,
+        source,
+        campaign,
+        followUpAt,
+        selectedDate: leadDetailsDraft.selected_date.trim() || null,
+        adults: leadDetailsDraft.adults.trim() || null,
+        children: leadDetailsDraft.children.trim() || null,
+        childrenAges: leadDetailsDraft.children_ages.trim() || null,
+        dog: leadDetailsDraft.dog.trim() || null,
+        occasion: leadDetailsDraft.occasion.trim() || null,
+        whatsappOptIn: leadDetailsDraft.whatsapp_opt_in || null,
+        updatedAt: now,
+      };
+      const { data: updated, error } = await supabase
+        .from("leads")
+        .update({
+          name,
+          email,
+          phone,
+          type: leadDetailsDraft.type,
+          status: leadDetailsDraft.status.trim() || "Neu",
+          package_slug: packageSlug,
+          source,
+          campaign,
+          payload,
+          updated_at: now,
+        })
+        .eq("id", lead.id)
+        .select("id,type,status,name,email,phone,package_slug,source,campaign,archived_at,created_at,payload")
+        .single();
+
+      if (error) throw error;
+
+      const updatedLead = updated as LeadRow;
+      setDataState((current) => ({
+        ...current,
+        leads: current.leads.map((item) => item.id === lead.id ? updatedLead : item),
+      }));
+      setLeadDetailsDraft(leadDetailsDraftFromLead(updatedLead));
+
+      await writeAuditLog({
+        action: "lead_details_updated",
+        entityType: "lead",
+        entityId: lead.id,
+        entityLabel: getLeadLabel(updatedLead),
+        payload: {
+          from: {
+            name: lead.name,
+            email: lead.email,
+            phone: lead.phone,
+            type: lead.type,
+            status: lead.status,
+            packageSlug: lead.package_slug,
+            source: lead.source,
+            campaign: lead.campaign,
+            followUpAt: getLeadFollowUpAt(lead),
+          },
+          to: {
+            name: updatedLead.name,
+            email: updatedLead.email,
+            phone: updatedLead.phone,
+            type: updatedLead.type,
+            status: updatedLead.status,
+            packageSlug: updatedLead.package_slug,
+            source: updatedLead.source,
+            campaign: updatedLead.campaign,
+            followUpAt,
+          },
+        },
+      });
+
+      setDrawerMessage("Anfrage gespeichert.");
+    } catch {
+      setDrawerMessage("Die Anfrage konnte nicht gespeichert werden.");
     } finally {
       setPendingAction(null);
     }
@@ -6454,16 +6604,21 @@ function AdminDashboardView({
         message={drawerMessage}
         note={drawerNote}
         lead={selectedLead}
+        leadDetailsDraft={leadDetailsDraft}
+        leadDetailsPending={pendingAction === `lead-${selectedLead?.id}-details`}
         onClose={() => setSelection(null)}
         onBookingOperationsChange={(key, value) => setBookingOperationsDraft((current) => ({ ...current, [key]: value }))}
+        onLeadDetailsChange={(key, value) => setLeadDetailsDraft((current) => ({ ...current, [key]: value }))}
         onOutboundChange={(key, value) => setOutboundDraft((current) => ({ ...current, [key]: value }))}
         onNoteChange={setDrawerNote}
         onPaymentChange={(key, value) => setPaymentDraft((current) => ({ ...current, [key]: value }))}
         onSaveBookingOperations={saveBookingOperations}
+        onSaveLeadDetails={() => selectedLead ? void saveLeadDetails(selectedLead) : undefined}
         onSaveNote={saveDrawerNote}
         onSavePayment={savePaymentInfo}
         onSendEmail={sendDrawerEmail}
         outboundDraft={outboundDraft}
+        packages={data.packages}
         paymentDraft={paymentDraft}
         bookingOperationsPending={pendingAction === `booking-operations-${selectedBooking?.id}`}
         paymentPending={pendingAction === `booking-payment-${selectedBooking?.id}`}
@@ -6728,18 +6883,23 @@ function AdminDetailDrawer({
   communicationEvents,
   isLoading,
   lead,
+  leadDetailsDraft,
+  leadDetailsPending,
   message,
   note,
   onBookingOperationsChange,
   onClose,
+  onLeadDetailsChange,
   onOutboundChange,
   onNoteChange,
   onPaymentChange,
   onSaveBookingOperations,
+  onSaveLeadDetails,
   onSaveNote,
   onSavePayment,
   onSendEmail,
   outboundDraft,
+  packages,
   paymentDraft,
   paymentPending,
   pending,
@@ -6754,18 +6914,23 @@ function AdminDetailDrawer({
   communicationEvents: CommunicationEventRow[];
   isLoading: boolean;
   lead: LeadRow | null;
+  leadDetailsDraft: LeadDetailsDraft;
+  leadDetailsPending: boolean;
   message: string | null;
   note: string;
   onBookingOperationsChange: (key: keyof BookingOperationsDraft, value: string) => void;
   onClose: () => void;
+  onLeadDetailsChange: (key: keyof LeadDetailsDraft, value: string) => void;
   onOutboundChange: (key: keyof OutboundDraft, value: string) => void;
   onNoteChange: (value: string) => void;
   onPaymentChange: (key: keyof PaymentDraft, value: string) => void;
   onSaveBookingOperations: () => void;
+  onSaveLeadDetails: () => void;
   onSaveNote: () => void;
   onSavePayment: () => void;
   onSendEmail: () => void;
   outboundDraft: OutboundDraft;
+  packages: SimpleRow[];
   paymentDraft: PaymentDraft;
   paymentPending: boolean;
   pending: boolean;
@@ -6880,6 +7045,152 @@ function AdminDetailDrawer({
             <article className="admin-drawer-note-card">
               <p>{supportMessage}</p>
             </article>
+          </section>
+        ) : null}
+
+        {lead ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Anfrage bearbeiten</p>
+            <div className="admin-form-grid">
+              <label>
+                Name
+                <input
+                  onChange={(event) => onLeadDetailsChange("name", event.target.value)}
+                  value={leadDetailsDraft.name}
+                />
+              </label>
+              <label>
+                E-Mail
+                <input
+                  onChange={(event) => onLeadDetailsChange("email", event.target.value)}
+                  value={leadDetailsDraft.email}
+                />
+              </label>
+              <label>
+                Telefon
+                <input
+                  onChange={(event) => onLeadDetailsChange("phone", event.target.value)}
+                  value={leadDetailsDraft.phone}
+                />
+              </label>
+              <label>
+                Art
+                <select
+                  onChange={(event) => onLeadDetailsChange("type", event.target.value as LeadRow["type"])}
+                  value={leadDetailsDraft.type}
+                >
+                  <option value="guest">Gastanfrage</option>
+                  <option value="owner">Eigentümer</option>
+                  <option value="experience">Erlebnispartner</option>
+                </select>
+              </label>
+              <label>
+                Status
+                <input
+                  onChange={(event) => onLeadDetailsChange("status", event.target.value)}
+                  value={leadDetailsDraft.status}
+                />
+              </label>
+              <label>
+                Auszeit
+                <select
+                  onChange={(event) => onLeadDetailsChange("package_slug", event.target.value)}
+                  value={leadDetailsDraft.package_slug}
+                >
+                  <option value="">Nicht zugeordnet</option>
+                  {packages.map((packageItem) => (
+                    <option key={packageItem.id} value={packageItem.slug || packageItem.id}>
+                      {packageItem.name || packageItem.slug || packageItem.id}
+                    </option>
+                  ))}
+                  {leadDetailsDraft.package_slug && !packages.some((packageItem) =>
+                    packageItem.slug === leadDetailsDraft.package_slug || packageItem.id === leadDetailsDraft.package_slug
+                  ) ? (
+                    <option value={leadDetailsDraft.package_slug}>{leadDetailsDraft.package_slug}</option>
+                  ) : null}
+                </select>
+              </label>
+              <label>
+                Termin
+                <input
+                  onChange={(event) => onLeadDetailsChange("selected_date", event.target.value)}
+                  value={leadDetailsDraft.selected_date}
+                />
+              </label>
+              <label>
+                Wiedervorlage
+                <input
+                  onChange={(event) => onLeadDetailsChange("follow_up_at", event.target.value)}
+                  type="date"
+                  value={leadDetailsDraft.follow_up_at}
+                />
+              </label>
+              <label>
+                Erwachsene
+                <input
+                  inputMode="numeric"
+                  onChange={(event) => onLeadDetailsChange("adults", event.target.value)}
+                  value={leadDetailsDraft.adults}
+                />
+              </label>
+              <label>
+                Kinder
+                <input
+                  inputMode="numeric"
+                  onChange={(event) => onLeadDetailsChange("children", event.target.value)}
+                  value={leadDetailsDraft.children}
+                />
+              </label>
+              <label>
+                Alter der Kinder
+                <input
+                  onChange={(event) => onLeadDetailsChange("children_ages", event.target.value)}
+                  value={leadDetailsDraft.children_ages}
+                />
+              </label>
+              <label>
+                Hund
+                <input
+                  onChange={(event) => onLeadDetailsChange("dog", event.target.value)}
+                  value={leadDetailsDraft.dog}
+                />
+              </label>
+              <label>
+                Quelle
+                <input
+                  onChange={(event) => onLeadDetailsChange("source", event.target.value)}
+                  value={leadDetailsDraft.source}
+                />
+              </label>
+              <label>
+                Kampagne
+                <input
+                  onChange={(event) => onLeadDetailsChange("campaign", event.target.value)}
+                  value={leadDetailsDraft.campaign}
+                />
+              </label>
+              <label>
+                WhatsApp
+                <select
+                  onChange={(event) => onLeadDetailsChange("whatsapp_opt_in", event.target.value)}
+                  value={leadDetailsDraft.whatsapp_opt_in}
+                >
+                  <option value="">Nicht abgefragt</option>
+                  <option value="yes">Zugestimmt</option>
+                  <option value="no">Nicht zugestimmt</option>
+                </select>
+              </label>
+              <label>
+                Anlass
+                <input
+                  onChange={(event) => onLeadDetailsChange("occasion", event.target.value)}
+                  value={leadDetailsDraft.occasion}
+                />
+              </label>
+            </div>
+            <button className="admin-button" disabled={leadDetailsPending} onClick={onSaveLeadDetails} type="button">
+              {leadDetailsPending ? "Speichern" : "Anfrage speichern"}
+            </button>
           </section>
         ) : null}
 
