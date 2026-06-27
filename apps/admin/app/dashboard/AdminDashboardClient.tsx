@@ -2089,6 +2089,17 @@ function AdminDashboardView({
         property_id: "",
         price_from: "",
         concrete_price: "",
+        headline: "",
+        subheadline: "",
+        short_description: "",
+        experience_feeling: "",
+        included_items: "",
+        highlights: "",
+        recommendations: "",
+        faq: "",
+        launch_note: "",
+        hero_image: "",
+        gallery_images: "",
       });
       return;
     }
@@ -2138,6 +2149,17 @@ function AdminDashboardView({
         property_id: item.property_id || "",
         price_from: item.price_from || "",
         concrete_price: item.concrete_price || "",
+        headline: getPayloadText(item.payload ?? {}, ["headline", "heroHeadline"]) || "",
+        subheadline: getPayloadText(item.payload ?? {}, ["subheadline", "heroSubheadline"]) || "",
+        short_description: getPayloadText(item.payload ?? {}, ["shortDescription", "short_description", "description"]) || "",
+        experience_feeling: getPayloadText(item.payload ?? {}, ["experienceFeeling", "experience_feeling", "feeling"]) || "",
+        included_items: getPayloadLines(item.payload ?? {}, ["includedItems", "included_items", "included"]) || "",
+        highlights: getPayloadLines(item.payload ?? {}, ["highlights", "moments"]) || "",
+        recommendations: getPayloadLines(item.payload ?? {}, ["recommendations", "localRecommendations"]) || "",
+        faq: getPayloadLines(item.payload ?? {}, ["faq", "faqs"]) || "",
+        launch_note: getPayloadText(item.payload ?? {}, ["launchNote", "launch_note", "internalLaunchNote"]) || "",
+        hero_image: getPayloadText(item.payload ?? {}, ["heroImage", "hero_image"]) || "",
+        gallery_images: getPayloadLines(item.payload ?? {}, ["galleryImages", "gallery_images", "images"]) || "",
       } : {});
       return;
     }
@@ -4470,6 +4492,17 @@ function AdminDashboardView({
         const name = String(inventoryDraft.name || "").trim() || "Neue Auszeit";
         const baseSlug = slugify(String(inventoryDraft.slug || "").trim() || name) || "neue-auszeit";
         const packagePayload = {
+          headline: String(inventoryDraft.headline || "").trim(),
+          subheadline: String(inventoryDraft.subheadline || "").trim(),
+          shortDescription: String(inventoryDraft.short_description || "").trim(),
+          experienceFeeling: String(inventoryDraft.experience_feeling || "").trim(),
+          includedItems: splitLines(String(inventoryDraft.included_items || "")),
+          highlights: splitLines(String(inventoryDraft.highlights || "")),
+          recommendations: splitLines(String(inventoryDraft.recommendations || "")),
+          faq: splitLines(String(inventoryDraft.faq || "")),
+          launchNote: String(inventoryDraft.launch_note || "").trim(),
+          heroImage: String(inventoryDraft.hero_image || "").trim(),
+          galleryImages: splitLines(String(inventoryDraft.gallery_images || "")),
           updatedAt: now,
         };
         const packagePayloadBase = {
@@ -7873,6 +7906,124 @@ function AdminInventoryDrawer({
             </div>
           </section>
         )}
+
+        {isPackage ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Paket-Story</p>
+            <div className="admin-form-grid">
+              <label>
+                Headline
+                <input
+                  onChange={(event) => onChange("headline", event.target.value)}
+                  placeholder="z. B. Vier Tage Nordsee, die sich nach echter Familienzeit anfühlen."
+                  value={String(draft.headline || "")}
+                />
+              </label>
+              <label>
+                Subheadline
+                <textarea
+                  onChange={(event) => onChange("subheadline", event.target.value)}
+                  rows={3}
+                  value={String(draft.subheadline || "")}
+                />
+              </label>
+              <label>
+                Kurzbeschreibung
+                <textarea
+                  onChange={(event) => onChange("short_description", event.target.value)}
+                  rows={4}
+                  value={String(draft.short_description || "")}
+                />
+              </label>
+              <label>
+                Gefühl der Auszeit
+                <textarea
+                  onChange={(event) => onChange("experience_feeling", event.target.value)}
+                  rows={4}
+                  value={String(draft.experience_feeling || "")}
+                />
+              </label>
+            </div>
+          </section>
+        ) : null}
+
+        {isPackage ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Leistung und Momente</p>
+            <div className="admin-form-grid">
+              <label>
+                Enthalten
+                <textarea
+                  onChange={(event) => onChange("included_items", event.target.value)}
+                  placeholder="Ein Punkt pro Zeile"
+                  rows={5}
+                  value={String(draft.included_items || "")}
+                />
+              </label>
+              <label>
+                Highlights / Momente
+                <textarea
+                  onChange={(event) => onChange("highlights", event.target.value)}
+                  placeholder="Ein Moment pro Zeile"
+                  rows={5}
+                  value={String(draft.highlights || "")}
+                />
+              </label>
+              <label>
+                Empfehlungen vor Ort
+                <textarea
+                  onChange={(event) => onChange("recommendations", event.target.value)}
+                  placeholder="Eine Empfehlung pro Zeile"
+                  rows={5}
+                  value={String(draft.recommendations || "")}
+                />
+              </label>
+              <label>
+                FAQ
+                <textarea
+                  onChange={(event) => onChange("faq", event.target.value)}
+                  placeholder="Eine Frage oder Antwort pro Zeile"
+                  rows={5}
+                  value={String(draft.faq || "")}
+                />
+              </label>
+            </div>
+          </section>
+        ) : null}
+
+        {isPackage ? (
+          <section className="admin-drawer-section">
+            <p className="admin-eyebrow">Medien und Launch</p>
+            <div className="admin-form-grid">
+              <label>
+                Hero-Bild
+                <input
+                  onChange={(event) => onChange("hero_image", event.target.value)}
+                  placeholder="Bildpfad oder URL"
+                  value={String(draft.hero_image || "")}
+                />
+              </label>
+              <label>
+                Galerie
+                <textarea
+                  onChange={(event) => onChange("gallery_images", event.target.value)}
+                  placeholder="Ein Bildpfad oder eine URL pro Zeile"
+                  rows={5}
+                  value={String(draft.gallery_images || "")}
+                />
+              </label>
+              <label>
+                Interne Launch-Notiz
+                <textarea
+                  onChange={(event) => onChange("launch_note", event.target.value)}
+                  placeholder="Was muss vor Veröffentlichung noch geprüft werden?"
+                  rows={4}
+                  value={String(draft.launch_note || "")}
+                />
+              </label>
+            </div>
+          </section>
+        ) : null}
 
         {!isPackage ? (
           <section className="admin-drawer-section">
