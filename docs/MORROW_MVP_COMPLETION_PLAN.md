@@ -153,7 +153,7 @@ Stand: 2026-06-26
 - Der Eigentuemerzugriff ist strukturell ueber `owner_profiles` und `owner_property_access` vorbereitet und im Next-Admin pflegbar.
 - Die Eigentuemer-App liest eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - Eigentümerdokumente sind als eigene Tabelle `owner_documents` normalisiert, werden im Next-Admin pro Unterkunft gepflegt und über `get_owner_dashboard().documents` nur für freigegebene Objektzugriffe sichtbar gemacht.
-- `apps/admin` und `apps/owner` mappen lokale `VITE_SUPABASE_*` Public-Variablen auf `NEXT_PUBLIC_SUPABASE_*`, damit lokale Next-Tests denselben Supabase-Zugang wie der Prototyp nutzen koennen.
+- `apps/web`, `apps/admin`, `apps/guest` und `apps/owner` mappen lokale `VITE_SUPABASE_*` Public-Variablen auf `NEXT_PUBLIC_SUPABASE_*`, damit lokale Next-Tests denselben Supabase-Zugang wie der Prototyp nutzen koennen.
 - `npm run supabase:verify-owner` prueft die Owner-Tabellen, `get_owner_dashboard()` und optional mit `OWNER_EMAIL`/`OWNER_PASSWORD` einen echten freigeschalteten Eigentuemerzugang; mit `OWNER_VERIFY_TEMP_OWNER=1` erzeugt der Test alternativ einen temporaeren Eigentuemerzugang, prueft Login/RPC/Support/Dokumente und raeumt ihn wieder auf.
 - Die Owner-Migrationen bis `202606270003` sind remote in Supabase angewendet; ein temporaerer Owner-E2E-Test mit `Nordlicht Lodge` hat Login, Dashboard-RPC, Supportnachricht, Eigenbelegungs-/Verfügbarkeitsanfrage und Dokumentensichtbarkeit erfolgreich geprueft.
 - `apps/web`, `apps/admin`, `apps/guest` und `apps/owner` besitzen eigene Vercel-Konfigurationen fuer getrennte Next.js-Projekte aus dem Monorepo.
