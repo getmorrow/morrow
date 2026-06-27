@@ -54,6 +54,7 @@ Umsetzungsstand 2026-06-26:
 - Die naechste produktive Arbeit ist die Vertiefung der Guest-App-Migration aus dem Vite-Prototyp, besonders Karte, Wetter, Gezeiten, Veranstaltungen, Support-Chat und Feedback-/Wiederbuchungslogik.
 - Der Eigentuemerbereich zeigt im Next-Fundament erste Objekt-, Buchungs-, Lueckenmarketing-, Operations- und Abrechnungsinformationen als begrenzten Ausschnitt aus Admin-/Supabase-Daten.
 - Eigentümerdokumente sind als eigene `owner_documents`-Datenquelle angelegt: Admin pflegt Vereinbarungen, Abrechnungen, Belege, Reports und Übergaben pro Unterkunft; die Owner-App zeigt nur sichtbare Dokumente zu freigeschalteten Objekten.
+- Eigentümerabrechnungen sind als eigene `owner_statements`-Datenquelle angelegt: Admin pflegt Monatsstatus, Umsatz, Morrow-Anteil, Kosten, Auszahlung und optionalen Beleglink pro Unterkunft; die Owner-App zeigt nur sichtbare oder ausgezahlte Abrechnungen zu Objekten mit Finanzfreigabe.
 - Eigentümer können aus der Owner-App strukturierte Rückfragen senden; Eigenbelegung/Verfügbarkeit wird bereits mit Von-/Bis-Daten an Admin übergeben, bleibt im MVP aber bewusst eine zu prüfende Anfrage statt automatischer Kalenderänderung. Die letzten Rückfragen werden über `get_owner_dashboard().messages` im Eigentümerbereich wieder sichtbar gemacht.
 
 ## Grundentscheidung

@@ -166,6 +166,24 @@ type OwnerDocumentRow = {
   created_at: string;
 };
 
+type OwnerStatementRow = {
+  id: string;
+  property_id: string;
+  period_label: string;
+  period_start: string | null;
+  period_end: string | null;
+  status: string;
+  currency: string;
+  gross_revenue: number;
+  morrow_fee: number;
+  other_costs: number;
+  owner_payout: number;
+  document_url: string | null;
+  paid_at: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
 type AgencyRow = {
   id: string;
   name: string;
@@ -231,6 +249,7 @@ type DashboardData = {
   ownerProfiles: OwnerProfileRow[];
   ownerAccess: OwnerAccessRow[];
   ownerDocuments: OwnerDocumentRow[];
+  ownerStatements: OwnerStatementRow[];
   agencies: AgencyRow[];
   guestFeedback: GuestFeedbackRow[];
   auditLogs: AuditLogRow[];
@@ -305,6 +324,20 @@ type OwnerDocumentDraft = {
   period_label: string;
 };
 
+type OwnerStatementDraft = {
+  property_id: string;
+  period_label: string;
+  period_start: string;
+  period_end: string;
+  status: string;
+  gross_revenue: string;
+  morrow_fee: string;
+  other_costs: string;
+  owner_payout: string;
+  document_url: string;
+  paid_at: string;
+};
+
 type AgencyDraft = {
   id: string;
   name: string;
@@ -358,6 +391,7 @@ const localPlaceCategories = [
 const packageDateStatuses = ["available", "reserved", "sold_out", "paused"] as const;
 const ownerDocumentTypes = ["agreement", "statement", "invoice", "report", "handover", "document"] as const;
 const ownerDocumentStatuses = ["draft", "visible", "archived"] as const;
+const ownerStatementStatuses = ["draft", "visible", "paid", "archived"] as const;
 const ownerDocumentTypeLabels: Record<string, string> = {
   agreement: "Vereinbarung",
   statement: "Abrechnung",
@@ -365,6 +399,12 @@ const ownerDocumentTypeLabels: Record<string, string> = {
   report: "Report",
   handover: "Übergabe",
   document: "Dokument",
+};
+const ownerStatementStatusLabels: Record<string, string> = {
+  archived: "Archiviert",
+  draft: "Entwurf",
+  paid: "Ausgezahlt",
+  visible: "Sichtbar",
 };
 const propertyAttributeOptions = [
   { value: "sea_near", label: "Nähe zum Wasser" },
@@ -485,6 +525,16 @@ function numberOrNull(value: string) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function decimalOrZero(value: string) {
+  const normalized = value
+    .trim()
+    .replace(/[^\d,.-]/g, "")
+    .replace(/\./g, "")
+    .replace(",", ".");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 function slugify(value: string) {
   return value
     .toLowerCase()
@@ -506,6 +556,14 @@ function formatDate(value: string) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("de-DE", {
+    currency: "EUR",
+    maximumFractionDigits: 0,
+    style: "currency",
+  }).format(value);
 }
 
 function leadSourceLabel(lead: LeadRow) {
@@ -1069,6 +1127,7 @@ export function AdminDashboardClient() {
           ownersResult,
           ownerAccessResult,
           ownerDocumentsResult,
+          ownerStatementsResult,
           agenciesResult,
           feedbackResult,
           auditResult,
@@ -1134,6 +1193,11 @@ export function AdminDashboardClient() {
               .select("id,property_id,title,document_type,status,url,period_label,payload,created_at")
               .order("created_at", { ascending: false }),
             supabase
+              .from("owner_statements")
+              .select("id,property_id,period_label,period_start,period_end,status,currency,gross_revenue,morrow_fee,other_costs,owner_payout,document_url,paid_at,payload,created_at")
+              .order("period_start", { ascending: false, nullsFirst: false })
+              .order("created_at", { ascending: false }),
+            supabase
               .from("agencies")
               .select("id,name,contact_name,email,phone,location,status,managed_property_ids,response_due_days,available_dates_note,payload,created_at")
               .order("name"),
@@ -1188,6 +1252,7 @@ export function AdminDashboardClient() {
             ownerProfiles: ownersResult.error ? [] : (ownersResult.data ?? []) as OwnerProfileRow[],
             ownerAccess: ownerAccessResult.error ? [] : (ownerAccessResult.data ?? []) as OwnerAccessRow[],
             ownerDocuments: ownerDocumentsResult.error ? [] : (ownerDocumentsResult.data ?? []) as OwnerDocumentRow[],
+            ownerStatements: ownerStatementsResult.error ? [] : (ownerStatementsResult.data ?? []) as OwnerStatementRow[],
             agencies: agenciesResult.error ? [] : (agenciesResult.data ?? []) as AgencyRow[],
             guestFeedback: feedbackResult.error ? [] : (feedbackResult.data ?? []) as GuestFeedbackRow[],
             auditLogs: auditResult.error ? [] : (auditResult.data ?? []) as AuditLogRow[],
@@ -1286,6 +1351,19 @@ function AdminDashboardView({
     status: "visible",
     url: "",
     period_label: "",
+  });
+  const [ownerStatementDraft, setOwnerStatementDraft] = useState<OwnerStatementDraft>({
+    property_id: "",
+    period_label: "",
+    period_start: "",
+    period_end: "",
+    status: "draft",
+    gross_revenue: "",
+    morrow_fee: "",
+    other_costs: "",
+    owner_payout: "",
+    document_url: "",
+    paid_at: "",
   });
   const [agencyDraft, setAgencyDraft] = useState<AgencyDraft>({
     id: "",
@@ -2231,6 +2309,131 @@ function AdminDashboardView({
       setOwnerMessage(status === "visible" ? "Dokument ist im Eigentümerbereich sichtbar." : "Dokumentstatus aktualisiert.");
     } catch {
       setOwnerMessage("Der Dokumentstatus konnte nicht aktualisiert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function createOwnerStatement() {
+    const propertyId = ownerStatementDraft.property_id;
+    const periodLabel = ownerStatementDraft.period_label.trim();
+
+    if (!propertyId || !periodLabel) {
+      setOwnerMessage("Bitte Unterkunft und Zeitraum eintragen.");
+      return;
+    }
+
+    setPendingAction("owner-statement-create");
+    setOwnerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const insertPayload = {
+        property_id: propertyId,
+        period_label: periodLabel,
+        period_start: ownerStatementDraft.period_start || null,
+        period_end: ownerStatementDraft.period_end || null,
+        status: ownerStatementDraft.status || "draft",
+        currency: "EUR",
+        gross_revenue: decimalOrZero(ownerStatementDraft.gross_revenue),
+        morrow_fee: decimalOrZero(ownerStatementDraft.morrow_fee),
+        other_costs: decimalOrZero(ownerStatementDraft.other_costs),
+        owner_payout: decimalOrZero(ownerStatementDraft.owner_payout),
+        document_url: ownerStatementDraft.document_url.trim() || null,
+        paid_at: ownerStatementDraft.paid_at || null,
+        payload: {
+          source: "next-admin",
+          updatedAt: new Date().toISOString(),
+        },
+      };
+      const { data: inserted, error } = await supabase
+        .from("owner_statements")
+        .insert(insertPayload)
+        .select("id,property_id,period_label,period_start,period_end,status,currency,gross_revenue,morrow_fee,other_costs,owner_payout,document_url,paid_at,payload,created_at")
+        .single();
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        ownerStatements: [inserted as OwnerStatementRow, ...current.ownerStatements],
+      }));
+
+      await writeAuditLog({
+        action: "owner_statement_created",
+        entityType: "owner_statement",
+        entityId: (inserted as OwnerStatementRow).id,
+        entityLabel: periodLabel,
+        payload: insertPayload,
+      });
+
+      setOwnerStatementDraft({
+        property_id: propertyId,
+        period_label: "",
+        period_start: "",
+        period_end: "",
+        status: "draft",
+        gross_revenue: "",
+        morrow_fee: "",
+        other_costs: "",
+        owner_payout: "",
+        document_url: "",
+        paid_at: "",
+      });
+      setOwnerMessage("Eigentümerabrechnung gespeichert.");
+    } catch {
+      setOwnerMessage("Die Eigentümerabrechnung konnte nicht gespeichert werden. Ist die Owner-Abrechnungs-Migration live?");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function updateOwnerStatementStatus(statement: OwnerStatementRow, status: string) {
+    setPendingAction(`owner-statement-status-${statement.id}`);
+    setOwnerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data: updated, error } = await supabase
+        .from("owner_statements")
+        .update({
+          status,
+          paid_at: status === "paid" ? (statement.paid_at || todayIsoDate()) : statement.paid_at,
+          updated_at: new Date().toISOString(),
+          payload: {
+            ...(statement.payload ?? {}),
+            statusUpdatedAt: new Date().toISOString(),
+            source: "next-admin",
+          },
+        })
+        .eq("id", statement.id)
+        .select("id,property_id,period_label,period_start,period_end,status,currency,gross_revenue,morrow_fee,other_costs,owner_payout,document_url,paid_at,payload,created_at")
+        .single();
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        ownerStatements: current.ownerStatements.map((item) =>
+          item.id === statement.id ? updated as OwnerStatementRow : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "owner_statement_status_updated",
+        entityType: "owner_statement",
+        entityId: statement.id,
+        entityLabel: statement.period_label,
+        payload: { from: statement.status, to: status },
+      });
+
+      setOwnerMessage(
+        status === "visible"
+          ? "Abrechnung ist im Eigentümerbereich sichtbar."
+          : "Abrechnungsstatus aktualisiert.",
+      );
+    } catch {
+      setOwnerMessage("Der Abrechnungsstatus konnte nicht aktualisiert werden.");
     } finally {
       setPendingAction(null);
     }
@@ -4345,6 +4548,130 @@ function AdminDashboardView({
         </article>
 
         <article className="admin-card admin-card-wide">
+          <p className="admin-eyebrow">Abrechnung</p>
+          <h2>Monatsabrechnung vorbereiten</h2>
+          <p>
+            Hier pflegen wir den nachvollziehbaren Monatsstatus pro Unterkunft.
+            Sichtbar oder ausgezahlt erscheint er im Eigentümerbereich, Entwurf
+            bleibt intern.
+          </p>
+          <div className="admin-form-grid">
+            <label>
+              Unterkunft
+              <select
+                onChange={(event) => setOwnerStatementDraft((current) => ({ ...current, property_id: event.target.value }))}
+                value={ownerStatementDraft.property_id}
+              >
+                <option value="">Auswählen</option>
+                {data.properties.map((property) => (
+                  <option key={property.id} value={property.id}>
+                    {property.name || property.id}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Zeitraum
+              <input
+                onChange={(event) => setOwnerStatementDraft((current) => ({ ...current, period_label: event.target.value }))}
+                placeholder="August 2026"
+                value={ownerStatementDraft.period_label}
+              />
+            </label>
+            <label>
+              Von
+              <input
+                onChange={(event) => setOwnerStatementDraft((current) => ({ ...current, period_start: event.target.value }))}
+                type="date"
+                value={ownerStatementDraft.period_start}
+              />
+            </label>
+            <label>
+              Bis
+              <input
+                onChange={(event) => setOwnerStatementDraft((current) => ({ ...current, period_end: event.target.value }))}
+                type="date"
+                value={ownerStatementDraft.period_end}
+              />
+            </label>
+            <label>
+              Status
+              <select
+                onChange={(event) => setOwnerStatementDraft((current) => ({ ...current, status: event.target.value }))}
+                value={ownerStatementDraft.status}
+              >
+                {ownerStatementStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {ownerStatementStatusLabels[status]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Umsatz brutto
+              <input
+                inputMode="decimal"
+                onChange={(event) => setOwnerStatementDraft((current) => ({ ...current, gross_revenue: event.target.value }))}
+                placeholder="1990,00"
+                value={ownerStatementDraft.gross_revenue}
+              />
+            </label>
+            <label>
+              Morrow Anteil
+              <input
+                inputMode="decimal"
+                onChange={(event) => setOwnerStatementDraft((current) => ({ ...current, morrow_fee: event.target.value }))}
+                placeholder="298,50"
+                value={ownerStatementDraft.morrow_fee}
+              />
+            </label>
+            <label>
+              Weitere Kosten
+              <input
+                inputMode="decimal"
+                onChange={(event) => setOwnerStatementDraft((current) => ({ ...current, other_costs: event.target.value }))}
+                placeholder="120,00"
+                value={ownerStatementDraft.other_costs}
+              />
+            </label>
+            <label>
+              Auszahlung
+              <input
+                inputMode="decimal"
+                onChange={(event) => setOwnerStatementDraft((current) => ({ ...current, owner_payout: event.target.value }))}
+                placeholder="1571,50"
+                value={ownerStatementDraft.owner_payout}
+              />
+            </label>
+            <label>
+              Ausgezahlt am
+              <input
+                onChange={(event) => setOwnerStatementDraft((current) => ({ ...current, paid_at: event.target.value }))}
+                type="date"
+                value={ownerStatementDraft.paid_at}
+              />
+            </label>
+            <label className="admin-form-grid-full">
+              Dokument-Link optional
+              <input
+                onChange={(event) => setOwnerStatementDraft((current) => ({ ...current, document_url: event.target.value }))}
+                placeholder="https://..."
+                type="url"
+                value={ownerStatementDraft.document_url}
+              />
+            </label>
+          </div>
+          <button
+            className="admin-button"
+            disabled={pendingAction === "owner-statement-create"}
+            onClick={createOwnerStatement}
+            type="button"
+          >
+            Abrechnung speichern
+          </button>
+        </article>
+
+        <article className="admin-card admin-card-wide">
           <p className="admin-eyebrow">Freigaben</p>
           <h2>Aktive Eigentümerzugriffe</h2>
           <div className="admin-list">
@@ -4427,6 +4754,57 @@ function AdminDashboardView({
             ) : (
               <p className="admin-drawer-message">
                 Noch keine Eigentümerdokumente vorhanden oder Owner-Dokumente-Migration noch nicht live angewendet.
+              </p>
+            )}
+          </div>
+        </article>
+
+        <article className="admin-card admin-card-wide">
+          <p className="admin-eyebrow">Eigentümerabrechnungen</p>
+          <h2>Entwürfe, Sichtbarkeit und Auszahlung</h2>
+          <div className="admin-list">
+            {data.ownerStatements.length ? (
+              data.ownerStatements.map((statement) => (
+                <article className="admin-list-item" key={statement.id}>
+                  <div>
+                    <small>
+                      {ownerStatementStatusLabels[statement.status] || statement.status}
+                      {" · "}
+                      {statement.period_label}
+                      {statement.paid_at ? ` · bezahlt ${formatShortDate(statement.paid_at)}` : ""}
+                    </small>
+                    <strong>{formatCurrency(statement.owner_payout)} Auszahlung</strong>
+                    <em>
+                      {getPropertyName(data.properties, statement.property_id)}
+                      {" · Umsatz "}
+                      {formatCurrency(statement.gross_revenue)}
+                    </em>
+                  </div>
+                  <div className="admin-row-actions">
+                    {statement.document_url ? (
+                      <a href={statement.document_url} target="_blank" rel="noreferrer">
+                        Dokument
+                      </a>
+                    ) : null}
+                    {ownerStatementStatuses
+                      .filter((status) => status !== statement.status)
+                      .map((status) => (
+                        <button
+                          className={status === "archived" ? "is-danger" : undefined}
+                          disabled={pendingAction === `owner-statement-status-${statement.id}`}
+                          key={status}
+                          onClick={() => updateOwnerStatementStatus(statement, status)}
+                          type="button"
+                        >
+                          {ownerStatementStatusLabels[status]}
+                        </button>
+                      ))}
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">
+                Noch keine Eigentümerabrechnungen vorhanden oder Owner-Abrechnungs-Migration noch nicht live angewendet.
               </p>
             )}
           </div>

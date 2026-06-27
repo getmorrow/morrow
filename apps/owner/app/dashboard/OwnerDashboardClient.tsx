@@ -10,6 +10,7 @@ import {
   type OwnerDashboardDocument,
   type OwnerDashboardMessage,
   type OwnerDashboardProperty,
+  type OwnerDashboardStatement,
 } from "@morrow/supabase";
 
 type LoadState =
@@ -227,12 +228,6 @@ function bookingRevenue(bookings: OwnerDashboardBooking[]) {
   }, 0);
 }
 
-function payoutEstimate(bookings: OwnerDashboardBooking[]) {
-  const revenue = bookingRevenue(bookings);
-  if (!revenue) return 0;
-  return Math.round(revenue * 0.82);
-}
-
 function propertyOperations(property: OwnerDashboardProperty) {
   const payload = property.payload ?? {};
   const cleaningStatus = getPayloadText(payload, ["cleaningStatus", "cleaning", "housekeepingStatus"]) || "wird nach Buchung geplant";
@@ -266,6 +261,14 @@ function formatOwnerMessageLabel(message: OwnerDashboardMessage) {
 function formatOwnerMessageDateRange(message: OwnerDashboardMessage) {
   if (!message.requestedStartsOn && !message.requestedEndsOn) return null;
   return `${message.requestedStartsOn || "offen"} bis ${message.requestedEndsOn || "offen"}`;
+}
+
+function formatOwnerStatementStatus(statement: OwnerDashboardStatement) {
+  const labels: Record<string, string> = {
+    paid: "Ausgezahlt",
+    visible: "Freigegeben",
+  };
+  return labels[statement.status] || statement.status;
 }
 
 function getOpenPropertyNotes(properties: OwnerDashboardProperty[]) {
@@ -406,9 +409,12 @@ function OwnerDashboardView({
   const paidBookings = data.bookings.filter((booking) => booking.paymentStatus === "bezahlt");
   const reservedBookings = data.bookings.filter((booking) => booking.status === "Reserviert");
   const documentedRevenue = bookingRevenue(paidBookings);
-  const estimatedPayout = payoutEstimate(paidBookings);
   const ownerDocuments = data.documents ?? [];
   const ownerMessages = data.messages ?? [];
+  const ownerStatements = data.statements ?? [];
+  const latestStatement = ownerStatements[0] ?? null;
+  const statementRevenue = ownerStatements.reduce((sum, statement) => sum + Number(statement.grossRevenue || 0), 0);
+  const statementPayout = ownerStatements.reduce((sum, statement) => sum + Number(statement.ownerPayout || 0), 0);
   const displayName = data.profile.displayName || "dein Objekt";
   const selectedContactProperty = data.properties.find((property) => property.id === contactPropertyId) ?? data.properties[0] ?? null;
   const isAvailabilityRequest = contactCategory === "availability";
@@ -544,10 +550,17 @@ function OwnerDashboardView({
           </article>
           <article className="owner-card owner-highlight-card">
             <p className="eyebrow">Abrechnung</p>
-            <h2>{documentedRevenue ? `${formatCurrency(documentedRevenue)} dokumentiert` : "Noch kein Umsatz dokumentiert"}</h2>
+            <h2>
+              {latestStatement
+                ? `${formatCurrency(latestStatement.ownerPayout)} ${formatOwnerStatementStatus(latestStatement).toLowerCase()}`
+                : documentedRevenue
+                  ? `${formatCurrency(documentedRevenue)} dokumentiert`
+                  : "Noch keine Abrechnung sichtbar"}
+            </h2>
             <p>
-              Die Abrechnung bleibt bewusst nachvollziehbar: Buchungen,
-              Zahlungsstatus und spätere Auszahlung werden hier zusammengeführt.
+              {latestStatement
+                ? `${latestStatement.periodLabel} · ${latestStatement.propertyName || "Objekt"}`
+                : "Sobald Morrow eine Monatsabrechnung freigibt, erscheint sie hier nachvollziehbar für dein Objekt."}
             </p>
           </article>
         </section>
@@ -888,20 +901,58 @@ function OwnerDashboardView({
             <p className="eyebrow">Abrechnung</p>
             <h2>Monatsstatus statt Blackbox</h2>
             {data.properties.some((property) => property.canViewFinancials) ? (
-              <div className="owner-finance-grid">
-                <article>
-                  <span>Dokumentierter Umsatz</span>
-                  <strong>{documentedRevenue ? formatCurrency(documentedRevenue) : "offen"}</strong>
-                </article>
-                <article>
-                  <span>Orientierung Auszahlung</span>
-                  <strong>{estimatedPayout ? formatCurrency(estimatedPayout) : "offen"}</strong>
-                </article>
-                <article>
-                  <span>Bezahlte Buchungen</span>
-                  <strong>{paidBookings.length}</strong>
-                </article>
-              </div>
+              <>
+                <div className="owner-finance-grid">
+                  <article>
+                    <span>Freigegebener Umsatz</span>
+                    <strong>{statementRevenue ? formatCurrency(statementRevenue) : "offen"}</strong>
+                  </article>
+                  <article>
+                    <span>Auszahlung</span>
+                    <strong>{statementPayout ? formatCurrency(statementPayout) : "offen"}</strong>
+                  </article>
+                  <article>
+                    <span>Abrechnungen</span>
+                    <strong>{ownerStatements.length}</strong>
+                  </article>
+                </div>
+                <div className="owner-statement-list">
+                  {ownerStatements.length ? (
+                    ownerStatements.map((statement) => (
+                      <article className="owner-statement-item" key={statement.id}>
+                        <div>
+                          <span>
+                            {formatOwnerStatementStatus(statement)}
+                            {" · "}
+                            {statement.propertyName || "Objekt"}
+                          </span>
+                          <strong>{statement.periodLabel}</strong>
+                          <p>
+                            Umsatz {formatCurrency(statement.grossRevenue)}
+                            {" · "}
+                            Morrow {formatCurrency(statement.morrowFee)}
+                            {" · "}
+                            Kosten {formatCurrency(statement.otherCosts)}
+                          </p>
+                        </div>
+                        <div>
+                          <strong>{formatCurrency(statement.ownerPayout)}</strong>
+                          {statement.documentUrl ? (
+                            <a href={statement.documentUrl} target="_blank" rel="noreferrer">
+                              Beleg öffnen
+                            </a>
+                          ) : null}
+                        </div>
+                      </article>
+                    ))
+                  ) : (
+                    <p>
+                      Noch keine Monatsabrechnung freigegeben. Morrow ergänzt
+                      sie nach bestätigten und bezahlten Aufenthalten.
+                    </p>
+                  )}
+                </div>
+              </>
             ) : (
               <p>Finanzdaten sind für diesen Zugang nicht freigeschaltet.</p>
             )}

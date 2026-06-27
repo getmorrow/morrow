@@ -8,11 +8,13 @@ let ownerEmail = process.env.OWNER_EMAIL
 let ownerPassword = process.env.OWNER_PASSWORD
 const verifySupportInsert = process.env.OWNER_VERIFY_SUPPORT_INSERT === '1'
 const verifyDocumentAccess = process.env.OWNER_VERIFY_DOCUMENT_ACCESS === '1'
+const verifyStatementAccess = process.env.OWNER_VERIFY_STATEMENT_ACCESS === '1'
 const verifyTempOwner = process.env.OWNER_VERIFY_TEMP_OWNER === '1'
 const tempOwner = {
   authUserId: null,
   profileId: null,
   supportMessageIds: [],
+  statementId: null,
 }
 
 function requireEnv(value, name) {
@@ -288,6 +290,49 @@ if (verifyDocumentAccess) {
   )
 }
 
+if (verifyStatementAccess) {
+  const property = ownerDashboard.properties?.[0]
+  if (!property?.id) fail('Owner dashboard has no property for statement access verification')
+
+  const statementId = randomUUID()
+  tempOwner.statementId = statementId
+  const { error: statementInsertError } = await serviceClient.from('owner_statements').insert({
+    id: statementId,
+    property_id: property.id,
+    period_label: 'QA',
+    period_start: '2026-09-01',
+    period_end: '2026-09-30',
+    status: 'visible',
+    gross_revenue: 1990,
+    morrow_fee: 298.5,
+    other_costs: 120,
+    owner_payout: 1571.5,
+    document_url: 'https://www.getmorrow.de',
+    payload: {
+      source: 'owner-portal-verification',
+      qaMarker: statementId,
+    },
+  })
+
+  if (statementInsertError) fail('Owner statement insert failed', statementInsertError)
+
+  const { data: dashboardWithStatement, error: statementDashboardError } = await ownerClient.rpc('get_owner_dashboard')
+  if (statementDashboardError) fail('Owner dashboard RPC failed after statement insert', statementDashboardError)
+
+  const visibleStatement = dashboardWithStatement?.statements?.find((statement) => statement.id === statementId)
+  if (!visibleStatement) fail('Inserted visible owner statement was not returned to signed-in owner')
+  if (Number(visibleStatement.ownerPayout) !== 1571.5) fail('Owner statement payout value mismatch')
+
+  console.log(
+    [
+      'ok owner statement access',
+      `id=${statementId}`,
+      `property=${property.name ?? property.id}`,
+      `payout=${visibleStatement.ownerPayout}`,
+    ].join(' '),
+  )
+}
+
 await ownerClient.auth.signOut()
 
 if (tempOwner.supportMessageIds.length > 0) {
@@ -313,6 +358,15 @@ if (tempOwner.profileId) {
     .eq('id', tempOwner.profileId)
 
   if (profileCleanupError) fail('Temporary owner profile cleanup failed', profileCleanupError)
+}
+
+if (tempOwner.statementId) {
+  const { error: statementCleanupError } = await serviceClient
+    .from('owner_statements')
+    .delete()
+    .eq('id', tempOwner.statementId)
+
+  if (statementCleanupError) fail('Temporary owner statement cleanup failed', statementCleanupError)
 }
 
 if (tempOwner.authUserId) {

@@ -153,8 +153,9 @@ Stand: 2026-06-26
 - Der Eigentuemerzugriff ist strukturell ueber `owner_profiles` und `owner_property_access` vorbereitet und im Next-Admin pflegbar.
 - Die Eigentuemer-App liest eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
 - Eigentümerdokumente sind als eigene Tabelle `owner_documents` normalisiert, werden im Next-Admin pro Unterkunft gepflegt und über `get_owner_dashboard().documents` nur für freigegebene Objektzugriffe sichtbar gemacht.
+- Eigentümerabrechnungen sind als eigene Tabelle `owner_statements` normalisiert, werden im Next-Admin pro Unterkunft gepflegt und über `get_owner_dashboard().statements` nur für freigegebene Finanzzugriffe sichtbar gemacht.
 - `apps/web`, `apps/admin`, `apps/guest` und `apps/owner` mappen lokale `VITE_SUPABASE_*` Public-Variablen auf `NEXT_PUBLIC_SUPABASE_*`, damit lokale Next-Tests denselben Supabase-Zugang wie der Prototyp nutzen koennen.
-- `npm run supabase:verify-owner` prueft die Owner-Tabellen, `get_owner_dashboard()` und optional mit `OWNER_EMAIL`/`OWNER_PASSWORD` einen echten freigeschalteten Eigentuemerzugang; mit `OWNER_VERIFY_TEMP_OWNER=1` erzeugt der Test alternativ einen temporaeren Eigentuemerzugang, prueft Login/RPC/Support/Dokumente und raeumt ihn wieder auf.
+- `npm run supabase:verify-owner` prueft die Owner-Tabellen, `get_owner_dashboard()` und optional mit `OWNER_EMAIL`/`OWNER_PASSWORD` einen echten freigeschalteten Eigentuemerzugang; mit `OWNER_VERIFY_TEMP_OWNER=1` erzeugt der Test alternativ einen temporaeren Eigentuemerzugang, prueft Login/RPC/Support/Dokumente/Abrechnungen und raeumt ihn wieder auf.
 - Die Owner-Migrationen bis `202606270004` sind remote in Supabase angewendet; ein temporaerer Owner-E2E-Test mit `Nordlicht Lodge` hat Login, Dashboard-RPC, Supportnachricht, Eigenbelegungs-/Verfügbarkeitsanfrage, Rückfragen-Historie und Dokumentensichtbarkeit erfolgreich geprueft.
 - `apps/web`, `apps/admin`, `apps/guest` und `apps/owner` besitzen eigene Vercel-Konfigurationen fuer getrennte Next.js-Projekte aus dem Monorepo.
 - `apps/web` kann `/admin`, `/deine-auszeit/...`, `/owner` und `/app/eigentuemer` per `MORROW_ADMIN_APP_URL`, `MORROW_GUEST_APP_URL` und `MORROW_OWNER_APP_URL` auf die jeweiligen App-Projekte weiterleiten.
@@ -168,9 +169,10 @@ Naechste technische Prioritaet:
 1. Owner-, Admin- und Guest-App als getrennte Vercel-Projekte konfigurieren und mit `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` produktiv testen.
 2. Admin-App weiter ausbauen: Kommunikationsvorlagen, echte Medienbibliothek, Detailsektionen und tieferes Monitoring migrieren.
 3. Guest-App vertiefen: echte Gezeitenquelle, Veranstaltungen, Support-Chat-Antworten und Nach-Aufenthalt-Modus weiter aus dem Prototyp ueberfuehren.
-4. Owner-App danach vertiefen: echte Abrechnungsdatensaetze, Dokumentenablage, Operationshistorie und Eigentuemer-Kommunikation.
+4. Owner-App danach vertiefen: Abrechnungsdatensaetze, Dokumentenablage, Operationshistorie und Eigentuemer-Kommunikation.
    - Stand 2026-06-27: Dokumentenablage V1 ist als `owner_documents` mit Admin-Pflege, Owner-RLS, RPC-Ausgabe und Owner-Anzeige umgesetzt; Build, Typecheck und Lint bestanden.
    - Stand 2026-06-27: Eigentümer-Rückfragen werden im RPC als `messages` zurückgegeben, im Dashboard angezeigt und im temporären Owner-E2E-Test gegen Supabase geprüft.
+   - Stand 2026-06-27: Abrechnung V1 ist als `owner_statements` mit Admin-Pflege, Owner-RLS, RPC-Ausgabe und Owner-Anzeige umgesetzt.
 5. Fuer die Next-Guest-App einen aktiven Supabase-Testdatensatz mit gueltigem Access-Code live pflegen.
    - Stand 2026-06-27: Live-Testdatensatz `11111111-1111-4111-8111-111111111111` mit Code `MORROW1` ist gesetzt; `GUEST_VERIFY_SEED=1 npm run supabase:verify-guest` und `GUEST_BASE_URL=http://localhost:4310 npm run supabase:verify-guest` liefen erfolgreich.
 

@@ -1,7 +1,7 @@
 # Morrow Owner App
 
 Geschuetzte Eigentuemer-App fuer Objekttransparenz, freie Zeitraeume,
-Buchungen, Vermarktung, Operationshinweise und spaetere Abrechnung.
+Buchungen, Vermarktung, Operationshinweise und Abrechnung.
 
 Status: MVP-Light gestartet.
 
@@ -16,11 +16,12 @@ Status: MVP-Light gestartet.
   `support_messages` im Admin und enthalten bei Zeitraumfragen Von-/Bis-Daten.
 - Gesendete Eigentümer-Rückfragen werden über `get_owner_dashboard().messages`
   wieder im Dashboard angezeigt, inklusive Status, Objektbezug und Zeitraum.
+- Freigegebene Monatsabrechnungen werden aus `owner_statements` gelesen und
+  nur bei Finanzfreigabe des Objektzugriffs angezeigt.
 - Admin bleibt Quelle der Wahrheit.
 
 Naechste Ausbaustufen:
 
-- echte Monatsabrechnung auf Basis normalisierter Abrechnungsdatensaetze
 - Operationsstatus/Reinigung/Maengel
 - Eigentuemer-Kommunikation mit Antworten und Vorlagen
 - Freigaben fuer Eigenbelegung und Verfuegbarkeiten spaeter mit echter

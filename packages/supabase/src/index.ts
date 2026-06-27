@@ -85,6 +85,26 @@ export type OwnerDashboardMessage = {
   updatedAt: string | null;
 };
 
+export type OwnerDashboardStatement = {
+  id: string;
+  propertyId: string;
+  propertyName: string | null;
+  periodLabel: string;
+  periodStart: string | null;
+  periodEnd: string | null;
+  status: string;
+  currency: string;
+  grossRevenue: number;
+  morrowFee: number;
+  otherCosts: number;
+  ownerPayout: number;
+  documentUrl: string | null;
+  paidAt: string | null;
+  payload: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string | null;
+};
+
 export type OwnerDashboardData = {
   profile: {
     id: string;
@@ -99,6 +119,7 @@ export type OwnerDashboardData = {
   bookings: OwnerDashboardBooking[];
   documents?: OwnerDashboardDocument[];
   messages?: OwnerDashboardMessage[];
+  statements?: OwnerDashboardStatement[];
 };
 
 export function createSupabaseBrowserClient() {

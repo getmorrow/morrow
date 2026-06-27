@@ -596,6 +596,53 @@ button {
   line-height: 1;
 }
 
+.owner-statement-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.owner-statement-list > p {
+  color: rgba(24, 23, 21, 0.7);
+}
+
+.owner-statement-item {
+  align-items: start;
+  background: rgba(236, 230, 214, 0.5);
+  border: 1px solid rgba(24, 23, 21, 0.08);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.owner-statement-item > div {
+  display: grid;
+  gap: 6px;
+}
+
+.owner-statement-item span {
+  color: rgba(24, 23, 21, 0.58);
+  font-size: 12px;
+  font-weight: 840;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.owner-statement-item strong {
+  color: var(--offblack);
+  font-size: 17px;
+  font-weight: 880;
+}
+
+.owner-statement-item a {
+  color: var(--offblack);
+  font-size: 13px;
+  font-weight: 880;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 .owner-document-list {
   display: grid;
   gap: 10px;
