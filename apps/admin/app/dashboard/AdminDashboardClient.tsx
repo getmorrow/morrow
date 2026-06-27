@@ -30,8 +30,10 @@ type BookingRow = {
   id: string;
   lead_id?: string | null;
   customer_id?: string | null;
+  package_id?: string | null;
   status: string;
   payment_status: string;
+  guest_access_code?: string | null;
   created_at: string;
   payload: Record<string, unknown>;
 };
@@ -365,6 +367,12 @@ type PaymentDraft = {
 };
 
 type BookingOperationsDraft = {
+  package_id: string;
+  guest_name: string;
+  email: string;
+  phone: string;
+  selected_date: string;
+  guest_access_code: string;
   reservation_deadline: string;
   payment_due_date: string;
   adults: string;
@@ -626,6 +634,10 @@ function paymentStatusForBooking(status: string) {
     : "offen";
 }
 
+function isGuestAreaUnlocked(status: string) {
+  return ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen"].includes(status);
+}
+
 function paymentDraftFromBooking(booking: BookingRow | null): PaymentDraft {
   const payload = booking?.payload ?? {};
 
@@ -641,8 +653,17 @@ function paymentDraftFromBooking(booking: BookingRow | null): PaymentDraft {
 
 function bookingOperationsDraftFromBooking(booking: BookingRow | null): BookingOperationsDraft {
   const payload = booking?.payload ?? {};
+  const email = getPayloadText(payload, ["email", "guestEmail", "customerEmail"]) || "";
 
   return {
+    package_id: booking?.package_id || getPayloadText(payload, ["packageId", "package_id"]) || "",
+    guest_name: getPayloadText(payload, ["guestName", "customerName", "name"]) || "",
+    email,
+    phone: getPayloadText(payload, ["phone", "guestPhone", "customerPhone"]) || "",
+    selected_date: getPayloadText(payload, ["selectedDate", "dateLabel", "travelDate", "arrivalDate"]) || "",
+    guest_access_code: booking
+      ? booking.guest_access_code || getPayloadText(payload, ["guestAccessCode", "guest_access_code"]) || generatedGuestAccessCode(booking.id, email)
+      : "",
     reservation_deadline: getPayloadText(payload, ["reservationDeadline", "reservation_deadline"]) || "",
     payment_due_date: getPayloadText(payload, ["paymentDueDate", "payment_due_date"]) || "",
     adults: getPayloadText(payload, ["adults", "adultCount"]) || "",
@@ -653,6 +674,27 @@ function bookingOperationsDraftFromBooking(booking: BookingRow | null): BookingO
     experience_status: getPayloadText(payload, ["experienceStatus", "experience_status"]) || "offen",
     next_task: getPayloadText(payload, ["nextTask", "next_task"]) || "",
   };
+}
+
+function generatedGuestAccessCode(id: string, email?: string | null) {
+  const source = `${id}:${(email || "").toLowerCase()}`;
+  let hash = 0;
+
+  for (let index = 0; index < source.length; index += 1) {
+    hash = ((hash << 5) - hash + source.charCodeAt(index)) | 0;
+  }
+
+  return Math.abs(hash).toString(36).padStart(6, "0").slice(0, 6).toUpperCase();
+}
+
+function guestAccessCodeForBooking(booking: BookingRow) {
+  return booking.guest_access_code ||
+    getPayloadText(booking.payload ?? {}, ["guestAccessCode", "guest_access_code"]) ||
+    generatedGuestAccessCode(booking.id, getPayloadText(booking.payload ?? {}, ["email", "guestEmail", "customerEmail"]));
+}
+
+function guestAreaHref(booking: BookingRow) {
+  return `/deine-auszeit/${booking.id}?code=${guestAccessCodeForBooking(booking)}`;
 }
 
 function leadDetailsDraftFromLead(lead: LeadRow | null): LeadDetailsDraft {
@@ -1644,7 +1686,7 @@ export function AdminDashboardClient() {
               .limit(120),
             supabase
               .from("bookings")
-              .select("id,lead_id,customer_id,status,payment_status,created_at,payload")
+              .select("id,lead_id,customer_id,package_id,status,payment_status,guest_access_code,created_at,payload")
               .order("created_at", { ascending: false })
               .limit(30),
             supabase
@@ -3560,6 +3602,7 @@ function AdminDashboardView({
         (item) => item.slug === lead.package_slug || item.id === lead.package_slug,
       );
       const now = new Date().toISOString();
+      const accessCode = generatedGuestAccessCode(lead.id, lead.email);
       const leadPayload = {
         ...lead.payload,
         status: "Reserviert",
@@ -3575,6 +3618,7 @@ function AdminDashboardView({
         packageId: packageItem?.id ?? lead.package_slug,
         packageSlug: packageItem?.slug ?? lead.package_slug,
         packageName: packageItem?.name ?? lead.package_slug ?? "Auszeit",
+        guestAccessCode: accessCode,
         status: "Reserviert",
         paymentStatus: "offen",
         createdAt: now,
@@ -3598,6 +3642,7 @@ function AdminDashboardView({
         package_id: packageItem?.id ?? lead.package_slug,
         status: "Reserviert",
         payment_status: "offen",
+        guest_access_code: accessCode,
         payload: bookingPayload,
         updated_at: now,
       });
@@ -3609,8 +3654,10 @@ function AdminDashboardView({
           id: lead.id,
           lead_id: lead.id,
           customer_id: null,
+          package_id: packageItem?.id ?? lead.package_slug,
           status: "Reserviert",
           payment_status: "offen",
+          guest_access_code: accessCode,
           created_at: now,
           payload: bookingPayload,
         };
@@ -3650,10 +3697,12 @@ function AdminDashboardView({
     try {
       const supabase = createSupabaseBrowserClient();
       const paymentStatus = paymentStatusForBooking(status);
+      const guestAccessCode = booking.guest_access_code || guestAccessCodeForBooking(booking);
       const payload = {
         ...booking.payload,
         status,
         paymentStatus,
+        guestAccessCode,
         updatedAt: new Date().toISOString(),
       };
       const { error } = await supabase
@@ -3661,6 +3710,7 @@ function AdminDashboardView({
         .update({
           status,
           payment_status: paymentStatus,
+          guest_access_code: guestAccessCode,
           payload,
           updated_at: new Date().toISOString(),
         })
@@ -3672,7 +3722,7 @@ function AdminDashboardView({
         ...current,
         bookings: current.bookings.map((item) =>
           item.id === booking.id
-            ? { ...item, status, payment_status: paymentStatus, payload }
+            ? { ...item, status, payment_status: paymentStatus, guest_access_code: guestAccessCode, payload }
             : item,
         ),
       }));
@@ -3703,6 +3753,7 @@ function AdminDashboardView({
     try {
       const supabase = createSupabaseBrowserClient();
       const paymentStatus = paymentDraft.payment_status.trim() || "offen";
+      const guestAccessCode = selectedBooking.guest_access_code || guestAccessCodeForBooking(selectedBooking);
       const paymentPayload = {
         paymentStatus,
         paymentAmount: paymentDraft.payment_amount.trim(),
@@ -3710,6 +3761,7 @@ function AdminDashboardView({
         paymentMethod: paymentDraft.payment_method.trim(),
         paymentReference: paymentDraft.payment_reference.trim(),
         paymentProofUrl: paymentDraft.payment_proof_url.trim(),
+        guestAccessCode,
         updatedAt: new Date().toISOString(),
       };
       const payload = {
@@ -3720,6 +3772,7 @@ function AdminDashboardView({
         .from("bookings")
         .update({
           payment_status: paymentStatus,
+          guest_access_code: guestAccessCode,
           payload,
           updated_at: new Date().toISOString(),
         })
@@ -3731,7 +3784,7 @@ function AdminDashboardView({
         ...current,
         bookings: current.bookings.map((booking) =>
           booking.id === selectedBooking.id
-            ? { ...booking, payment_status: paymentStatus, payload }
+            ? { ...booking, payment_status: paymentStatus, guest_access_code: guestAccessCode, payload }
             : booking,
         ),
       }));
@@ -3768,7 +3821,15 @@ function AdminDashboardView({
 
     try {
       const supabase = createSupabaseBrowserClient();
+      const guestAccessCode = bookingOperationsDraft.guest_access_code.trim() ||
+        guestAccessCodeForBooking(selectedBooking);
       const operationsPayload = {
+        packageId: bookingOperationsDraft.package_id.trim() || null,
+        guestName: bookingOperationsDraft.guest_name.trim(),
+        email: bookingOperationsDraft.email.trim(),
+        phone: bookingOperationsDraft.phone.trim(),
+        selectedDate: bookingOperationsDraft.selected_date.trim(),
+        guestAccessCode,
         reservationDeadline: bookingOperationsDraft.reservation_deadline.trim(),
         paymentDueDate: bookingOperationsDraft.payment_due_date.trim(),
         adults: bookingOperationsDraft.adults.trim(),
@@ -3787,6 +3848,8 @@ function AdminDashboardView({
       const { error } = await supabase
         .from("bookings")
         .update({
+          package_id: bookingOperationsDraft.package_id.trim() || null,
+          guest_access_code: guestAccessCode,
           payload,
           updated_at: new Date().toISOString(),
         })
@@ -3798,7 +3861,12 @@ function AdminDashboardView({
         ...current,
         bookings: current.bookings.map((booking) =>
           booking.id === selectedBooking.id
-            ? { ...booking, payload }
+            ? {
+                ...booking,
+                package_id: bookingOperationsDraft.package_id.trim() || null,
+                guest_access_code: guestAccessCode,
+                payload,
+              }
             : booking,
         ),
       }));
@@ -3811,6 +3879,8 @@ function AdminDashboardView({
         payload: {
           reservationDeadline: operationsPayload.reservationDeadline,
           paymentDueDate: operationsPayload.paymentDueDate,
+          guestAccessCode,
+          packageId: operationsPayload.packageId,
           checkInStatus: operationsPayload.checkInStatus,
           experienceStatus: operationsPayload.experienceStatus,
           nextTask: operationsPayload.nextTask,
@@ -5417,6 +5487,11 @@ function AdminDashboardView({
                   >
                     Details
                   </button>
+                  {isGuestAreaUnlocked(booking.status) && booking.guest_access_code ? (
+                    <a href={guestAreaHref(booking)} rel="noreferrer" target="_blank">
+                      Gästebereich
+                    </a>
+                  ) : null}
                   {bookingStatuses.map((status) => (
                     <button
                       disabled={pendingAction === `booking-${booking.id}-${status}`}
@@ -7199,6 +7274,10 @@ function AdminDetailDrawer({
             <p className="admin-eyebrow">Operations</p>
             <div className="admin-drawer-context-grid">
               <article>
+                <small>Gästebereich</small>
+                <strong>{guestAccessCodeForBooking(booking)}</strong>
+              </article>
+              <article>
                 <small>Reservierungsfrist</small>
                 <strong>{bookingOperationsDraft.reservation_deadline || "offen"}</strong>
               </article>
@@ -7216,6 +7295,60 @@ function AdminDetailDrawer({
               </article>
             </div>
             <div className="admin-form-grid">
+              <label>
+                Gastname
+                <input
+                  onChange={(event) => onBookingOperationsChange("guest_name", event.target.value)}
+                  value={bookingOperationsDraft.guest_name}
+                />
+              </label>
+              <label>
+                E-Mail
+                <input
+                  onChange={(event) => onBookingOperationsChange("email", event.target.value)}
+                  value={bookingOperationsDraft.email}
+                />
+              </label>
+              <label>
+                Telefon
+                <input
+                  onChange={(event) => onBookingOperationsChange("phone", event.target.value)}
+                  value={bookingOperationsDraft.phone}
+                />
+              </label>
+              <label>
+                Auszeit
+                <select
+                  onChange={(event) => onBookingOperationsChange("package_id", event.target.value)}
+                  value={bookingOperationsDraft.package_id}
+                >
+                  <option value="">Nicht zugeordnet</option>
+                  {packages.map((packageItem) => (
+                    <option key={packageItem.id} value={packageItem.id}>
+                      {packageItem.name || packageItem.slug || packageItem.id}
+                    </option>
+                  ))}
+                  {bookingOperationsDraft.package_id && !packages.some((packageItem) =>
+                    packageItem.id === bookingOperationsDraft.package_id
+                  ) ? (
+                    <option value={bookingOperationsDraft.package_id}>{bookingOperationsDraft.package_id}</option>
+                  ) : null}
+                </select>
+              </label>
+              <label>
+                Termin
+                <input
+                  onChange={(event) => onBookingOperationsChange("selected_date", event.target.value)}
+                  value={bookingOperationsDraft.selected_date}
+                />
+              </label>
+              <label>
+                Zugangscode
+                <input
+                  onChange={(event) => onBookingOperationsChange("guest_access_code", event.target.value.toUpperCase())}
+                  value={bookingOperationsDraft.guest_access_code}
+                />
+              </label>
               <label>
                 Reservierungsfrist
                 <input
@@ -7308,6 +7441,15 @@ function AdminDetailDrawer({
             >
               {bookingOperationsPending ? "Speichern" : "Buchungsdetails speichern"}
             </button>
+            {booking.guest_access_code ? (
+              <p className="admin-drawer-message">
+                Gästebereich: <a href={guestAreaHref(booking)}>Link öffnen</a>
+              </p>
+            ) : bookingOperationsDraft.guest_access_code ? (
+              <p className="admin-drawer-message">
+                Der Zugangscode ist vorbereitet. Speichere die Buchungsdetails, damit der Gästebereich-Link aktiv wird.
+              </p>
+            ) : null}
           </section>
         ) : null}
 
