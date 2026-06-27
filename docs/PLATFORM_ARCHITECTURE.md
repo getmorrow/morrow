@@ -190,11 +190,13 @@ Zweck:
 Moeglicher Einstieg:
 
 - Phase 1: oeffentliche Landingpage `/eigentuemer` plus Leadformular
-- Phase 2: geschuetzter Bereich, z. B. `/app/eigentuemer` oder `/owner`
+- Phase 1/2: geschuetzter Bereich als eigene App, ueber `/owner` oder `/app/eigentuemer` von der Website weitergeleitet
 
 Empfohlene langfristige Route:
 
-- `/app/eigentuemer`
+- Oeffentliche Landingpage: `/eigentuemer`
+- Geschuetzter Bereich: `/owner`
+- Alternativer sprechender Einstieg: `/app/eigentuemer`
 
 Kernmodule:
 
@@ -550,7 +552,7 @@ Jede Welt braucht eine eigene Shell.
 Diese Punkte muessen vor groesserem Ausbau entschieden oder zumindest bewusst vertagt werden:
 
 - Wann wird aus codebasiertem Gaestezugang ein echter Account?
-- Wird die Eigentuemer-App unter `/app/eigentuemer` oder einer kuerzeren Route wie `/owner` gefuehrt?
+- Wird langfristig `/owner` als kurzer geschuetzter Einstieg beibehalten oder wird `/app/eigentuemer` die sichtbare Hauptadresse?
 - Werden Erlebnispartner langfristig eine eigene App bekommen oder im Admin/Kommunikationsfluss bleiben?
 - Wie granular werden Admin-Rollen: Operations, Guest Support, Finance, Marketing, Owner Management?
 - Wird Abrechnung als interne Admin-Funktion mit PDF-Ausgabe gestartet oder direkt als Eigentuemer-App-Modul?

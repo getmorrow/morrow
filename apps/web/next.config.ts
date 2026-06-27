@@ -1,7 +1,38 @@
 import type { NextConfig } from "next";
 
+function withoutTrailingSlash(value: string) {
+  return value.replace(/\/$/, "");
+}
+
+function appRedirects(sourcePrefix: string, destinationBaseUrl?: string) {
+  if (!destinationBaseUrl) return [];
+
+  const destination = withoutTrailingSlash(destinationBaseUrl);
+
+  return [
+    {
+      source: sourcePrefix,
+      destination,
+      permanent: false,
+    },
+    {
+      source: `${sourcePrefix}/:path*`,
+      destination: `${destination}/:path*`,
+      permanent: false,
+    },
+  ];
+}
+
 const nextConfig: NextConfig = {
   transpilePackages: ["@morrow/ui", "@morrow/domain", "@morrow/supabase"],
+  async redirects() {
+    return [
+      ...appRedirects("/admin", process.env.MORROW_ADMIN_APP_URL),
+      ...appRedirects("/deine-auszeit", process.env.MORROW_GUEST_APP_URL),
+      ...appRedirects("/owner", process.env.MORROW_OWNER_APP_URL),
+      ...appRedirects("/app/eigentuemer", process.env.MORROW_OWNER_APP_URL),
+    ];
+  },
 };
 
 export default nextConfig;

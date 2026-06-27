@@ -69,6 +69,22 @@ NEXT_PUBLIC_META_PIXEL_ID=...
 
 `NEXT_PUBLIC_GA_MEASUREMENT_ID` und `NEXT_PUBLIC_META_PIXEL_ID` nur setzen, wenn Tracking/Consent final gewollt ist. Ohne diese Werte rendert kein Tracking-Banner und keine Tracking-Skripte.
 
+In `apps/web` zusaetzlich setzen, sobald die App-Projekte live sind:
+
+```bash
+MORROW_ADMIN_APP_URL=https://<admin-app-domain>
+MORROW_GUEST_APP_URL=https://<guest-app-domain>
+MORROW_OWNER_APP_URL=https://<owner-app-domain>
+```
+
+Damit leitet die oeffentliche Website diese Einstiegspunkte weiter:
+- `/admin` -> Admin-App
+- `/deine-auszeit/...` -> Gaeste-App
+- `/owner` -> Eigentuemer-App
+- `/app/eigentuemer` -> Eigentuemer-App
+
+Die oeffentliche Eigentuemer-Landingpage bleibt bewusst unter `/eigentuemer`.
+
 Nicht in Vercel-Frontend setzen:
 - `RESEND_API_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
