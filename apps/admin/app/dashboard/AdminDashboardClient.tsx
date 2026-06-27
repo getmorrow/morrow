@@ -154,6 +154,18 @@ type OwnerAccessRow = {
   created_at: string;
 };
 
+type OwnerDocumentRow = {
+  id: string;
+  property_id: string;
+  title: string;
+  document_type: string;
+  status: string;
+  url: string;
+  period_label: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
 type CommunicationEventRow = {
   id: string;
   lead_id: string | null;
@@ -203,6 +215,7 @@ type DashboardData = {
   packageDates: PackageDateRow[];
   ownerProfiles: OwnerProfileRow[];
   ownerAccess: OwnerAccessRow[];
+  ownerDocuments: OwnerDocumentRow[];
   guestFeedback: GuestFeedbackRow[];
   auditLogs: AuditLogRow[];
 };
@@ -255,6 +268,15 @@ type OwnerAccessDraft = {
   can_view_operations: boolean;
 };
 
+type OwnerDocumentDraft = {
+  property_id: string;
+  title: string;
+  document_type: string;
+  status: string;
+  url: string;
+  period_label: string;
+};
+
 type ExperienceSelection =
   | { mode: "create" }
   | { mode: "edit"; id: string }
@@ -292,6 +314,16 @@ const localPlaceCategories = [
   "emergency",
 ] as const;
 const packageDateStatuses = ["available", "reserved", "sold_out", "paused"] as const;
+const ownerDocumentTypes = ["agreement", "statement", "invoice", "report", "handover", "document"] as const;
+const ownerDocumentStatuses = ["draft", "visible", "archived"] as const;
+const ownerDocumentTypeLabels: Record<string, string> = {
+  agreement: "Vereinbarung",
+  statement: "Abrechnung",
+  invoice: "Beleg",
+  report: "Report",
+  handover: "Übergabe",
+  document: "Dokument",
+};
 const propertyAttributeOptions = [
   { value: "sea_near", label: "Nähe zum Wasser" },
   { value: "quiet_location", label: "Ruhige Lage" },
@@ -923,6 +955,7 @@ export function AdminDashboardClient() {
           datesResult,
           ownersResult,
           ownerAccessResult,
+          ownerDocumentsResult,
           feedbackResult,
           auditResult,
         ] =
@@ -983,6 +1016,10 @@ export function AdminDashboardClient() {
               .select("id,owner_profile_id,property_id,role,can_view_financials,can_view_operations,created_at")
               .order("created_at", { ascending: false }),
             supabase
+              .from("owner_documents")
+              .select("id,property_id,title,document_type,status,url,period_label,payload,created_at")
+              .order("created_at", { ascending: false }),
+            supabase
               .from("guest_feedback")
               .select("id,lead_id,booking_id,rating,return_interest,payload,created_at")
               .order("created_at", { ascending: false })
@@ -1032,6 +1069,7 @@ export function AdminDashboardClient() {
             packageDates: (datesResult.data ?? []) as PackageDateRow[],
             ownerProfiles: ownersResult.error ? [] : (ownersResult.data ?? []) as OwnerProfileRow[],
             ownerAccess: ownerAccessResult.error ? [] : (ownerAccessResult.data ?? []) as OwnerAccessRow[],
+            ownerDocuments: ownerDocumentsResult.error ? [] : (ownerDocumentsResult.data ?? []) as OwnerDocumentRow[],
             guestFeedback: feedbackResult.error ? [] : (feedbackResult.data ?? []) as GuestFeedbackRow[],
             auditLogs: auditResult.error ? [] : (auditResult.data ?? []) as AuditLogRow[],
           },
@@ -1121,6 +1159,14 @@ function AdminDashboardView({
     role: "owner",
     can_view_financials: true,
     can_view_operations: true,
+  });
+  const [ownerDocumentDraft, setOwnerDocumentDraft] = useState<OwnerDocumentDraft>({
+    property_id: "",
+    title: "",
+    document_type: "document",
+    status: "visible",
+    url: "",
+    period_label: "",
   });
   const [ownerMessage, setOwnerMessage] = useState<string | null>(null);
   const [communicationEvents, setCommunicationEvents] = useState<CommunicationEventRow[]>([]);
@@ -1749,6 +1795,116 @@ function AdminDashboardView({
       setOwnerMessage("Objektzugriff entfernt.");
     } catch {
       setOwnerMessage("Der Objektzugriff konnte nicht entfernt werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function createOwnerDocument() {
+    const propertyId = ownerDocumentDraft.property_id;
+    const title = ownerDocumentDraft.title.trim();
+    const url = ownerDocumentDraft.url.trim();
+
+    if (!propertyId || !title || !url) {
+      setOwnerMessage("Bitte Unterkunft, Titel und Dokument-Link eintragen.");
+      return;
+    }
+
+    setPendingAction("owner-document-create");
+    setOwnerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const insertPayload = {
+        property_id: propertyId,
+        title,
+        document_type: ownerDocumentDraft.document_type || "document",
+        status: ownerDocumentDraft.status || "visible",
+        url,
+        period_label: ownerDocumentDraft.period_label.trim() || null,
+        payload: {
+          source: "next-admin",
+          updatedAt: new Date().toISOString(),
+        },
+      };
+      const { data: inserted, error } = await supabase
+        .from("owner_documents")
+        .insert(insertPayload)
+        .select("id,property_id,title,document_type,status,url,period_label,payload,created_at")
+        .single();
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        ownerDocuments: [inserted as OwnerDocumentRow, ...current.ownerDocuments],
+      }));
+
+      await writeAuditLog({
+        action: "owner_document_created",
+        entityType: "owner_document",
+        entityId: (inserted as OwnerDocumentRow).id,
+        entityLabel: title,
+        payload: insertPayload,
+      });
+
+      setOwnerDocumentDraft({
+        property_id: propertyId,
+        title: "",
+        document_type: "document",
+        status: "visible",
+        url: "",
+        period_label: "",
+      });
+      setOwnerMessage("Eigentümerdokument gespeichert.");
+    } catch {
+      setOwnerMessage("Das Eigentümerdokument konnte nicht gespeichert werden. Ist die Owner-Dokumente-Migration live?");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function updateOwnerDocumentStatus(document: OwnerDocumentRow, status: string) {
+    setPendingAction(`owner-document-status-${document.id}`);
+    setOwnerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data: updated, error } = await supabase
+        .from("owner_documents")
+        .update({
+          status,
+          updated_at: new Date().toISOString(),
+          payload: {
+            ...(document.payload ?? {}),
+            statusUpdatedAt: new Date().toISOString(),
+            source: "next-admin",
+          },
+        })
+        .eq("id", document.id)
+        .select("id,property_id,title,document_type,status,url,period_label,payload,created_at")
+        .single();
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        ownerDocuments: current.ownerDocuments.map((item) =>
+          item.id === document.id ? updated as OwnerDocumentRow : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "owner_document_status_updated",
+        entityType: "owner_document",
+        entityId: document.id,
+        entityLabel: document.title,
+        payload: { from: document.status, to: status },
+      });
+
+      setOwnerMessage(status === "visible" ? "Dokument ist im Eigentümerbereich sichtbar." : "Dokumentstatus aktualisiert.");
+    } catch {
+      setOwnerMessage("Der Dokumentstatus konnte nicht aktualisiert werden.");
     } finally {
       setPendingAction(null);
     }
@@ -3525,6 +3681,90 @@ function AdminDashboardView({
           </button>
         </article>
 
+        <article className="admin-card">
+          <p className="admin-eyebrow">Dokumente</p>
+          <h2>Für Eigentümer freigeben</h2>
+          <p>
+            Vereinbarungen, Abrechnungen oder Reports werden pro Unterkunft
+            gepflegt und erscheinen nur bei freigeschaltetem Objektzugriff.
+          </p>
+          <div className="admin-form-grid">
+            <label>
+              Unterkunft
+              <select
+                onChange={(event) => setOwnerDocumentDraft((current) => ({ ...current, property_id: event.target.value }))}
+                value={ownerDocumentDraft.property_id}
+              >
+                <option value="">Auswählen</option>
+                {data.properties.map((property) => (
+                  <option key={property.id} value={property.id}>
+                    {property.name || property.id}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Titel
+              <input
+                onChange={(event) => setOwnerDocumentDraft((current) => ({ ...current, title: event.target.value }))}
+                placeholder="Monatsabrechnung August"
+                value={ownerDocumentDraft.title}
+              />
+            </label>
+            <label>
+              Typ
+              <select
+                onChange={(event) => setOwnerDocumentDraft((current) => ({ ...current, document_type: event.target.value }))}
+                value={ownerDocumentDraft.document_type}
+              >
+                {ownerDocumentTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {ownerDocumentTypeLabels[type]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Status
+              <select
+                onChange={(event) => setOwnerDocumentDraft((current) => ({ ...current, status: event.target.value }))}
+                value={ownerDocumentDraft.status}
+              >
+                {ownerDocumentStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Zeitraum
+              <input
+                onChange={(event) => setOwnerDocumentDraft((current) => ({ ...current, period_label: event.target.value }))}
+                placeholder="August 2026"
+                value={ownerDocumentDraft.period_label}
+              />
+            </label>
+            <label>
+              Dokument-Link
+              <input
+                onChange={(event) => setOwnerDocumentDraft((current) => ({ ...current, url: event.target.value }))}
+                placeholder="https://..."
+                type="url"
+                value={ownerDocumentDraft.url}
+              />
+            </label>
+          </div>
+          <button
+            className="admin-button"
+            disabled={pendingAction === "owner-document-create"}
+            onClick={createOwnerDocument}
+            type="button"
+          >
+            Dokument speichern
+          </button>
+        </article>
+
         <article className="admin-card admin-card-wide">
           <p className="admin-eyebrow">Freigaben</p>
           <h2>Aktive Eigentümerzugriffe</h2>
@@ -3558,6 +3798,56 @@ function AdminDashboardView({
             ) : (
               <p className="admin-drawer-message">
                 Noch keine Eigentümerzugriffe vorhanden oder Owner-Migration noch nicht live angewendet.
+              </p>
+            )}
+          </div>
+        </article>
+
+        <article className="admin-card admin-card-wide">
+          <p className="admin-eyebrow">Eigentümerdokumente</p>
+          <h2>Freigegebene und vorbereitete Dokumente</h2>
+          <div className="admin-list">
+            {data.ownerDocuments.length ? (
+              data.ownerDocuments.map((document) => (
+                <article className="admin-list-item" key={document.id}>
+                  <div>
+                    <small>
+                      {ownerDocumentTypeLabels[document.document_type] || document.document_type}
+                      {" · "}
+                      {document.status}
+                      {document.period_label ? ` · ${document.period_label}` : ""}
+                    </small>
+                    <strong>{document.title}</strong>
+                    <em>{getPropertyName(data.properties, document.property_id)}</em>
+                  </div>
+                  <div className="admin-row-actions">
+                    <a href={document.url} target="_blank" rel="noreferrer">
+                      Öffnen
+                    </a>
+                    {document.status === "visible" ? (
+                      <button
+                        className="is-danger"
+                        disabled={pendingAction === `owner-document-status-${document.id}`}
+                        onClick={() => updateOwnerDocumentStatus(document, "archived")}
+                        type="button"
+                      >
+                        Archivieren
+                      </button>
+                    ) : (
+                      <button
+                        disabled={pendingAction === `owner-document-status-${document.id}`}
+                        onClick={() => updateOwnerDocumentStatus(document, "visible")}
+                        type="button"
+                      >
+                        Sichtbar machen
+                      </button>
+                    )}
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="admin-drawer-message">
+                Noch keine Eigentümerdokumente vorhanden oder Owner-Dokumente-Migration noch nicht live angewendet.
               </p>
             )}
           </div>

@@ -147,10 +147,11 @@ Diese Punkte bleiben bewusst nachgelagert:
 Stand: 2026-06-26
 
 - `apps/web` enthaelt die migrierte oeffentliche SEO-Website mit Startseite, Auszeiten, Eigentuemerpfad, Erlebnispartnerpfad und Ratgeber.
-- `apps/owner` ist als geschuetzte Eigentuemer-App gestartet und zeigt MVP-Light Objekttransparenz, freie Zeitraeume, Buchungen, Lueckenmarketing-Light, Vermarktungslogik, offene Objektpunkte, Operationsstatus, Dokumenthinweise und Abrechnungsausblick.
+- `apps/owner` ist als geschuetzte Eigentuemer-App gestartet und zeigt MVP-Light Objekttransparenz, freie Zeitraeume, Buchungen, Lueckenmarketing-Light, Vermarktungslogik, offene Objektpunkte, Operationsstatus, Dokumente und Abrechnungsausblick.
 - Eigentümer können im Next-Owner-Dashboard strukturierte Rückfragen zu Objekt, Buchung oder Abrechnung senden; diese landen über `support_messages` im Admin-Supportfluss und sind per RLS auf aktive `owner_profiles` begrenzt.
 - Der Eigentuemerzugriff ist strukturell ueber `owner_profiles` und `owner_property_access` vorbereitet und im Next-Admin pflegbar.
 - Die Eigentuemer-App liest eigene Objekte, Auszeiten, Termine und Buchungen ueber `get_owner_dashboard()`.
+- Eigentümerdokumente sind als eigene Tabelle `owner_documents` normalisiert, werden im Next-Admin pro Unterkunft gepflegt und über `get_owner_dashboard().documents` nur für freigegebene Objektzugriffe sichtbar gemacht.
 - `apps/admin` und `apps/owner` mappen lokale `VITE_SUPABASE_*` Public-Variablen auf `NEXT_PUBLIC_SUPABASE_*`, damit lokale Next-Tests denselben Supabase-Zugang wie der Prototyp nutzen koennen.
 - `npm run supabase:verify-owner` prueft die Owner-Tabellen, `get_owner_dashboard()` und optional mit `OWNER_EMAIL`/`OWNER_PASSWORD` einen echten freigeschalteten Eigentuemerzugang; mit `OWNER_VERIFY_SUPPORT_INSERT=1` prueft der Test zusaetzlich den Owner-Support-Rueckkanal in `support_messages`.
 - Die Owner-Migrationen bis `202606260003` sind remote in Supabase angewendet; ein freigeschalteter Owner-Testzugang wurde mit `Nordlicht Lodge` verknuepft und der Support-Rueckkanal wurde live getestet.
@@ -167,6 +168,7 @@ Naechste technische Prioritaet:
 2. Admin-App weiter ausbauen: Kommunikationsvorlagen, echte Medienbibliothek, Detailsektionen und tieferes Monitoring migrieren.
 3. Guest-App vertiefen: echte Gezeitenquelle, Veranstaltungen, Support-Chat-Antworten und Nach-Aufenthalt-Modus weiter aus dem Prototyp ueberfuehren.
 4. Owner-App danach vertiefen: echte Abrechnungsdatensaetze, Dokumentenablage, Operationshistorie und Eigentuemer-Kommunikation.
+   - Stand 2026-06-27: Dokumentenablage V1 ist als `owner_documents` mit Admin-Pflege, Owner-RLS, RPC-Ausgabe und Owner-Anzeige umgesetzt; Build, Typecheck und Lint bestanden.
 5. Fuer die Next-Guest-App einen aktiven Supabase-Testdatensatz mit gueltigem Access-Code live pflegen; lokaler Dev-Zugang ist vorhanden, Live-Seed wartet auf `SUPABASE_SERVICE_ROLE_KEY`.
 
 ## Empfohlene Umsetzungsreihenfolge

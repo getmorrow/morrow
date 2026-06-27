@@ -56,6 +56,19 @@ export type OwnerDashboardDate = {
   payload: Record<string, unknown>;
 };
 
+export type OwnerDashboardDocument = {
+  id: string;
+  propertyId: string;
+  propertyName: string | null;
+  title: string;
+  documentType: string;
+  status: string;
+  url: string;
+  periodLabel: string | null;
+  payload: Record<string, unknown>;
+  createdAt: string;
+};
+
 export type OwnerDashboardData = {
   profile: {
     id: string;
@@ -68,6 +81,7 @@ export type OwnerDashboardData = {
   packages: OwnerDashboardPackage[];
   dates: OwnerDashboardDate[];
   bookings: OwnerDashboardBooking[];
+  documents?: OwnerDashboardDocument[];
 };
 
 export function createSupabaseBrowserClient() {

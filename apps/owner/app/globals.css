@@ -594,14 +594,30 @@ button {
   gap: 10px;
 }
 
-.owner-document-list a,
-.owner-document-list span {
+.owner-document-list > a,
+.owner-document-list > span {
   background: rgba(236, 230, 214, 0.5);
   border-radius: 8px;
   color: rgba(24, 23, 21, 0.76);
+  display: grid;
   font-size: 14px;
   font-weight: 800;
+  gap: 5px;
   padding: 12px 14px;
+}
+
+.owner-document-list a span {
+  color: rgba(24, 23, 21, 0.58);
+  font-size: 12px;
+  font-weight: 840;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.owner-document-list a strong {
+  color: var(--offblack);
+  font-size: 15px;
+  font-weight: 880;
 }
 
 .owner-status-list p {

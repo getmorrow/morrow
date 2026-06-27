@@ -45,6 +45,7 @@ await checkTable(serviceClient, 'properties', 'id')
 await checkTable(serviceClient, 'packages', 'id')
 await checkTable(serviceClient, 'package_dates', 'id')
 await checkTable(serviceClient, 'bookings', 'id')
+await checkTable(serviceClient, 'owner_documents', 'id')
 
 const { error: rpcStructureError } = await serviceClient.rpc('get_owner_dashboard')
 if (rpcStructureError) fail('RPC get_owner_dashboard is missing or not executable', rpcStructureError)
@@ -82,6 +83,7 @@ console.log(
     `packages=${ownerDashboard.packages?.length ?? 0}`,
     `dates=${ownerDashboard.dates?.length ?? 0}`,
     `bookings=${ownerDashboard.bookings?.length ?? 0}`,
+    `documents=${ownerDashboard.documents?.length ?? 0}`,
   ].join(' '),
 )
 

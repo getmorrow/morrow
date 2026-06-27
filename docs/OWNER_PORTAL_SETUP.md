@@ -1,6 +1,6 @@
 # Morrow Owner Portal Setup
 
-Stand: 2026-06-25
+Stand: 2026-06-27
 
 Dieses Dokument beschreibt, wie der geschuetzte Eigentuemerbereich mit Supabase verbunden wird.
 
@@ -18,6 +18,7 @@ Die Eigentuemer-App liest danach nur:
 - damit verbundene Auszeiten
 - damit verbundene Termine
 - damit verbundene Buchungen
+- freigegebene Eigentümerdokumente wie Vereinbarungen, Abrechnungen, Belege, Reports und Übergaben
 
 Admin bleibt die Quelle der Wahrheit.
 
@@ -27,12 +28,14 @@ Die relevante Migration liegt hier:
 
 ```text
 supabase/migrations/202606250001_owner_portal_access.sql
+supabase/migrations/202606270001_owner_documents.sql
 ```
 
 Sie legt an:
 
 - `owner_profiles`
 - `owner_property_access`
+- `owner_documents`
 - `is_morrow_owner_for_property(property_id)`
 - `get_owner_dashboard()`
 - RLS Policies fuer Eigentuemerzugriff
@@ -90,8 +93,9 @@ Die alten `VITE_...` Variablen bleiben nur fuer den Prototyp und einige lokale S
 4. In Supabase pruefen:
    - `owner_profiles.status = active`
    - `owner_property_access.property_id` verweist auf bestehende `properties.id`
-   - `packages.property_id` verweist auf dieselbe Immobilie
-   - `package_dates.package_id` und `bookings.package_id` sind gesetzt
+  - `packages.property_id` verweist auf dieselbe Immobilie
+  - `package_dates.package_id` und `bookings.package_id` sind gesetzt
+  - sichtbare Dokumente liegen in `owner_documents.status = visible`
 
 ## Automatischer Verifikationstest
 
@@ -111,6 +115,7 @@ Dieser Test prueft:
 - `packages`
 - `package_dates`
 - `bookings`
+- `owner_documents`
 - `get_owner_dashboard()`
 
 Mit echtem Owner-Login:
@@ -124,7 +129,7 @@ export OWNER_PASSWORD="<owner-password>"
 npm run supabase:verify-owner
 ```
 
-Dann prueft der Test zusaetzlich, ob sich der Eigentuemer anmelden kann und ob `get_owner_dashboard()` fuer diesen Zugang eigene Objekte, Auszeiten, Termine und Buchungen liefert.
+Dann prueft der Test zusaetzlich, ob sich der Eigentuemer anmelden kann und ob `get_owner_dashboard()` fuer diesen Zugang eigene Objekte, Auszeiten, Termine, Buchungen und Dokumente liefert.
 
 Mit Support-Rueckkanal:
 

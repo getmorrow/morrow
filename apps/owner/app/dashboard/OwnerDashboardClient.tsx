@@ -7,6 +7,7 @@ import {
   type OwnerDashboardData,
   type OwnerDashboardBooking,
   type OwnerDashboardDate,
+  type OwnerDashboardDocument,
   type OwnerDashboardProperty,
 } from "@morrow/supabase";
 
@@ -28,6 +29,15 @@ const ownerContactCategoryLabels: Record<OwnerContactCategory, string> = {
   property: "Objekt oder Ausstattung",
   booking: "Buchung oder Zeitraum",
   accounting: "Abrechnung",
+};
+
+const ownerDocumentTypeLabels: Record<string, string> = {
+  agreement: "Vereinbarung",
+  document: "Dokument",
+  handover: "Übergabe",
+  invoice: "Beleg",
+  report: "Report",
+  statement: "Abrechnung",
 };
 
 function formatDateRange(booking: OwnerDashboardBooking) {
@@ -204,14 +214,18 @@ function propertyOperations(property: OwnerDashboardProperty) {
   const cleaningStatus = getPayloadText(payload, ["cleaningStatus", "cleaning", "housekeepingStatus"]) || "wird nach Buchung geplant";
   const maintenanceStatus = getPayloadText(payload, ["maintenanceStatus", "damageStatus", "operationsStatus"]) || "keine offenen Meldungen";
   const lastCheck = getPayloadText(payload, ["lastCheck", "lastInspection", "lastUpdated"]) || "noch nicht dokumentiert";
-  const documentLinks = getPayloadLines(payload, ["documents", "documentLinks", "ownerDocuments"]);
 
   return {
     cleaningStatus,
-    documentLinks,
     lastCheck,
     maintenanceStatus,
   };
+}
+
+function formatOwnerDocumentLabel(document: OwnerDashboardDocument) {
+  const typeLabel = ownerDocumentTypeLabels[document.documentType] || "Dokument";
+  const propertyLabel = document.propertyName || "Objekt";
+  return [typeLabel, propertyLabel, document.periodLabel].filter(Boolean).join(" · ");
 }
 
 function getOpenPropertyNotes(properties: OwnerDashboardProperty[]) {
@@ -351,13 +365,7 @@ function OwnerDashboardView({
   const reservedBookings = data.bookings.filter((booking) => booking.status === "Reserviert");
   const documentedRevenue = bookingRevenue(paidBookings);
   const estimatedPayout = payoutEstimate(paidBookings);
-  const ownerDocuments = data.properties.flatMap((property) =>
-    propertyOperations(property).documentLinks.map((document, index) => ({
-      href: document,
-      id: `${property.id}-${index}`,
-      label: `${property.name} · Dokument öffnen`,
-    })),
-  );
+  const ownerDocuments = data.documents ?? [];
   const displayName = data.profile.displayName || "dein Objekt";
   const selectedContactProperty = data.properties.find((property) => property.id === contactPropertyId) ?? data.properties[0] ?? null;
 
@@ -767,8 +775,9 @@ function OwnerDashboardView({
             <div className="owner-document-list">
               {ownerDocuments.length ? (
                 ownerDocuments.map((document) => (
-                  <a href={document.href} key={document.id} target="_blank" rel="noreferrer">
-                    {document.label}
+                  <a href={document.url} key={document.id} target="_blank" rel="noreferrer">
+                    <span>{formatOwnerDocumentLabel(document)}</span>
+                    <strong>{document.title}</strong>
                   </a>
                 ))
               ) : (

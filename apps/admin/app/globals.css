@@ -344,13 +344,17 @@ input {
   gap: 8px;
 }
 
-.admin-row-actions button {
+.admin-row-actions button,
+.admin-row-actions a {
+  align-items: center;
   background: rgba(255, 253, 248, 0.72);
   border: 1px solid var(--line);
   border-radius: 999px;
   cursor: pointer;
+  display: inline-flex;
   font-size: 12px;
   font-weight: 820;
+  justify-content: center;
   min-height: 34px;
   padding: 0 10px;
 }
