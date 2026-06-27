@@ -285,6 +285,24 @@ input {
   gap: 10px;
 }
 
+.admin-card-toolbar button {
+  background: rgba(255, 253, 248, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 820;
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+.admin-card-toolbar button.is-active,
+.admin-card-toolbar button[aria-pressed="true"] {
+  background: var(--offblack);
+  border-color: var(--offblack);
+  color: var(--offwhite);
+}
+
 .admin-card-wide {
   grid-column: 1 / -1;
 }

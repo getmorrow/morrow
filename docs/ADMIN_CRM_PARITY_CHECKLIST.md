@@ -31,7 +31,7 @@ Bis dahin gilt:
 | Admin-Shell | `AdminSection` mit Bereichen `overview`, `leads`, `tasks`, `guestSupport`, `customers`, `bookings`, `packages`, `experiences`, `localPlaces`, `owners`, `agencies`, `experienceProviders`, `activity` | Lange Dashboard-Seite mit Anchor-Navigation und gemischten Sektionen | teilweise | Entscheiden und umsetzen: echte Bereichsnavigation/Ansichten statt langer Seite oder bewusst dokumentierte Einseiten-Variante | Jeder alte Kernbereich ist in `apps/admin` eindeutig erreichbar, nicht nur als Kartenblock. |
 | Uebersicht | Tagesboard, Faelligkeiten, Wiedervorlagen, kommende Termine, aktive Arbeit | Kennzahlen, Aufgaben, Monitoring, Audit, Feedback | teilweise | Uebersicht auf Tagesarbeit fokussieren und zu Detailbereichen verlinken | Uebersicht zeigt nur Tagessteuerung; Detailarbeit findet in Bereichen statt. |
 | Leads/Anfragen | Status, Filter aktiv/archiviert, Typ/Status/Arbeitsstand, Wiedervorlage, Archiv, Reaktivierung, Testloeschung, Drawer | Leads laden, Status aendern, Reservierung anlegen, Drawer fuer Notiz/E-Mail/Historie | teilweise | Archiv/Reaktivierung, Wiedervorlage, Filtertiefe und Testloeschung ergaenzen oder bewusst anders loesen | Ein Lead kann von neu bis archiviert und reaktiviert komplett in Next bearbeitet werden; Historie bleibt sichtbar. |
-| Kunden | Kundensatz aus Gastanfragen, Kunden-Cards, Kontaktlinks, Anfragehistorie, Buchungshistorie, Filter Anfrage/Buchung/faellig | Kein eigener vollwertiger Kundenbereich; `customers` wird in Next-Admin nicht als eigener Arbeitsbereich geladen | fehlt | `customers` laden oder sauber aus Leads/Buchungen ableiten; eigene Kundenansicht mit Historie bauen | Ein Gastkontakt ist unabhaengig von einzelner Anfrage auffindbar, mit Kontakt, Anfragen, Buchungen und naechstem Schritt. |
+| Kunden | Kundensatz aus Gastanfragen, Kunden-Cards, Kontaktlinks, Anfragehistorie, Buchungshistorie, Filter Anfrage/Buchung/faellig | Eigener Kundenbereich leitet Gastkontakte aus `leads` + `bookings` ab, zeigt Kontaktlinks, Anfrage-/Buchungsanzahl, naechsten Schritt und oeffnet Lead-/Buchungsdrawer | teilweise | Dedizierten Kundendetail-Drawer mit kompletter Kommunikationshistorie und interner Kundennotiz pruefen/umsetzen | Ein Gastkontakt ist unabhaengig von einzelner Anfrage auffindbar, mit Kontakt, Anfragen, Buchungen und naechstem Schritt. |
 | Aufgaben | Aufgabenbereich mit direkter Anlage, Bezug, Faelligkeit, Prioritaet, Statusfilter, Bezugssprung, Loeschen, Wiedereroeffnen | Aufgaben werden geladen und Status kann aktualisiert werden; keine vollwertige Anlage/Bearbeitung/Filterung | teilweise | Aufgaben-CRUD und Filter aus Vite uebernehmen, mit Supabase/Audit statt LocalStorage | Aufgabe kann angelegt, gefiltert, geoeffnet, erledigt, wieder geoeffnet und geloescht/archiviert werden. |
 | Buchungen | Status, Zahlung, Reisegruppe, Hund, Check-in, Erlebnis, Aufgaben, Gaestebereich-Link, Follow-up | Status, Zahlung, Operationsdaten, Drawer, E-Mail/Notiz/Historie vorhanden | teilweise | Buchungsdetail gegen Vite-Felder pruefen; Aufgabenfluss und Kundenbezug schaerfen | Eine Buchung kann operativ von Reserviert bis Abgeschlossen gesteuert werden, inklusive Zahlung, Vorbereitung, Gastzugang und Historie. |
 | Gaestesupport | Supportfaelle aus Guest-App, Dringlichkeit, Kategorie, Status, passende Buchung, Kommunikation | Supportsektion, Status, Notiz, E-Mail, `support_status_events` vorhanden | migriert/teilweise | Detailfilter, SLA/Dringlichkeit, Owner-vs-Guest-Kontext pruefen | Supportfall kann vollstaendig triagiert, beantwortet, dokumentiert und geschlossen werden. |
@@ -86,18 +86,19 @@ Problem:
 
 Umsetzung:
 
-- Entscheiden: `customers` Tabelle fuehrend laden oder Kunden deterministisch aus `leads` + `bookings` ableiten und nur bei Bedarf speichern.
-- Kundenliste mit Kontakt, letzter Anfrage, Statusphase, Quelle, naechstem Schritt und Kontaktlinks.
+- Kunden werden im ersten Konsolidierungsschritt deterministisch aus Gast-`leads` + `bookings` abgeleitet. Eine eigene `customers`-Tabelle wird fuer A1 nicht vorausgesetzt.
+- Kundenliste mit Kontakt, letzter Anfrage, Statusphase, Quelle, naechstem Schritt und Kontaktlinks ist in `apps/admin` vorhanden.
 - Kundendetail mit Anfragehistorie, Buchungshistorie, Kommunikationsereignissen und interner Notiz.
-- Filter: alle, Anfragephase, gebucht, heute/faellig.
+- Filter: alle, Anfragephase, gebucht, heute/faellig ist in `apps/admin` vorhanden.
+- Lead- und Buchungsdetails werden aktuell ueber die bestehenden Drawer geoeffnet; ein dedizierter Kundendetail-Drawer bleibt offen.
 
 Abnahme:
 
-- Ein Gastlead taucht als Kunde auf.
-- Eine Reservierung/Buchung ist beim Kunden sichtbar.
-- E-Mail/Telefon sind klickbar.
+- Ein Gastlead taucht als Kunde auf. Stand: umgesetzt ueber Ableitung.
+- Eine Reservierung/Buchung ist beim Kunden sichtbar. Stand: umgesetzt als Zaehler und direkter Drawer-Sprung.
+- E-Mail/Telefon sind klickbar. Stand: umgesetzt.
 - Kommunikationshistorie und interne Notiz sind sichtbar.
-- Keine Testdaten zaehlen in Kernkennzahlen, wenn markiert.
+- Keine Testdaten zaehlen in Kernkennzahlen, wenn markiert. Stand: umgesetzt fuer Kundenkennzahl/Kundenliste anhand Payload-Testmarkern.
 
 ### A2 Aufgabenbereich
 

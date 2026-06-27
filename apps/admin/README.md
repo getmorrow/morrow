@@ -31,7 +31,7 @@ Vor weiterem Featurebau muss die CRM-Paritaet gegen den alten Vite-Prototyp aus 
 
 ## Noch nicht als paritaetisch bewiesen
 
-- Kundenbereich als eigener CRM-Arbeitsbereich.
+- Kundendetail als eigener CRM-Drawer mit vollstaendiger Historie und Kundennotiz. Die aktuelle Kundenliste wird bereits aus Gastanfragen und Buchungen abgeleitet.
 - Aufgabenbereich mit voller Erstellung, Bearbeitung, Filterung, Bezugssprung, Loeschen/Archivieren.
 - Lead-Archiv, Reaktivierung, Wiedervorlagen und Test-/Spam-Loeschen wie im Vite-Admin.
 - Vollstaendiger Auszeiten-Builder inklusive Copy, FAQ, Medien, Momente, Empfehlungen und Launch-Check.

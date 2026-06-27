@@ -281,6 +281,23 @@ type DetailSelection =
   | { type: "support"; id: string }
   | null;
 
+type CustomerPhaseFilter = "all" | "request" | "booking" | "due";
+
+type CustomerRow = {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  source: string;
+  latestStatus: string;
+  latestCreatedAt: string | null;
+  nextStep: string;
+  due: boolean;
+  isTest: boolean;
+  leads: LeadRow[];
+  bookings: BookingRow[];
+};
+
 type InventorySelection =
   | { mode: "create"; type: "package" | "property" }
   | { mode: "edit"; type: "package"; id: string }
@@ -850,6 +867,171 @@ function getOpenLeads(leads: LeadRow[]) {
   return leads.filter((lead) => !["Bezahlt", "Abgeschlossen", "Kein Interesse"].includes(lead.status));
 }
 
+function getContactEmail(payload: Record<string, unknown>, fallback?: string | null) {
+  return fallback || getPayloadText(payload, ["email", "customerEmail", "guestEmail"]);
+}
+
+function getContactPhone(payload: Record<string, unknown>, fallback?: string | null) {
+  return fallback || getPayloadText(payload, ["phone", "telefon", "customerPhone", "guestPhone"]);
+}
+
+function isTestPayload(payload: Record<string, unknown>) {
+  return getPayloadBool(payload, ["isTest", "test", "is_test"]) ||
+    getPayloadText(payload, ["source", "campaign", "utm_campaign"])?.toLowerCase().includes("test") ||
+    false;
+}
+
+function contactKey(email: string | null, phone: string | null, fallback: string) {
+  if (email) return `email:${email.trim().toLowerCase()}`;
+  if (phone) return `phone:${phone.replace(/\s+/g, "")}`;
+  return `id:${fallback}`;
+}
+
+function compareNewest(a: string | null, b: string | null) {
+  if (!a && !b) return 0;
+  if (!a) return 1;
+  if (!b) return -1;
+  return new Date(b).getTime() - new Date(a).getTime();
+}
+
+function getBookingLeadId(booking: BookingRow) {
+  return booking.lead_id || getPayloadText(booking.payload ?? {}, ["leadId", "lead_id"]);
+}
+
+function getCustomerLatestDate(leads: LeadRow[], bookings: BookingRow[]) {
+  return [...leads.map((lead) => lead.created_at), ...bookings.map((booking) => booking.created_at)]
+    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] || null;
+}
+
+function customerIsDue(leads: LeadRow[], bookings: BookingRow[]) {
+  const today = todayIsoDate();
+  const leadDue = leads.some((lead) => {
+    const due = getPayloadText(lead.payload ?? {}, ["followUpAt", "follow_up_at", "nextContactAt"]);
+    return Boolean(due && due.slice(0, 10) <= today);
+  });
+  const bookingDue = bookings.some((booking) => {
+    const due = getPayloadText(booking.payload ?? {}, ["nextTaskDueAt", "next_task_due_at", "paymentDueDate"]);
+    return Boolean(due && due.slice(0, 10) <= today);
+  });
+
+  return leadDue || bookingDue;
+}
+
+function getCustomerName(leads: LeadRow[], bookings: BookingRow[]) {
+  const lead = leads.find((item) => getLeadLabel(item));
+  if (lead) return getLeadLabel(lead);
+
+  const booking = bookings.find((item) => getPayloadText(item.payload ?? {}, ["guestName", "customerName", "name"]));
+  return booking ? getPayloadText(booking.payload ?? {}, ["guestName", "customerName", "name"]) || "Gastkontakt" : "Gastkontakt";
+}
+
+function getCustomerLatestStatus(leads: LeadRow[], bookings: BookingRow[]) {
+  const all = [
+    ...leads.map((lead) => ({ createdAt: lead.created_at, status: lead.status })),
+    ...bookings.map((booking) => ({ createdAt: booking.created_at, status: `${booking.status} · ${booking.payment_status}` })),
+  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  return all[0]?.status || "Kontakt";
+}
+
+function getCustomerSource(leads: LeadRow[]) {
+  const newestLead = [...leads].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+  return newestLead ? leadSourceLabel(newestLead) : "Buchung";
+}
+
+function getCustomerNextStep(leads: LeadRow[], bookings: BookingRow[], due: boolean) {
+  if (due) return "Heute nachfassen";
+  const openBooking = bookings.find((booking) => booking.payment_status !== "bezahlt");
+  if (openBooking) return "Zahlung oder Reservierung prüfen";
+  if (bookings.some((booking) => booking.status === "Abgeschlossen")) return "Feedback oder Wiederbuchung prüfen";
+  if (bookings.length) return "Aufenthalt vorbereiten";
+  if (leads.length) return "Anfrage qualifizieren";
+  return "Kontakt prüfen";
+}
+
+function buildCustomerRows(leads: LeadRow[], bookings: BookingRow[]) {
+  const customers = new Map<string, CustomerRow>();
+
+  function ensureCustomer(key: string, email: string | null, phone: string | null, fallbackId: string) {
+    const existing = customers.get(key);
+    if (existing) return existing;
+
+    const row: CustomerRow = {
+      id: key,
+      name: fallbackId,
+      email,
+      phone,
+      source: "Quelle offen",
+      latestStatus: "Kontakt",
+      latestCreatedAt: null,
+      nextStep: "Kontakt prüfen",
+      due: false,
+      isTest: false,
+      leads: [],
+      bookings: [],
+    };
+    customers.set(key, row);
+    return row;
+  }
+
+  const leadKeyById = new Map<string, string>();
+
+  leads
+    .filter((lead) => lead.type === "guest")
+    .forEach((lead) => {
+      const email = getContactEmail(lead.payload ?? {}, lead.email);
+      const phone = getContactPhone(lead.payload ?? {}, lead.phone);
+      const key = contactKey(email, phone, lead.id);
+      leadKeyById.set(lead.id, key);
+      const customer = ensureCustomer(key, email, phone, lead.id);
+      customer.email ||= email;
+      customer.phone ||= phone;
+      customer.leads.push(lead);
+    });
+
+  bookings.forEach((booking) => {
+    const linkedLeadKey = getBookingLeadId(booking);
+    const email = getContactEmail(booking.payload ?? {});
+    const phone = getContactPhone(booking.payload ?? {});
+    const key = linkedLeadKey && leadKeyById.has(linkedLeadKey)
+      ? leadKeyById.get(linkedLeadKey) as string
+      : contactKey(email, phone, booking.id);
+    const customer = ensureCustomer(key, email, phone, booking.id);
+    customer.email ||= email;
+    customer.phone ||= phone;
+    customer.bookings.push(booking);
+  });
+
+  return Array.from(customers.values())
+    .map((customer) => {
+      const due = customerIsDue(customer.leads, customer.bookings);
+      const isTest =
+        customer.leads.some((lead) => isTestPayload(lead.payload ?? {})) ||
+        customer.bookings.some((booking) => isTestPayload(booking.payload ?? {}));
+
+      return {
+        ...customer,
+        name: getCustomerName(customer.leads, customer.bookings),
+        source: getCustomerSource(customer.leads),
+        latestStatus: getCustomerLatestStatus(customer.leads, customer.bookings),
+        latestCreatedAt: getCustomerLatestDate(customer.leads, customer.bookings),
+        nextStep: getCustomerNextStep(customer.leads, customer.bookings, due),
+        due,
+        isTest,
+      };
+    })
+    .sort((a, b) => {
+      if (a.due !== b.due) return a.due ? -1 : 1;
+      return compareNewest(a.latestCreatedAt, b.latestCreatedAt);
+    });
+}
+
+function customerPhaseLabel(customer: CustomerRow) {
+  if (customer.bookings.length) return "Buchung";
+  if (customer.leads.length) return "Anfrage";
+  return "Kontakt";
+}
+
 function getLeadLabel(lead: LeadRow) {
   return (
     lead.name ||
@@ -1374,6 +1556,7 @@ function AdminDashboardView({
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [selection, setSelection] = useState<DetailSelection>(null);
+  const [customerPhaseFilter, setCustomerPhaseFilter] = useState<CustomerPhaseFilter>("all");
   const [inventorySelection, setInventorySelection] = useState<InventorySelection>(null);
   const [inventoryDraft, setInventoryDraft] = useState<InventoryDraft>({});
   const [inventoryMessage, setInventoryMessage] = useState<string | null>(null);
@@ -1457,6 +1640,14 @@ function AdminDashboardView({
   const [isDrawerLoading, setIsDrawerLoading] = useState(false);
   const data = dataState;
   const openLeads = useMemo(() => getOpenLeads(data.leads), [data.leads]);
+  const customerRows = useMemo(() => buildCustomerRows(data.leads, data.bookings), [data.leads, data.bookings]);
+  const activeCustomerRows = customerRows.filter((customer) => !customer.isTest);
+  const filteredCustomerRows = activeCustomerRows.filter((customer) => {
+    if (customerPhaseFilter === "request") return customer.leads.length > 0 && customer.bookings.length === 0;
+    if (customerPhaseFilter === "booking") return customer.bookings.length > 0;
+    if (customerPhaseFilter === "due") return customer.due;
+    return true;
+  });
   const paidBookings = data.bookings.filter((booking) => booking.payment_status === "bezahlt");
   const openSupport = data.supportMessages.filter((message) => message.status !== "closed");
   const activeTasks = data.tasks.filter((task) => task.status !== "done");
@@ -3780,6 +3971,7 @@ function AdminDashboardView({
         </a>
         <nav aria-label="Admin Navigation">
           <a href="#anfragen">Anfragen</a>
+          <a href="#kunden">Kunden</a>
           <a href="#buchungen">Buchungen</a>
           <a href="#aufgaben">Aufgaben</a>
           <a href="#support">Support</a>
@@ -3817,6 +4009,11 @@ function AdminDashboardView({
           <span>Buchungen</span>
           <strong>{data.bookings.length}</strong>
           <p>{paidBookings.length} bezahlt markiert</p>
+        </article>
+        <article>
+          <span>Kunden</span>
+          <strong>{activeCustomerRows.length}</strong>
+          <p>{customerRows.length - activeCustomerRows.length} Testkontakte ausgeblendet</p>
         </article>
         <article>
           <span>Heute fällig</span>
@@ -3957,6 +4154,72 @@ function AdminDashboardView({
                 </div>
               </article>
             ))}
+          </div>
+        </article>
+
+        <article className="admin-card admin-card-wide" id="kunden">
+          <p className="admin-eyebrow">Kunden</p>
+          <h2>Gastkontakte aus Anfragen und Buchungen</h2>
+          <p>
+            Dieser Bereich führt Gastanfragen und Buchungen zu einem Kundenblick
+            zusammen. Eigentümer- und Erlebnispartneranfragen bleiben in ihren
+            eigenen Arbeitsbereichen.
+          </p>
+          <div className="admin-card-toolbar" aria-label="Kundenfilter">
+            {[
+              ["all", "Alle"],
+              ["request", "Anfragephase"],
+              ["booking", "Mit Buchung"],
+              ["due", "Fällig"],
+            ].map(([value, label]) => (
+              <button
+                aria-pressed={customerPhaseFilter === value}
+                className={customerPhaseFilter === value ? "is-active" : undefined}
+                key={value}
+                onClick={() => setCustomerPhaseFilter(value as CustomerPhaseFilter)}
+                type="button"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="admin-list">
+            {filteredCustomerRows.slice(0, 12).map((customer) => {
+              const latestLead = [...customer.leads].sort((a, b) => compareNewest(a.created_at, b.created_at))[0];
+              const latestBooking = [...customer.bookings].sort((a, b) => compareNewest(a.created_at, b.created_at))[0];
+
+              return (
+                <article className="admin-list-item" key={customer.id}>
+                  <div>
+                    <small>
+                      {customerPhaseLabel(customer)} · {customer.latestCreatedAt ? formatDate(customer.latestCreatedAt) : "ohne Datum"} · {customer.source}
+                    </small>
+                    <strong>{customer.name}</strong>
+                    <em>{customer.latestStatus} · {customer.nextStep}</em>
+                    <p>
+                      {customer.leads.length} Anfrage{customer.leads.length === 1 ? "" : "n"} · {customer.bookings.length} Buchung{customer.bookings.length === 1 ? "" : "en"}
+                    </p>
+                  </div>
+                  <div className="admin-row-actions">
+                    {customer.email ? <a href={`mailto:${customer.email}`}>{customer.email}</a> : null}
+                    {customer.phone ? <a href={`tel:${customer.phone.replace(/\s+/g, "")}`}>{customer.phone}</a> : null}
+                    {latestLead ? (
+                      <button onClick={() => setSelection({ type: "lead", id: latestLead.id })} type="button">
+                        Anfrage öffnen
+                      </button>
+                    ) : null}
+                    {latestBooking ? (
+                      <button onClick={() => setSelection({ type: "booking", id: latestBooking.id })} type="button">
+                        Buchung öffnen
+                      </button>
+                    ) : null}
+                  </div>
+                </article>
+              );
+            })}
+            {filteredCustomerRows.length === 0 ? (
+              <p className="admin-drawer-message">Keine passenden Gastkontakte vorhanden.</p>
+            ) : null}
           </div>
         </article>
 
