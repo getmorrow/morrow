@@ -816,7 +816,9 @@ function auditActionLabel(action: string) {
     property_updated: "Unterkunft geändert",
     support_status_updated: "Supportstatus geändert",
     task_created: "Aufgabe angelegt",
+    task_deleted: "Aufgabe gelöscht",
     task_status_updated: "Aufgabe aktualisiert",
+    task_updated: "Aufgabe bearbeitet",
   };
 
   return labels[action] || action.replace(/_/g, " ");
@@ -1798,6 +1800,7 @@ function AdminDashboardView({
     priority: "medium",
     note: "",
   });
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [inventorySelection, setInventorySelection] = useState<InventorySelection>(null);
   const [inventoryDraft, setInventoryDraft] = useState<InventoryDraft>({});
   const [inventoryMessage, setInventoryMessage] = useState<string | null>(null);
@@ -1914,6 +1917,24 @@ function AdminDashboardView({
   const activeTasks = data.tasks.filter((task) => task.status !== "done");
   const dueTasks = activeTasks.filter((task) => task.due_at && task.due_at <= todayIsoDate());
   const taskReferenceOptions = useMemo(() => buildTaskReferenceOptions(data), [data]);
+  const taskReferenceSelectOptions = useMemo(() => {
+    if (!taskDraft.referenceValue || taskReferenceOptions.some((option) => option.value === taskDraft.referenceValue)) {
+      return taskReferenceOptions;
+    }
+
+    const editingTask = editingTaskId ? data.tasks.find((task) => task.id === editingTaskId) : null;
+    if (!editingTask) return taskReferenceOptions;
+
+    return [
+      {
+        value: taskDraft.referenceValue,
+        type: editingTask.reference_type,
+        id: editingTask.reference_id,
+        label: editingTask.reference_label || editingTask.reference_id,
+      },
+      ...taskReferenceOptions,
+    ];
+  }, [data.tasks, editingTaskId, taskDraft.referenceValue, taskReferenceOptions]);
   const filteredTasks = useMemo(() => (
     [...data.tasks]
       .filter((task) => taskStatusFilter === "all" || task.status === taskStatusFilter)
@@ -3946,13 +3967,112 @@ function AdminDashboardView({
     }
   }
 
-  async function createAdminTask() {
+  function resetTaskDraft(referenceValue = taskReferenceOptions[0]?.value || "") {
+    setEditingTaskId(null);
+    setTaskDraft({
+      title: "",
+      referenceValue,
+      dueAt: todayIsoDate(),
+      priority: "medium",
+      note: "",
+    });
+  }
+
+  function startEditTask(task: AdminTaskRow) {
+    const referenceValue = `${task.reference_type}:${task.reference_id}`;
+    setEditingTaskId(task.id);
+    setTaskDraft({
+      title: task.title,
+      referenceValue,
+      dueAt: task.due_at || "",
+      priority: task.priority === "low" || task.priority === "high" ? task.priority : "medium",
+      note: task.note || "",
+    });
+    setActiveWorkspace("tasks");
+    setActionMessage("Aufgabe zum Bearbeiten geladen.");
+  }
+
+  async function saveAdminTask() {
     const referenceValue = taskDraft.referenceValue || taskReferenceOptions[0]?.value || "";
     const reference = taskReferenceOptions.find((option) => option.value === referenceValue);
     const title = taskDraft.title.trim();
+    const existingTask = editingTaskId ? data.tasks.find((task) => task.id === editingTaskId) : null;
+    const referenceType = reference?.type || existingTask?.reference_type || "";
+    const referenceId = reference?.id || existingTask?.reference_id || "";
+    const referenceLabel = reference?.label || existingTask?.reference_label || null;
 
-    if (!title || !reference) {
+    if (!title || !referenceType || !referenceId) {
       setActionMessage("Bitte Aufgabentitel und Bezug auswählen.");
+      return;
+    }
+
+    if (existingTask) {
+      const actionKey = `task-update-${existingTask.id}`;
+      setPendingAction(actionKey);
+      setActionMessage(null);
+
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const payload = {
+          ...existingTask.payload,
+          editedFrom: "next-admin",
+          editedAt: new Date().toISOString(),
+        };
+        const { data: updated, error } = await supabase
+          .from("admin_tasks")
+          .update({
+            title,
+            reference_type: referenceType,
+            reference_id: referenceId,
+            reference_label: referenceLabel,
+            due_at: taskDraft.dueAt || null,
+            priority: taskDraft.priority,
+            note: taskDraft.note.trim() || null,
+            payload,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingTask.id)
+          .select("id,title,reference_type,reference_id,reference_label,due_at,status,priority,note,payload,created_at")
+          .single();
+
+        if (error) throw error;
+
+        const task = updated as AdminTaskRow;
+        setDataState((current) => ({
+          ...current,
+          tasks: current.tasks.map((item) => item.id === task.id ? task : item),
+        }));
+
+        await writeAuditLog({
+          action: "task_updated",
+          entityType: "admin_task",
+          entityId: task.id,
+          entityLabel: task.title,
+          payload: {
+            from: {
+              title: existingTask.title,
+              referenceType: existingTask.reference_type,
+              referenceId: existingTask.reference_id,
+              dueAt: existingTask.due_at,
+              priority: existingTask.priority,
+            },
+            to: {
+              title: task.title,
+              referenceType: task.reference_type,
+              referenceId: task.reference_id,
+              dueAt: task.due_at,
+              priority: task.priority,
+            },
+          },
+        });
+
+        resetTaskDraft(referenceValue);
+        setActionMessage("Aufgabe gespeichert.");
+      } catch {
+        setActionMessage("Die Aufgabe konnte nicht gespeichert werden.");
+      } finally {
+        setPendingAction(null);
+      }
       return;
     }
 
@@ -3972,9 +4092,9 @@ function AdminDashboardView({
         .insert({
           id,
           title,
-          reference_type: reference.type,
-          reference_id: reference.id,
-          reference_label: reference.label,
+          reference_type: referenceType,
+          reference_id: referenceId,
+          reference_label: referenceLabel,
           due_at: taskDraft.dueAt || null,
           status: "open",
           priority: taskDraft.priority,
@@ -3991,13 +4111,7 @@ function AdminDashboardView({
         ...current,
         tasks: [task, ...current.tasks],
       }));
-      setTaskDraft({
-        title: "",
-        referenceValue,
-        dueAt: todayIsoDate(),
-        priority: "medium",
-        note: "",
-      });
+      resetTaskDraft(referenceValue);
 
       await writeAuditLog({
         action: "task_created",
@@ -4015,6 +4129,53 @@ function AdminDashboardView({
       setActionMessage("Aufgabe angelegt.");
     } catch {
       setActionMessage("Die Aufgabe konnte nicht angelegt werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function deleteAdminTask(task: AdminTaskRow) {
+    const confirmed = window.confirm(`Aufgabe "${task.title}" wirklich löschen?`);
+    if (!confirmed) return;
+
+    const actionKey = `task-delete-${task.id}`;
+    setPendingAction(actionKey);
+    setActionMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("admin_tasks")
+        .delete()
+        .eq("id", task.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        tasks: current.tasks.filter((item) => item.id !== task.id),
+      }));
+      if (editingTaskId === task.id) {
+        resetTaskDraft();
+      }
+
+      await writeAuditLog({
+        action: "task_deleted",
+        entityType: "admin_task",
+        entityId: task.id,
+        entityLabel: task.title,
+        payload: {
+          referenceType: task.reference_type,
+          referenceId: task.reference_id,
+          status: task.status,
+          priority: task.priority,
+          dueAt: task.due_at,
+        },
+      });
+
+      setActionMessage("Aufgabe gelöscht.");
+    } catch {
+      setActionMessage("Die Aufgabe konnte nicht gelöscht werden.");
     } finally {
       setPendingAction(null);
     }
@@ -4686,7 +4847,7 @@ function AdminDashboardView({
         {activeWorkspace === "tasks" ? (
         <article className="admin-card admin-card-wide">
           <p className="admin-eyebrow">Aufgaben</p>
-          <h2>Heute im Blick</h2>
+          <h2>{editingTaskId ? "Aufgabe bearbeiten" : "Heute im Blick"}</h2>
           <div className="admin-task-create">
             <label>
               Aufgabe
@@ -4702,7 +4863,7 @@ function AdminDashboardView({
                 onChange={(event) => setTaskDraft((current) => ({ ...current, referenceValue: event.target.value }))}
                 value={taskDraft.referenceValue || taskReferenceOptions[0]?.value || ""}
               >
-                {taskReferenceOptions.map((option) => (
+                {taskReferenceSelectOptions.map((option) => (
                   <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
               </select>
@@ -4736,12 +4897,21 @@ function AdminDashboardView({
             </label>
             <button
               className="admin-button"
-              disabled={pendingAction?.startsWith("task-create") || taskReferenceOptions.length === 0}
-              onClick={createAdminTask}
+              disabled={
+                pendingAction?.startsWith("task-create") ||
+                pendingAction?.startsWith("task-update") ||
+                (!editingTaskId && taskReferenceOptions.length === 0)
+              }
+              onClick={saveAdminTask}
               type="button"
             >
-              Aufgabe anlegen
+              {editingTaskId ? "Aufgabe speichern" : "Aufgabe anlegen"}
             </button>
+            {editingTaskId ? (
+              <button className="admin-button secondary" onClick={() => resetTaskDraft()} type="button">
+                Abbrechen
+              </button>
+            ) : null}
           </div>
           <div className="admin-card-toolbar" aria-label="Aufgabenfilter">
             {(["open", "in_progress", "done", "all"] as TaskStatusFilter[]).map((status) => (
@@ -4792,6 +4962,9 @@ function AdminDashboardView({
                   {task.note ? <p>{task.note}</p> : null}
                 </div>
                 <div className="admin-row-actions">
+                  <button onClick={() => startEditTask(task)} type="button">
+                    Bearbeiten
+                  </button>
                   <button onClick={() => openTaskReference(task)} type="button">
                     Bezug öffnen
                   </button>
@@ -4805,6 +4978,14 @@ function AdminDashboardView({
                       {taskStatusLabel(status)}
                     </button>
                   ))}
+                  <button
+                    className="is-danger"
+                    disabled={pendingAction === `task-delete-${task.id}`}
+                    onClick={() => deleteAdminTask(task)}
+                    type="button"
+                  >
+                    Löschen
+                  </button>
                 </div>
               </article>
             ))}

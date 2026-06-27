@@ -32,7 +32,7 @@ Bis dahin gilt:
 | Uebersicht | Tagesboard, Faelligkeiten, Wiedervorlagen, kommende Termine, aktive Arbeit | Kennzahlen, Aufgaben, Monitoring, Audit, Feedback | teilweise | Uebersicht auf Tagesarbeit fokussieren und zu Detailbereichen verlinken | Uebersicht zeigt nur Tagessteuerung; Detailarbeit findet in Bereichen statt. |
 | Leads/Anfragen | Status, Filter aktiv/archiviert, Typ/Status/Arbeitsstand, Wiedervorlage, Archiv, Reaktivierung, Testloeschung, Drawer | Leads laden, filtern, Status aendern, Wiedervorlage setzen, archivieren, reaktivieren, Testdatensaetze loeschen, Reservierung anlegen, Drawer fuer Notiz/E-Mail/Historie | teilweise | Tiefe Lead-Detailbearbeitung, Spam-/Loeschpolicy und ggf. eigene Wiedervorlage-Spalte pruefen | Ein Lead kann von neu bis archiviert und reaktiviert komplett in Next bearbeitet werden; Historie bleibt sichtbar. |
 | Kunden | Kundensatz aus Gastanfragen, Kunden-Cards, Kontaktlinks, Anfragehistorie, Buchungshistorie, Filter Anfrage/Buchung/faellig | Eigener Kundenbereich leitet Gastkontakte aus `leads` + `bookings` ab, zeigt Kontaktlinks, naechsten Schritt, Kundendetail mit Anfrage-, Buchungs-, Kommunikations- und Aenderungshistorie | teilweise | Zentrale Kundennotiz als eigenes Feld/Tabelle pruefen; spaeter echte `customers`-Quelle entscheiden | Ein Gastkontakt ist unabhaengig von einzelner Anfrage auffindbar, mit Kontakt, Anfragen, Buchungen und naechstem Schritt. |
-| Aufgaben | Aufgabenbereich mit direkter Anlage, Bezug, Faelligkeit, Prioritaet, Statusfilter, Bezugssprung, Loeschen, Wiedereroeffnen | Aufgaben werden geladen, koennen angelegt, gefiltert, statusgeaendert und ueber den Bezug geoeffnet werden; Audit wird geschrieben | teilweise | Aufgabenbearbeitung und Loeschen/Archivieren gezielt ergaenzen | Aufgabe kann angelegt, gefiltert, geoeffnet, erledigt, wieder geoeffnet und geloescht/archiviert werden. |
+| Aufgaben | Aufgabenbereich mit direkter Anlage, Bezug, Faelligkeit, Prioritaet, Statusfilter, Bezugssprung, Loeschen, Wiedereroeffnen | Aufgaben werden geladen, koennen angelegt, bearbeitet, gefiltert, statusgeaendert, geloescht und ueber den Bezug geoeffnet werden; Audit wird geschrieben | weitgehend migriert | Archivierungsstrategie statt hartem Loeschen spaeter entscheiden; dedizierte Anbieterbearbeitung bleibt offen | Aufgabe kann angelegt, gefiltert, geoeffnet, bearbeitet, erledigt, wieder geoeffnet und geloescht werden. |
 | Buchungen | Status, Zahlung, Reisegruppe, Hund, Check-in, Erlebnis, Aufgaben, Gaestebereich-Link, Follow-up | Status, Zahlung, Operationsdaten, Drawer, E-Mail/Notiz/Historie vorhanden | teilweise | Buchungsdetail gegen Vite-Felder pruefen; Aufgabenfluss und Kundenbezug schaerfen | Eine Buchung kann operativ von Reserviert bis Abgeschlossen gesteuert werden, inklusive Zahlung, Vorbereitung, Gastzugang und Historie. |
 | Gaestesupport | Supportfaelle aus Guest-App, Dringlichkeit, Kategorie, Status, passende Buchung, Kommunikation | Supportsektion, Status, Notiz, E-Mail, `support_status_events` vorhanden | migriert/teilweise | Detailfilter, SLA/Dringlichkeit, Owner-vs-Guest-Kontext pruefen | Supportfall kann vollstaendig triagiert, beantwortet, dokumentiert und geschlossen werden. |
 | Kommunikation | Kommunikationshistorie, Notizen, E-Mail, spaeter WhatsApp | Drawer-Notiz und freie E-Mail aus Lead/Buchung/Support ueber Edge Function | teilweise | Vorlagen, zentrale Suche, WhatsApp-Opt-in-Dokumentation und Kanalfilter definieren | Alle relevanten Kontaktpunkte sind an Lead/Buchung/Support sichtbar und auditierbar. |
@@ -115,16 +115,19 @@ Umsetzung:
 - Filter nach Status, Bezug und Prioritaet sind in `apps/admin` vorhanden.
 - Status: offen, in Arbeit, erledigt ist in `apps/admin` vorhanden.
 - Bezug oeffnet passenden Datensatz oder fuehrt in den passenden Bereich. Stand: umgesetzt fuer Lead, Buchung, Support, Auszeit, Unterkunft, Vor-Ort-Ort, Owner-Profil; Anbieter-Bezug fuehrt in den Erlebnisbereich.
-- Loeschen nur fuer Test/Fehleintraege oder als Archiv/Status loesen. Stand: offen.
-- Dedizierte Aufgabenbearbeitung nach Anlage. Stand: offen.
+- Loeschen nur fuer Fehleintraege mit Bestaetigung und Audit. Stand: umgesetzt als Admin-Delete.
+- Dedizierte Aufgabenbearbeitung nach Anlage. Stand: umgesetzt im Aufgabenformular.
+- Archivierungsstrategie statt hartem Loeschen. Stand: offen/Produktentscheidung.
 
 Abnahme:
 
 - Aufgabe fuer Lead/Buchung/Auszeit/Ort/Eigentuemer/Anbieter anlegen. Stand: umgesetzt ueber Supabase-Insert.
 - Aufgabe filtern. Stand: umgesetzt.
+- Aufgabe bearbeiten. Stand: umgesetzt.
 - Aufgabe erledigen und wieder oeffnen. Stand: umgesetzt ueber Statuswechsel.
+- Aufgabe loeschen. Stand: umgesetzt mit Bestaetigung und Audit.
 - Bezug oeffnet passenden Drawer/Bereich. Stand: teilweise umgesetzt; Anbieter-Bezug braucht spaeter dedizierte Anbieterbearbeitung.
-- Audit-Log wird geschrieben. Stand: umgesetzt fuer Anlage und Statuswechsel.
+- Audit-Log wird geschrieben. Stand: umgesetzt fuer Anlage, Bearbeitung, Statuswechsel und Loeschung.
 
 ### A3 Lead-Archiv Und Wiedervorlagen
 
