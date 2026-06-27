@@ -357,7 +357,8 @@ button {
 }
 
 .owner-contact-form select,
-.owner-contact-form textarea {
+.owner-contact-form textarea,
+.owner-contact-form input {
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -367,8 +368,14 @@ button {
   width: 100%;
 }
 
-.owner-contact-form select {
+.owner-contact-form select,
+.owner-contact-form input {
   min-height: 48px;
+}
+
+.owner-contact-date-grid {
+  display: grid;
+  gap: 14px;
 }
 
 .owner-contact-form textarea {
@@ -650,6 +657,10 @@ button {
 
   .owner-contact-card {
     grid-template-columns: minmax(0, 0.82fr) minmax(360px, 0.62fr);
+  }
+
+  .owner-contact-date-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .owner-section-head {

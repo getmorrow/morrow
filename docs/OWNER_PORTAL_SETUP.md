@@ -19,8 +19,15 @@ Die Eigentuemer-App liest danach nur:
 - damit verbundene Termine
 - damit verbundene Buchungen
 - freigegebene Eigentümerdokumente wie Vereinbarungen, Abrechnungen, Belege, Reports und Übergaben
+- strukturierte Rückfragen, die der Eigentümer an Morrow sendet, werden als `support_messages` gespeichert
 
 Admin bleibt die Quelle der Wahrheit.
+
+## Rückkanal an Morrow
+
+Eigentümer können im Dashboard Rückfragen zu Objekt, Buchung, Eigenbelegung/Verfügbarkeit oder Abrechnung senden.
+
+Bei Eigenbelegung/Verfügbarkeit werden zusätzlich Von-/Bis-Daten abgefragt und im Payload der `support_messages` gespeichert. Das ist im MVP bewusst noch kein vollautomatischer Kalenderblocker: Der Fall landet zuerst im Admin, damit Morrow den Zeitraum prüft und danach sauber im operativen System bestätigt.
 
 ## Migration anwenden
 
@@ -139,6 +146,8 @@ npm run supabase:verify-owner
 ```
 
 Dann sendet der Test als eingeloggter Eigentuemer eine strukturierte Supportnachricht in `support_messages` und liest sie mit Service Role wieder aus. Das prueft den Weg von Eigentuemer-App zu Admin-Supportfluss.
+
+Für Verfügbarkeits- und Eigenbelegungsanfragen wird dieselbe Tabelle genutzt. Die App setzt dabei `category = owner_availability` und speichert `requestedStartsOn` sowie `requestedEndsOn` im Payload.
 
 Mit Dokument-Zugriff:
 

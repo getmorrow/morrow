@@ -22,12 +22,13 @@ type OwnerGap = OwnerDashboardDate & {
   urgency: "high" | "medium" | "low";
 };
 
-type OwnerContactCategory = "general" | "property" | "booking" | "accounting";
+type OwnerContactCategory = "general" | "property" | "booking" | "availability" | "accounting";
 
 const ownerContactCategoryLabels: Record<OwnerContactCategory, string> = {
   general: "Allgemeine Rückfrage",
   property: "Objekt oder Ausstattung",
   booking: "Buchung oder Zeitraum",
+  availability: "Eigenbelegung oder Verfügbarkeit",
   accounting: "Abrechnung",
 };
 
@@ -352,6 +353,8 @@ function OwnerDashboardView({
 }) {
   const [contactCategory, setContactCategory] = useState<OwnerContactCategory>("general");
   const [contactPropertyId, setContactPropertyId] = useState(data.properties[0]?.id ?? "");
+  const [contactStartsOn, setContactStartsOn] = useState("");
+  const [contactEndsOn, setContactEndsOn] = useState("");
   const [contactMessage, setContactMessage] = useState("");
   const [contactStatus, setContactStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const nextBookings = useMemo(() => getNextBookings(data.bookings), [data.bookings]);
@@ -368,20 +371,33 @@ function OwnerDashboardView({
   const ownerDocuments = data.documents ?? [];
   const displayName = data.profile.displayName || "dein Objekt";
   const selectedContactProperty = data.properties.find((property) => property.id === contactPropertyId) ?? data.properties[0] ?? null;
+  const isAvailabilityRequest = contactCategory === "availability";
+  const hasInvalidAvailabilityRange =
+    isAvailabilityRequest && Boolean(contactStartsOn && contactEndsOn && contactEndsOn < contactStartsOn);
 
   async function sendOwnerMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!contactMessage.trim() || contactStatus === "sending") return;
+    if (contactStatus === "sending") return;
+    if (isAvailabilityRequest && (!contactStartsOn || !contactEndsOn)) {
+      setContactStatus("error");
+      return;
+    }
+    if (hasInvalidAvailabilityRange) {
+      setContactStatus("error");
+      return;
+    }
+    if (!isAvailabilityRequest && !contactMessage.trim()) return;
 
     setContactStatus("sending");
+    const messageText = contactMessage.trim() || "Bitte Zeitraum für Eigenbelegung oder Verfügbarkeit prüfen.";
 
     try {
       const supabase = createSupabaseBrowserClient();
       const { error } = await supabase.from("support_messages").insert({
         id: crypto.randomUUID(),
         category: `owner_${contactCategory}`,
-        message: contactMessage.trim(),
-        urgency: contactCategory === "accounting" ? "soon" : "normal",
+        message: messageText,
+        urgency: contactCategory === "accounting" || isAvailabilityRequest ? "soon" : "normal",
         payload: {
           source: "next-owner",
           subject: ownerContactCategoryLabels[contactCategory],
@@ -393,12 +409,21 @@ function OwnerDashboardView({
           propertyId: selectedContactProperty?.id ?? null,
           propertyName: selectedContactProperty?.name ?? null,
           supportCategory: contactCategory,
+          requestedStartsOn: isAvailabilityRequest ? contactStartsOn : null,
+          requestedEndsOn: isAvailabilityRequest ? contactEndsOn : null,
+          requestedDateRangeLabel: isAvailabilityRequest
+            ? `${contactStartsOn || "offen"} bis ${contactEndsOn || "offen"}`
+            : null,
         },
       });
 
       if (error) throw error;
 
       setContactMessage("");
+      if (isAvailabilityRequest) {
+        setContactStartsOn("");
+        setContactEndsOn("");
+      }
       setContactStatus("sent");
     } catch {
       setContactStatus("error");
@@ -491,16 +516,19 @@ function OwnerDashboardView({
             <p className="eyebrow">Direkter Draht</p>
             <h2>Eine Rückfrage, die direkt im Morrow Admin landet.</h2>
             <p>
-              Für Objekt, Buchung oder Abrechnung kannst du hier eine kurze
-              Nachricht senden. Morrow ordnet sie intern deinem Profil und dem
-              passenden Objekt zu.
+              Für Objekt, Buchung, Abrechnung oder freie Zeiträume kannst du
+              hier eine kurze Nachricht senden. Morrow ordnet sie intern deinem
+              Profil und dem passenden Objekt zu.
             </p>
           </div>
           <form className="owner-contact-form" onSubmit={sendOwnerMessage}>
             <label>
               Thema
               <select
-                onChange={(event) => setContactCategory(event.target.value as OwnerContactCategory)}
+                onChange={(event) => {
+                  setContactCategory(event.target.value as OwnerContactCategory);
+                  if (contactStatus !== "idle") setContactStatus("idle");
+                }}
                 value={contactCategory}
               >
                 {(Object.keys(ownerContactCategoryLabels) as OwnerContactCategory[]).map((category) => (
@@ -524,6 +552,36 @@ function OwnerDashboardView({
                 ))}
               </select>
             </label>
+            {isAvailabilityRequest ? (
+              <div className="owner-contact-date-grid">
+                <label>
+                  Von
+                  <input
+                    max={contactEndsOn || undefined}
+                    onChange={(event) => {
+                      setContactStartsOn(event.target.value);
+                      if (contactStatus !== "idle") setContactStatus("idle");
+                    }}
+                    required
+                    type="date"
+                    value={contactStartsOn}
+                  />
+                </label>
+                <label>
+                  Bis
+                  <input
+                    min={contactStartsOn || undefined}
+                    onChange={(event) => {
+                      setContactEndsOn(event.target.value);
+                      if (contactStatus !== "idle") setContactStatus("idle");
+                    }}
+                    required
+                    type="date"
+                    value={contactEndsOn}
+                  />
+                </label>
+              </div>
+            ) : null}
             <label className="owner-contact-message">
               Nachricht
               <textarea
@@ -531,8 +589,12 @@ function OwnerDashboardView({
                   setContactMessage(event.target.value);
                   if (contactStatus !== "idle") setContactStatus("idle");
                 }}
-                placeholder="Was sollen wir für dich prüfen?"
-                required
+                placeholder={
+                  isAvailabilityRequest
+                    ? "Soll der Zeitraum blockiert, freigegeben oder geprüft werden?"
+                    : "Was sollen wir für dich prüfen?"
+                }
+                required={!isAvailabilityRequest}
                 rows={4}
                 value={contactMessage}
               />
@@ -545,7 +607,13 @@ function OwnerDashboardView({
                 <p>Nachricht ist angekommen und wird im Admin weiterbearbeitet.</p>
               ) : null}
               {contactStatus === "error" ? (
-                <p>Die Nachricht konnte nicht gesendet werden. Bitte später erneut versuchen.</p>
+                <p>
+                  {isAvailabilityRequest && (!contactStartsOn || !contactEndsOn)
+                    ? "Bitte Zeitraum vollständig auswählen."
+                    : hasInvalidAvailabilityRange
+                      ? "Bitte ein Enddatum nach dem Startdatum wählen."
+                    : "Die Nachricht konnte nicht gesendet werden. Bitte später erneut versuchen."}
+                </p>
               ) : null}
             </div>
           </form>
