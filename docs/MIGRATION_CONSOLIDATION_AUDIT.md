@@ -1,6 +1,6 @@
 # Morrow Migration And Consolidation Audit
 
-Stand: 2026-06-27
+Stand: 2026-06-28
 
 Dieses Dokument ist der neue Arbeitsrahmen fuer den Konsolidierungs-Sprint. Es gilt zusammen mit `docs/MORROW_MASTER_FRAME.md`, `docs/STRATEGIC_FOUNDATION_MORROW.md` und `docs/PLATFORM_ARCHITECTURE.md`.
 
@@ -110,7 +110,7 @@ Risiko:
 | Admin-Login/Rollen | `src/App.tsx` AdminAccess | `apps/admin/app/page.tsx`, `AdminLoginForm`, Supabase Auth/RPC | migriert | kritisch | Admin-Userpflege/Rotation operativ dokumentieren. |
 | Admin-Uebersicht | Vite `overview` | `apps/admin/app/dashboard/AdminDashboardClient.tsx` | teilweise | kritisch | Next hat clientseitige Arbeitsbereiche fuer Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer und Aktivitaet; echte Routen bleiben spaetere Architekturentscheidung. |
 | Anfragen/Leads | Vite `leads`, Lead-Drawer | `apps/admin` Leads-Sektion | weitgehend migriert | kritisch | Status, Reservierung, Detailbearbeitung im Drawer, Aktiv-/Archivfilter, Wiedervorlage, Reaktivierung und Testloeschung vorhanden; Spam-Policy und relationale Wiedervorlage-Spalte pruefen. |
-| Kunden | Vite `customers` | `apps/admin` | teilweise | kritisch | Next leitet Kunden aus Gastanfragen und Buchungen ab, zeigt Kontaktlinks, Anfrage-/Buchungsbezug, naechsten Schritt und Kundendetail mit Kommunikations-/Aenderungshistorie; zentrale Kundennotiz/echte Customers-Quelle bleibt offen. |
+| Kunden | Vite `customers` | `apps/admin` | weitgehend migriert | kritisch | Next verbindet echte `customers`-Datensaetze mit Gastanfragen und Buchungen, zeigt Kontaktlinks, Anfrage-/Buchungsbezug, naechsten Schritt, zentrale Kundennotiz und Kundendetail mit Kommunikations-/Aenderungshistorie; Dublettenbereinigung und spaetere Normalisierung der Customer-Erzeugung bleiben offen. |
 | Buchungen | Vite `bookings`, Booking-Drawer | `apps/admin` Buchungssektion | weitgehend migriert | kritisch | Status, Zahlung, Grunddaten, Operationsdaten und Gaestebereich-Code/-Link vorhanden; Kundenbezug, Aufgabenfluss und spaetere Freigabe-Normalisierung weiter pruefen. |
 | Aufgaben | Vite `tasks` | `apps/admin` Aufgabenbereich + Supabase `admin_tasks` | weitgehend migriert | kritisch | Next kann Aufgaben anlegen, bearbeiten, filtern, Status aendern, loeschen und Bezuege oeffnen; Archivierungsstrategie und dedizierte Anbieterbearbeitung bleiben offen. |
 | Gaestesupport | Vite `guestSupport` | `apps/admin` Supportsektion + `apps/guest` Hilfe | migriert / teilweise | kritisch | Status, Notiz, E-Mail, Verlauf vorhanden; Realtime/WhatsApp/Vorlagen offen. |
@@ -150,7 +150,7 @@ Risiko:
 ### In `apps/admin` vorhanden, aber noch nicht paritaetisch bewiesen
 
 - CRM-Filter und Arbeitsansichten aus dem alten Admin.
-- Kundenbereich mit Anfrage- und Buchungshistorie.
+- Kundenbereich mit Anfrage- und Buchungshistorie, echter `customers`-Quelle und zentraler Kundennotiz.
 - Aufgabenbearbeitung, Loeschung und Statusflow.
 - Spam-Policy und relationale Wiedervorlage-Spalte pruefen.
 - Pruefen, ob clientseitige Arbeitsbereiche fuer MVP reichen oder echte Admin-Routen noetig werden.

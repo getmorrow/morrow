@@ -1,6 +1,6 @@
 # Morrow Admin CRM Parity Checklist
 
-Stand: 2026-06-27
+Stand: 2026-06-28
 
 Dieses Dokument bricht `docs/MIGRATION_CONSOLIDATION_AUDIT.md` in konkrete Admin-Paritaetstickets herunter. Es ist keine Feature-Roadmap, sondern eine Konsolidierungs-Checkliste: `apps/admin` darf erst dann als voll fuehrende Quelle der Wahrheit gelten, wenn diese Punkte gegen den alten Vite-Admin aus `src/App.tsx` abgenommen sind.
 
@@ -31,7 +31,7 @@ Bis dahin gilt:
 | Admin-Shell | `AdminSection` mit Bereichen `overview`, `leads`, `tasks`, `guestSupport`, `customers`, `bookings`, `packages`, `experiences`, `localPlaces`, `owners`, `agencies`, `experienceProviders`, `activity` | Clientseitige Arbeitsbereichsnavigation mit Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer, Aktivitaet | teilweise | Pruefen, ob spaeter echte Routen statt clientseitiger Bereiche noetig sind | Jeder alte Kernbereich ist in `apps/admin` eindeutig erreichbar, nicht nur als Kartenblock. |
 | Uebersicht | Tagesboard, Faelligkeiten, Wiedervorlagen, kommende Termine, aktive Arbeit | Kennzahlen, Aufgaben, Monitoring, Audit, Feedback | teilweise | Uebersicht auf Tagesarbeit fokussieren und zu Detailbereichen verlinken | Uebersicht zeigt nur Tagessteuerung; Detailarbeit findet in Bereichen statt. |
 | Leads/Anfragen | Status, Filter aktiv/archiviert, Typ/Status/Arbeitsstand, Wiedervorlage, Archiv, Reaktivierung, Testloeschung, Drawer | Leads laden, filtern, Status aendern, Detaildaten bearbeiten, Wiedervorlage setzen, archivieren, reaktivieren, Testdatensaetze loeschen, Reservierung anlegen, Drawer fuer Notiz/E-Mail/Historie | weitgehend migriert | Spam-/Loeschpolicy und ggf. eigene Wiedervorlage-Spalte pruefen | Ein Lead kann von neu bis archiviert und reaktiviert komplett in Next bearbeitet werden; Historie bleibt sichtbar. |
-| Kunden | Kundensatz aus Gastanfragen, Kunden-Cards, Kontaktlinks, Anfragehistorie, Buchungshistorie, Filter Anfrage/Buchung/faellig | Eigener Kundenbereich leitet Gastkontakte aus `leads` + `bookings` ab, zeigt Kontaktlinks, naechsten Schritt, Kundendetail mit Anfrage-, Buchungs-, Kommunikations- und Aenderungshistorie | teilweise | Zentrale Kundennotiz als eigenes Feld/Tabelle pruefen; spaeter echte `customers`-Quelle entscheiden | Ein Gastkontakt ist unabhaengig von einzelner Anfrage auffindbar, mit Kontakt, Anfragen, Buchungen und naechstem Schritt. |
+| Kunden | Kundensatz aus Gastanfragen, Kunden-Cards, Kontaktlinks, Anfragehistorie, Buchungshistorie, Filter Anfrage/Buchung/faellig | Eigener Kundenbereich verbindet echte `customers`-Datensaetze mit Gastanfragen und Buchungen, zeigt Kontaktlinks, naechsten Schritt, Kundendetail, zentrale Kundennotiz, Anfrage-, Buchungs-, Kommunikations- und Aenderungshistorie | weitgehend migriert | Dedizierte Kundensuche, Dublettenbereinigung und spaetere Normalisierung der Customer-Erzeugung pruefen | Ein Gastkontakt ist unabhaengig von einzelner Anfrage auffindbar, mit Kontakt, Anfragen, Buchungen, Kundennotiz und naechstem Schritt. |
 | Aufgaben | Aufgabenbereich mit direkter Anlage, Bezug, Faelligkeit, Prioritaet, Statusfilter, Bezugssprung, Loeschen, Wiedereroeffnen | Aufgaben werden geladen, koennen angelegt, bearbeitet, gefiltert, statusgeaendert, geloescht und ueber den Bezug geoeffnet werden; Audit wird geschrieben | weitgehend migriert | Archivierungsstrategie statt hartem Loeschen spaeter entscheiden; dedizierte Anbieterbearbeitung bleibt offen | Aufgabe kann angelegt, gefiltert, geoeffnet, bearbeitet, erledigt, wieder geoeffnet und geloescht werden. |
 | Buchungen | Status, Zahlung, Reisegruppe, Hund, Check-in, Erlebnis, Aufgaben, Gaestebereich-Link, Follow-up | Status, Zahlung, Grunddaten, Operationsdaten, Gaestebereich-Code/-Link, Drawer, E-Mail/Notiz/Historie vorhanden | weitgehend migriert | Aufgabenfluss und Kundenbezug weiter schaerfen; Gaestebereich-Freigabe spaeter noch staerker normalisieren | Eine Buchung kann operativ von Reserviert bis Abgeschlossen gesteuert werden, inklusive Zahlung, Vorbereitung, Gastzugang und Historie. |
 | Gaestesupport | Supportfaelle aus Guest-App, Dringlichkeit, Kategorie, Status, passende Buchung, Kommunikation | Supportsektion, Status, Notiz, E-Mail, `support_status_events` vorhanden | migriert/teilweise | Detailfilter, SLA/Dringlichkeit, Owner-vs-Guest-Kontext pruefen | Supportfall kann vollstaendig triagiert, beantwortet, dokumentiert und geschlossen werden. |
@@ -86,12 +86,13 @@ Problem:
 
 Umsetzung:
 
-- Kunden werden im ersten Konsolidierungsschritt deterministisch aus Gast-`leads` + `bookings` abgeleitet. Eine eigene `customers`-Tabelle wird fuer A1 nicht vorausgesetzt.
+- Kunden werden deterministisch aus echter `customers`-Tabelle plus Gast-`leads` und `bookings` zusammengefuehrt.
 - Kundenliste mit Kontakt, letzter Anfrage, Statusphase, Quelle, naechstem Schritt und Kontaktlinks ist in `apps/admin` vorhanden.
-- Kundendetail mit Anfragehistorie, Buchungshistorie, Kommunikationsereignissen und internen Notizen aus Anfragen/Buchungen ist vorhanden.
+- Kundendetail mit Anfragehistorie, Buchungshistorie, zentraler Kundennotiz, Kommunikationsereignissen und internen Notizen aus Anfragen/Buchungen ist vorhanden.
 - Filter: alle, Anfragephase, gebucht, heute/faellig ist in `apps/admin` vorhanden.
 - Lead- und Buchungsdetails werden weiterhin ueber die bestehenden Drawer geoeffnet; der Kundendetail-Drawer fasst die Historie zusammen.
-- Zentrale Kundennotiz unabhaengig von einzelner Anfrage/Buchung. Stand: offen.
+- Zentrale Kundennotiz unabhaengig von einzelner Anfrage/Buchung. Stand: umgesetzt ueber `customers.notes` mit Audit.
+- Neue Reservierungen aus Gastanfragen erzeugen oder aktualisieren einen Kundensatz und verknuepfen die Buchung ueber `customer_id`.
 
 Abnahme:
 
@@ -99,6 +100,7 @@ Abnahme:
 - Eine Reservierung/Buchung ist beim Kunden sichtbar. Stand: umgesetzt als Zaehler und direkter Drawer-Sprung.
 - E-Mail/Telefon sind klickbar. Stand: umgesetzt.
 - Kommunikationshistorie und interne Notizen aus Anfrage/Buchung sind sichtbar. Stand: umgesetzt.
+- Zentrale Kundennotiz kann gespeichert und in der Aenderungshistorie nachvollzogen werden. Stand: umgesetzt.
 - Keine Testdaten zaehlen in Kernkennzahlen, wenn markiert. Stand: umgesetzt fuer Kundenkennzahl/Kundenliste anhand Payload-Testmarkern.
 
 ### A2 Aufgabenbereich

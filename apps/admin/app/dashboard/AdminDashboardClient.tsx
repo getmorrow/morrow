@@ -38,6 +38,18 @@ type BookingRow = {
   payload: Record<string, unknown>;
 };
 
+type CustomerRecordRow = {
+  id: string;
+  primary_lead_id: string | null;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  customer_type: string;
+  notes: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
 type SimpleRow = {
   id: string;
   name?: string;
@@ -253,6 +265,7 @@ type AuditLogRow = {
 
 type DashboardData = {
   profile: AdminProfile;
+  customers: CustomerRecordRow[];
   leads: LeadRow[];
   bookings: BookingRow[];
   packages: SimpleRow[];
@@ -302,9 +315,11 @@ type AdminWorkspace =
 
 type CustomerRow = {
   id: string;
+  customerRecord: CustomerRecordRow | null;
   name: string;
   email: string | null;
   phone: string | null;
+  notes: string | null;
   source: string;
   latestStatus: string;
   latestCreatedAt: string | null;
@@ -1337,18 +1352,35 @@ function getCustomerNextStep(leads: LeadRow[], bookings: BookingRow[], due: bool
   return "Kontakt prüfen";
 }
 
-function buildCustomerRows(leads: LeadRow[], bookings: BookingRow[]) {
+function buildCustomerRows(leads: LeadRow[], bookings: BookingRow[], customerRecords: CustomerRecordRow[]) {
   const customers = new Map<string, CustomerRow>();
 
-  function ensureCustomer(key: string, email: string | null, phone: string | null, fallbackId: string) {
+  function ensureCustomer(
+    key: string,
+    email: string | null,
+    phone: string | null,
+    fallbackId: string,
+    customerRecord: CustomerRecordRow | null = null,
+  ) {
     const existing = customers.get(key);
-    if (existing) return existing;
+    if (existing) {
+      if (customerRecord && !existing.customerRecord) {
+        existing.customerRecord = customerRecord;
+        existing.id = customerRecord.id;
+        existing.notes = customerRecord.notes;
+      }
+      existing.email ||= email;
+      existing.phone ||= phone;
+      return existing;
+    }
 
     const row: CustomerRow = {
-      id: key,
-      name: fallbackId,
+      id: customerRecord?.id ?? key,
+      customerRecord,
+      name: customerRecord?.name || fallbackId,
       email,
       phone,
+      notes: customerRecord?.notes ?? null,
       source: "Quelle offen",
       latestStatus: "Kontakt",
       latestCreatedAt: null,
@@ -1363,15 +1395,27 @@ function buildCustomerRows(leads: LeadRow[], bookings: BookingRow[]) {
   }
 
   const leadKeyById = new Map<string, string>();
+  const customerKeyById = new Map<string, string>();
+
+  customerRecords.forEach((record) => {
+    const key = record.primary_lead_id
+      ? `lead:${record.primary_lead_id}`
+      : contactKey(record.email, record.phone, record.id);
+    customerKeyById.set(record.id, key);
+    ensureCustomer(key, record.email, record.phone, record.id, record);
+  });
 
   leads
     .filter((lead) => lead.type === "guest")
     .forEach((lead) => {
       const email = getContactEmail(lead.payload ?? {}, lead.email);
       const phone = getContactPhone(lead.payload ?? {}, lead.phone);
-      const key = contactKey(email, phone, lead.id);
+      const linkedCustomer = customerRecords.find((record) => record.primary_lead_id === lead.id);
+      const key = linkedCustomer
+        ? customerKeyById.get(linkedCustomer.id) ?? `lead:${lead.id}`
+        : contactKey(email, phone, lead.id);
       leadKeyById.set(lead.id, key);
-      const customer = ensureCustomer(key, email, phone, lead.id);
+      const customer = ensureCustomer(key, email, phone, lead.id, linkedCustomer ?? null);
       customer.email ||= email;
       customer.phone ||= phone;
       customer.leads.push(lead);
@@ -1381,10 +1425,15 @@ function buildCustomerRows(leads: LeadRow[], bookings: BookingRow[]) {
     const linkedLeadKey = getBookingLeadId(booking);
     const email = getContactEmail(booking.payload ?? {});
     const phone = getContactPhone(booking.payload ?? {});
-    const key = linkedLeadKey && leadKeyById.has(linkedLeadKey)
+    const key = booking.customer_id && customerKeyById.has(booking.customer_id)
+      ? customerKeyById.get(booking.customer_id) as string
+      : linkedLeadKey && leadKeyById.has(linkedLeadKey)
       ? leadKeyById.get(linkedLeadKey) as string
       : contactKey(email, phone, booking.id);
-    const customer = ensureCustomer(key, email, phone, booking.id);
+    const customerRecord = booking.customer_id
+      ? customerRecords.find((record) => record.id === booking.customer_id) ?? null
+      : null;
+    const customer = ensureCustomer(key, email, phone, booking.id, customerRecord);
     customer.email ||= email;
     customer.phone ||= phone;
     customer.bookings.push(booking);
@@ -1399,7 +1448,8 @@ function buildCustomerRows(leads: LeadRow[], bookings: BookingRow[]) {
 
       return {
         ...customer,
-        name: getCustomerName(customer.leads, customer.bookings),
+        name: customer.customerRecord?.name || getCustomerName(customer.leads, customer.bookings),
+        notes: customer.customerRecord?.notes ?? customer.notes,
         source: getCustomerSource(customer.leads),
         latestStatus: getCustomerLatestStatus(customer.leads, customer.bookings),
         latestCreatedAt: getCustomerLatestDate(customer.leads, customer.bookings),
@@ -1743,6 +1793,7 @@ export function AdminDashboardClient() {
         }
 
         const [
+          customersResult,
           leadsResult,
           bookingsResult,
           packagesResult,
@@ -1763,6 +1814,11 @@ export function AdminDashboardClient() {
           auditResult,
         ] =
           await Promise.all([
+            supabase
+              .from("customers")
+              .select("id,primary_lead_id,name,email,phone,customer_type,notes,payload,created_at")
+              .order("updated_at", { ascending: false })
+              .limit(160),
             supabase
               .from("leads")
               .select("id,type,status,name,email,phone,package_slug,source,campaign,archived_at,created_at,payload")
@@ -1851,6 +1907,7 @@ export function AdminDashboardClient() {
         if (!isMounted) return;
 
         const firstError =
+          customersResult.error ||
           leadsResult.error ||
           bookingsResult.error ||
           packagesResult.error ||
@@ -1874,6 +1931,7 @@ export function AdminDashboardClient() {
           status: "ready",
           data: {
             profile: profileResult.data as AdminProfile,
+            customers: (customersResult.data ?? []) as CustomerRecordRow[],
             leads: (leadsResult.data ?? []) as LeadRow[],
             bookings: (bookingsResult.data ?? []) as BookingRow[],
             packages: (packagesResult.data ?? []) as SimpleRow[],
@@ -2067,6 +2125,7 @@ function AdminDashboardView({
   const [customerCommunicationEvents, setCustomerCommunicationEvents] = useState<CommunicationEventRow[]>([]);
   const [customerAuditLogs, setCustomerAuditLogs] = useState<AuditLogRow[]>([]);
   const [customerDrawerMessage, setCustomerDrawerMessage] = useState<string | null>(null);
+  const [customerNoteDraft, setCustomerNoteDraft] = useState("");
   const [isCustomerDrawerLoading, setIsCustomerDrawerLoading] = useState(false);
   const [drawerNote, setDrawerNote] = useState("");
   const [outboundDraft, setOutboundDraft] = useState<OutboundDraft>({ subject: "", body: "" });
@@ -2092,7 +2151,10 @@ function AdminDashboardView({
       return true;
     })
     .sort((a, b) => Number(isLeadDue(b)) - Number(isLeadDue(a)) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  const customerRows = useMemo(() => buildCustomerRows(data.leads, data.bookings), [data.leads, data.bookings]);
+  const customerRows = useMemo(
+    () => buildCustomerRows(data.leads, data.bookings, data.customers),
+    [data.leads, data.bookings, data.customers],
+  );
   const activeCustomerRows = customerRows.filter((customer) => !customer.isTest);
   const filteredCustomerRows = activeCustomerRows.filter((customer) => {
     if (customerPhaseFilter === "request") return customer.leads.length > 0 && customer.bookings.length === 0;
@@ -2559,9 +2621,12 @@ function AdminDashboardView({
       setCustomerCommunicationEvents([]);
       setCustomerAuditLogs([]);
       setCustomerDrawerMessage(null);
+      setCustomerNoteDraft("");
       setIsCustomerDrawerLoading(false);
       return;
     }
+
+    setCustomerNoteDraft(selectedCustomer.notes || "");
 
     let isMounted = true;
     const activeCustomer = selectedCustomer;
@@ -2575,7 +2640,7 @@ function AdminDashboardView({
         const leadIds = activeCustomer.leads.map((lead) => lead.id);
         const bookingIds = activeCustomer.bookings.map((booking) => booking.id);
 
-        const [leadEventsResult, bookingEventsResult, leadAuditResult, bookingAuditResult] = await Promise.all([
+        const [leadEventsResult, bookingEventsResult, leadAuditResult, bookingAuditResult, customerAuditResult] = await Promise.all([
           leadIds.length
             ? supabase
                 .from("communication_events")
@@ -2610,6 +2675,15 @@ function AdminDashboardView({
                 .order("created_at", { ascending: false })
                 .limit(30)
             : Promise.resolve({ data: [], error: null }),
+          activeCustomer.customerRecord
+            ? supabase
+                .from("admin_audit_logs")
+                .select("id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at")
+                .eq("entity_type", "customer")
+                .eq("entity_id", activeCustomer.customerRecord.id)
+                .order("created_at", { ascending: false })
+                .limit(30)
+            : Promise.resolve({ data: [], error: null }),
         ]);
 
         if (!isMounted) return;
@@ -2617,7 +2691,8 @@ function AdminDashboardView({
           leadEventsResult.error ||
           bookingEventsResult.error ||
           leadAuditResult.error ||
-          bookingAuditResult.error
+          bookingAuditResult.error ||
+          customerAuditResult.error
         ) {
           setCustomerDrawerMessage("Kundenhistorie konnte nicht vollständig geladen werden.");
         }
@@ -2632,6 +2707,7 @@ function AdminDashboardView({
           [
             ...((leadAuditResult.data ?? []) as AuditLogRow[]),
             ...((bookingAuditResult.data ?? []) as AuditLogRow[]),
+            ...((customerAuditResult.data ?? []) as AuditLogRow[]),
           ].map((auditLog) => [auditLog.id, auditLog]),
         );
         const events = Array.from(eventsById.values()).sort(
@@ -2659,6 +2735,96 @@ function AdminDashboardView({
       isMounted = false;
     };
   }, [selectedCustomer]);
+
+  async function saveCustomerNote() {
+    if (!selectedCustomer) return;
+
+    const actionKey = `customer-note-${selectedCustomer.id}`;
+    setPendingAction(actionKey);
+    setCustomerDrawerMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const now = new Date().toISOString();
+      const notes = customerNoteDraft.trim() || null;
+      const leadIds = selectedCustomer.leads.map((lead) => lead.id);
+      const bookingIds = selectedCustomer.bookings.map((booking) => booking.id);
+      const payload = {
+        ...(selectedCustomer.customerRecord?.payload ?? {}),
+        linkedLeadIds: leadIds,
+        linkedBookingIds: bookingIds,
+        source: "next-admin",
+        updatedAt: now,
+      };
+
+      const customerPayload = {
+        primary_lead_id: selectedCustomer.customerRecord?.primary_lead_id ?? selectedCustomer.leads[0]?.id ?? null,
+        name: selectedCustomer.name || "Gastkontakt",
+        email: selectedCustomer.email,
+        phone: selectedCustomer.phone,
+        customer_type: "guest",
+        notes,
+        payload,
+        updated_at: now,
+      };
+
+      const customerResult = selectedCustomer.customerRecord
+        ? await supabase
+          .from("customers")
+          .update(customerPayload)
+          .eq("id", selectedCustomer.customerRecord.id)
+          .select("id,primary_lead_id,name,email,phone,customer_type,notes,payload,created_at")
+          .single()
+        : await supabase
+          .from("customers")
+          .insert(customerPayload)
+          .select("id,primary_lead_id,name,email,phone,customer_type,notes,payload,created_at")
+          .single();
+
+      if (customerResult.error) throw customerResult.error;
+
+      const savedCustomer = customerResult.data as CustomerRecordRow;
+
+      if (bookingIds.length) {
+        const bookingResult = await supabase
+          .from("bookings")
+          .update({ customer_id: savedCustomer.id, updated_at: now })
+          .in("id", bookingIds);
+
+        if (bookingResult.error) throw bookingResult.error;
+      }
+
+      setDataState((current) => ({
+        ...current,
+        customers: current.customers.some((item) => item.id === savedCustomer.id)
+          ? current.customers.map((item) => item.id === savedCustomer.id ? savedCustomer : item)
+          : [savedCustomer, ...current.customers],
+        bookings: current.bookings.map((booking) =>
+          bookingIds.includes(booking.id) ? { ...booking, customer_id: savedCustomer.id } : booking,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: selectedCustomer.customerRecord ? "customer_note_updated" : "customer_created",
+        entityType: "customer",
+        entityId: savedCustomer.id,
+        entityLabel: savedCustomer.name,
+        payload: {
+          from: selectedCustomer.customerRecord?.notes ?? null,
+          to: savedCustomer.notes,
+          leadIds,
+          bookingIds,
+        },
+      });
+
+      setSelectedCustomerId(savedCustomer.id);
+      setCustomerDrawerMessage("Kundennotiz gespeichert.");
+    } catch {
+      setCustomerDrawerMessage("Die Kundennotiz konnte nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
 
   async function writeAuditLog({
     action,
@@ -3962,6 +4128,48 @@ function AdminDashboardView({
         updatedAt: now,
       };
 
+      const existingCustomerResult = await supabase
+        .from("customers")
+        .select("id,primary_lead_id,name,email,phone,customer_type,notes,payload,created_at")
+        .eq("primary_lead_id", lead.id)
+        .maybeSingle();
+
+      if (existingCustomerResult.error) throw existingCustomerResult.error;
+
+      const customerPayload = {
+        primary_lead_id: lead.id,
+        name: getLeadLabel(lead),
+        email: lead.email,
+        phone: lead.phone,
+        customer_type: "guest",
+        notes: existingCustomerResult.data?.notes ?? null,
+        payload: {
+          ...((existingCustomerResult.data?.payload as Record<string, unknown> | null) ?? {}),
+          source: "lead-reservation",
+          packageId: packageItem?.id ?? lead.package_slug,
+          leadId: lead.id,
+          updatedAt: now,
+        },
+        updated_at: now,
+      };
+
+      const customerResult = existingCustomerResult.data
+        ? await supabase
+          .from("customers")
+          .update(customerPayload)
+          .eq("id", existingCustomerResult.data.id)
+          .select("id,primary_lead_id,name,email,phone,customer_type,notes,payload,created_at")
+          .single()
+        : await supabase
+          .from("customers")
+          .insert(customerPayload)
+          .select("id,primary_lead_id,name,email,phone,customer_type,notes,payload,created_at")
+          .single();
+
+      if (customerResult.error) throw customerResult.error;
+
+      const customer = customerResult.data as CustomerRecordRow;
+
       const leadResult = await supabase
         .from("leads")
         .update({
@@ -3976,6 +4184,7 @@ function AdminDashboardView({
       const bookingResult = await supabase.from("bookings").upsert({
         id: lead.id,
         lead_id: lead.id,
+        customer_id: customer.id,
         package_id: packageItem?.id ?? lead.package_slug,
         status: "Reserviert",
         payment_status: "offen",
@@ -3990,7 +4199,7 @@ function AdminDashboardView({
         const bookingRow: BookingRow = {
           id: lead.id,
           lead_id: lead.id,
-          customer_id: null,
+          customer_id: customer.id,
           package_id: packageItem?.id ?? lead.package_slug,
           status: "Reserviert",
           payment_status: "offen",
@@ -4007,6 +4216,9 @@ function AdminDashboardView({
           bookings: current.bookings.some((booking) => booking.id === lead.id)
             ? current.bookings.map((booking) => (booking.id === lead.id ? bookingRow : booking))
             : [bookingRow, ...current.bookings],
+          customers: current.customers.some((item) => item.id === customer.id)
+            ? current.customers.map((item) => item.id === customer.id ? customer : item)
+            : [customer, ...current.customers],
         };
       });
 
@@ -7323,9 +7535,12 @@ function AdminDashboardView({
         auditLogs={customerAuditLogs}
         communicationEvents={customerCommunicationEvents}
         customer={selectedCustomer}
+        noteDraft={customerNoteDraft}
+        notePending={pendingAction === `customer-note-${selectedCustomer?.id}`}
         isLoading={isCustomerDrawerLoading}
         message={customerDrawerMessage}
         onClose={() => setSelectedCustomerId(null)}
+        onNoteChange={setCustomerNoteDraft}
         onOpenBooking={(bookingId) => {
           setSelectedCustomerId(null);
           setSelection({ type: "booking", id: bookingId });
@@ -7334,6 +7549,7 @@ function AdminDashboardView({
           setSelectedCustomerId(null);
           setSelection({ type: "lead", id: leadId });
         }}
+        onSaveNote={saveCustomerNote}
       />
       <AdminInventoryDrawer
         draft={inventoryDraft}
@@ -7392,18 +7608,26 @@ function AdminCustomerDrawer({
   customer,
   isLoading,
   message,
+  noteDraft,
+  notePending,
   onClose,
+  onNoteChange,
   onOpenBooking,
   onOpenLead,
+  onSaveNote,
 }: {
   auditLogs: AuditLogRow[];
   communicationEvents: CommunicationEventRow[];
   customer: CustomerRow | null;
   isLoading: boolean;
   message: string | null;
+  noteDraft: string;
+  notePending: boolean;
   onClose: () => void;
+  onNoteChange: (value: string) => void;
   onOpenBooking: (bookingId: string) => void;
   onOpenLead: (leadId: string) => void;
+  onSaveNote: () => void;
 }) {
   if (!customer) return null;
 
@@ -7511,6 +7735,22 @@ function AdminCustomerDrawer({
 
         <section className="admin-drawer-section">
           <p className="admin-eyebrow">Interne Notizen</p>
+          <label className="admin-drawer-field">
+            Zentrale Kundennotiz
+            <textarea
+              onChange={(event) => onNoteChange(event.target.value)}
+              rows={5}
+              value={noteDraft}
+            />
+          </label>
+          <button
+            className="admin-button"
+            disabled={notePending}
+            onClick={onSaveNote}
+            type="button"
+          >
+            {notePending ? "Speichert..." : "Kundennotiz speichern"}
+          </button>
           <div className="admin-timeline admin-timeline-compact">
             {internalNotes.length ? (
               internalNotes.map((note) => (
@@ -7520,7 +7760,7 @@ function AdminCustomerDrawer({
                 </article>
               ))
             ) : (
-              <p className="admin-drawer-message">Noch keine interne Kundennotiz an Anfrage oder Buchung hinterlegt.</p>
+              <p className="admin-drawer-message">Noch keine weiteren Notizen an Anfrage oder Buchung hinterlegt.</p>
             )}
           </div>
         </section>
