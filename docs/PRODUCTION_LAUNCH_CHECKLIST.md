@@ -333,6 +333,8 @@ Dieser Check prueft:
 
 ## Aktueller Status
 
+Aktueller maschineller Status-Snapshot: `docs/LAUNCH_STATUS_SNAPSHOT_2026-06-28.md`
+
 Technisch deutlich näher an production-ready:
 - Supabase verbunden.
 - Admin Auth + Rollen aktiv.
