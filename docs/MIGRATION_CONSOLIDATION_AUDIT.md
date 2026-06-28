@@ -129,7 +129,7 @@ Risiko:
 | Owner-Dokumente | nicht voll im Vite-Fokus | `owner_documents`, `apps/admin`, `apps/owner` | migriert fuer MVP-Light | mittel | Upload und Dokumentenablage statt URL offen. |
 | Owner-Abrechnungen | Prototyp-Idee | `owner_statements`, `apps/admin`, `apps/owner` | migriert fuer MVP-Light | mittel | Noch kein echtes Abrechnungssystem/Export. |
 | Owner-Operations | Prototyp-Idee | `owner_operations`, `apps/admin`, `apps/owner` | migriert fuer MVP-Light | mittel | Reinigungs-/Maengelprozesse noch nicht voll operativ. |
-| Audit-Log | Vite Aktivitaet + `admin_audit_logs` | `apps/admin` + `scripts/qa-admin-audit-coverage.mjs` | weitgehend migriert | hoch | Business-Mutationen im Next-Admin schreiben Audit und werden statisch per `npm run qa:admin-audit` geprueft; semantische Payload-Tiefe und externe Edge-Function-Actions weiter pruefen. |
+| Audit-Log | Vite Aktivitaet + `admin_audit_logs` | `apps/admin`, `packages/supabase`, `scripts/qa-admin-audit-coverage.mjs` | weitgehend migriert | hoch | Business-Mutationen im Next-Admin schreiben Audit und werden statisch per `npm run qa:admin-audit` geprueft; der Insert laeuft ueber `insertAdminAuditLog` in `packages/supabase`. Semantische Payload-Tiefe und externe Edge-Function-Actions weiter pruefen. |
 | Shared Domain/Types | verstreut in `src/App.tsx`, Apps | `packages/domain`, `packages/supabase` | teilweise | kritisch | Erster gemeinsamer Supabase-Typanker fuer JSON-Payloads und `local_places` wird von Admin und Guest genutzt. Viele Admin-/Guest-/Owner-Zeilen, Mapper und Payload-Konventionen liegen aber weiter app-lokal; Risiko fuer Logikdrift bleibt hoch. |
 | Dev/Deployment | Root Vite Scripts + Next Scripts | Monorepo Scripts/Vercel Apps | weitgehend migriert | mittel | Root `npm run dev` bleibt bewusst Prototyp. Next-Apps haben feste Port-Scripts (`web:dev:port`, `admin:dev:port`, `guest:dev:port`, `owner:dev:port`) und app-eigene Vercel-Konfigurationen. |
 
@@ -243,6 +243,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 - `packages/supabase` ist der technische Typanker fuer Supabase-nahe Row-Formen, Browserclient und app-uebergreifende Datenformen.
 - `LocalPlaceRowBase`, `LocalPlaceCategory`, `LocalPlaceStatus` und `JsonRecord` werden als erste gemeinsame Typen von `apps/admin` und `apps/guest` genutzt.
 - `localPlaceBaseSelectColumns` und `localPlaceAdminSelectColumns` sind die erste gemeinsame Repository-Grenze fuer Vor-Ort-Daten: Guest liest nur Gastspalten, Admin liest zusaetzlich `created_at`.
+- `AdminAuditLogRow`, `AdminAuditLogInput`, `adminAuditLogSelectColumns` und `insertAdminAuditLog` sind die erste gemeinsame Schreib-Grenze fuer Admin-Aktivitaet. Die Admin-Komponente behaelt `writeAuditLog` als UI-State-Wrapper und QA-Anker.
 - `packages/domain` bleibt der Ort fuer oeffentliche Website-/Marken-/Content-Domaenen wie Auszeiten, Ratgeber und Routen.
 - App-spezifische UI-Drafts, Formulare und abgeleitete Viewmodels bleiben zunaechst in der jeweiligen App.
 - Payload-basierte Felder sind Migrationsuebergang, nicht Zielarchitektur. Jede Normalisierung muss zuerst dokumentieren, welche App fuehrend schreibt und welche Apps nur lesen.

@@ -38,6 +38,29 @@ export const localPlaceBaseSelectColumns =
 export const localPlaceAdminSelectColumns =
   `${localPlaceBaseSelectColumns},created_at` as const;
 
+export const adminAuditLogSelectColumns =
+  "id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at" as const;
+
+export type AdminAuditLogRow = {
+  id: string;
+  actor_email: string | null;
+  action: string;
+  entity_type: string;
+  entity_id: string;
+  entity_label: string | null;
+  payload: JsonRecord;
+  created_at: string;
+};
+
+export type AdminAuditLogInput = {
+  actorEmail: string | null;
+  action: string;
+  entityType: string;
+  entityId: string;
+  entityLabel: string | null;
+  payload: JsonRecord;
+};
+
 export type OwnerDashboardProperty = {
   id: string;
   name: string;
@@ -214,4 +237,25 @@ export function createSupabaseBrowserClient() {
   }
 
   return createClient(supabaseUrl, supabaseAnonKey);
+}
+
+export async function insertAdminAuditLog(
+  supabase: ReturnType<typeof createSupabaseBrowserClient>,
+  input: AdminAuditLogInput,
+) {
+  const { data, error } = await supabase
+    .from("admin_audit_logs")
+    .insert({
+      actor_email: input.actorEmail,
+      action: input.action,
+      entity_type: input.entityType,
+      entity_id: input.entityId,
+      entity_label: input.entityLabel,
+      payload: input.payload,
+    })
+    .select(adminAuditLogSelectColumns)
+    .single();
+
+  if (error) throw error;
+  return data as AdminAuditLogRow | null;
 }

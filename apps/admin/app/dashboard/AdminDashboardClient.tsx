@@ -3,8 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  type AdminAuditLogRow,
   createSupabaseBrowserClient,
+  insertAdminAuditLog,
   localPlaceAdminSelectColumns,
+  type JsonRecord,
   type LocalPlaceRowBase,
 } from "@morrow/supabase";
 
@@ -245,16 +248,7 @@ type GuestFeedbackRow = {
   created_at: string;
 };
 
-type AuditLogRow = {
-  id: string;
-  actor_email: string | null;
-  action: string;
-  entity_type: string;
-  entity_id: string;
-  entity_label: string | null;
-  payload: Record<string, unknown>;
-  created_at: string;
-};
+type AuditLogRow = AdminAuditLogRow;
 
 type DashboardData = {
   profile: AdminProfile;
@@ -3081,17 +3075,17 @@ function AdminDashboardView({
     entityType: string;
     entityId: string;
     entityLabel: string;
-    payload: Record<string, unknown>;
+    payload: JsonRecord;
   }) {
     const supabase = createSupabaseBrowserClient();
-    const { data: inserted } = await supabase.from("admin_audit_logs").insert({
-      actor_email: data.profile.email,
+    const inserted = await insertAdminAuditLog(supabase, {
+      actorEmail: data.profile.email,
       action,
-      entity_type: entityType,
-      entity_id: entityId,
-      entity_label: entityLabel,
+      entityType,
+      entityId,
+      entityLabel,
       payload,
-    }).select("id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at").single();
+    });
 
     if (inserted) {
       setDataState((current) => ({
