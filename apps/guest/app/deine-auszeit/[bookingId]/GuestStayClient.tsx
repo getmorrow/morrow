@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { createSupabaseBrowserClient, type LocalPlaceRowBase } from "@morrow/supabase";
+import {
+  createSupabaseBrowserClient,
+  localPlaceBaseSelectColumns,
+  type LocalPlaceRowBase,
+} from "@morrow/supabase";
 import { GuestLocalMap, type GuestMapPlace } from "./GuestLocalMap";
 
 type GuestView = "home" | "plan" | "booking" | "local" | "help" | "feedback" | "again";
@@ -734,7 +738,7 @@ export function GuestStayClient({
       const [localResult, supportResult] = await Promise.all([
         supabase
           .from("local_places")
-          .select("id,name,category,status,lat,lng,address,website,reservation_url,menu_url,rating,opening_hours,package_fit,payload")
+          .select(localPlaceBaseSelectColumns)
           .eq("status", "approved")
           .order("updated_at", { ascending: false })
           .limit(80),

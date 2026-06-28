@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient, type LocalPlaceRowBase } from "@morrow/supabase";
+import {
+  createSupabaseBrowserClient,
+  localPlaceAdminSelectColumns,
+  type LocalPlaceRowBase,
+} from "@morrow/supabase";
 
 type AdminProfile = {
   email: string;
@@ -1983,7 +1987,7 @@ export function AdminDashboardClient() {
               .order("created_at", { ascending: false }),
             supabase
               .from("local_places")
-              .select("id,name,category,status,lat,lng,address,website,reservation_url,menu_url,rating,opening_hours,package_fit,payload,created_at")
+              .select(localPlaceAdminSelectColumns)
               .order("updated_at", { ascending: false })
               .limit(120),
             supabase
@@ -5648,7 +5652,7 @@ function AdminDashboardView({
             ...updatePayload,
             id: `place-${crypto.randomUUID()}`,
           })
-          .select("id,name,category,status,lat,lng,address,website,reservation_url,menu_url,rating,opening_hours,package_fit,payload,created_at")
+          .select(localPlaceAdminSelectColumns)
           .single();
 
         if (error) throw error;

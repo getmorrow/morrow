@@ -73,7 +73,7 @@ Warum zuerst:
 ### Sprint C: Technische Konsolidierung
 
 1. Gemeinsame Admin-/Guest-/Owner-Typen nach `packages/domain` oder `packages/supabase` ziehen. Stand: begonnen mit `JsonRecord` und `LocalPlaceRowBase` fuer Admin/Guest-Vor-Ort-Daten.
-2. Supabase-Mutationen aus Komponenten in klare Helper/Repository-Funktionen ziehen.
+2. Supabase-Mutationen aus Komponenten in klare Helper/Repository-Funktionen ziehen. Stand: begonnen mit gemeinsamen `localPlaceBaseSelectColumns`/`localPlaceAdminSelectColumns`, damit Admin und Guest dieselbe Vor-Ort-Spaltengrenze nutzen.
 3. Payload-Felder inventarisieren: was bleibt Payload, was wird normalisiert.
 4. QA-Skripte fuer Admin-Paritaet ergaenzen.
 

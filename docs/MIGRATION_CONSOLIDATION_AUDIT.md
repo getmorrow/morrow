@@ -242,6 +242,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 
 - `packages/supabase` ist der technische Typanker fuer Supabase-nahe Row-Formen, Browserclient und app-uebergreifende Datenformen.
 - `LocalPlaceRowBase`, `LocalPlaceCategory`, `LocalPlaceStatus` und `JsonRecord` werden als erste gemeinsame Typen von `apps/admin` und `apps/guest` genutzt.
+- `localPlaceBaseSelectColumns` und `localPlaceAdminSelectColumns` sind die erste gemeinsame Repository-Grenze fuer Vor-Ort-Daten: Guest liest nur Gastspalten, Admin liest zusaetzlich `created_at`.
 - `packages/domain` bleibt der Ort fuer oeffentliche Website-/Marken-/Content-Domaenen wie Auszeiten, Ratgeber und Routen.
 - App-spezifische UI-Drafts, Formulare und abgeleitete Viewmodels bleiben zunaechst in der jeweiligen App.
 - Payload-basierte Felder sind Migrationsuebergang, nicht Zielarchitektur. Jede Normalisierung muss zuerst dokumentieren, welche App fuehrend schreibt und welche Apps nur lesen.

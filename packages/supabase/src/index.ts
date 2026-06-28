@@ -32,6 +32,12 @@ export type LocalPlaceRowBase = {
   payload: JsonRecord;
 };
 
+export const localPlaceBaseSelectColumns =
+  "id,name,category,status,lat,lng,address,website,reservation_url,menu_url,rating,opening_hours,package_fit,payload" as const;
+
+export const localPlaceAdminSelectColumns =
+  `${localPlaceBaseSelectColumns},created_at` as const;
+
 export type OwnerDashboardProperty = {
   id: string;
   name: string;
