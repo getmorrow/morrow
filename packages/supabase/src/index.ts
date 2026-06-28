@@ -29,11 +29,22 @@ export type LocalPlaceRowBase = {
   rating: number | null;
   opening_hours?: JsonRecord | null;
   package_fit?: string[];
+  description?: string | null;
+  cuisine?: string | null;
+  curation_kind?: string | null;
+  event_date?: string | null;
+  event_time?: string | null;
+  event_audience?: string | null;
+  event_setting?: string | null;
+  event_fit_note?: string | null;
+  best_for?: string[];
+  audiences?: string[];
+  images?: string[];
   payload: JsonRecord;
 };
 
 export const localPlaceBaseSelectColumns =
-  "id,name,category,status,lat,lng,address,website,reservation_url,menu_url,rating,opening_hours,package_fit,payload" as const;
+  "id,name,category,status,lat,lng,address,website,reservation_url,menu_url,rating,opening_hours,package_fit,description,cuisine,curation_kind,event_date,event_time,event_audience,event_setting,event_fit_note,best_for,audiences,images,payload" as const;
 
 export const localPlaceAdminSelectColumns =
   `${localPlaceBaseSelectColumns},created_at` as const;

@@ -1144,7 +1144,8 @@ function localPlaceCurationKindLabel(kind: string) {
 }
 
 function getLocalPlaceSummary(place: LocalPlaceRow) {
-  return getPayloadText(place.payload, ["description", "guestDescription", "morrowNote", "routeNote"]) ||
+  return place.description ||
+    getPayloadText(place.payload, ["description", "guestDescription", "morrowNote", "routeNote"]) ||
     place.address ||
     "Noch keine Gastbeschreibung hinterlegt.";
 }
@@ -2760,17 +2761,17 @@ function AdminDashboardView({
       package_fit: Array.isArray(item.package_fit) && item.package_fit.length
         ? item.package_fit.join("\n")
         : getPayloadLines(item.payload, ["packageFit"]),
-      curation_kind: getPayloadText(item.payload, ["curationKind", "curation_kind"]) ||
+      curation_kind: item.curation_kind || getPayloadText(item.payload, ["curationKind", "curation_kind"]) ||
         (item.category === "event" ? "local_event" : "local_tip"),
-      event_date: getPayloadText(item.payload, ["eventDate", "startsOn", "date"]) || "",
-      event_time: getPayloadText(item.payload, ["eventTime", "time"]) || "",
-      event_audience: getPayloadText(item.payload, ["eventAudience", "audience"]) || "",
-      event_setting: getPayloadText(item.payload, ["eventSetting", "setting"]) || "",
-      event_fit_note: getPayloadText(item.payload, ["eventFitNote", "fitNote", "morrowFit"]) || "",
-      description: getPayloadText(item.payload, ["description", "guestDescription", "morrowNote", "routeNote"]) || "",
-      cuisine: getPayloadText(item.payload, ["cuisine"]) || "",
-      best_for: getPayloadLines(item.payload, ["bestFor", "audiences"]),
-      images: getPayloadLines(item.payload, ["images"]),
+      event_date: item.event_date || getPayloadText(item.payload, ["eventDate", "startsOn", "date"]) || "",
+      event_time: item.event_time || getPayloadText(item.payload, ["eventTime", "time"]) || "",
+      event_audience: item.event_audience || getPayloadText(item.payload, ["eventAudience", "audience"]) || "",
+      event_setting: item.event_setting || getPayloadText(item.payload, ["eventSetting", "setting"]) || "",
+      event_fit_note: item.event_fit_note || getPayloadText(item.payload, ["eventFitNote", "fitNote", "morrowFit"]) || "",
+      description: item.description || getPayloadText(item.payload, ["description", "guestDescription", "morrowNote", "routeNote"]) || "",
+      cuisine: item.cuisine || getPayloadText(item.payload, ["cuisine"]) || "",
+      best_for: item.best_for?.join("\n") || item.audiences?.join("\n") || getPayloadLines(item.payload, ["bestFor", "audiences"]),
+      images: item.images?.join("\n") || getPayloadLines(item.payload, ["images"]),
     } : {});
   }, [localPlaceSelection, data.localPlaces]);
 
@@ -5808,19 +5809,28 @@ function AdminDashboardView({
       const curationKind = String(
         localPlaceDraft.curation_kind || (category === "event" ? "local_event" : "local_tip"),
       ).trim();
+      const description = String(localPlaceDraft.description || "").trim() || null;
+      const cuisine = String(localPlaceDraft.cuisine || "").trim() || null;
+      const eventDate = String(localPlaceDraft.event_date || "").trim() || null;
+      const eventTime = String(localPlaceDraft.event_time || "").trim() || null;
+      const eventAudience = String(localPlaceDraft.event_audience || "").trim() || null;
+      const eventSetting = String(localPlaceDraft.event_setting || "").trim() || null;
+      const eventFitNote = String(localPlaceDraft.event_fit_note || "").trim() || null;
+      const bestFor = splitLines(String(localPlaceDraft.best_for || ""));
+      const images = splitLines(String(localPlaceDraft.images || ""));
       const payload = {
-        description: String(localPlaceDraft.description || "").trim(),
-        cuisine: String(localPlaceDraft.cuisine || "").trim(),
+        description,
+        cuisine,
         openingHours: String(localPlaceDraft.opening_hours || "").trim(),
         packageFit: splitLines(String(localPlaceDraft.package_fit || "")),
         curationKind,
-        eventDate: String(localPlaceDraft.event_date || "").trim(),
-        eventTime: String(localPlaceDraft.event_time || "").trim(),
-        eventAudience: String(localPlaceDraft.event_audience || "").trim(),
-        eventSetting: String(localPlaceDraft.event_setting || "").trim(),
-        eventFitNote: String(localPlaceDraft.event_fit_note || "").trim(),
-        bestFor: splitLines(String(localPlaceDraft.best_for || "")),
-        images: splitLines(String(localPlaceDraft.images || "")),
+        eventDate,
+        eventTime,
+        eventAudience,
+        eventSetting,
+        eventFitNote,
+        bestFor,
+        images,
         updatedAt: now,
       };
       const updatePayload = {
@@ -5838,6 +5848,17 @@ function AdminDashboardView({
           ? { note: String(localPlaceDraft.opening_hours || "").trim() }
           : null,
         package_fit: splitLines(String(localPlaceDraft.package_fit || "")),
+        description,
+        cuisine,
+        curation_kind: curationKind || null,
+        event_date: eventDate,
+        event_time: eventTime,
+        event_audience: eventAudience,
+        event_setting: eventSetting,
+        event_fit_note: eventFitNote,
+        best_for: bestFor,
+        audiences: bestFor,
+        images,
         payload,
         updated_at: now,
       };

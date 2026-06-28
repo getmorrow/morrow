@@ -545,18 +545,19 @@ function isStandaloneLocalCategory(category: string) {
 
 function placeDescription(place: LocalPlace) {
   return (
+    place.description ||
     payloadText(place.payload, ["description", "guestDescription", "routeNote", "morrowNote"], place.address || "Für eure Auszeit kuratiert.")
   );
 }
 
 function placeDetailImage(place: LocalPlace, packageItem?: GuestPackage | null) {
-  return payloadText(place.payload, ["image"]) || payloadImages(place.payload)[0] || packageImage(packageItem);
+  return place.images?.[0] || payloadText(place.payload, ["image"]) || payloadImages(place.payload)[0] || packageImage(packageItem);
 }
 
 function placeMeta(place: LocalPlace) {
   const parts = [
     categoryLabel(place.category),
-    payloadText(place.payload, ["cuisine", "meta"]),
+    place.cuisine || payloadText(place.payload, ["cuisine", "meta"]),
     place.rating ? `${place.rating.toFixed(1)} Bewertung` : payloadText(place.payload, ["ratingValue"]),
   ].filter(Boolean);
   return parts.slice(0, 2).join(" · ");
@@ -579,13 +580,13 @@ function openingHoursText(place: LocalPlace) {
 }
 
 function eventTimeText(place: LocalPlace) {
-  const date = payloadText(place.payload, ["eventDate", "startsOn", "date"]);
-  const time = payloadText(place.payload, ["eventTime", "time"]);
+  const date = place.event_date || payloadText(place.payload, ["eventDate", "startsOn", "date"]);
+  const time = place.event_time || payloadText(place.payload, ["eventTime", "time"]);
   return [formatEventDate(date), time].filter(Boolean).join(" · ");
 }
 
 function eventTimestamp(place: LocalPlace) {
-  const value = payloadText(place.payload, ["eventDate", "startsOn", "date"]);
+  const value = place.event_date || payloadText(place.payload, ["eventDate", "startsOn", "date"]);
   if (!value) return Number.POSITIVE_INFINITY;
   const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (isoMatch) return new Date(`${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}T00:00:00`).getTime();
@@ -1307,7 +1308,7 @@ export function GuestStayClient({
                 {filteredLocalPlaces.length ? (
                   <div className="guest-place-list">
                     {filteredLocalPlaces.map((place) => {
-                      const bestFor = payloadList(place.payload, ["bestFor", "audiences"]).slice(0, 3);
+                      const bestFor = (place.best_for?.length ? place.best_for : place.audiences?.length ? place.audiences : payloadList(place.payload, ["bestFor", "audiences"])).slice(0, 3);
                       const isEvent = normalizeCategory(place.category) === "event";
 
                       return (
@@ -1484,10 +1485,10 @@ export function GuestStayClient({
                     <strong>{selectedPlace.rating.toFixed(1)}</strong>
                   </article>
                 ) : null}
-                {payloadText(selectedPlace.payload, ["cuisine"]) ? (
+                {selectedPlace.cuisine || payloadText(selectedPlace.payload, ["cuisine"]) ? (
                   <article>
                     <span>Küche</span>
-                    <strong>{payloadText(selectedPlace.payload, ["cuisine"])}</strong>
+                    <strong>{selectedPlace.cuisine || payloadText(selectedPlace.payload, ["cuisine"])}</strong>
                   </article>
                 ) : null}
                 {selectedPlace.address ? (
@@ -1510,9 +1511,9 @@ export function GuestStayClient({
                 ) : null}
               </div>
 
-              {payloadList(selectedPlace.payload, ["bestFor", "audiences"]).length ? (
+              {(selectedPlace.best_for?.length || selectedPlace.audiences?.length || payloadList(selectedPlace.payload, ["bestFor", "audiences"]).length) ? (
                 <div className="guest-place-tags">
-                  {payloadList(selectedPlace.payload, ["bestFor", "audiences"]).slice(0, 5).map((item) => (
+                  {(selectedPlace.best_for?.length ? selectedPlace.best_for : selectedPlace.audiences?.length ? selectedPlace.audiences : payloadList(selectedPlace.payload, ["bestFor", "audiences"])).slice(0, 5).map((item) => (
                     <small key={item}>{item}</small>
                   ))}
                 </div>
