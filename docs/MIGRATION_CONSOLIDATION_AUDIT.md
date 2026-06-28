@@ -110,7 +110,7 @@ Risiko:
 | Admin-Login/Rollen | `src/App.tsx` AdminAccess | `apps/admin/app/page.tsx`, `AdminLoginForm`, Supabase Auth/RPC | migriert | kritisch | Admin-Userpflege/Rotation operativ dokumentieren. |
 | Admin-Shell | Vite `AdminSection` Navigation | `apps/admin/app/dashboard/AdminDashboardClient.tsx` | weitgehend migriert | kritisch | Alte Kernbereiche sind in Workspaces gebuendelt und im Hero sichtbar zugeordnet: Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer, Aktivitaet. Echte interne Routen bleiben spaetere Architekturentscheidung. |
 | Admin-Uebersicht | Vite `overview` | `apps/admin/app/dashboard/AdminDashboardClient.tsx` | weitgehend migriert | kritisch | Next hat clientseitige Arbeitsbereiche fuer Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer und Aktivitaet; Uebersicht zeigt Kennzahlen, Tagessteuerung, Monitoring und Audit. Echte Routen bleiben spaetere Architekturentscheidung. |
-| Anfragen/Leads | Vite `leads`, Lead-Drawer | `apps/admin` Leads-Sektion | weitgehend migriert | kritisch | Status, Reservierung, Detailbearbeitung im Drawer, Aktiv-/Archivfilter, Wiedervorlage, Reaktivierung und Testloeschung vorhanden; Spam-Policy und relationale Wiedervorlage-Spalte pruefen. |
+| Anfragen/Leads | Vite `leads`, Lead-Drawer | `apps/admin` Leads-Sektion | weitgehend migriert | kritisch | Status, Reservierung, Detailbearbeitung im Drawer, Aktiv-/Archivfilter, normalisierte Wiedervorlage `leads.follow_up_at` mit Payload-Fallback, Reaktivierung und Testloeschung vorhanden; Spam-Policy, Consent und Reisegruppen-Normalisierung bleiben offen. |
 | Kunden | Vite `customers` | `apps/admin` | weitgehend migriert | kritisch | Next verbindet echte `customers`-Datensaetze mit Gastanfragen und Buchungen, zeigt Kontaktlinks, Anfrage-/Buchungsbezug, naechsten Schritt, zentrale Kundennotiz und Kundendetail mit Kommunikations-/Aenderungshistorie; Dublettenbereinigung und spaetere Normalisierung der Customer-Erzeugung bleiben offen. |
 | Buchungen | Vite `bookings`, Booking-Drawer | `apps/admin` Buchungssektion | weitgehend migriert | kritisch | Status, Zahlung, Grunddaten, Operationsdaten und Gaestebereich-Code/-Link vorhanden; Kundenbezug, Aufgabenfluss und spaetere Freigabe-Normalisierung weiter pruefen. |
 | Aufgaben | Vite `tasks` | `apps/admin` Aufgabenbereich + Supabase `admin_tasks` | weitgehend migriert | kritisch | Next kann Aufgaben anlegen, bearbeiten, filtern, Status aendern, loeschen und Bezuege oeffnen; Archivierungsstrategie und dedizierte Anbieterbearbeitung bleiben offen. |
@@ -153,7 +153,7 @@ Risiko:
 - CRM-Filter und Arbeitsansichten aus dem alten Admin.
 - Kundenbereich mit Anfrage- und Buchungshistorie, echter `customers`-Quelle und zentraler Kundennotiz.
 - Aufgabenbearbeitung, Loeschung und Statusflow.
-- Spam-Policy und relationale Wiedervorlage-Spalte pruefen.
+- Spam-Policy, Consent und Reisegruppen-Normalisierung pruefen; Wiedervorlage ist als `leads.follow_up_at` normalisiert.
 - Pruefen, ob clientseitige Arbeitsbereiche fuer MVP reichen oder echte Admin-Routen noetig werden.
 - Voller Auszeiten-Builder inklusive Copy, FAQ, Medien, Momente, Empfehlungen und Launch-Check.
 - Voller Unterkunfts-Editor inklusive Medienreihenfolge, Rechteworkflow und strukturierter Attribute ohne Payload-Drift.
@@ -270,7 +270,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 3. Clientseitige Admin-Arbeitsbereiche gegen reale Nutzung testen und spaeter entscheiden, ob echte Admin-Routen noetig werden.
 4. Kundenbereich in `apps/admin` paritaetisch weiterfuehren: zentrale Kundennotiz und Entscheidung echte `customers`-Quelle vs. Ableitung.
 5. Aufgabenbereich paritaetisch weiterfuehren: Archivierungsstrategie statt hartem Loeschen und dedizierte Anbieterbearbeitung entscheiden.
-6. Lead-Spam-/Loeschpolicy und relationale Wiedervorlage-Spalte pruefen/entscheiden.
+6. Lead-Spam-/Loeschpolicy, Consent und Reisegruppen-Normalisierung pruefen/entscheiden; `leads.follow_up_at` ist bereits normalisiert.
 7. Domain-/Supabase-Typen aus App-Komponenten in `packages/domain` und `packages/supabase` ziehen.
 8. Entscheiden, welche Vite-Funktionen explizit ersetzt sind und welche als Referenz offen bleiben.
 9. QA-Gates fuer Admin-Paritaet definieren: mindestens Login, Leads, Reservierung, Buchung, Aufgabe, Supportantwort, Paket, Unterkunft, Erlebnis, Ort, Owner-Dokument, Abrechnung, Operation.

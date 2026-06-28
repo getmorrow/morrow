@@ -31,7 +31,7 @@ Bis dahin gilt:
 | --- | --- | --- | --- | --- | --- |
 | Admin-Shell | `AdminSection` mit Bereichen `overview`, `leads`, `tasks`, `guestSupport`, `customers`, `bookings`, `packages`, `experiences`, `localPlaces`, `owners`, `agencies`, `experienceProviders`, `activity` | Clientseitige Arbeitsbereichsnavigation mit Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer, Aktivitaet plus sichtbarer Zuordnung der alten Bereiche je Workspace | weitgehend migriert | Spaeter echte Routen statt clientseitiger Bereiche entscheiden, wenn der Admin weiter waechst | Jeder alte Kernbereich ist in `apps/admin` eindeutig erreichbar und im jeweiligen Workspace benannt. |
 | Uebersicht | Tagesboard, Faelligkeiten, Wiedervorlagen, kommende Termine, aktive Arbeit | Kennzahlen, kompakte Tagessteuerung mit Aufgaben/Leads/Support/Feedback, Monitoring und Audit | weitgehend migriert | Kuenftig ggf. kommende Termine/Termindruck noch staerker priorisieren | Uebersicht zeigt Tagessteuerung und verlinkt in Detailbereiche; Detailarbeit findet nicht auf der Uebersicht statt. |
-| Leads/Anfragen | Status, Filter aktiv/archiviert, Typ/Status/Arbeitsstand, Wiedervorlage, Archiv, Reaktivierung, Testloeschung, Drawer | Leads laden, filtern, Status aendern, Detaildaten bearbeiten, Wiedervorlage setzen, archivieren, reaktivieren, Testdatensaetze loeschen, Reservierung anlegen, Drawer fuer Notiz/E-Mail/Historie | weitgehend migriert | Spam-/Loeschpolicy und ggf. eigene Wiedervorlage-Spalte pruefen | Ein Lead kann von neu bis archiviert und reaktiviert komplett in Next bearbeitet werden; Historie bleibt sichtbar. |
+| Leads/Anfragen | Status, Filter aktiv/archiviert, Typ/Status/Arbeitsstand, Wiedervorlage, Archiv, Reaktivierung, Testloeschung, Drawer | Leads laden, filtern, Status aendern, Detaildaten bearbeiten, Wiedervorlage setzen, archivieren, reaktivieren, Testdatensaetze loeschen, Reservierung anlegen, Drawer fuer Notiz/E-Mail/Historie; Wiedervorlage liegt als `leads.follow_up_at` mit Payload-Fallback vor | weitgehend migriert | Spam-/Loeschpolicy, Consent und Reisegruppen-Normalisierung pruefen | Ein Lead kann von neu bis archiviert und reaktiviert komplett in Next bearbeitet werden; Historie bleibt sichtbar. |
 | Kunden | Kundensatz aus Gastanfragen, Kunden-Cards, Kontaktlinks, Anfragehistorie, Buchungshistorie, Filter Anfrage/Buchung/faellig | Eigener Kundenbereich verbindet echte `customers`-Datensaetze mit Gastanfragen und Buchungen, zeigt Kontaktlinks, naechsten Schritt, Kundendetail, zentrale Kundennotiz, Anfrage-, Buchungs-, Kommunikations- und Aenderungshistorie | weitgehend migriert | Dedizierte Kundensuche, Dublettenbereinigung und spaetere Normalisierung der Customer-Erzeugung pruefen | Ein Gastkontakt ist unabhaengig von einzelner Anfrage auffindbar, mit Kontakt, Anfragen, Buchungen, Kundennotiz und naechstem Schritt. |
 | Aufgaben | Aufgabenbereich mit direkter Anlage, Bezug, Faelligkeit, Prioritaet, Statusfilter, Bezugssprung, Loeschen, Wiedereroeffnen | Aufgaben werden geladen, koennen angelegt, bearbeitet, gefiltert, statusgeaendert, geloescht und ueber den Bezug geoeffnet werden; Audit wird geschrieben | weitgehend migriert | Archivierungsstrategie statt hartem Loeschen spaeter entscheiden; dedizierte Anbieterbearbeitung bleibt offen | Aufgabe kann angelegt, gefiltert, geoeffnet, bearbeitet, erledigt, wieder geoeffnet und geloescht werden. |
 | Buchungen | Status, Zahlung, Reisegruppe, Hund, Check-in, Erlebnis, Aufgaben, Gaestebereich-Link, Follow-up | Status, Zahlung, Grunddaten, Operationsdaten, Gaestebereich-Code/-Link, Drawer, E-Mail/Notiz/Historie vorhanden | weitgehend migriert | Aufgabenfluss und Kundenbezug weiter schaerfen; Gaestebereich-Freigabe spaeter noch staerker normalisieren | Eine Buchung kann operativ von Reserviert bis Abgeschlossen gesteuert werden, inklusive Zahlung, Vorbereitung, Gastzugang und Historie. |
@@ -75,7 +75,7 @@ Warum zuerst:
 
 1. Gemeinsame Admin-/Guest-/Owner-Typen nach `packages/domain` oder `packages/supabase` ziehen. Stand: begonnen mit `JsonRecord` und `LocalPlaceRowBase` fuer Admin/Guest-Vor-Ort-Daten.
 2. Supabase-Mutationen aus Komponenten in klare Helper/Repository-Funktionen ziehen. Stand: begonnen mit gemeinsamen `localPlaceBaseSelectColumns`/`localPlaceAdminSelectColumns` und `insertAdminAuditLog`; damit nutzen Admin und Guest dieselbe Vor-Ort-Spaltengrenze und Admin-Audit hat eine zentrale Schreib-Grenze.
-3. Payload-Felder inventarisieren: was bleibt Payload, was wird normalisiert. Stand: dokumentiert in `docs/PAYLOAD_NORMALIZATION_INVENTORY.md`; V1-Kandidaten sind Leads-Follow-up/Consent/Reisegruppe, Booking-Zahlung/Zugang/Operationsdaten, Property-Check-in/Medien und Local-Place-Events/Bilder/Oeffnungszeiten.
+3. Payload-Felder inventarisieren: was bleibt Payload, was wird normalisiert. Stand: dokumentiert in `docs/PAYLOAD_NORMALIZATION_INVENTORY.md`; `leads.follow_up_at` ist normalisiert, weitere V1-Kandidaten sind Lead-Consent/Reisegruppe, Booking-Zahlung/Zugang/Operationsdaten, Property-Check-in/Medien und Local-Place-Events/Bilder/Oeffnungszeiten.
 4. QA-Skripte fuer Admin-Paritaet ergaenzen.
 
 ## Detailtickets Fuer Sprint A
@@ -144,11 +144,11 @@ Problem:
 Umsetzung:
 
 - `archived_at` in Next-Admin sichtbar und nutzbar machen. Stand: umgesetzt.
-- Wiedervorlage/Faelligkeit pflegen. Stand: umgesetzt inline in der Leadliste und im Lead-Drawer ueber Payload `followUpAt`.
+- Wiedervorlage/Faelligkeit pflegen. Stand: umgesetzt inline in der Leadliste und im Lead-Drawer ueber `leads.follow_up_at`; alte Payload-Werte bleiben Fallback.
 - Filter fuer aktiv, archiviert, faellig, Typ, Status. Stand: umgesetzt.
 - Reaktivieren. Stand: umgesetzt.
 - Test-/Spam-Loeschen nur mit Bestaetigung und Audit. Stand: umgesetzt fuer als Test erkennbare Leads.
-- Eigene relationale Wiedervorlage-Spalte statt Payload. Stand: offen/Architekturentscheidung.
+- Eigene relationale Wiedervorlage-Spalte statt Payload. Stand: umgesetzt als `leads.follow_up_at` mit Migration und Backfill aus Payload.
 - Tiefe Lead-Detailbearbeitung im Drawer. Stand: umgesetzt fuer Kontakt, Typ, Status, Auszeit, Quelle/Kampagne, Termin, Personen/Kinder/Hund, Anlass, WhatsApp-Opt-in und Wiedervorlage.
 
 Abnahme:

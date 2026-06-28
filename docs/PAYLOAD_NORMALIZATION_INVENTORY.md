@@ -23,7 +23,7 @@ Grundregel:
 
 | Bereich / Tabelle | Payload-Felder Heute | Schreibt Fuehrend | Liest | Status | Entscheidung / Naechster Schritt |
 | --- | --- | --- | --- | --- | --- |
-| `leads` | `selectedDate`, `adults`, `children`, `childrenAges`, `dog`, `occasion`, `whatsappOptIn`, `followUpAt`, `internalNote`, `utm`, `updatedAt`, Testmarker | Admin, Web-Leadflow | Admin | `Normalisieren V1` fuer `followUpAt`, `whatsappOptIn`, Reisegruppe; `MVP-Payload ok` fuer Anlass/Notizen/UTM | Wiedervorlage, WhatsApp-Einwilligung und Reisegruppe sind operative Felder. Sie sollten eigene Spalten oder dedizierte Lead-Detailtabelle bekommen. UTM kann Payload bleiben, solange Reporting nicht granular wird. |
+| `leads` | `selectedDate`, `adults`, `children`, `childrenAges`, `dog`, `occasion`, `whatsappOptIn`, `internalNote`, `utm`, `updatedAt`, Testmarker; `followUpAt` nur noch als Fallback/Spiegel | Admin, Web-Leadflow | Admin | `follow_up_at` normalisiert; `Normalisieren V1` fuer `whatsappOptIn`, Reisegruppe; `MVP-Payload ok` fuer Anlass/Notizen/UTM | Wiedervorlage liegt als `leads.follow_up_at` vor und wird aus altem Payload backfilled. WhatsApp-Einwilligung und Reisegruppe bleiben naechste V1-Kandidaten. UTM kann Payload bleiben, solange Reporting nicht granular wird. |
 | `customers` | `sourceLeadIds`, `bookingIds`, `lastContactAt`, `updatedAt`, Testmarker | Admin | Admin | `Pruefen` | Kundennotiz liegt bereits in `customers.notes`. Verknuepfungen sollten langfristig ueber echte Lead-/Booking-Relationen statt Payload-Arrays laufen. |
 | `bookings` | `guestName`, `email`, `phone`, `selectedDate`, `adults`, `children`, `childrenAges`, `dog`, `guestAccessCode`, `reservationDeadline`, `paymentDueDate`, `paymentAmount`, `paymentDate`, `paymentMethod`, `paymentReference`, `paymentProofUrl`, `checkInStatus`, `experienceStatus`, `nextTask`, `internalNote`, `updatedAt` | Admin | Admin, Guest, Owner teilweise | `Normalisieren V1` | Buchung ist Kernprozess. Reisegruppe, Zahlungsfristen, Zahlungsdetails, Guest-Code, Check-in/Erlebnisstatus und naechste Aufgabe sollten strukturiert werden. Freitextnotiz kann Payload bleiben. |
 | `packages` | `headline`, `subheadline`, `shortDescription`, `experienceFeeling`, `includedItems`, `highlights`, `recommendations`, `faq`, `launchNote`, `heroImage`, `galleryImages`, `updatedAt` | Admin | Admin, Guest; Website aktuell aus `packages/domain` | `MVP-Payload ok`, spaeter `Normalisieren V2` | Fuer MVP ist paketbezogene Story/Copy als Payload akzeptabel. Spaeter braucht es eine klare CMS-Grenze: Website-Copy in `packages/domain`/CMS, operative Paketdaten in Supabase. |
@@ -45,7 +45,7 @@ Grundregel:
 
 Diese Felder sind die wichtigsten Kandidaten fuer fruehe Normalisierung, weil sie in Workflows, Filtern, Automationen oder im Gaestebereich relevant sind:
 
-1. `leads.followUpAt` aus Payload in eigene Spalte oder eigene Follow-up-Tabelle.
+1. `leads.followUpAt` aus Payload in eigene Spalte oder eigene Follow-up-Tabelle. Stand: umgesetzt als `leads.follow_up_at` mit Payload-Fallback.
 2. `leads.whatsappOptIn` und Marketing-/Kontakt-Einwilligungen in eigene Consent-Struktur.
 3. Reisegruppe in Leads und Bookings: Erwachsene, Kinder, Kinderalter, Hund.
 4. Buchungsfristen und Zahlungsdetails: Reservierungsfrist, Zahlungsfrist, Zahlungsstatusdetails.

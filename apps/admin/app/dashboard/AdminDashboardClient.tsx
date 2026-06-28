@@ -28,6 +28,7 @@ type LeadRow = {
   package_slug: string | null;
   source?: string | null;
   campaign?: string | null;
+  follow_up_at?: string | null;
   archived_at: string | null;
   created_at: string;
   payload: Record<string, unknown>;
@@ -1350,7 +1351,7 @@ function getOpenLeads(leads: LeadRow[]) {
 }
 
 function getLeadFollowUpAt(lead: LeadRow) {
-  return getPayloadText(lead.payload ?? {}, ["followUpAt", "follow_up_at", "nextContactAt"]);
+  return lead.follow_up_at || getPayloadText(lead.payload ?? {}, ["followUpAt", "follow_up_at", "nextContactAt"]);
 }
 
 function isLeadDue(lead: LeadRow) {
@@ -1422,7 +1423,7 @@ function getCustomerLatestDate(leads: LeadRow[], bookings: BookingRow[]) {
 function customerIsDue(leads: LeadRow[], bookings: BookingRow[]) {
   const today = todayIsoDate();
   const leadDue = leads.some((lead) => {
-    const due = getPayloadText(lead.payload ?? {}, ["followUpAt", "follow_up_at", "nextContactAt"]);
+    const due = getLeadFollowUpAt(lead);
     return Boolean(due && due.slice(0, 10) <= today);
   });
   const bookingDue = bookings.some((booking) => {
@@ -1939,7 +1940,7 @@ export function AdminDashboardClient() {
               .limit(160),
             supabase
               .from("leads")
-              .select("id,type,status,name,email,phone,package_slug,source,campaign,archived_at,created_at,payload")
+              .select("id,type,status,name,email,phone,package_slug,source,campaign,follow_up_at,archived_at,created_at,payload")
               .order("created_at", { ascending: false })
               .limit(120),
             supabase
@@ -4114,6 +4115,7 @@ function AdminDashboardView({
       const { error } = await supabase
         .from("leads")
         .update({
+          follow_up_at: followUpAt || null,
           payload,
           updated_at: now,
         })
@@ -4124,7 +4126,7 @@ function AdminDashboardView({
       setDataState((current) => ({
         ...current,
         leads: current.leads.map((item) =>
-          item.id === lead.id ? { ...item, payload } : item,
+          item.id === lead.id ? { ...item, follow_up_at: followUpAt || null, payload } : item,
         ),
       }));
 
@@ -4188,11 +4190,12 @@ function AdminDashboardView({
           package_slug: packageSlug,
           source,
           campaign,
+          follow_up_at: followUpAt,
           payload,
           updated_at: now,
         })
         .eq("id", lead.id)
-        .select("id,type,status,name,email,phone,package_slug,source,campaign,archived_at,created_at,payload")
+        .select("id,type,status,name,email,phone,package_slug,source,campaign,follow_up_at,archived_at,created_at,payload")
         .single();
 
       if (error) throw error;
