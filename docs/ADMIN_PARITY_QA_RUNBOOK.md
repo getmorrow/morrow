@@ -143,3 +143,91 @@ Für jeden Testlauf festhalten:
 - Offene Folgeaufgaben.
 
 Empfohlener Ablageort: `docs/PAGE_REVIEW_LOG.md` für visuelle/UX-Evidenz und `docs/ADMIN_CRM_PARITY_CHECKLIST.md` für fachliche Parität.
+
+## Abnahmeprotokoll Vorlage
+
+Diese Vorlage wird pro echtem Testlauf kopiert und ausgefüllt. Ein leerer oder nur teilweise ausgefüllter Lauf gilt nicht als Freigabe.
+
+```md
+## YYYY-MM-DD - Admin Parity QA Run
+
+Tester:
+Umgebung:
+- Website:
+- Admin:
+- Gäste-App:
+- Owner-App:
+
+Testdaten:
+- Testlead:
+- Testbuchung:
+- Testkunde:
+- Test-Auszeit:
+- Test-Unterkunft:
+- Test-Owner:
+
+Automatische Gates:
+- [ ] npm run typecheck
+- [ ] npx supabase db push --dry-run --linked
+- [ ] git diff --check
+- [ ] npm run lint
+- [ ] npm run qa:admin-audit
+- [ ] npm run admin:build
+- [ ] npm run guest:build
+- [ ] npm run owner:build
+- [ ] QA_BASE_URL=https://www.getmorrow.de npm run qa:production
+- [ ] npm run qa:launch-gates
+
+Manuelle Gates:
+- [ ] 1 Admin-Login
+- [ ] 2 Neuer Gastlead
+- [ ] 3 Leadstatus ändern
+- [ ] 4 Wiedervorlage setzen
+- [ ] 5 Lead archivieren/reaktivieren
+- [ ] 6 Lead reservieren
+- [ ] 7 Kunde prüfen
+- [ ] 8 Aufgabe erstellen
+- [ ] 9 Aufgabenbezug öffnen
+- [ ] 10 Buchung bearbeiten
+- [ ] 11 Gästebereich öffnen
+- [ ] 12 Support senden
+- [ ] 13 Support beantworten
+- [ ] 14 Feedback senden
+- [ ] 15 Auszeit pflegen
+- [ ] 16 Unterkunft pflegen
+- [ ] 17 Erlebnisbaustein pflegen
+- [ ] 18 Vor-Ort-Ort freigeben
+- [ ] 19 Veranstaltung prüfen
+- [ ] 20 Owner-Dokument
+- [ ] 21 Owner-Abrechnung
+- [ ] 22 Owner-Operation
+- [ ] 23 Audit-Log
+- [ ] 24 Kommunikationshistorie
+
+Evidenz:
+- Screenshots:
+- Supabase-Datensätze:
+- E-Mail-/Communication-Events:
+- Audit-Log-Einträge:
+- Offene Blocker:
+
+Bewertung:
+- Ergebnis: Grün/Gelb/Rot
+- Begründung:
+- Freigabe für echte Leads: Ja/Nein
+- Freigabe für zahlende Gäste: Ja/Nein
+- Nächste Korrekturen:
+```
+
+## Mindest-Evidenz Pro Flow
+
+| Flow | Mindest-Evidenz |
+| --- | --- |
+| Leadflow | Lead-ID, Screenshot Admin-Lead, E-Mail-Event oder Kommunikationsereignis. |
+| Reservierung/Buchung | Booking-ID, Customer-ID, Screenshot Buchungsdrawer, Audit-Eintrag. |
+| Gästebereich | Booking-ID, Access-Code, Screenshot Start/Buchung/Hilfe, keine falschen Gastdaten. |
+| Support | Support-Message-ID, Admin-Screenshot, sichtbare Antwort im Gäste- oder Owner-Verlauf. |
+| Feedback | Feedback-ID, Kommunikationsereignis, Admin-Screenshot. |
+| Auszeit/Unterkunft/Erlebnis | Datensatz-ID, Screenshot Drawer, gespeicherte Pflichtfelder, Audit-Eintrag. |
+| Owner-App | Owner-Profil-ID, Objektzugriff, Screenshot Owner-Dashboard, nur erlaubte Objekte sichtbar. |
+| Audit | Screenshot oder Datensatzliste mit Action, Entity, Actor und Zeitstempel. |
