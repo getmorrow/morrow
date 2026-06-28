@@ -2366,6 +2366,58 @@ function AdminDashboardView({
   const monitoring = monitoringItems(data);
   const averageRating = averageFeedbackRating(data.guestFeedback);
   const lowFeedback = data.guestFeedback.filter((feedback) => typeof feedback.rating === "number" && feedback.rating <= 3);
+  const overviewWorkItems = [
+    ...dueTasks.slice(0, 4).map((task) => ({
+      id: `task-${task.id}`,
+      label: taskReferenceLabel(task.reference_type),
+      title: task.title,
+      meta: `${taskTimingLabel(task)} · ${task.reference_label || task.reference_id}`,
+      action: () => openTaskReference(task),
+    })),
+    ...activeLeads.filter(isLeadDue).slice(0, 3).map((lead) => ({
+      id: `lead-${lead.id}`,
+      label: "Anfrage",
+      title: getLeadLabel(lead),
+      meta: `${leadWorkLabel(lead)} · ${lead.status}`,
+      action: () => {
+        setActiveWorkspace("crm");
+        setSelection({ type: "lead", id: lead.id });
+      },
+    })),
+    ...[...openSupport]
+      .sort((a, b) => supportUrgencyRank(a.urgency) - supportUrgencyRank(b.urgency) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 3)
+      .map((support) => ({
+        id: `support-${support.id}`,
+        label: "Support",
+        title: getSupportLabel(support),
+        meta: `${supportUrgencyLabel(support.urgency)} · ${supportCategoryLabel(support.category)}`,
+        action: () => {
+          setActiveWorkspace("support");
+          setSelection({ type: "support", id: support.id });
+        },
+      })),
+    ...lowFeedback.slice(0, 2).map((feedback) => {
+      const booking = feedback.booking_id
+        ? data.bookings.find((item) => item.id === feedback.booking_id)
+        : null;
+
+      return {
+        id: `feedback-${feedback.id}`,
+        label: "Feedback",
+        title: getFeedbackPackageLabel(feedback, data.bookings),
+        meta: `${feedback.rating}/5 · ${feedbackReturnInterestLabel(feedback.return_interest)}`,
+        action: () => {
+          if (booking) {
+            setActiveWorkspace("crm");
+            setSelection({ type: "booking", id: booking.id });
+            return;
+          }
+          setActiveWorkspace("support");
+        },
+      };
+    }),
+  ].slice(0, 8);
   const filteredCommunicationEvents = useMemo(() => {
     const search = communicationSearch.trim().toLowerCase();
 
@@ -5833,6 +5885,36 @@ function AdminDashboardView({
       </section>
 
       <section className="admin-grid" id="aufgaben" hidden={!["overview", "tasks", "activity"].includes(activeWorkspace)}>
+        {activeWorkspace === "overview" ? (
+        <article className="admin-card admin-card-wide">
+          <p className="admin-eyebrow">Tagessteuerung</p>
+          <h2>Heute zuerst</h2>
+          <p>
+            Fällige Aufgaben, Nachfassaktionen, offene Supportfälle und kritisches Feedback.
+            Die Bearbeitung passiert im jeweiligen Detailbereich.
+          </p>
+          <div className="admin-list">
+            {overviewWorkItems.map((item) => (
+              <article className="admin-list-item" key={item.id}>
+                <div>
+                  <small>{item.label}</small>
+                  <strong>{item.title}</strong>
+                  <em>{item.meta}</em>
+                </div>
+                <div className="admin-row-actions">
+                  <button onClick={item.action} type="button">
+                    Öffnen
+                  </button>
+                </div>
+              </article>
+            ))}
+            {overviewWorkItems.length === 0 ? (
+              <p className="admin-drawer-message">Für den Moment ist keine Tagesarbeit fällig.</p>
+            ) : null}
+          </div>
+        </article>
+        ) : null}
+
         {activeWorkspace === "tasks" ? (
         <article className="admin-card admin-card-wide">
           <p className="admin-eyebrow">Aufgaben</p>
