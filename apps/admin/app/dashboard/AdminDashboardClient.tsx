@@ -867,6 +867,49 @@ function getExperienceIssues(draft: ExperienceDraft) {
   return issues;
 }
 
+function getLocalPlaceIssues(draft: LocalPlaceDraft) {
+  const issues: string[] = [];
+  const category = String(draft.category || "food");
+  const status = String(draft.status || "candidate");
+  const hasCoordinates = Boolean(String(draft.lat || "").trim() && String(draft.lng || "").trim());
+  const hasActionLink = Boolean(
+    String(draft.website || "").trim() ||
+    String(draft.reservation_url || "").trim() ||
+    String(draft.menu_url || "").trim(),
+  );
+
+  if (!String(draft.name || "").trim()) issues.push("Name fehlt");
+  if (!category.trim()) issues.push("Kategorie fehlt");
+  if (!status.trim()) issues.push("Status fehlt");
+  if (!String(draft.description || "").trim()) issues.push("Gastbeschreibung fehlt");
+  if (splitLines(String(draft.images || "")).length === 0) issues.push("Bildmaterial fehlt");
+  if (status === "approved" && !hasCoordinates) issues.push("Koordinaten für Karte fehlen");
+
+  if (category === "food") {
+    if (!String(draft.cuisine || "").trim()) issues.push("Küche oder Restauranttyp fehlt");
+    if (!String(draft.opening_hours || "").trim()) issues.push("Öffnungszeiten/Hinweis fehlen");
+    if (!String(draft.rating || "").trim()) issues.push("Bewertung fehlt");
+    if (!hasActionLink) issues.push("Reservierung, Speisekarte oder Website fehlt");
+  }
+
+  if (category === "event") {
+    if (!String(draft.event_date || "").trim()) issues.push("Veranstaltungsdatum fehlt");
+    if (!String(draft.event_time || "").trim()) issues.push("Veranstaltungszeit fehlt");
+    if (!hasActionLink) issues.push("Programm- oder Website-Link fehlt");
+  }
+
+  if (category === "experience") {
+    if (splitLines(String(draft.best_for || "")).length === 0) issues.push("Zielgruppe/Nutzen fehlt");
+    if (splitLines(String(draft.package_fit || "")).length === 0) issues.push("Auszeit-Zuordnung prüfen");
+  }
+
+  if (category === "emergency" && !hasActionLink && !String(draft.address || "").trim()) {
+    issues.push("Kontakt, Adresse oder Link fehlt");
+  }
+
+  return issues;
+}
+
 function numberOrNull(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -9532,6 +9575,8 @@ function AdminLocalPlaceDrawer({
 }) {
   if (!place && !isCreating) return null;
 
+  const localPlaceIssues = getLocalPlaceIssues(draft);
+
   return (
     <div className="admin-drawer-layer" role="presentation">
       <button className="admin-drawer-backdrop" onClick={onClose} type="button" />
@@ -9546,6 +9591,25 @@ function AdminLocalPlaceDrawer({
             Schließen
           </button>
         </header>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Ortsprüfung</p>
+          <div className="admin-readiness-panel">
+            <div>
+              <strong>{localPlaceIssues.length === 0 ? "Bereit für die Gästewelt" : "Noch nicht gastbereit"}</strong>
+              <span>
+                {localPlaceIssues.length === 0
+                  ? "Kategorie, Karte, Beschreibung, Bilder und relevante Links sind gepflegt."
+                  : `${localPlaceIssues.length} Punkt${localPlaceIssues.length === 1 ? "" : "e"} fehlen vor einer sauberen Freigabe.`}
+              </span>
+            </div>
+            <div className="admin-readiness-list">
+              {localPlaceIssues.length === 0
+                ? <span>Alle Pflichtpunkte gepflegt</span>
+                : localPlaceIssues.map((issue) => <span key={issue}>{issue}</span>)}
+            </div>
+          </div>
+        </section>
 
         <section className="admin-drawer-section">
           <p className="admin-eyebrow">Freigabe</p>
