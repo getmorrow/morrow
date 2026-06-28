@@ -64,6 +64,9 @@ export const experienceProviderSelectColumns =
 export const communicationEventSelectColumns =
   "id,lead_id,booking_id,customer_id,support_id,channel,direction,event_type,subject,body,recipient,actor,status,provider,provider_message_id,template_key,source,payload,created_at" as const;
 
+export const agencySelectColumns =
+  "id,name,contact_name,email,phone,location,status,managed_property_ids,response_due_days,available_dates_note,next_follow_up_at,notes,payload,created_at" as const;
+
 export type ExperienceBlockRowBase = {
   id: string;
   package_id: string | null;
@@ -144,6 +147,23 @@ export type CommunicationEventRowBase = {
   template_key?: string | null;
   source?: string | null;
   payload?: JsonRecord;
+  created_at: string;
+};
+
+export type AgencyRowBase = {
+  id: string;
+  name: string;
+  contact_name: string | null;
+  email: string | null;
+  phone: string | null;
+  location: string | null;
+  status: string;
+  managed_property_ids: string[];
+  response_due_days: number | null;
+  available_dates_note: string | null;
+  next_follow_up_at?: string | null;
+  notes?: string | null;
+  payload: JsonRecord;
   created_at: string;
 };
 

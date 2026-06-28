@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  type AgencyRowBase,
+  agencySelectColumns,
   type AdminAuditLogRow,
   createSupabaseBrowserClient,
   type CommunicationEventRowBase,
@@ -231,20 +233,7 @@ type OwnerOperationRow = {
   created_at: string;
 };
 
-type AgencyRow = {
-  id: string;
-  name: string;
-  contact_name: string | null;
-  email: string | null;
-  phone: string | null;
-  location: string | null;
-  status: string;
-  managed_property_ids: string[];
-  response_due_days: number | null;
-  available_dates_note: string | null;
-  payload: Record<string, unknown>;
-  created_at: string;
-};
+type AgencyRow = AgencyRowBase;
 
 type CommunicationEventRow = CommunicationEventRowBase;
 
@@ -2051,7 +2040,7 @@ export function AdminDashboardClient() {
               .order("created_at", { ascending: false }),
             supabase
               .from("agencies")
-              .select("id,name,contact_name,email,phone,location,status,managed_property_ids,response_due_days,available_dates_note,payload,created_at")
+              .select(agencySelectColumns)
               .order("name"),
             supabase
               .from("guest_feedback")
@@ -2512,7 +2501,7 @@ function AdminDashboardView({
   );
   const agenciesWithProperties = data.agencies.filter((agency) => agency.managed_property_ids.length > 0);
   const agencyFollowUpsDue = data.agencies.filter((agency) => {
-    const followUpAt = getPayloadText(agency.payload ?? {}, ["nextFollowUpAt", "next_follow_up_at"]);
+    const followUpAt = agency.next_follow_up_at || getPayloadText(agency.payload ?? {}, ["nextFollowUpAt", "next_follow_up_at"]);
     return Boolean(agency.status !== "paused" && followUpAt && followUpAt.slice(0, 10) <= todayIsoDate());
   });
 
@@ -3210,8 +3199,8 @@ function AdminDashboardView({
       managed_property_ids: agency.managed_property_ids ?? [],
       response_due_days: agency.response_due_days?.toString() || "2",
       available_dates_note: agency.available_dates_note || "",
-      next_follow_up_at: getPayloadText(agency.payload ?? {}, ["nextFollowUpAt", "next_follow_up_at"]) || "",
-      notes: getPayloadText(agency.payload ?? {}, ["notes", "note", "internalNote"]) || "",
+      next_follow_up_at: agency.next_follow_up_at || getPayloadText(agency.payload ?? {}, ["nextFollowUpAt", "next_follow_up_at"]) || "",
+      notes: agency.notes || getPayloadText(agency.payload ?? {}, ["notes", "note", "internalNote"]) || "",
     });
     setAgencyMessage("Agentur zum Bearbeiten geladen.");
   }
@@ -3246,6 +3235,8 @@ function AdminDashboardView({
         managed_property_ids: agencyDraft.managed_property_ids,
         response_due_days: numberOrNull(agencyDraft.response_due_days),
         available_dates_note: agencyDraft.available_dates_note.trim() || null,
+        next_follow_up_at: agencyDraft.next_follow_up_at || null,
+        notes: agencyDraft.notes.trim() || null,
         payload,
         updated_at: new Date().toISOString(),
       };
@@ -3253,7 +3244,7 @@ function AdminDashboardView({
       const { data: saved, error } = await supabase
         .from("agencies")
         .upsert(upsertPayload)
-        .select("id,name,contact_name,email,phone,location,status,managed_property_ids,response_due_days,available_dates_note,payload,created_at")
+        .select(agencySelectColumns)
         .single();
 
       if (error) throw error;
@@ -3317,7 +3308,7 @@ function AdminDashboardView({
           updated_at: new Date().toISOString(),
         })
         .eq("id", agency.id)
-        .select("id,name,contact_name,email,phone,location,status,managed_property_ids,response_due_days,available_dates_note,payload,created_at")
+        .select(agencySelectColumns)
         .single();
 
       if (error) throw error;
@@ -7044,7 +7035,7 @@ function AdminDashboardView({
                   <div>
                     <strong>{agency.name}</strong>
                     <span>
-                      {getPayloadText(agency.payload ?? {}, ["nextFollowUpAt", "next_follow_up_at"])}
+                      {agency.next_follow_up_at || getPayloadText(agency.payload ?? {}, ["nextFollowUpAt", "next_follow_up_at"])}
                       {agency.contact_name ? ` · ${agency.contact_name}` : ""}
                     </span>
                   </div>
@@ -7192,7 +7183,7 @@ function AdminDashboardView({
                 const linkedPropertyNames = agency.managed_property_ids
                   .map((propertyId) => getPropertyName(data.properties, propertyId))
                   .join(" · ");
-                const nextFollowUpAt = getPayloadText(agency.payload ?? {}, ["nextFollowUpAt", "next_follow_up_at"]);
+                const nextFollowUpAt = agency.next_follow_up_at || getPayloadText(agency.payload ?? {}, ["nextFollowUpAt", "next_follow_up_at"]);
                 return (
                   <article className="admin-list-item" key={agency.id}>
                     <div>
