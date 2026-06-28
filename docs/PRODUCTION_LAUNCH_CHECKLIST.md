@@ -6,6 +6,8 @@ Ziel: Morrow sicher von lokalem MVP zu einer öffentlich erreichbaren Phase-1-Ve
 
 Operativer MVP-Abschlussrahmen: `docs/MORROW_MVP_COMPLETION_PLAN.md`
 
+Admin-/Plattform-Abnahme vor echten Kunden: `docs/ADMIN_PARITY_QA_RUNBOOK.md`
+
 ## 1. Secrets rotieren
 
 Vor Livegang rotieren, weil Werte im Arbeitschat geteilt wurden:
@@ -135,6 +137,7 @@ GUEST_BASE_URL=https://<guest-app-domain> npm run supabase:verify-guest
 
 Vor dem ersten zahlenden Gast muessen die MVP-kritischen Punkte aus `docs/MORROW_MVP_COMPLETION_PLAN.md` geprueft werden:
 
+- Admin-Paritaetsabnahme nach `docs/ADMIN_PARITY_QA_RUNBOOK.md` ist mit Testdaten durchlaufen und bewertet.
 - Paket-Builder fuer neue Auszeiten.
 - Unterkunftsverwaltung mit Medien, Regeln, Check-in, Ausstattung und Bildrechten.
 - Erlebnisbausteine mit Anbieter, Preis, Kapazitaet und Verfuegbarkeit.
@@ -201,6 +204,12 @@ Vor öffentlichem Traffic:
 - Verantwortlichkeit bei Objektproblemen je Auszeit dokumentiert.
 
 ## 8. Production Rehearsal
+
+Vor Production-Rehearsal mit echten Leads gilt:
+
+- `docs/ADMIN_PARITY_QA_RUNBOOK.md` muss mindestens gelb bewertet sein, damit die oeffentliche Website echte Anfragen einsammeln darf.
+- Fuer zahlende Gaeste muss das Runbook gruen bewertet sein.
+- Ein erfolgreiches technisches Build ersetzt diese fachliche Abnahme nicht.
 
 Launch-Gates vor echtem Traffic:
 
@@ -272,6 +281,7 @@ npm run qa:production
 ```
 
 Einmal vollständig testen:
+- Admin-Paritaetsabnahme nach `docs/ADMIN_PARITY_QA_RUNBOOK.md` mit Testlead/Testbuchung dokumentieren.
 - echte Anfrage über `getmorrow.de`.
 - Gastbestätigung kommt an.
 - interne Lead-Mail kommt an.

@@ -63,6 +63,7 @@ Konsolidierungsentscheidung 2026-06-27:
 
 - Vor weiterem Featurebau wird die Migration konsolidiert.
 - `docs/MIGRATION_CONSOLIDATION_AUDIT.md` ist der aktuelle Arbeitsrahmen fuer Bestandsaufnahme, Migrationsmatrix, Admin-Funktionsparitaet, fuehrende Apps und Dev-/Betriebsbasis.
+- `docs/ADMIN_PARITY_QA_RUNBOOK.md` ist die operative Abnahme vor echten Leads oder zahlenden Gaesten.
 - `apps/admin` ist die Ziel-App fuer die Quelle der Wahrheit, aber noch nicht als vollstaendiger Ersatz fuer den alten Vite-Admin-CRM freigegeben.
 - Der alte Vite-Admin in `src/App.tsx` bleibt temporaer Referenz fuer CRM-Paritaet, bis die offenen Luecken geschlossen und abgenommen sind.
 - Neue Produktfeatures werden geparkt, bis diese Paritaets- und Konsolidierungsarbeit erledigt ist.

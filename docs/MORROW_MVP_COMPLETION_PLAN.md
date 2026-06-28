@@ -252,6 +252,7 @@ Naechste technische Prioritaet:
 
 ## Abnahmetests Vor Erstem Zahlenden Gast
 
+- [ ] Admin-Paritaetsabnahme nach `docs/ADMIN_PARITY_QA_RUNBOOK.md` mit Testlead/Testbuchung dokumentiert.
 - [x] Admin-Login funktioniert live.
 - [x] Anfrage landet in Supabase.
 - [x] E-Mail-Automation fuer Anfrage getestet.
@@ -282,6 +283,7 @@ Weiter mit Production-Rehearsal und Launch-Gates:
 
 Definition of Done:
 
+- `docs/ADMIN_PARITY_QA_RUNBOOK.md` ist mit Evidenz durchlaufen; Ergebnis ist fuer echte Leads mindestens gelb und fuer zahlende Gaeste gruen.
 - Echte Next-Web Anfrage mit UTM landet live in Supabase, loest Lead-Mail aus und zeigt Quelle/Kampagne im Admin; Basischeck ueber `QA_BASE_URL=https://www.getmorrow.de npm run qa:production`.
 - Consent-Tracking wird mit echten GA4-/Meta-IDs getestet und Zielereignisse fuer Anfrage/Submit werden dokumentiert.
 - Impressum, Datenschutz, AGB, Buchungs-, Storno- und Zahlungsbedingungen sind mit echten Unternehmens- und Angebotsdaten juristisch final geprueft.
