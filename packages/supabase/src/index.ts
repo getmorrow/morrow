@@ -67,6 +67,15 @@ export const communicationEventSelectColumns =
 export const agencySelectColumns =
   "id,name,contact_name,email,phone,location,status,managed_property_ids,response_due_days,available_dates_note,next_follow_up_at,notes,payload,created_at" as const;
 
+export const ownerDocumentSelectColumns =
+  "id,property_id,title,document_type,status,url,period_label,payload,created_at" as const;
+
+export const ownerStatementSelectColumns =
+  "id,property_id,period_label,period_start,period_end,status,currency,gross_revenue,morrow_fee,other_costs,owner_payout,document_url,paid_at,payload,created_at" as const;
+
+export const ownerOperationSelectColumns =
+  "id,property_id,title,operation_type,status,visibility,scheduled_for,completed_at,note,payload,created_at" as const;
+
 export type ExperienceBlockRowBase = {
   id: string;
   package_id: string | null;
@@ -163,6 +172,50 @@ export type AgencyRowBase = {
   available_dates_note: string | null;
   next_follow_up_at?: string | null;
   notes?: string | null;
+  payload: JsonRecord;
+  created_at: string;
+};
+
+export type OwnerDocumentRowBase = {
+  id: string;
+  property_id: string;
+  title: string;
+  document_type: string;
+  status: string;
+  url: string;
+  period_label: string | null;
+  payload: JsonRecord;
+  created_at: string;
+};
+
+export type OwnerStatementRowBase = {
+  id: string;
+  property_id: string;
+  period_label: string;
+  period_start: string | null;
+  period_end: string | null;
+  status: string;
+  currency: string;
+  gross_revenue: number;
+  morrow_fee: number;
+  other_costs: number;
+  owner_payout: number;
+  document_url: string | null;
+  paid_at: string | null;
+  payload: JsonRecord;
+  created_at: string;
+};
+
+export type OwnerOperationRowBase = {
+  id: string;
+  property_id: string;
+  title: string;
+  operation_type: string;
+  status: string;
+  visibility: string;
+  scheduled_for: string | null;
+  completed_at: string | null;
+  note: string | null;
   payload: JsonRecord;
   created_at: string;
 };

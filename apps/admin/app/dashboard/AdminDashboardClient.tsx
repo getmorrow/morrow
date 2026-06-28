@@ -17,6 +17,12 @@ import {
   localPlaceAdminSelectColumns,
   type JsonRecord,
   type LocalPlaceRowBase,
+  type OwnerDocumentRowBase,
+  ownerDocumentSelectColumns,
+  type OwnerOperationRowBase,
+  ownerOperationSelectColumns,
+  type OwnerStatementRowBase,
+  ownerStatementSelectColumns,
   type SupportMessageRowBase,
   supportMessageSelectColumns,
 } from "@morrow/supabase";
@@ -189,49 +195,11 @@ type OwnerAccessRow = {
   created_at: string;
 };
 
-type OwnerDocumentRow = {
-  id: string;
-  property_id: string;
-  title: string;
-  document_type: string;
-  status: string;
-  url: string;
-  period_label: string | null;
-  payload: Record<string, unknown>;
-  created_at: string;
-};
+type OwnerDocumentRow = OwnerDocumentRowBase;
 
-type OwnerStatementRow = {
-  id: string;
-  property_id: string;
-  period_label: string;
-  period_start: string | null;
-  period_end: string | null;
-  status: string;
-  currency: string;
-  gross_revenue: number;
-  morrow_fee: number;
-  other_costs: number;
-  owner_payout: number;
-  document_url: string | null;
-  paid_at: string | null;
-  payload: Record<string, unknown>;
-  created_at: string;
-};
+type OwnerStatementRow = OwnerStatementRowBase;
 
-type OwnerOperationRow = {
-  id: string;
-  property_id: string;
-  title: string;
-  operation_type: string;
-  status: string;
-  visibility: string;
-  scheduled_for: string | null;
-  completed_at: string | null;
-  note: string | null;
-  payload: Record<string, unknown>;
-  created_at: string;
-};
+type OwnerOperationRow = OwnerOperationRowBase;
 
 type AgencyRow = AgencyRowBase;
 
@@ -2026,16 +1994,16 @@ export function AdminDashboardClient() {
               .order("created_at", { ascending: false }),
             supabase
               .from("owner_documents")
-              .select("id,property_id,title,document_type,status,url,period_label,payload,created_at")
+              .select(ownerDocumentSelectColumns)
               .order("created_at", { ascending: false }),
             supabase
               .from("owner_statements")
-              .select("id,property_id,period_label,period_start,period_end,status,currency,gross_revenue,morrow_fee,other_costs,owner_payout,document_url,paid_at,payload,created_at")
+              .select(ownerStatementSelectColumns)
               .order("period_start", { ascending: false, nullsFirst: false })
               .order("created_at", { ascending: false }),
             supabase
               .from("owner_operations")
-              .select("id,property_id,title,operation_type,status,visibility,scheduled_for,completed_at,note,payload,created_at")
+              .select(ownerOperationSelectColumns)
               .order("scheduled_for", { ascending: false, nullsFirst: false })
               .order("created_at", { ascending: false }),
             supabase
@@ -3767,7 +3735,7 @@ function AdminDashboardView({
       const { data: inserted, error } = await supabase
         .from("owner_documents")
         .insert(insertPayload)
-        .select("id,property_id,title,document_type,status,url,period_label,payload,created_at")
+        .select(ownerDocumentSelectColumns)
         .single();
 
       if (error) throw error;
@@ -3819,7 +3787,7 @@ function AdminDashboardView({
           },
         })
         .eq("id", document.id)
-        .select("id,property_id,title,document_type,status,url,period_label,payload,created_at")
+        .select(ownerDocumentSelectColumns)
         .single();
 
       if (error) throw error;
@@ -3882,7 +3850,7 @@ function AdminDashboardView({
       const { data: inserted, error } = await supabase
         .from("owner_statements")
         .insert(insertPayload)
-        .select("id,property_id,period_label,period_start,period_end,status,currency,gross_revenue,morrow_fee,other_costs,owner_payout,document_url,paid_at,payload,created_at")
+        .select(ownerStatementSelectColumns)
         .single();
 
       if (error) throw error;
@@ -3940,7 +3908,7 @@ function AdminDashboardView({
           },
         })
         .eq("id", statement.id)
-        .select("id,property_id,period_label,period_start,period_end,status,currency,gross_revenue,morrow_fee,other_costs,owner_payout,document_url,paid_at,payload,created_at")
+        .select(ownerStatementSelectColumns)
         .single();
 
       if (error) throw error;
@@ -4003,7 +3971,7 @@ function AdminDashboardView({
       const { data: inserted, error } = await supabase
         .from("owner_operations")
         .insert(insertPayload)
-        .select("id,property_id,title,operation_type,status,visibility,scheduled_for,completed_at,note,payload,created_at")
+        .select(ownerOperationSelectColumns)
         .single();
 
       if (error) throw error;
@@ -4058,7 +4026,7 @@ function AdminDashboardView({
           },
         })
         .eq("id", operation.id)
-        .select("id,property_id,title,operation_type,status,visibility,scheduled_for,completed_at,note,payload,created_at")
+        .select(ownerOperationSelectColumns)
         .single();
 
       if (error) throw error;
