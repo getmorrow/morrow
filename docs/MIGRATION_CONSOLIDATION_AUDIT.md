@@ -180,7 +180,7 @@ Risiko:
 
 ### Dashboard/Stubs oder noch zu schwache Funktionen
 
-- `apps/admin/README.md` war bis zu diesem Audit noch als Platzhalter formuliert.
+- Die App-READMEs fuer Web, Admin, Guest und Owner dokumentieren jetzt Rolle, Status, lokale Nutzung, Env und QA; sie ersetzen aber keine echte Runbook-Abnahme.
 - `apps/admin` nutzt clientseitige Arbeitsbereiche; fuer MVP kann das reichen, echte interne Routen bleiben spaetere Architekturentscheidung.
 - `packages/domain` ist fuer Website-Inhalte stark, aber nicht fuer operative Admin-Domaenen.
 - `packages/supabase` typisiert Admin-/Guest-/Owner-Rowformen inzwischen breit; Repository-/Mutation-Helper sind noch nicht konsequent extrahiert.
