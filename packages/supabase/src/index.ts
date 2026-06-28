@@ -91,6 +91,18 @@ export const leadSelectColumns =
 export const bookingSelectColumns =
   "id,lead_id,customer_id,package_id,status,payment_status,guest_access_code,guest_name,guest_email,guest_phone,selected_date,reservation_deadline,payment_due_date,payment_amount,payment_date,payment_method,payment_reference,payment_proof_url,adults,children,children_ages,dog,check_in_status,experience_status,next_task,created_at,payload" as const;
 
+export const packageSelectColumns =
+  "id,name,slug,audience,location,status,property_id,price_from,concrete_price,payload" as const;
+
+export const propertySelectColumns =
+  "id,name,location,sleeps,bedrooms,bathrooms,check_in_type,support_type,support_name,image_rights_confirmed,description,owner_name,owner_email,owner_phone,property_type,current_rental,address,earliest_arrival,latest_arrival,check_out_time,key_safe_code,check_in_instructions,amenities,attributes,experience_worlds,house_rules,media,media_alt_texts,cleaning_status,maintenance_status,last_check,status,payload" as const;
+
+export const adminTaskSelectColumns =
+  "id,title,reference_type,reference_id,reference_label,due_at,status,priority,note,payload,created_at" as const;
+
+export const packageDateSelectColumns =
+  "id,package_id,label,starts_on,ends_on,capacity,status,payload,created_at" as const;
+
 export type ExperienceBlockRowBase = {
   id: string;
   package_id: string | null;
@@ -317,6 +329,73 @@ export type BookingRowBase = {
   next_task?: string | null;
   created_at: string;
   payload: JsonRecord;
+};
+
+export type InventoryRowBase = {
+  id: string;
+  name?: string;
+  slug?: string;
+  status?: string;
+  location?: string;
+  payload?: JsonRecord;
+  audience?: string;
+  property_id?: string | null;
+  price_from?: string | null;
+  concrete_price?: string | null;
+  sleeps?: number | null;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  check_in_type?: string | null;
+  support_type?: string | null;
+  support_name?: string | null;
+  image_rights_confirmed?: boolean | null;
+  description?: string | null;
+  owner_name?: string | null;
+  owner_email?: string | null;
+  owner_phone?: string | null;
+  property_type?: string | null;
+  current_rental?: string | null;
+  address?: string | null;
+  earliest_arrival?: string | null;
+  latest_arrival?: string | null;
+  check_out_time?: string | null;
+  key_safe_code?: string | null;
+  check_in_instructions?: string | null;
+  amenities?: string[] | null;
+  attributes?: string[] | null;
+  experience_worlds?: string[] | null;
+  house_rules?: string[] | null;
+  media?: string[] | null;
+  media_alt_texts?: string[] | null;
+  cleaning_status?: string | null;
+  maintenance_status?: string | null;
+  last_check?: string | null;
+};
+
+export type AdminTaskRowBase = {
+  id: string;
+  title: string;
+  reference_type: string;
+  reference_id: string;
+  reference_label: string | null;
+  due_at: string | null;
+  status: string;
+  priority: string;
+  note: string | null;
+  payload: JsonRecord;
+  created_at: string;
+};
+
+export type PackageDateRowBase = {
+  id: string;
+  package_id: string;
+  label: string;
+  starts_on: string | null;
+  ends_on: string | null;
+  capacity: number | null;
+  status: string;
+  payload: JsonRecord;
+  created_at: string;
 };
 
 export type AdminAuditLogRow = {

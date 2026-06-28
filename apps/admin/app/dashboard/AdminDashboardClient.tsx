@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import {
   type AgencyRowBase,
   agencySelectColumns,
+  type AdminTaskRowBase,
+  adminTaskSelectColumns,
   type AdminAuditLogRow,
   createSupabaseBrowserClient,
   type CommunicationEventRowBase,
@@ -16,6 +18,7 @@ import {
   type ExperienceProviderRowBase,
   experienceProviderSelectColumns,
   insertAdminAuditLog,
+  type InventoryRowBase,
   localPlaceAdminSelectColumns,
   type JsonRecord,
   type BookingRowBase,
@@ -33,6 +36,10 @@ import {
   ownerProfileSelectColumns,
   type OwnerStatementRowBase,
   ownerStatementSelectColumns,
+  type PackageDateRowBase,
+  packageDateSelectColumns,
+  packageSelectColumns,
+  propertySelectColumns,
   type SupportMessageRowBase,
   supportMessageSelectColumns,
 } from "@morrow/supabase";
@@ -50,60 +57,9 @@ type BookingRow = BookingRowBase;
 
 type CustomerRecordRow = CustomerRecordRowBase;
 
-type SimpleRow = {
-  id: string;
-  name?: string;
-  slug?: string;
-  status?: string;
-  location?: string;
-  payload?: Record<string, unknown>;
-  audience?: string;
-  property_id?: string | null;
-  price_from?: string | null;
-  concrete_price?: string | null;
-  sleeps?: number | null;
-  bedrooms?: number | null;
-  bathrooms?: number | null;
-  check_in_type?: string | null;
-  support_type?: string | null;
-  support_name?: string | null;
-  image_rights_confirmed?: boolean | null;
-  description?: string | null;
-  owner_name?: string | null;
-  owner_email?: string | null;
-  owner_phone?: string | null;
-  property_type?: string | null;
-  current_rental?: string | null;
-  address?: string | null;
-  earliest_arrival?: string | null;
-  latest_arrival?: string | null;
-  check_out_time?: string | null;
-  key_safe_code?: string | null;
-  check_in_instructions?: string | null;
-  amenities?: string[] | null;
-  attributes?: string[] | null;
-  experience_worlds?: string[] | null;
-  house_rules?: string[] | null;
-  media?: string[] | null;
-  media_alt_texts?: string[] | null;
-  cleaning_status?: string | null;
-  maintenance_status?: string | null;
-  last_check?: string | null;
-};
+type SimpleRow = InventoryRowBase;
 
-type AdminTaskRow = {
-  id: string;
-  title: string;
-  reference_type: string;
-  reference_id: string;
-  reference_label: string | null;
-  due_at: string | null;
-  status: string;
-  priority: string;
-  note: string | null;
-  payload: Record<string, unknown>;
-  created_at: string;
-};
+type AdminTaskRow = AdminTaskRowBase;
 
 type SupportRow = SupportMessageRowBase;
 
@@ -115,17 +71,7 @@ type LocalPlaceRow = LocalPlaceRowBase & {
   created_at: string;
 };
 
-type PackageDateRow = {
-  id: string;
-  package_id: string;
-  label: string;
-  starts_on: string | null;
-  ends_on: string | null;
-  capacity: number | null;
-  status: string;
-  payload: Record<string, unknown>;
-  created_at: string;
-};
+type PackageDateRow = PackageDateRowBase;
 
 type OwnerProfileRow = OwnerProfileRowBase;
 
@@ -1885,15 +1831,15 @@ export function AdminDashboardClient() {
               .limit(120),
             supabase
               .from("packages")
-              .select("id,name,slug,audience,location,status,property_id,price_from,concrete_price,payload")
+              .select(packageSelectColumns)
               .order("name"),
             supabase
               .from("properties")
-              .select("id,name,location,sleeps,bedrooms,bathrooms,check_in_type,support_type,support_name,image_rights_confirmed,description,owner_name,owner_email,owner_phone,property_type,current_rental,address,earliest_arrival,latest_arrival,check_out_time,key_safe_code,check_in_instructions,amenities,attributes,experience_worlds,house_rules,media,media_alt_texts,cleaning_status,maintenance_status,last_check,status,payload")
+              .select(propertySelectColumns)
               .order("name"),
             supabase
               .from("admin_tasks")
-              .select("id,title,reference_type,reference_id,reference_label,due_at,status,priority,note,payload,created_at")
+              .select(adminTaskSelectColumns)
               .order("due_at", { ascending: true, nullsFirst: false })
               .order("created_at", { ascending: false })
               .limit(40),
@@ -1917,7 +1863,7 @@ export function AdminDashboardClient() {
               .limit(120),
             supabase
               .from("package_dates")
-              .select("id,package_id,label,starts_on,ends_on,capacity,status,payload,created_at")
+              .select(packageDateSelectColumns)
               .order("starts_on", { ascending: true, nullsFirst: false })
               .order("created_at", { ascending: false }),
             supabase
@@ -5107,7 +5053,7 @@ function AdminDashboardView({
             updated_at: new Date().toISOString(),
           })
           .eq("id", existingTask.id)
-          .select("id,title,reference_type,reference_id,reference_label,due_at,status,priority,note,payload,created_at")
+          .select(adminTaskSelectColumns)
           .single();
 
         if (error) throw error;
@@ -5176,7 +5122,7 @@ function AdminDashboardView({
           note: taskDraft.note.trim() || null,
           payload,
         })
-        .select("id,title,reference_type,reference_id,reference_label,due_at,status,priority,note,payload,created_at")
+        .select(adminTaskSelectColumns)
         .single();
 
       if (error) throw error;
@@ -5362,7 +5308,7 @@ function AdminDashboardView({
           const { data: inserted, error } = await supabase
             .from("packages")
             .insert(insertPayload)
-            .select("id,name,slug,audience,location,status,property_id,price_from,concrete_price,payload")
+            .select(packageSelectColumns)
             .single();
 
           if (error) throw error;
@@ -5494,7 +5440,7 @@ function AdminDashboardView({
           const { data: inserted, error } = await supabase
             .from("properties")
             .insert(insertPayload)
-            .select("id,name,location,sleeps,bedrooms,bathrooms,check_in_type,support_type,support_name,image_rights_confirmed,description,owner_name,owner_email,owner_phone,property_type,current_rental,address,earliest_arrival,latest_arrival,check_out_time,key_safe_code,check_in_instructions,amenities,attributes,experience_worlds,house_rules,media,media_alt_texts,cleaning_status,maintenance_status,last_check,status,payload")
+            .select(propertySelectColumns)
             .single();
 
           if (error) throw error;
@@ -5862,7 +5808,7 @@ function AdminDashboardView({
         const { data: inserted, error } = await supabase
           .from("package_dates")
           .insert(updatePayload)
-          .select("id,package_id,label,starts_on,ends_on,capacity,status,payload,created_at")
+          .select(packageDateSelectColumns)
           .single();
 
         if (error) throw error;
