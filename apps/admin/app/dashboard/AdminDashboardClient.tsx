@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import {
   type AdminAuditLogRow,
   createSupabaseBrowserClient,
+  type CommunicationEventRowBase,
+  communicationEventSelectColumns,
   type ExperienceBlockRowBase,
   experienceBlockSelectColumns,
   type ExperienceProviderRowBase,
@@ -244,22 +246,7 @@ type AgencyRow = {
   created_at: string;
 };
 
-type CommunicationEventRow = {
-  id: string;
-  lead_id: string | null;
-  booking_id: string | null;
-  customer_id?: string | null;
-  channel: string;
-  direction: string;
-  event_type: string;
-  subject: string | null;
-  body: string | null;
-  recipient?: string | null;
-  actor: string | null;
-  status: string;
-  payload?: Record<string, unknown>;
-  created_at: string;
-};
+type CommunicationEventRow = CommunicationEventRowBase;
 
 type GuestFeedbackRow = {
   id: string;
@@ -1182,7 +1169,7 @@ function communicationContextLabel(event: CommunicationEventRow, data: Dashboard
     if (customer) return `Kunde · ${customer.name}`;
   }
 
-  const supportId = event.payload ? getPayloadText(event.payload, ["supportId", "support_id"]) : "";
+  const supportId = event.support_id || (event.payload ? getPayloadText(event.payload, ["supportId", "support_id"]) : "");
   if (supportId) {
     const support = data.supportMessages.find((item) => item.id === supportId);
     return support ? `Support · ${getSupportContactLabel(support)}` : "Support";
@@ -2000,7 +1987,7 @@ export function AdminDashboardClient() {
               .limit(30),
             supabase
               .from("communication_events")
-              .select("id,lead_id,booking_id,customer_id,channel,direction,event_type,subject,body,recipient,actor,status,payload,created_at")
+              .select(communicationEventSelectColumns)
               .order("created_at", { ascending: false })
               .limit(120),
             supabase
@@ -2846,7 +2833,7 @@ function AdminDashboardView({
         const supabase = createSupabaseBrowserClient();
         const query = supabase
           .from("communication_events")
-          .select("id,lead_id,booking_id,customer_id,channel,direction,event_type,subject,body,recipient,actor,status,payload,created_at")
+          .select(communicationEventSelectColumns)
           .order("created_at", { ascending: false })
           .limit(40);
         const selectedSupportCase = activeSelection.type === "support"
@@ -2868,7 +2855,7 @@ function AdminDashboardView({
                 ? await query.eq("lead_id", supportLeadId)
                 : supportBookingId
                   ? await query.eq("booking_id", supportBookingId)
-                  : await query.eq("event_type", `support:${activeSelection.id}`);
+                  : await query.eq("support_id", activeSelection.id);
 
         if (!isMounted) return;
         if (error) {
@@ -2933,7 +2920,7 @@ function AdminDashboardView({
           leadIds.length
             ? supabase
                 .from("communication_events")
-                .select("id,lead_id,booking_id,customer_id,channel,direction,event_type,subject,body,recipient,actor,status,payload,created_at")
+                .select(communicationEventSelectColumns)
                 .in("lead_id", leadIds)
                 .order("created_at", { ascending: false })
                 .limit(40)
@@ -2941,7 +2928,7 @@ function AdminDashboardView({
           bookingIds.length
             ? supabase
                 .from("communication_events")
-                .select("id,lead_id,booking_id,customer_id,channel,direction,event_type,subject,body,recipient,actor,status,payload,created_at")
+                .select(communicationEventSelectColumns)
                 .in("booking_id", bookingIds)
                 .order("created_at", { ascending: false })
                 .limit(40)
@@ -4898,6 +4885,7 @@ function AdminDashboardView({
         .insert({
           lead_id: isLead ? selection.id : supportLeadId,
           booking_id: isBooking ? selection.id : supportBookingId,
+          support_id: supportCase?.id ?? null,
           channel: "note",
           direction: "internal",
           event_type: "note",
@@ -4905,13 +4893,14 @@ function AdminDashboardView({
           body: drawerNote || "Notiz aktualisiert.",
           actor: data.profile.email,
           status: "recorded",
+          source: "next-admin",
           payload: {
             source: "next-admin",
             entityType: selection.type,
             entityId: selection.id,
           },
         })
-        .select("id,lead_id,booking_id,customer_id,channel,direction,event_type,subject,body,recipient,actor,status,payload,created_at")
+        .select(communicationEventSelectColumns)
         .single();
 
       if (eventResult.error) throw eventResult.error;

@@ -158,6 +158,8 @@ async function logCommunicationEvent(lead: GuestLeadPayload, recipient: string, 
     actor: 'Morrow Automation',
     status: 'sent',
     provider: 'resend',
+    template_key: 'post_stay_feedback_request',
+    source: 'post-stay-feedback',
     payload,
   })
 }

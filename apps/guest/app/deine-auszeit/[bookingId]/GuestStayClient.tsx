@@ -993,6 +993,7 @@ export function GuestStayClient({
         body: feedbackBody,
         actor: guestName,
         status: "received",
+        source: "next-guest",
         payload: feedbackPayload,
         created_at: now,
         updated_at: now,

@@ -385,6 +385,8 @@ async function logCommunicationEvent(lead: LeadPayload, eventType: string, recip
     actor: 'Morrow Automation',
     status: 'sent',
     provider: 'resend',
+    template_key: eventType,
+    source: 'booking-status-email',
     payload,
   })
 }

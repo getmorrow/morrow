@@ -61,6 +61,9 @@ export const supportMessageSelectColumns =
 export const experienceProviderSelectColumns =
   "id,name,location,category,status,website,email,phone,contact_name,audience_fit,collaboration_note,pricing_note,availability_note,notes,payload" as const;
 
+export const communicationEventSelectColumns =
+  "id,lead_id,booking_id,customer_id,support_id,channel,direction,event_type,subject,body,recipient,actor,status,provider,provider_message_id,template_key,source,payload,created_at" as const;
+
 export type ExperienceBlockRowBase = {
   id: string;
   package_id: string | null;
@@ -120,6 +123,28 @@ export type ExperienceProviderRowBase = {
   availability_note?: string | null;
   notes?: string | null;
   payload: JsonRecord;
+};
+
+export type CommunicationEventRowBase = {
+  id: string;
+  lead_id: string | null;
+  booking_id: string | null;
+  customer_id?: string | null;
+  support_id?: string | null;
+  channel: string;
+  direction: string;
+  event_type: string;
+  subject: string | null;
+  body: string | null;
+  recipient?: string | null;
+  actor: string | null;
+  status: string;
+  provider?: string | null;
+  provider_message_id?: string | null;
+  template_key?: string | null;
+  source?: string | null;
+  payload?: JsonRecord;
+  created_at: string;
 };
 
 export type AdminAuditLogRow = {

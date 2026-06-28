@@ -276,6 +276,8 @@ async function logCommunicationEvent(
     provider_message_id: typeof payload.result === 'object' && payload.result && 'id' in payload.result
       ? String((payload.result as { id?: unknown }).id ?? '')
       : null,
+    template_key: eventType,
+    source: 'lead-notification',
     payload,
   })
 }

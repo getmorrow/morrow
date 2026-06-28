@@ -184,6 +184,7 @@ Deno.serve(async (request) => {
         lead_id: leadId,
         booking_id: bookingId,
         customer_id: customerId,
+        support_id: supportId,
         channel: 'email',
         direction: 'outbound',
         event_type: eventType,
@@ -194,13 +195,14 @@ Deno.serve(async (request) => {
         status: 'sent',
         provider: 'resend',
         provider_message_id: typeof result.id === 'string' ? result.id : null,
+        source: 'next-admin',
         payload: {
           source: 'next-admin',
           supportId,
           result,
         },
       })
-      .select('id,lead_id,booking_id,channel,direction,event_type,subject,body,actor,status,created_at')
+      .select('id,lead_id,booking_id,customer_id,support_id,channel,direction,event_type,subject,body,recipient,actor,status,provider,provider_message_id,template_key,source,payload,created_at')
       .single()
 
     if (communicationResult?.error) throw communicationResult.error
