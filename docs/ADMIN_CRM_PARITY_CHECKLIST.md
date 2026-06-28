@@ -4,6 +4,8 @@ Stand: 2026-06-28
 
 Dieses Dokument bricht `docs/MIGRATION_CONSOLIDATION_AUDIT.md` in konkrete Admin-Paritaetstickets herunter. Es ist keine Feature-Roadmap, sondern eine Konsolidierungs-Checkliste: `apps/admin` darf erst dann als voll fuehrende Quelle der Wahrheit gelten, wenn diese Punkte gegen den alten Vite-Admin aus `src/App.tsx` abgenommen sind.
 
+Die operative Testdurchfuehrung und Evidenzablage vor einem kontrollierten MVP-Start stehen in `docs/ADMIN_PARITY_QA_RUNBOOK.md`.
+
 ## Ziel
 
 `apps/admin` ersetzt den alten Admin-CRM aus dem Vite-Prototypen fuer die operative Arbeit.
@@ -207,6 +209,8 @@ Vor der Freigabe von `apps/admin` als alleiniger Admin muessen diese Gates durch
 17. Audit-Log zeigt die kritischen Aktionen.
 18. `npm run qa:admin-audit` laeuft durch und verhindert neue Admin-Business-Mutationen ohne Audit.
 19. `npm run admin:build`, `npm run typecheck`, `npm run lint` laufen durch.
+
+Die konkrete Durchfuehrung inklusive Stop-Regeln, automatischer Gates und Evidenzfeldern ist in `docs/ADMIN_PARITY_QA_RUNBOOK.md` festgelegt.
 
 ## Entscheidungsregel
 

@@ -4,7 +4,7 @@ Stand: 2026-06-28
 
 Dieses Dokument ist der neue Arbeitsrahmen fuer den Konsolidierungs-Sprint. Es gilt zusammen mit `docs/MORROW_MASTER_FRAME.md`, `docs/STRATEGIC_FOUNDATION_MORROW.md` und `docs/PLATFORM_ARCHITECTURE.md`.
 
-Die konkrete Admin-CRM-Paritaet wird in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` abgearbeitet. Die Payload-Grenzen und Normalisierungskandidaten sind in `docs/PAYLOAD_NORMALIZATION_INVENTORY.md` festgehalten.
+Die konkrete Admin-CRM-Paritaet wird in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` abgearbeitet. Die operative Abnahme vor MVP-Start steht in `docs/ADMIN_PARITY_QA_RUNBOOK.md`. Die Payload-Grenzen und Normalisierungskandidaten sind in `docs/PAYLOAD_NORMALIZATION_INVENTORY.md` festgehalten.
 
 ## Leitentscheidung
 
@@ -223,6 +223,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 - Apps-Production-QA: `npm run qa:apps`
 - Public-Website-QA: `QA_BASE_URL=https://www.getmorrow.de npm run qa:production`
 - Admin-Audit-QA: `npm run qa:admin-audit`
+- Admin-Paritaetsabnahme: `docs/ADMIN_PARITY_QA_RUNBOOK.md`
 - Guest-RPC/Browsertest: `npm run supabase:verify-guest`
 - Owner-RPC/E2E-Test: `npm run supabase:verify-owner`
 - Supabase Backup: `npm run supabase:backup`
@@ -273,7 +274,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 6. Lead-Spam-/Loeschpolicy und Marketing-Consent pruefen/entscheiden; `leads.follow_up_at`, WhatsApp-Kontaktzustimmung und Lead-Reisegruppe sind bereits normalisiert.
 7. Repository-/Mutation-Helper aus App-Komponenten in klare Supabase-/Domain-Services ziehen.
 8. Entscheiden, welche Vite-Funktionen explizit ersetzt sind und welche als Referenz offen bleiben.
-9. QA-Gates fuer Admin-Paritaet definieren: mindestens Login, Leads, Reservierung, Buchung, Aufgabe, Supportantwort, Paket, Unterkunft, Erlebnis, Ort, Owner-Dokument, Abrechnung, Operation.
+9. QA-Gates fuer Admin-Paritaet ueber `docs/ADMIN_PARITY_QA_RUNBOOK.md` real durchlaufen: mindestens Login, Leads, Reservierung, Buchung, Aufgabe, Supportantwort, Paket, Unterkunft, Erlebnis, Ort, Owner-Dokument, Abrechnung, Operation.
 10. Erst danach neue Produktfeatures wieder aufnehmen.
 
 ## Naechster empfohlener Schritt
