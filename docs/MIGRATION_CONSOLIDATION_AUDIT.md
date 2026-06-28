@@ -233,6 +233,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 ### Env-Handling
 
 - Root `.env.local` ist lokal die zentrale Quelle.
+- `.env.example` dokumentiert die benoetigten Public-, Server-/QA-, App-URL-, Launch-Gate- und Backup-Variablen ohne echte Secrets.
 - Next-Apps laden Root-`.env.local` ueber ihre `next.config.ts`.
 - Public Supabase Variablen:
   - `NEXT_PUBLIC_SUPABASE_URL`
