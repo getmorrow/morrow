@@ -48,6 +48,24 @@ type BookingRow = {
   status: string;
   payment_status: string;
   guest_access_code?: string | null;
+  guest_name?: string | null;
+  guest_email?: string | null;
+  guest_phone?: string | null;
+  selected_date?: string | null;
+  reservation_deadline?: string | null;
+  payment_due_date?: string | null;
+  payment_amount?: string | null;
+  payment_date?: string | null;
+  payment_method?: string | null;
+  payment_reference?: string | null;
+  payment_proof_url?: string | null;
+  adults?: number | null;
+  children?: number | null;
+  children_ages?: string | null;
+  dog?: string | null;
+  check_in_status?: string | null;
+  experience_status?: string | null;
+  next_task?: string | null;
   created_at: string;
   payload: Record<string, unknown>;
 };
@@ -685,36 +703,36 @@ function paymentDraftFromBooking(booking: BookingRow | null): PaymentDraft {
 
   return {
     payment_status: booking?.payment_status || getPayloadText(payload, ["paymentStatus"]) || "offen",
-    payment_amount: getPayloadText(payload, ["paymentAmount", "amountPaid", "price"]) || "",
-    payment_date: getPayloadText(payload, ["paymentDate", "paidAt"]) || "",
-    payment_method: getPayloadText(payload, ["paymentMethod"]) || "",
-    payment_reference: getPayloadText(payload, ["paymentReference", "invoiceNumber", "transactionId"]) || "",
-    payment_proof_url: getPayloadText(payload, ["paymentProofUrl", "receiptUrl", "invoiceUrl"]) || "",
+    payment_amount: booking?.payment_amount || getPayloadText(payload, ["paymentAmount", "amountPaid", "price"]) || "",
+    payment_date: booking?.payment_date || getPayloadText(payload, ["paymentDate", "paidAt"]) || "",
+    payment_method: booking?.payment_method || getPayloadText(payload, ["paymentMethod"]) || "",
+    payment_reference: booking?.payment_reference || getPayloadText(payload, ["paymentReference", "invoiceNumber", "transactionId"]) || "",
+    payment_proof_url: booking?.payment_proof_url || getPayloadText(payload, ["paymentProofUrl", "receiptUrl", "invoiceUrl"]) || "",
   };
 }
 
 function bookingOperationsDraftFromBooking(booking: BookingRow | null): BookingOperationsDraft {
   const payload = booking?.payload ?? {};
-  const email = getPayloadText(payload, ["email", "guestEmail", "customerEmail"]) || "";
+  const email = booking?.guest_email || getPayloadText(payload, ["email", "guestEmail", "customerEmail"]) || "";
 
   return {
     package_id: booking?.package_id || getPayloadText(payload, ["packageId", "package_id"]) || "",
-    guest_name: getPayloadText(payload, ["guestName", "customerName", "name"]) || "",
+    guest_name: booking?.guest_name || getPayloadText(payload, ["guestName", "customerName", "name"]) || "",
     email,
-    phone: getPayloadText(payload, ["phone", "guestPhone", "customerPhone"]) || "",
-    selected_date: getPayloadText(payload, ["selectedDate", "dateLabel", "travelDate", "arrivalDate"]) || "",
+    phone: booking?.guest_phone || getPayloadText(payload, ["phone", "guestPhone", "customerPhone"]) || "",
+    selected_date: booking?.selected_date || getPayloadText(payload, ["selectedDate", "dateLabel", "travelDate", "arrivalDate"]) || "",
     guest_access_code: booking
       ? booking.guest_access_code || getPayloadText(payload, ["guestAccessCode", "guest_access_code"]) || generatedGuestAccessCode(booking.id, email)
       : "",
-    reservation_deadline: getPayloadText(payload, ["reservationDeadline", "reservation_deadline"]) || "",
-    payment_due_date: getPayloadText(payload, ["paymentDueDate", "payment_due_date"]) || "",
-    adults: getPayloadText(payload, ["adults", "adultCount"]) || "",
-    children: getPayloadText(payload, ["children", "childCount", "kids"]) || "",
-    children_ages: getPayloadText(payload, ["childrenAges", "children_ages", "kidsAges"]) || "",
-    dog: getPayloadText(payload, ["dog", "dogNote", "hasDog"]) || "",
-    check_in_status: getPayloadText(payload, ["checkInStatus", "check_in_status"]) || "offen",
-    experience_status: getPayloadText(payload, ["experienceStatus", "experience_status"]) || "offen",
-    next_task: getPayloadText(payload, ["nextTask", "next_task"]) || "",
+    reservation_deadline: booking?.reservation_deadline || getPayloadText(payload, ["reservationDeadline", "reservation_deadline"]) || "",
+    payment_due_date: booking?.payment_due_date || getPayloadText(payload, ["paymentDueDate", "payment_due_date"]) || "",
+    adults: booking?.adults != null ? String(booking.adults) : getPayloadText(payload, ["adults", "adultCount"]) || "",
+    children: booking?.children != null ? String(booking.children) : getPayloadText(payload, ["children", "childCount", "kids"]) || "",
+    children_ages: booking?.children_ages || getPayloadText(payload, ["childrenAges", "children_ages", "kidsAges"]) || "",
+    dog: booking?.dog || getPayloadText(payload, ["dog", "dogNote", "hasDog"]) || "",
+    check_in_status: booking?.check_in_status || getPayloadText(payload, ["checkInStatus", "check_in_status"]) || "offen",
+    experience_status: booking?.experience_status || getPayloadText(payload, ["experienceStatus", "experience_status"]) || "offen",
+    next_task: booking?.next_task || getPayloadText(payload, ["nextTask", "next_task"]) || "",
   };
 }
 
@@ -1446,7 +1464,7 @@ function customerIsDue(leads: LeadRow[], bookings: BookingRow[]) {
     return Boolean(due && due.slice(0, 10) <= today);
   });
   const bookingDue = bookings.some((booking) => {
-    const due = getPayloadText(booking.payload ?? {}, ["nextTaskDueAt", "next_task_due_at", "paymentDueDate"]);
+    const due = booking.payment_due_date || getPayloadText(booking.payload ?? {}, ["nextTaskDueAt", "next_task_due_at", "paymentDueDate"]);
     return Boolean(due && due.slice(0, 10) <= today);
   });
 
@@ -1457,8 +1475,8 @@ function getCustomerName(leads: LeadRow[], bookings: BookingRow[]) {
   const lead = leads.find((item) => getLeadLabel(item));
   if (lead) return getLeadLabel(lead);
 
-  const booking = bookings.find((item) => getPayloadText(item.payload ?? {}, ["guestName", "customerName", "name"]));
-  return booking ? getPayloadText(booking.payload ?? {}, ["guestName", "customerName", "name"]) || "Gastkontakt" : "Gastkontakt";
+  const booking = bookings.find((item) => item.guest_name || getPayloadText(item.payload ?? {}, ["guestName", "customerName", "name"]));
+  return booking ? booking.guest_name || getPayloadText(booking.payload ?? {}, ["guestName", "customerName", "name"]) || "Gastkontakt" : "Gastkontakt";
 }
 
 function getCustomerLatestStatus(leads: LeadRow[], bookings: BookingRow[]) {
@@ -1614,6 +1632,7 @@ function getLeadLabel(lead: LeadRow) {
 
 function getBookingLabel(booking: BookingRow) {
   return (
+    booking.guest_name ||
     getPayloadText(booking.payload, ["packageName", "stayName", "guestName", "customerName"]) ||
     booking.status
   );
@@ -1964,7 +1983,7 @@ export function AdminDashboardClient() {
               .limit(120),
             supabase
               .from("bookings")
-              .select("id,lead_id,customer_id,package_id,status,payment_status,guest_access_code,created_at,payload")
+              .select("id,lead_id,customer_id,package_id,status,payment_status,guest_access_code,guest_name,guest_email,guest_phone,selected_date,reservation_deadline,payment_due_date,payment_amount,payment_date,payment_method,payment_reference,payment_proof_url,adults,children,children_ages,dog,check_in_status,experience_status,next_task,created_at,payload")
               .order("created_at", { ascending: false })
               .limit(30),
             supabase
@@ -4387,6 +4406,11 @@ function AdminDashboardView({
       );
       const now = new Date().toISOString();
       const accessCode = generatedGuestAccessCode(lead.id, lead.email);
+      const selectedDate = getPayloadText(lead.payload ?? {}, ["selectedDate", "dateLabel", "travelDate", "arrivalDate"]) || null;
+      const adults = lead.adults ?? null;
+      const children = lead.children ?? null;
+      const childrenAges = lead.children_ages ?? null;
+      const dog = lead.dog ?? null;
       const leadPayload = {
         ...lead.payload,
         status: "Reserviert",
@@ -4402,6 +4426,11 @@ function AdminDashboardView({
         packageId: packageItem?.id ?? lead.package_slug,
         packageSlug: packageItem?.slug ?? lead.package_slug,
         packageName: packageItem?.name ?? lead.package_slug ?? "Auszeit",
+        selectedDate,
+        adults,
+        children,
+        childrenAges,
+        dog,
         guestAccessCode: accessCode,
         status: "Reserviert",
         paymentStatus: "offen",
@@ -4470,6 +4499,14 @@ function AdminDashboardView({
         status: "Reserviert",
         payment_status: "offen",
         guest_access_code: accessCode,
+        guest_name: getLeadLabel(lead),
+        guest_email: lead.email,
+        guest_phone: lead.phone,
+        selected_date: selectedDate,
+        adults,
+        children,
+        children_ages: childrenAges,
+        dog,
         payload: bookingPayload,
         updated_at: now,
       });
@@ -4485,6 +4522,24 @@ function AdminDashboardView({
           status: "Reserviert",
           payment_status: "offen",
           guest_access_code: accessCode,
+          guest_name: getLeadLabel(lead),
+          guest_email: lead.email,
+          guest_phone: lead.phone,
+          selected_date: selectedDate,
+          reservation_deadline: null,
+          payment_due_date: null,
+          payment_amount: null,
+          payment_date: null,
+          payment_method: null,
+          payment_reference: null,
+          payment_proof_url: null,
+          adults,
+          children,
+          children_ages: childrenAges,
+          dog,
+          check_in_status: null,
+          experience_status: null,
+          next_task: null,
           created_at: now,
           payload: bookingPayload,
         };
@@ -4584,13 +4639,18 @@ function AdminDashboardView({
       const supabase = createSupabaseBrowserClient();
       const paymentStatus = paymentDraft.payment_status.trim() || "offen";
       const guestAccessCode = selectedBooking.guest_access_code || guestAccessCodeForBooking(selectedBooking);
+      const paymentAmount = paymentDraft.payment_amount.trim() || null;
+      const paymentDate = paymentDraft.payment_date.trim() || null;
+      const paymentMethod = paymentDraft.payment_method.trim() || null;
+      const paymentReference = paymentDraft.payment_reference.trim() || null;
+      const paymentProofUrl = paymentDraft.payment_proof_url.trim() || null;
       const paymentPayload = {
         paymentStatus,
-        paymentAmount: paymentDraft.payment_amount.trim(),
-        paymentDate: paymentDraft.payment_date.trim(),
-        paymentMethod: paymentDraft.payment_method.trim(),
-        paymentReference: paymentDraft.payment_reference.trim(),
-        paymentProofUrl: paymentDraft.payment_proof_url.trim(),
+        paymentAmount,
+        paymentDate,
+        paymentMethod,
+        paymentReference,
+        paymentProofUrl,
         guestAccessCode,
         updatedAt: new Date().toISOString(),
       };
@@ -4603,6 +4663,11 @@ function AdminDashboardView({
         .update({
           payment_status: paymentStatus,
           guest_access_code: guestAccessCode,
+          payment_amount: paymentAmount,
+          payment_date: paymentDate,
+          payment_method: paymentMethod,
+          payment_reference: paymentReference,
+          payment_proof_url: paymentProofUrl,
           payload,
           updated_at: new Date().toISOString(),
         })
@@ -4614,7 +4679,17 @@ function AdminDashboardView({
         ...current,
         bookings: current.bookings.map((booking) =>
           booking.id === selectedBooking.id
-            ? { ...booking, payment_status: paymentStatus, guest_access_code: guestAccessCode, payload }
+            ? {
+                ...booking,
+                payment_status: paymentStatus,
+                guest_access_code: guestAccessCode,
+                payment_amount: paymentAmount,
+                payment_date: paymentDate,
+                payment_method: paymentMethod,
+                payment_reference: paymentReference,
+                payment_proof_url: paymentProofUrl,
+                payload,
+              }
             : booking,
         ),
       }));
@@ -4627,10 +4702,10 @@ function AdminDashboardView({
         payload: {
           from: selectedBooking.payment_status,
           to: paymentStatus,
-          paymentAmount: paymentPayload.paymentAmount,
-          paymentDate: paymentPayload.paymentDate,
-          paymentMethod: paymentPayload.paymentMethod,
-          paymentReference: paymentPayload.paymentReference,
+          paymentAmount,
+          paymentDate,
+          paymentMethod,
+          paymentReference,
         },
       });
 
@@ -4653,22 +4728,36 @@ function AdminDashboardView({
       const supabase = createSupabaseBrowserClient();
       const guestAccessCode = bookingOperationsDraft.guest_access_code.trim() ||
         guestAccessCodeForBooking(selectedBooking);
+      const packageId = bookingOperationsDraft.package_id.trim() || null;
+      const guestName = bookingOperationsDraft.guest_name.trim() || null;
+      const guestEmail = bookingOperationsDraft.email.trim() || null;
+      const guestPhone = bookingOperationsDraft.phone.trim() || null;
+      const selectedDate = bookingOperationsDraft.selected_date.trim() || null;
+      const reservationDeadline = bookingOperationsDraft.reservation_deadline || null;
+      const paymentDueDate = bookingOperationsDraft.payment_due_date || null;
+      const adults = integerOrNull(bookingOperationsDraft.adults);
+      const children = integerOrNull(bookingOperationsDraft.children);
+      const childrenAges = bookingOperationsDraft.children_ages.trim() || null;
+      const dog = bookingOperationsDraft.dog.trim() || null;
+      const checkInStatus = bookingOperationsDraft.check_in_status.trim() || "offen";
+      const experienceStatus = bookingOperationsDraft.experience_status.trim() || "offen";
+      const nextTask = bookingOperationsDraft.next_task.trim() || null;
       const operationsPayload = {
-        packageId: bookingOperationsDraft.package_id.trim() || null,
-        guestName: bookingOperationsDraft.guest_name.trim(),
-        email: bookingOperationsDraft.email.trim(),
-        phone: bookingOperationsDraft.phone.trim(),
-        selectedDate: bookingOperationsDraft.selected_date.trim(),
+        packageId,
+        guestName,
+        email: guestEmail,
+        phone: guestPhone,
+        selectedDate,
         guestAccessCode,
-        reservationDeadline: bookingOperationsDraft.reservation_deadline.trim(),
-        paymentDueDate: bookingOperationsDraft.payment_due_date.trim(),
-        adults: bookingOperationsDraft.adults.trim(),
-        children: bookingOperationsDraft.children.trim(),
-        childrenAges: bookingOperationsDraft.children_ages.trim(),
-        dog: bookingOperationsDraft.dog.trim(),
-        checkInStatus: bookingOperationsDraft.check_in_status.trim() || "offen",
-        experienceStatus: bookingOperationsDraft.experience_status.trim() || "offen",
-        nextTask: bookingOperationsDraft.next_task.trim(),
+        reservationDeadline,
+        paymentDueDate,
+        adults,
+        children,
+        childrenAges,
+        dog,
+        checkInStatus,
+        experienceStatus,
+        nextTask,
         updatedAt: new Date().toISOString(),
       };
       const payload = {
@@ -4678,8 +4767,21 @@ function AdminDashboardView({
       const { error } = await supabase
         .from("bookings")
         .update({
-          package_id: bookingOperationsDraft.package_id.trim() || null,
+          package_id: packageId,
           guest_access_code: guestAccessCode,
+          guest_name: guestName,
+          guest_email: guestEmail,
+          guest_phone: guestPhone,
+          selected_date: selectedDate,
+          reservation_deadline: reservationDeadline,
+          payment_due_date: paymentDueDate,
+          adults,
+          children,
+          children_ages: childrenAges,
+          dog,
+          check_in_status: checkInStatus,
+          experience_status: experienceStatus,
+          next_task: nextTask,
           payload,
           updated_at: new Date().toISOString(),
         })
@@ -4693,8 +4795,21 @@ function AdminDashboardView({
           booking.id === selectedBooking.id
             ? {
                 ...booking,
-                package_id: bookingOperationsDraft.package_id.trim() || null,
+                package_id: packageId,
                 guest_access_code: guestAccessCode,
+                guest_name: guestName,
+                guest_email: guestEmail,
+                guest_phone: guestPhone,
+                selected_date: selectedDate,
+                reservation_deadline: reservationDeadline,
+                payment_due_date: paymentDueDate,
+                adults,
+                children,
+                children_ages: childrenAges,
+                dog,
+                check_in_status: checkInStatus,
+                experience_status: experienceStatus,
+                next_task: nextTask,
                 payload,
               }
             : booking,
@@ -8160,7 +8275,7 @@ function AdminCustomerDrawer({
                     <strong>{getBookingLabel(booking)}</strong>
                     <em>{booking.status} · {booking.payment_status}</em>
                     <p>
-                      {getPayloadText(booking.payload ?? {}, ["selectedDate", "dateLabel", "travelDate"]) ||
+                      {booking.selected_date || getPayloadText(booking.payload ?? {}, ["selectedDate", "dateLabel", "travelDate"]) ||
                         "Termin noch nicht eindeutig hinterlegt."}
                     </p>
                   </div>
