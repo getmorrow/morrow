@@ -97,6 +97,7 @@ export function LeadForm({ audience, dates = [], packageName, packageSlug, type 
     try {
       const supabase = createSupabaseBrowserClient();
       const utm = getUtmContext();
+      const submittedAt = new Date().toISOString();
       const leadPayload = {
         adults: form.adults,
         businessName: form.businessName.trim(),
@@ -111,7 +112,7 @@ export function LeadForm({ audience, dates = [], packageName, packageSlug, type 
         propertyLocation: form.propertyLocation.trim(),
         propertyType: form.propertyType.trim(),
         selectedDate: form.selectedDate,
-        submittedAt: new Date().toISOString(),
+        submittedAt,
         type,
         utm,
         whatsappOptIn: form.whatsappOptIn,
@@ -129,6 +130,8 @@ export function LeadForm({ audience, dates = [], packageName, packageSlug, type 
           source: utm.source,
           status: "Neu",
           type,
+          whatsapp_consent_at: form.whatsappOptIn ? submittedAt : null,
+          whatsapp_opt_in: form.whatsappOptIn,
         })
         .select("id")
         .single();

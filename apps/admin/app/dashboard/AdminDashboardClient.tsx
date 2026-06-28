@@ -29,6 +29,8 @@ type LeadRow = {
   source?: string | null;
   campaign?: string | null;
   follow_up_at?: string | null;
+  whatsapp_opt_in?: boolean | null;
+  whatsapp_consent_at?: string | null;
   archived_at: string | null;
   created_at: string;
   payload: Record<string, unknown>;
@@ -735,7 +737,7 @@ function guestAreaHref(booking: BookingRow) {
 
 function leadDetailsDraftFromLead(lead: LeadRow | null): LeadDetailsDraft {
   const payload = lead?.payload ?? {};
-  const whatsappValue = payload.whatsappOptIn ?? payload.whatsapp_opt_in ?? payload.whatsappConsent;
+  const whatsappValue = lead?.whatsapp_opt_in ?? payload.whatsappOptIn ?? payload.whatsapp_opt_in ?? payload.whatsappConsent;
 
   return {
     name: lead?.name || getPayloadText(payload, ["name", "fullName", "customerName"]) || "",
@@ -757,6 +759,12 @@ function leadDetailsDraftFromLead(lead: LeadRow | null): LeadDetailsDraft {
       ? whatsappValue ? "yes" : "no"
       : getPayloadText(payload, ["whatsappOptIn", "whatsapp_opt_in", "whatsappConsent"]) || "",
   };
+}
+
+function consentDraftValueToBool(value: string) {
+  if (value === "yes") return true;
+  if (value === "no") return false;
+  return null;
 }
 
 function getPayloadText(payload: Record<string, unknown>, keys: string[]) {
@@ -1940,7 +1948,7 @@ export function AdminDashboardClient() {
               .limit(160),
             supabase
               .from("leads")
-              .select("id,type,status,name,email,phone,package_slug,source,campaign,follow_up_at,archived_at,created_at,payload")
+              .select("id,type,status,name,email,phone,package_slug,source,campaign,follow_up_at,whatsapp_opt_in,whatsapp_consent_at,archived_at,created_at,payload")
               .order("created_at", { ascending: false })
               .limit(120),
             supabase
@@ -4161,6 +4169,7 @@ function AdminDashboardView({
       const source = leadDetailsDraft.source.trim() || null;
       const campaign = leadDetailsDraft.campaign.trim() || null;
       const followUpAt = leadDetailsDraft.follow_up_at || null;
+      const whatsappOptIn = consentDraftValueToBool(leadDetailsDraft.whatsapp_opt_in);
       const payload = {
         ...lead.payload,
         name,
@@ -4176,7 +4185,7 @@ function AdminDashboardView({
         childrenAges: leadDetailsDraft.children_ages.trim() || null,
         dog: leadDetailsDraft.dog.trim() || null,
         occasion: leadDetailsDraft.occasion.trim() || null,
-        whatsappOptIn: leadDetailsDraft.whatsapp_opt_in || null,
+        whatsappOptIn,
         updatedAt: now,
       };
       const { data: updated, error } = await supabase
@@ -4191,11 +4200,13 @@ function AdminDashboardView({
           source,
           campaign,
           follow_up_at: followUpAt,
+          whatsapp_consent_at: whatsappOptIn ? lead.whatsapp_consent_at || now : null,
+          whatsapp_opt_in: whatsappOptIn,
           payload,
           updated_at: now,
         })
         .eq("id", lead.id)
-        .select("id,type,status,name,email,phone,package_slug,source,campaign,follow_up_at,archived_at,created_at,payload")
+        .select("id,type,status,name,email,phone,package_slug,source,campaign,follow_up_at,whatsapp_opt_in,whatsapp_consent_at,archived_at,created_at,payload")
         .single();
 
       if (error) throw error;
@@ -4223,6 +4234,7 @@ function AdminDashboardView({
             source: lead.source,
             campaign: lead.campaign,
             followUpAt: getLeadFollowUpAt(lead),
+            whatsappOptIn: lead.whatsapp_opt_in ?? null,
           },
           to: {
             name: updatedLead.name,
@@ -4234,6 +4246,7 @@ function AdminDashboardView({
             source: updatedLead.source,
             campaign: updatedLead.campaign,
             followUpAt,
+            whatsappOptIn: updatedLead.whatsapp_opt_in ?? null,
           },
         },
       });
