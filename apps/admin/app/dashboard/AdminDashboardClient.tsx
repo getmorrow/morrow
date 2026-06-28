@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@morrow/supabase";
+import { createSupabaseBrowserClient, type LocalPlaceRowBase } from "@morrow/supabase";
 
 type AdminProfile = {
   email: string;
@@ -119,21 +119,7 @@ type ExperienceBlockRow = {
   created_at: string;
 };
 
-type LocalPlaceRow = {
-  id: string;
-  name: string;
-  category: string;
-  status: string;
-  lat: number | null;
-  lng: number | null;
-  address: string | null;
-  website: string | null;
-  reservation_url: string | null;
-  menu_url: string | null;
-  rating: number | null;
-  opening_hours?: Record<string, unknown> | null;
-  package_fit?: string[];
-  payload: Record<string, unknown>;
+type LocalPlaceRow = LocalPlaceRowBase & {
   created_at: string;
 };
 

@@ -130,7 +130,7 @@ Risiko:
 | Owner-Abrechnungen | Prototyp-Idee | `owner_statements`, `apps/admin`, `apps/owner` | migriert fuer MVP-Light | mittel | Noch kein echtes Abrechnungssystem/Export. |
 | Owner-Operations | Prototyp-Idee | `owner_operations`, `apps/admin`, `apps/owner` | migriert fuer MVP-Light | mittel | Reinigungs-/Maengelprozesse noch nicht voll operativ. |
 | Audit-Log | Vite Aktivitaet + `admin_audit_logs` | `apps/admin` + `scripts/qa-admin-audit-coverage.mjs` | weitgehend migriert | hoch | Business-Mutationen im Next-Admin schreiben Audit und werden statisch per `npm run qa:admin-audit` geprueft; semantische Payload-Tiefe und externe Edge-Function-Actions weiter pruefen. |
-| Shared Domain/Types | verstreut in `src/App.tsx`, Apps | `packages/domain`, `packages/supabase` | fehlt / teilweise | kritisch | Duplizierte Typen/Mapper in Apps; hohes Risiko fuer spaetere Logikdrift. |
+| Shared Domain/Types | verstreut in `src/App.tsx`, Apps | `packages/domain`, `packages/supabase` | teilweise | kritisch | Erster gemeinsamer Supabase-Typanker fuer JSON-Payloads und `local_places` wird von Admin und Guest genutzt. Viele Admin-/Guest-/Owner-Zeilen, Mapper und Payload-Konventionen liegen aber weiter app-lokal; Risiko fuer Logikdrift bleibt hoch. |
 | Dev/Deployment | Root Vite Scripts + Next Scripts | Monorepo Scripts/Vercel Apps | weitgehend migriert | mittel | Root `npm run dev` bleibt bewusst Prototyp. Next-Apps haben feste Port-Scripts (`web:dev:port`, `admin:dev:port`, `guest:dev:port`, `owner:dev:port`) und app-eigene Vercel-Konfigurationen. |
 
 ## Admin-Funktionsparitaet
@@ -237,6 +237,14 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
   - alternativ lokal weiter `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`.
 - Server-/Admin-Secrets gehoeren nicht in Browsercode.
 - Supabase Service Role, Resend Key, GitHub PAT und aehnliche Secrets muessen rotiert bleiben, wenn sie im Arbeitsverlauf geteilt wurden.
+
+### Shared Types Und Payload-Grenzen
+
+- `packages/supabase` ist der technische Typanker fuer Supabase-nahe Row-Formen, Browserclient und app-uebergreifende Datenformen.
+- `LocalPlaceRowBase`, `LocalPlaceCategory`, `LocalPlaceStatus` und `JsonRecord` werden als erste gemeinsame Typen von `apps/admin` und `apps/guest` genutzt.
+- `packages/domain` bleibt der Ort fuer oeffentliche Website-/Marken-/Content-Domaenen wie Auszeiten, Ratgeber und Routen.
+- App-spezifische UI-Drafts, Formulare und abgeleitete Viewmodels bleiben zunaechst in der jeweiligen App.
+- Payload-basierte Felder sind Migrationsuebergang, nicht Zielarchitektur. Jede Normalisierung muss zuerst dokumentieren, welche App fuehrend schreibt und welche Apps nur lesen.
 
 ### Routen
 

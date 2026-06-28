@@ -1,5 +1,37 @@
 import { createClient } from "@supabase/supabase-js";
 
+export type JsonRecord = Record<string, unknown>;
+
+export type LocalPlaceCategory =
+  | "beach"
+  | "emergency"
+  | "event"
+  | "experience"
+  | "food"
+  | "shopping"
+  | "tide"
+  | "weather"
+  | string;
+
+export type LocalPlaceStatus = "candidate" | "approved" | "paused" | "hidden" | string;
+
+export type LocalPlaceRowBase = {
+  id: string;
+  name: string;
+  category: LocalPlaceCategory;
+  status: LocalPlaceStatus;
+  lat: number | null;
+  lng: number | null;
+  address: string | null;
+  website: string | null;
+  reservation_url: string | null;
+  menu_url: string | null;
+  rating: number | null;
+  opening_hours?: JsonRecord | null;
+  package_fit?: string[];
+  payload: JsonRecord;
+};
+
 export type OwnerDashboardProperty = {
   id: string;
   name: string;
@@ -11,7 +43,7 @@ export type OwnerDashboardProperty = {
   supportType: string | null;
   supportName: string | null;
   status: string;
-  payload: Record<string, unknown>;
+  payload: JsonRecord;
   accessRole: string;
   canViewFinancials: boolean;
   canViewOperations: boolean;
@@ -40,7 +72,7 @@ export type OwnerDashboardBooking = {
   dateLabel: string | null;
   startsOn: string | null;
   endsOn: string | null;
-  payload: Record<string, unknown>;
+  payload: JsonRecord;
 };
 
 export type OwnerDashboardDate = {
@@ -53,7 +85,7 @@ export type OwnerDashboardDate = {
   endsOn: string | null;
   capacity: number | null;
   status: string;
-  payload: Record<string, unknown>;
+  payload: JsonRecord;
 };
 
 export type OwnerDashboardDocument = {
@@ -65,7 +97,7 @@ export type OwnerDashboardDocument = {
   status: string;
   url: string;
   periodLabel: string | null;
-  payload: Record<string, unknown>;
+  payload: JsonRecord;
   createdAt: string;
 };
 
@@ -80,7 +112,7 @@ export type OwnerDashboardMessage = {
   subject: string | null;
   requestedStartsOn: string | null;
   requestedEndsOn: string | null;
-  payload: Record<string, unknown>;
+  payload: JsonRecord;
   createdAt: string;
   updatedAt: string | null;
 };
@@ -100,7 +132,7 @@ export type OwnerDashboardStatement = {
   ownerPayout: number;
   documentUrl: string | null;
   paidAt: string | null;
-  payload: Record<string, unknown>;
+  payload: JsonRecord;
   createdAt: string;
   updatedAt: string | null;
 };
@@ -116,7 +148,7 @@ export type OwnerOperation = {
   scheduledFor: string | null;
   completedAt: string | null;
   note: string | null;
-  payload: Record<string, unknown>;
+  payload: JsonRecord;
   createdAt: string;
   updatedAt: string | null;
 };
@@ -141,7 +173,7 @@ export type OwnerSupportStatusEvent = {
   toStatus: string;
   note: string | null;
   actor: string | null;
-  payload: Record<string, unknown>;
+  payload: JsonRecord;
   createdAt: string;
 };
 

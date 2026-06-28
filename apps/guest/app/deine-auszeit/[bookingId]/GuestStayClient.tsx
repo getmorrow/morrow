@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { createSupabaseBrowserClient } from "@morrow/supabase";
+import { createSupabaseBrowserClient, type LocalPlaceRowBase } from "@morrow/supabase";
 import { GuestLocalMap, type GuestMapPlace } from "./GuestLocalMap";
 
 type GuestView = "home" | "plan" | "booking" | "local" | "help" | "feedback" | "again";
@@ -95,11 +95,7 @@ type GuestPackage = {
   }>;
 };
 
-type LocalPlace = {
-  id: string;
-  name: string;
-  category: string;
-  status: string;
+type LocalPlace = Omit<LocalPlaceRowBase, "lat" | "lng" | "address" | "website" | "reservation_url" | "menu_url" | "rating"> & {
   lat?: number | null;
   lng?: number | null;
   address?: string | null;
@@ -107,9 +103,6 @@ type LocalPlace = {
   reservation_url?: string | null;
   menu_url?: string | null;
   rating?: number | null;
-  opening_hours?: Record<string, unknown> | null;
-  package_fit?: string[];
-  payload?: Record<string, unknown>;
 };
 
 type WeatherDay = {
