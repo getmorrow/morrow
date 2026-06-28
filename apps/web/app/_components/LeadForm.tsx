@@ -68,6 +68,13 @@ function getUtmContext() {
   };
 }
 
+function integerOrNull(value: string) {
+  const trimmed = value.trim();
+  if (!/^[0-9]+$/.test(trimmed)) return null;
+  const parsed = Number.parseInt(trimmed, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 export function LeadForm({ audience, dates = [], packageName, packageSlug, type }: LeadFormProps) {
   const [form, setForm] = useState<FormState>({
     ...initialState,
@@ -98,12 +105,16 @@ export function LeadForm({ audience, dates = [], packageName, packageSlug, type 
       const supabase = createSupabaseBrowserClient();
       const utm = getUtmContext();
       const submittedAt = new Date().toISOString();
+      const adults = integerOrNull(form.adults);
+      const children = integerOrNull(form.children);
+      const childrenAges = form.childrenAges.trim() || null;
+      const dog = form.dog || null;
       const leadPayload = {
-        adults: form.adults,
+        adults,
         businessName: form.businessName.trim(),
-        children: form.children,
-        childrenAges: form.childrenAges.trim(),
-        dog: form.dog,
+        children,
+        childrenAges,
+        dog,
         experienceType: form.experienceType.trim(),
         message: form.message.trim(),
         occasion: form.occasion.trim(),
@@ -122,6 +133,10 @@ export function LeadForm({ audience, dates = [], packageName, packageSlug, type 
         .from("leads")
         .insert({
           campaign: utm.campaign || null,
+          adults,
+          children,
+          children_ages: childrenAges,
+          dog,
           email: form.email.trim(),
           name: form.name.trim(),
           package_slug: packageSlug || null,

@@ -31,6 +31,10 @@ type LeadRow = {
   follow_up_at?: string | null;
   whatsapp_opt_in?: boolean | null;
   whatsapp_consent_at?: string | null;
+  adults?: number | null;
+  children?: number | null;
+  children_ages?: string | null;
+  dog?: string | null;
   archived_at: string | null;
   created_at: string;
   payload: Record<string, unknown>;
@@ -750,10 +754,10 @@ function leadDetailsDraftFromLead(lead: LeadRow | null): LeadDetailsDraft {
     campaign: lead?.campaign || getPayloadText(payload, ["campaign", "utm_campaign"]) || "",
     follow_up_at: lead ? getLeadFollowUpAt(lead) || "" : "",
     selected_date: getPayloadText(payload, ["selectedDate", "dateLabel", "travelDate", "arrivalDate"]) || "",
-    adults: getPayloadText(payload, ["adults", "adultCount"]) || "",
-    children: getPayloadText(payload, ["children", "childCount", "kids"]) || "",
-    children_ages: getPayloadText(payload, ["childrenAges", "children_ages", "kidsAges"]) || "",
-    dog: getPayloadText(payload, ["dog", "dogs", "dogNote", "pet", "hund"]) || "",
+    adults: lead?.adults != null ? String(lead.adults) : getPayloadText(payload, ["adults", "adultCount"]) || "",
+    children: lead?.children != null ? String(lead.children) : getPayloadText(payload, ["children", "childCount", "kids"]) || "",
+    children_ages: lead?.children_ages || getPayloadText(payload, ["childrenAges", "children_ages", "kidsAges"]) || "",
+    dog: lead?.dog || getPayloadText(payload, ["dog", "dogs", "dogNote", "pet", "hund"]) || "",
     occasion: getPayloadText(payload, ["occasion", "reason", "anlass"]) || "",
     whatsapp_opt_in: typeof whatsappValue === "boolean"
       ? whatsappValue ? "yes" : "no"
@@ -923,6 +927,13 @@ function numberOrNull(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return null;
   const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function integerOrNull(value: string) {
+  const trimmed = value.trim();
+  if (!/^[0-9]+$/.test(trimmed)) return null;
+  const parsed = Number.parseInt(trimmed, 10);
   return Number.isFinite(parsed) ? parsed : null;
 }
 
@@ -1948,7 +1959,7 @@ export function AdminDashboardClient() {
               .limit(160),
             supabase
               .from("leads")
-              .select("id,type,status,name,email,phone,package_slug,source,campaign,follow_up_at,whatsapp_opt_in,whatsapp_consent_at,archived_at,created_at,payload")
+              .select("id,type,status,name,email,phone,package_slug,source,campaign,follow_up_at,whatsapp_opt_in,whatsapp_consent_at,adults,children,children_ages,dog,archived_at,created_at,payload")
               .order("created_at", { ascending: false })
               .limit(120),
             supabase
@@ -4170,6 +4181,10 @@ function AdminDashboardView({
       const campaign = leadDetailsDraft.campaign.trim() || null;
       const followUpAt = leadDetailsDraft.follow_up_at || null;
       const whatsappOptIn = consentDraftValueToBool(leadDetailsDraft.whatsapp_opt_in);
+      const adults = integerOrNull(leadDetailsDraft.adults);
+      const children = integerOrNull(leadDetailsDraft.children);
+      const childrenAges = leadDetailsDraft.children_ages.trim() || null;
+      const dog = leadDetailsDraft.dog.trim() || null;
       const payload = {
         ...lead.payload,
         name,
@@ -4180,10 +4195,10 @@ function AdminDashboardView({
         campaign,
         followUpAt,
         selectedDate: leadDetailsDraft.selected_date.trim() || null,
-        adults: leadDetailsDraft.adults.trim() || null,
-        children: leadDetailsDraft.children.trim() || null,
-        childrenAges: leadDetailsDraft.children_ages.trim() || null,
-        dog: leadDetailsDraft.dog.trim() || null,
+        adults,
+        children,
+        childrenAges,
+        dog,
         occasion: leadDetailsDraft.occasion.trim() || null,
         whatsappOptIn,
         updatedAt: now,
@@ -4202,11 +4217,15 @@ function AdminDashboardView({
           follow_up_at: followUpAt,
           whatsapp_consent_at: whatsappOptIn ? lead.whatsapp_consent_at || now : null,
           whatsapp_opt_in: whatsappOptIn,
+          adults,
+          children,
+          children_ages: childrenAges,
+          dog,
           payload,
           updated_at: now,
         })
         .eq("id", lead.id)
-        .select("id,type,status,name,email,phone,package_slug,source,campaign,follow_up_at,whatsapp_opt_in,whatsapp_consent_at,archived_at,created_at,payload")
+        .select("id,type,status,name,email,phone,package_slug,source,campaign,follow_up_at,whatsapp_opt_in,whatsapp_consent_at,adults,children,children_ages,dog,archived_at,created_at,payload")
         .single();
 
       if (error) throw error;
@@ -4235,6 +4254,10 @@ function AdminDashboardView({
             campaign: lead.campaign,
             followUpAt: getLeadFollowUpAt(lead),
             whatsappOptIn: lead.whatsapp_opt_in ?? null,
+            adults: lead.adults ?? null,
+            children: lead.children ?? null,
+            childrenAges: lead.children_ages ?? null,
+            dog: lead.dog ?? null,
           },
           to: {
             name: updatedLead.name,
@@ -4247,6 +4270,10 @@ function AdminDashboardView({
             campaign: updatedLead.campaign,
             followUpAt,
             whatsappOptIn: updatedLead.whatsapp_opt_in ?? null,
+            adults: updatedLead.adults ?? null,
+            children: updatedLead.children ?? null,
+            childrenAges: updatedLead.children_ages ?? null,
+            dog: updatedLead.dog ?? null,
           },
         },
       });
