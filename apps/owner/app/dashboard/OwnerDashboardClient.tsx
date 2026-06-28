@@ -478,14 +478,29 @@ function OwnerDashboardView({
 
     try {
       const supabase = createSupabaseBrowserClient();
+      const subject = ownerContactCategoryLabels[contactCategory];
+      const requestedDateRangeLabel = isAvailabilityRequest
+        ? `${contactStartsOn || "offen"} bis ${contactEndsOn || "offen"}`
+        : null;
       const { error } = await supabase.from("support_messages").insert({
         id: crypto.randomUUID(),
         category: `owner_${contactCategory}`,
         message: messageText,
         urgency: contactCategory === "accounting" || isAvailabilityRequest ? "soon" : "normal",
+        owner_profile_id: data.profile.id,
+        property_id: selectedContactProperty?.id ?? null,
+        source: "next-owner",
+        subject,
+        contact_name: data.profile.displayName,
+        contact_email: data.profile.email,
+        contact_phone: data.profile.phone,
+        property_name: selectedContactProperty?.name ?? null,
+        requested_starts_on: isAvailabilityRequest ? contactStartsOn : null,
+        requested_ends_on: isAvailabilityRequest ? contactEndsOn : null,
+        requested_date_range_label: requestedDateRangeLabel,
         payload: {
           source: "next-owner",
-          subject: ownerContactCategoryLabels[contactCategory],
+          subject,
           categoryLabel: "Eigentümeranliegen",
           ownerProfileId: data.profile.id,
           ownerName: data.profile.displayName,
@@ -496,9 +511,7 @@ function OwnerDashboardView({
           supportCategory: contactCategory,
           requestedStartsOn: isAvailabilityRequest ? contactStartsOn : null,
           requestedEndsOn: isAvailabilityRequest ? contactEndsOn : null,
-          requestedDateRangeLabel: isAvailabilityRequest
-            ? `${contactStartsOn || "offen"} bis ${contactEndsOn || "offen"}`
-            : null,
+          requestedDateRangeLabel,
         },
       });
 

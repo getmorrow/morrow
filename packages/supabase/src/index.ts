@@ -55,6 +55,9 @@ export const adminAuditLogSelectColumns =
 export const experienceBlockSelectColumns =
   "id,package_id,provider_id,title,role,included_in_price,confirmation_status,guest_note,price_note,capacity_note,availability_note,quality_score,quality_note,payload,created_at" as const;
 
+export const supportMessageSelectColumns =
+  "id,lead_id,booking_id,owner_profile_id,property_id,category,message,status,urgency,source,subject,contact_name,contact_email,contact_phone,property_name,package_name,requested_starts_on,requested_ends_on,requested_date_range_label,payload,created_at,updated_at" as const;
+
 export type ExperienceBlockRowBase = {
   id: string;
   package_id: string | null;
@@ -71,6 +74,31 @@ export type ExperienceBlockRowBase = {
   quality_note?: string | null;
   payload: JsonRecord;
   created_at: string;
+};
+
+export type SupportMessageRowBase = {
+  id: string;
+  lead_id: string | null;
+  booking_id?: string | null;
+  owner_profile_id?: string | null;
+  property_id?: string | null;
+  category: string;
+  message: string;
+  status: string;
+  urgency: string | null;
+  source?: string | null;
+  subject?: string | null;
+  contact_name?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  property_name?: string | null;
+  package_name?: string | null;
+  requested_starts_on?: string | null;
+  requested_ends_on?: string | null;
+  requested_date_range_label?: string | null;
+  payload: JsonRecord;
+  created_at: string;
+  updated_at?: string | null;
 };
 
 export type AdminAuditLogRow = {

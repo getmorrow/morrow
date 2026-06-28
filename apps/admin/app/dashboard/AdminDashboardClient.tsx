@@ -11,6 +11,8 @@ import {
   localPlaceAdminSelectColumns,
   type JsonRecord,
   type LocalPlaceRowBase,
+  type SupportMessageRowBase,
+  supportMessageSelectColumns,
 } from "@morrow/supabase";
 
 type AdminProfile = {
@@ -139,16 +141,7 @@ type AdminTaskRow = {
   created_at: string;
 };
 
-type SupportRow = {
-  id: string;
-  lead_id: string | null;
-  category: string;
-  message: string;
-  status: string;
-  urgency: string | null;
-  created_at: string;
-  payload: Record<string, unknown>;
-};
+type SupportRow = SupportMessageRowBase;
 
 type ExperienceProviderRow = {
   id: string;
@@ -1654,6 +1647,7 @@ function getBookingLabel(booking: BookingRow) {
 
 function getSupportLabel(support: SupportRow) {
   return (
+    support.subject ||
     getPayloadText(support.payload, ["subject", "title", "supportName", "categoryLabel"]) ||
     supportCategoryLabel(support.category) ||
     "Supportfall"
@@ -1662,7 +1656,10 @@ function getSupportLabel(support: SupportRow) {
 
 function getSupportContactLabel(support: SupportRow) {
   return (
+    support.contact_name ||
     getPayloadText(support.payload, ["ownerName", "guestName", "customerName", "name", "leadName"]) ||
+    support.contact_email ||
+    support.contact_phone ||
     getPayloadText(support.payload, ["email", "phone"]) ||
     getPayloadText(support.payload, ["ownerEmail", "ownerPhone"]) ||
     "Kontakt"
@@ -1671,10 +1668,18 @@ function getSupportContactLabel(support: SupportRow) {
 
 function getSupportRelationId(support: SupportRow, kind: "lead" | "booking") {
   const keys = kind === "lead" ? ["leadId", "lead_id"] : ["bookingId", "booking_id"];
+  if (kind === "booking" && support.booking_id) return support.booking_id;
   return getPayloadText(support.payload, keys) || (kind === "lead" ? support.lead_id : null);
 }
 
-function supportDateRangeLabel(payload: Record<string, unknown>) {
+function supportDateRangeLabel(payload: Record<string, unknown>, support?: SupportRow) {
+  if (support?.requested_date_range_label) return support.requested_date_range_label;
+  if (support?.requested_starts_on && support.requested_ends_on) {
+    return `${support.requested_starts_on} bis ${support.requested_ends_on}`;
+  }
+  if (support?.requested_starts_on) return `ab ${support.requested_starts_on}`;
+  if (support?.requested_ends_on) return `bis ${support.requested_ends_on}`;
+
   const explicitLabel = getPayloadText(payload, ["requestedDateRangeLabel", "dateRangeLabel", "dateLabel"]);
   if (explicitLabel) return explicitLabel;
 
@@ -1690,10 +1695,11 @@ function supportDateRangeLabel(payload: Record<string, unknown>) {
 function getSupportContextItems(support: SupportRow) {
   const payload = support.payload ?? {};
   const items = [
-    ["Objekt", getPayloadText(payload, ["propertyName", "propertyTitle", "stayName"])],
-    ["Zeitraum", supportDateRangeLabel(payload)],
-    ["Eigentümer", getPayloadText(payload, ["ownerName", "ownerEmail"])],
-    ["Telefon", getPayloadText(payload, ["ownerPhone", "phone"])],
+    ["Objekt", support.property_name || getPayloadText(payload, ["propertyName", "propertyTitle", "stayName"])],
+    ["Auszeit", support.package_name || getPayloadText(payload, ["packageName", "packageTitle", "packageSlug"])],
+    ["Zeitraum", supportDateRangeLabel(payload, support)],
+    ["Eigentümer", support.contact_name || support.contact_email || getPayloadText(payload, ["ownerName", "ownerEmail"])],
+    ["Telefon", support.contact_phone || getPayloadText(payload, ["ownerPhone", "phone"])],
   ];
 
   return items.filter((item): item is [string, string] => Boolean(item[1]));
@@ -2021,7 +2027,7 @@ export function AdminDashboardClient() {
               .limit(40),
             supabase
               .from("support_messages")
-              .select("id,lead_id,category,message,status,urgency,created_at,payload")
+              .select(supportMessageSelectColumns)
               .order("created_at", { ascending: false })
               .limit(20),
             supabase

@@ -893,12 +893,21 @@ export function GuestStayClient({
 
     const supportId = crypto.randomUUID();
     const createdAt = new Date().toISOString();
+    const packageName = booking?.packageName ?? packageItem?.name ?? null;
     const { error: supportError } = await supabase.from("support_messages").insert({
       id: supportId,
       lead_id: booking?.leadId ?? null,
+      booking_id: bookingId,
       category: supportCategory,
       message: supportMessage.trim(),
       urgency: supportUrgency,
+      source: "next-guest",
+      subject: supportCategoryLabels[supportCategory],
+      contact_name: guestName,
+      contact_email: booking?.email ?? null,
+      contact_phone: booking?.phone ?? null,
+      property_name: packageItem?.stay?.name ?? null,
+      package_name: packageName,
       payload: {
         bookingId,
         source: "next-guest",
@@ -907,7 +916,7 @@ export function GuestStayClient({
         supportUrgency,
         propertySupportType,
         propertySupportName,
-        packageName: booking?.packageName ?? packageItem?.name ?? null,
+        packageName,
       },
     });
 
