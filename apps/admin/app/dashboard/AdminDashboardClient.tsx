@@ -18,6 +18,10 @@ import {
   insertAdminAuditLog,
   localPlaceAdminSelectColumns,
   type JsonRecord,
+  type BookingRowBase,
+  bookingSelectColumns,
+  type LeadRowBase,
+  leadSelectColumns,
   type LocalPlaceRowBase,
   type OwnerAccessRowBase,
   ownerAccessSelectColumns,
@@ -40,57 +44,9 @@ type AdminProfile = {
   name: string | null;
 };
 
-type LeadRow = {
-  id: string;
-  type: "guest" | "owner" | "experience";
-  status: string;
-  name: string | null;
-  email: string | null;
-  phone: string | null;
-  package_slug: string | null;
-  source?: string | null;
-  campaign?: string | null;
-  follow_up_at?: string | null;
-  whatsapp_opt_in?: boolean | null;
-  whatsapp_consent_at?: string | null;
-  adults?: number | null;
-  children?: number | null;
-  children_ages?: string | null;
-  dog?: string | null;
-  archived_at: string | null;
-  created_at: string;
-  payload: Record<string, unknown>;
-};
+type LeadRow = LeadRowBase;
 
-type BookingRow = {
-  id: string;
-  lead_id?: string | null;
-  customer_id?: string | null;
-  package_id?: string | null;
-  status: string;
-  payment_status: string;
-  guest_access_code?: string | null;
-  guest_name?: string | null;
-  guest_email?: string | null;
-  guest_phone?: string | null;
-  selected_date?: string | null;
-  reservation_deadline?: string | null;
-  payment_due_date?: string | null;
-  payment_amount?: string | null;
-  payment_date?: string | null;
-  payment_method?: string | null;
-  payment_reference?: string | null;
-  payment_proof_url?: string | null;
-  adults?: number | null;
-  children?: number | null;
-  children_ages?: string | null;
-  dog?: string | null;
-  check_in_status?: string | null;
-  experience_status?: string | null;
-  next_task?: string | null;
-  created_at: string;
-  payload: Record<string, unknown>;
-};
+type BookingRow = BookingRowBase;
 
 type CustomerRecordRow = CustomerRecordRowBase;
 
@@ -1914,12 +1870,12 @@ export function AdminDashboardClient() {
               .limit(160),
             supabase
               .from("leads")
-              .select("id,type,status,name,email,phone,package_slug,source,campaign,follow_up_at,whatsapp_opt_in,whatsapp_consent_at,adults,children,children_ages,dog,archived_at,created_at,payload")
+              .select(leadSelectColumns)
               .order("created_at", { ascending: false })
               .limit(120),
             supabase
               .from("bookings")
-              .select("id,lead_id,customer_id,package_id,status,payment_status,guest_access_code,guest_name,guest_email,guest_phone,selected_date,reservation_deadline,payment_due_date,payment_amount,payment_date,payment_method,payment_reference,payment_proof_url,adults,children,children_ages,dog,check_in_status,experience_status,next_task,created_at,payload")
+              .select(bookingSelectColumns)
               .order("created_at", { ascending: false })
               .limit(30),
             supabase
@@ -4188,7 +4144,7 @@ function AdminDashboardView({
           updated_at: now,
         })
         .eq("id", lead.id)
-        .select("id,type,status,name,email,phone,package_slug,source,campaign,follow_up_at,whatsapp_opt_in,whatsapp_consent_at,adults,children,children_ages,dog,archived_at,created_at,payload")
+        .select(leadSelectColumns)
         .single();
 
       if (error) throw error;

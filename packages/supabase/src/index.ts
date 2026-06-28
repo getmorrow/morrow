@@ -85,6 +85,12 @@ export const ownerProfileSelectColumns =
 export const ownerAccessSelectColumns =
   "id,owner_profile_id,property_id,role,can_view_financials,can_view_operations,created_at" as const;
 
+export const leadSelectColumns =
+  "id,type,status,name,email,phone,package_slug,source,campaign,follow_up_at,whatsapp_opt_in,whatsapp_consent_at,adults,children,children_ages,dog,archived_at,created_at,payload" as const;
+
+export const bookingSelectColumns =
+  "id,lead_id,customer_id,package_id,status,payment_status,guest_access_code,guest_name,guest_email,guest_phone,selected_date,reservation_deadline,payment_due_date,payment_amount,payment_date,payment_method,payment_reference,payment_proof_url,adults,children,children_ages,dog,check_in_status,experience_status,next_task,created_at,payload" as const;
+
 export type ExperienceBlockRowBase = {
   id: string;
   package_id: string | null;
@@ -259,6 +265,58 @@ export type OwnerAccessRowBase = {
   can_view_financials: boolean;
   can_view_operations: boolean;
   created_at: string;
+};
+
+export type LeadRowBase = {
+  id: string;
+  type: "guest" | "owner" | "experience" | string;
+  status: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  package_slug: string | null;
+  source?: string | null;
+  campaign?: string | null;
+  follow_up_at?: string | null;
+  whatsapp_opt_in?: boolean | null;
+  whatsapp_consent_at?: string | null;
+  adults?: number | null;
+  children?: number | null;
+  children_ages?: string | null;
+  dog?: string | null;
+  archived_at: string | null;
+  created_at: string;
+  payload: JsonRecord;
+};
+
+export type BookingRowBase = {
+  id: string;
+  lead_id?: string | null;
+  customer_id?: string | null;
+  package_id?: string | null;
+  status: string;
+  payment_status: string;
+  guest_access_code?: string | null;
+  guest_name?: string | null;
+  guest_email?: string | null;
+  guest_phone?: string | null;
+  selected_date?: string | null;
+  reservation_deadline?: string | null;
+  payment_due_date?: string | null;
+  payment_amount?: string | null;
+  payment_date?: string | null;
+  payment_method?: string | null;
+  payment_reference?: string | null;
+  payment_proof_url?: string | null;
+  adults?: number | null;
+  children?: number | null;
+  children_ages?: string | null;
+  dog?: string | null;
+  check_in_status?: string | null;
+  experience_status?: string | null;
+  next_task?: string | null;
+  created_at: string;
+  payload: JsonRecord;
 };
 
 export type AdminAuditLogRow = {
