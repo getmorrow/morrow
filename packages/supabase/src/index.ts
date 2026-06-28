@@ -72,6 +72,27 @@ export type OwnerDashboardProperty = {
   supportType: string | null;
   supportName: string | null;
   status: string;
+  description?: string | null;
+  ownerName?: string | null;
+  ownerEmail?: string | null;
+  ownerPhone?: string | null;
+  propertyType?: string | null;
+  currentRental?: string | null;
+  address?: string | null;
+  earliestArrival?: string | null;
+  latestArrival?: string | null;
+  checkOutTime?: string | null;
+  keySafeCode?: string | null;
+  checkInInstructions?: string | null;
+  amenities?: string[];
+  attributes?: string[];
+  experienceWorlds?: string[];
+  houseRules?: string[];
+  media?: string[];
+  mediaAltTexts?: string[];
+  cleaningStatus?: string | null;
+  maintenanceStatus?: string | null;
+  lastCheck?: string | null;
   payload: JsonRecord;
   accessRole: string;
   canViewFinancials: boolean;
@@ -101,6 +122,7 @@ export type OwnerDashboardBooking = {
   dateLabel: string | null;
   startsOn: string | null;
   endsOn: string | null;
+  paymentAmount?: string | null;
   payload: JsonRecord;
 };
 

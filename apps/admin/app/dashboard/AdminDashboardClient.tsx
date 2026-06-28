@@ -100,6 +100,27 @@ type SimpleRow = {
   support_type?: string | null;
   support_name?: string | null;
   image_rights_confirmed?: boolean | null;
+  description?: string | null;
+  owner_name?: string | null;
+  owner_email?: string | null;
+  owner_phone?: string | null;
+  property_type?: string | null;
+  current_rental?: string | null;
+  address?: string | null;
+  earliest_arrival?: string | null;
+  latest_arrival?: string | null;
+  check_out_time?: string | null;
+  key_safe_code?: string | null;
+  check_in_instructions?: string | null;
+  amenities?: string[] | null;
+  attributes?: string[] | null;
+  experience_worlds?: string[] | null;
+  house_rules?: string[] | null;
+  media?: string[] | null;
+  media_alt_texts?: string[] | null;
+  cleaning_status?: string | null;
+  maintenance_status?: string | null;
+  last_check?: string | null;
 };
 
 type AdminTaskRow = {
@@ -1825,7 +1846,7 @@ function monitoringItems(data: DashboardData) {
         severity: "medium",
       });
     }
-    if (!getPayloadText(propertyPayload, ["address"]) || !getPayloadText(propertyPayload, ["checkInInstructions"])) {
+    if (!(item.address || getPayloadText(propertyPayload, ["address"])) || !(item.check_in_instructions || getPayloadText(propertyPayload, ["checkInInstructions"]))) {
       items.push({
         id: `property-checkin-${item.id}`,
         label: "Check-in",
@@ -1834,7 +1855,7 @@ function monitoringItems(data: DashboardData) {
         severity: "high",
       });
     }
-    if (splitLines(getPayloadLines(propertyPayload, ["houseRules"])).length < 2) {
+    if ((item.house_rules ?? splitLines(getPayloadLines(propertyPayload, ["houseRules"]))).length < 2) {
       items.push({
         id: `property-rules-${item.id}`,
         label: "Regeln",
@@ -1843,7 +1864,7 @@ function monitoringItems(data: DashboardData) {
         severity: "medium",
       });
     }
-    if (splitLines(getPayloadLines(propertyPayload, ["amenities", "features"])).length < 3) {
+    if ((item.amenities ?? splitLines(getPayloadLines(propertyPayload, ["amenities", "features"]))).length < 3) {
       items.push({
         id: `property-amenities-${item.id}`,
         label: "Ausstattung",
@@ -1997,7 +2018,7 @@ export function AdminDashboardClient() {
               .order("name"),
             supabase
               .from("properties")
-              .select("id,name,location,sleeps,bedrooms,bathrooms,check_in_type,support_type,support_name,image_rights_confirmed,status,payload")
+              .select("id,name,location,sleeps,bedrooms,bathrooms,check_in_type,support_type,support_name,image_rights_confirmed,description,owner_name,owner_email,owner_phone,property_type,current_rental,address,earliest_arrival,latest_arrival,check_out_time,key_safe_code,check_in_instructions,amenities,attributes,experience_worlds,house_rules,media,media_alt_texts,cleaning_status,maintenance_status,last_check,status,payload")
               .order("name"),
             supabase
               .from("admin_tasks")
@@ -2614,27 +2635,27 @@ function AdminDashboardView({
         sleeps: item.sleeps?.toString() || "",
         bedrooms: item.bedrooms?.toString() || "",
         bathrooms: item.bathrooms?.toString() || "",
-        description: getPayloadText(item.payload ?? {}, ["description"]) || "",
-        owner_name: getPayloadText(item.payload ?? {}, ["ownerName"]) || "",
-        owner_email: getPayloadText(item.payload ?? {}, ["email", "ownerEmail"]) || "",
-        owner_phone: getPayloadText(item.payload ?? {}, ["phone", "ownerPhone"]) || "",
-        property_type: getPayloadText(item.payload ?? {}, ["propertyType"]) || "",
-        current_rental: getPayloadText(item.payload ?? {}, ["currentRental"]) || "agency",
+        description: item.description || getPayloadText(item.payload ?? {}, ["description"]) || "",
+        owner_name: item.owner_name || getPayloadText(item.payload ?? {}, ["ownerName"]) || "",
+        owner_email: item.owner_email || getPayloadText(item.payload ?? {}, ["email", "ownerEmail"]) || "",
+        owner_phone: item.owner_phone || getPayloadText(item.payload ?? {}, ["phone", "ownerPhone"]) || "",
+        property_type: item.property_type || getPayloadText(item.payload ?? {}, ["propertyType"]) || "",
+        current_rental: item.current_rental || getPayloadText(item.payload ?? {}, ["currentRental"]) || "agency",
         check_in_type: item.check_in_type || "",
         support_type: item.support_type || "",
         support_name: item.support_name || "",
-        address: getPayloadText(item.payload ?? {}, ["address"]) || "",
-        earliest_arrival: getPayloadText(item.payload ?? {}, ["earliestArrival"]) || "",
-        latest_arrival: getPayloadText(item.payload ?? {}, ["latestArrival"]) || "",
-        check_out_time: getPayloadText(item.payload ?? {}, ["checkOutTime"]) || "",
-        key_safe_code: getPayloadText(item.payload ?? {}, ["keySafeCode"]) || "",
-        check_in_instructions: getPayloadText(item.payload ?? {}, ["checkInInstructions"]) || "",
-        amenities: getPayloadLines(item.payload ?? {}, ["amenities", "features"]),
-        attributes: getPayloadStringArray(item.payload ?? {}, ["attributes"]),
-        experience_worlds: getPayloadStringArray(item.payload ?? {}, ["experienceWorlds"]),
-        house_rules: getPayloadLines(item.payload ?? {}, ["houseRules"]),
-        media: getPayloadLines(item.payload ?? {}, ["media"]),
-        media_alt_texts: getPayloadLines(item.payload ?? {}, ["mediaAltTexts"]),
+        address: item.address || getPayloadText(item.payload ?? {}, ["address"]) || "",
+        earliest_arrival: item.earliest_arrival || getPayloadText(item.payload ?? {}, ["earliestArrival"]) || "",
+        latest_arrival: item.latest_arrival || getPayloadText(item.payload ?? {}, ["latestArrival"]) || "",
+        check_out_time: item.check_out_time || getPayloadText(item.payload ?? {}, ["checkOutTime"]) || "",
+        key_safe_code: item.key_safe_code || getPayloadText(item.payload ?? {}, ["keySafeCode"]) || "",
+        check_in_instructions: item.check_in_instructions || getPayloadText(item.payload ?? {}, ["checkInInstructions"]) || "",
+        amenities: item.amenities?.join("\n") || getPayloadLines(item.payload ?? {}, ["amenities", "features"]),
+        attributes: item.attributes ?? getPayloadStringArray(item.payload ?? {}, ["attributes"]),
+        experience_worlds: item.experience_worlds ?? getPayloadStringArray(item.payload ?? {}, ["experienceWorlds"]),
+        house_rules: item.house_rules?.join("\n") || getPayloadLines(item.payload ?? {}, ["houseRules"]),
+        media: item.media?.join("\n") || getPayloadLines(item.payload ?? {}, ["media"]),
+        media_alt_texts: item.media_alt_texts?.join("\n") || getPayloadLines(item.payload ?? {}, ["mediaAltTexts"]),
         image_rights_confirmed: Boolean(item.image_rights_confirmed) || getPayloadBool(item.payload ?? {}, ["imageRightsConfirmed"]),
       } : {});
       return;
@@ -5545,6 +5566,12 @@ function AdminDashboardView({
           imageRightsConfirmed: Boolean(inventoryDraft.image_rights_confirmed),
           updatedAt: now,
         };
+        const amenities = splitLines(String(inventoryDraft.amenities || ""));
+        const attributes = draftStringArray(inventoryDraft.attributes);
+        const experienceWorlds = draftStringArray(inventoryDraft.experience_worlds);
+        const houseRules = splitLines(String(inventoryDraft.house_rules || ""));
+        const media = splitLines(String(inventoryDraft.media || ""));
+        const mediaAltTexts = splitLines(String(inventoryDraft.media_alt_texts || ""));
         const propertyPayloadBase = {
           name,
           status: String(inventoryDraft.status || "draft").trim(),
@@ -5556,6 +5583,24 @@ function AdminDashboardView({
           support_type: String(inventoryDraft.support_type || "").trim() || null,
           support_name: String(inventoryDraft.support_name || "").trim() || null,
           image_rights_confirmed: Boolean(inventoryDraft.image_rights_confirmed),
+          description: propertyPayload.description || null,
+          owner_name: propertyPayload.ownerName || null,
+          owner_email: propertyPayload.email || null,
+          owner_phone: propertyPayload.phone || null,
+          property_type: propertyPayload.propertyType || null,
+          current_rental: propertyPayload.currentRental || null,
+          address: propertyPayload.address || null,
+          earliest_arrival: propertyPayload.earliestArrival || null,
+          latest_arrival: propertyPayload.latestArrival || null,
+          check_out_time: propertyPayload.checkOutTime || null,
+          key_safe_code: propertyPayload.keySafeCode || null,
+          check_in_instructions: propertyPayload.checkInInstructions || null,
+          amenities,
+          attributes,
+          experience_worlds: experienceWorlds,
+          house_rules: houseRules,
+          media,
+          media_alt_texts: mediaAltTexts,
           payload: propertyPayload,
           updated_at: now,
         };
@@ -5568,7 +5613,7 @@ function AdminDashboardView({
           const { data: inserted, error } = await supabase
             .from("properties")
             .insert(insertPayload)
-            .select("id,name,location,sleeps,bedrooms,bathrooms,check_in_type,support_type,support_name,image_rights_confirmed,status,payload")
+            .select("id,name,location,sleeps,bedrooms,bathrooms,check_in_type,support_type,support_name,image_rights_confirmed,description,owner_name,owner_email,owner_phone,property_type,current_rental,address,earliest_arrival,latest_arrival,check_out_time,key_safe_code,check_in_instructions,amenities,attributes,experience_worlds,house_rules,media,media_alt_texts,cleaning_status,maintenance_status,last_check,status,payload")
             .single();
 
           if (error) throw error;

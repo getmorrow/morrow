@@ -163,20 +163,20 @@ function dateDistanceLabel(startsOn: string | null) {
 }
 
 function propertyImage(property: OwnerDashboardProperty) {
-  const media = getPayloadLines(property.payload ?? {}, ["media"]);
+  const media = property.media?.length ? property.media : getPayloadLines(property.payload ?? {}, ["media"]);
   return getPayloadText(property.payload ?? {}, ["image"]) || media[0] || "/brand/generated/morrow-spo-interior.png";
 }
 
 function propertyReadiness(property: OwnerDashboardProperty) {
   const payload = property.payload ?? {};
   const checks = [
-    Boolean(getPayloadText(payload, ["address"])),
-    Boolean(getPayloadText(payload, ["checkInInstructions"])),
-    getPayloadLines(payload, ["houseRules"]).length >= 2,
-    getPayloadLines(payload, ["media"]).length > 0,
-    getPayloadLines(payload, ["amenities", "features"]).length >= 3,
-    getPayloadLines(payload, ["attributes"]).length >= 2,
-    getPayloadLines(payload, ["experienceWorlds"]).length > 0,
+    Boolean(property.address || getPayloadText(payload, ["address"])),
+    Boolean(property.checkInInstructions || getPayloadText(payload, ["checkInInstructions"])),
+    (property.houseRules ?? getPayloadLines(payload, ["houseRules"])).length >= 2,
+    (property.media ?? getPayloadLines(payload, ["media"])).length > 0,
+    (property.amenities ?? getPayloadLines(payload, ["amenities", "features"])).length >= 3,
+    (property.attributes ?? getPayloadLines(payload, ["attributes"])).length >= 2,
+    (property.experienceWorlds ?? getPayloadLines(payload, ["experienceWorlds"])).length > 0,
   ];
   const done = checks.filter(Boolean).length;
 
@@ -234,6 +234,7 @@ function bookingRevenue(bookings: OwnerDashboardBooking[]) {
   return bookings.reduce((sum, booking) => {
     const payload = booking.payload ?? {};
     return sum + parseMoney(
+      booking.paymentAmount ??
       payload.paymentAmount ??
       payload.amountPaid ??
       payload.price ??
@@ -245,9 +246,9 @@ function bookingRevenue(bookings: OwnerDashboardBooking[]) {
 
 function propertyOperations(property: OwnerDashboardProperty) {
   const payload = property.payload ?? {};
-  const cleaningStatus = getPayloadText(payload, ["cleaningStatus", "cleaning", "housekeepingStatus"]) || "wird nach Buchung geplant";
-  const maintenanceStatus = getPayloadText(payload, ["maintenanceStatus", "damageStatus", "operationsStatus"]) || "keine offenen Meldungen";
-  const lastCheck = getPayloadText(payload, ["lastCheck", "lastInspection", "lastUpdated"]) || "noch nicht dokumentiert";
+  const cleaningStatus = property.cleaningStatus || getPayloadText(payload, ["cleaningStatus", "cleaning", "housekeepingStatus"]) || "wird nach Buchung geplant";
+  const maintenanceStatus = property.maintenanceStatus || getPayloadText(payload, ["maintenanceStatus", "damageStatus", "operationsStatus"]) || "keine offenen Meldungen";
+  const lastCheck = property.lastCheck || getPayloadText(payload, ["lastCheck", "lastInspection", "lastUpdated"]) || "noch nicht dokumentiert";
 
   return {
     cleaningStatus,
@@ -300,9 +301,9 @@ function getOpenPropertyNotes(properties: OwnerDashboardProperty[]) {
 
     if (!property.checkInType) notes.push(`${property.name}: Check-in ergänzen`);
     if (!property.supportType) notes.push(`${property.name}: Betreuung klären`);
-    if (!getPayloadText(payload, ["address"])) notes.push(`${property.name}: Adresse fehlt`);
-    if (getPayloadLines(payload, ["media"]).length === 0) notes.push(`${property.name}: Medien fehlen`);
-    if (getPayloadLines(payload, ["experienceWorlds"]).length === 0) notes.push(`${property.name}: Erlebniswelten offen`);
+    if (!(property.address || getPayloadText(payload, ["address"]))) notes.push(`${property.name}: Adresse fehlt`);
+    if ((property.media ?? getPayloadLines(payload, ["media"])).length === 0) notes.push(`${property.name}: Medien fehlen`);
+    if ((property.experienceWorlds ?? getPayloadLines(payload, ["experienceWorlds"])).length === 0) notes.push(`${property.name}: Erlebniswelten offen`);
 
     return notes;
   });
