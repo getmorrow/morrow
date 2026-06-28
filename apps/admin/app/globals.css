@@ -323,7 +323,8 @@ input {
   padding: 0 14px;
 }
 
-.admin-card-toolbar button {
+.admin-card-toolbar button,
+.admin-card-toolbar select {
   background: rgba(255, 253, 248, 0.72);
   border: 1px solid var(--line);
   border-radius: 999px;

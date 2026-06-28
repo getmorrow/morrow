@@ -303,6 +303,8 @@ type DetailSelection =
 
 type CustomerPhaseFilter = "all" | "request" | "booking" | "due";
 type CommunicationChannelFilter = "all" | "email" | "note" | "inbound" | "outbound" | "internal";
+type SupportStatusFilter = "all" | "open" | "in_progress" | "closed";
+type SupportUrgencyFilter = "all" | "normal" | "medium" | "urgent";
 type LeadScopeFilter = "active" | "archived";
 type LeadTypeFilter = "all" | LeadRow["type"];
 type LeadStatusFilter = "all" | string;
@@ -1109,6 +1111,19 @@ function supportUrgencyLabel(urgency: string | null) {
   };
 
   return urgency ? labels[urgency] || urgency : "Normal";
+}
+
+function supportUrgencyGroup(urgency: string | null): SupportUrgencyFilter {
+  if (urgency === "high" || urgency === "urgent") return "urgent";
+  if (urgency === "medium") return "medium";
+  return "normal";
+}
+
+function supportUrgencyRank(urgency: string | null) {
+  const group = supportUrgencyGroup(urgency);
+  if (group === "urgent") return 0;
+  if (group === "medium") return 1;
+  return 2;
 }
 
 function supportCategoryLabel(category: string | null) {
@@ -2071,6 +2086,9 @@ function AdminDashboardView({
   const [customerPhaseFilter, setCustomerPhaseFilter] = useState<CustomerPhaseFilter>("all");
   const [communicationChannelFilter, setCommunicationChannelFilter] = useState<CommunicationChannelFilter>("all");
   const [communicationSearch, setCommunicationSearch] = useState("");
+  const [supportStatusFilter, setSupportStatusFilter] = useState<SupportStatusFilter>("all");
+  const [supportUrgencyFilter, setSupportUrgencyFilter] = useState<SupportUrgencyFilter>("all");
+  const [supportCategoryFilter, setSupportCategoryFilter] = useState("all");
   const [leadScopeFilter, setLeadScopeFilter] = useState<LeadScopeFilter>("active");
   const [leadTypeFilter, setLeadTypeFilter] = useState<LeadTypeFilter>("all");
   const [leadStatusFilter, setLeadStatusFilter] = useState<LeadStatusFilter>("all");
@@ -2222,6 +2240,25 @@ function AdminDashboardView({
     : null;
   const paidBookings = data.bookings.filter((booking) => booking.payment_status === "bezahlt");
   const openSupport = data.supportMessages.filter((message) => message.status !== "closed");
+  const supportCategoryOptions = useMemo(() => (
+    Array.from(new Set(data.supportMessages.map((support) => support.category || "general")))
+      .sort((a, b) => supportCategoryLabel(a).localeCompare(supportCategoryLabel(b)))
+  ), [data.supportMessages]);
+  const filteredSupportMessages = useMemo(() => (
+    data.supportMessages
+      .filter((support) => supportStatusFilter === "all" || support.status === supportStatusFilter)
+      .filter((support) => supportUrgencyFilter === "all" || supportUrgencyGroup(support.urgency) === supportUrgencyFilter)
+      .filter((support) => supportCategoryFilter === "all" || support.category === supportCategoryFilter)
+      .sort((a, b) => {
+        if (a.status !== b.status) {
+          if (a.status === "closed") return 1;
+          if (b.status === "closed") return -1;
+        }
+        const urgencyDiff = supportUrgencyRank(a.urgency) - supportUrgencyRank(b.urgency);
+        if (urgencyDiff !== 0) return urgencyDiff;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      })
+  ), [data.supportMessages, supportCategoryFilter, supportStatusFilter, supportUrgencyFilter]);
   const activeTasks = data.tasks.filter((task) => task.status !== "done");
   const dueTasks = activeTasks.filter((task) => task.due_at && task.due_at <= todayIsoDate());
   const taskReferenceOptions = useMemo(() => buildTaskReferenceOptions(data), [data]);
@@ -6241,13 +6278,59 @@ function AdminDashboardView({
             Hier landen Fragen und Probleme aus der Gäste-App. Jeder Fall bleibt mit
             der passenden Buchung oder Anfrage verbunden.
           </p>
+          <div className="admin-card-toolbar" aria-label="Supportfilter">
+            {([
+              ["all", "Alle Status"],
+              ["open", "Offen"],
+              ["in_progress", "In Arbeit"],
+              ["closed", "Geschlossen"],
+            ] as [SupportStatusFilter, string][]).map(([value, label]) => (
+              <button
+                aria-pressed={supportStatusFilter === value}
+                className={supportStatusFilter === value ? "is-active" : undefined}
+                key={value}
+                onClick={() => setSupportStatusFilter(value)}
+                type="button"
+              >
+                {label}
+              </button>
+            ))}
+            {([
+              ["all", "Alle Dringlichkeiten"],
+              ["urgent", "Dringend"],
+              ["medium", "Mittel"],
+              ["normal", "Normal"],
+            ] as [SupportUrgencyFilter, string][]).map(([value, label]) => (
+              <button
+                aria-pressed={supportUrgencyFilter === value}
+                className={supportUrgencyFilter === value ? "is-active" : undefined}
+                key={value}
+                onClick={() => setSupportUrgencyFilter(value)}
+                type="button"
+              >
+                {label}
+              </button>
+            ))}
+            <select
+              aria-label="Supportkategorie filtern"
+              onChange={(event) => setSupportCategoryFilter(event.target.value)}
+              value={supportCategoryFilter}
+            >
+              <option value="all">Alle Kategorien</option>
+              {supportCategoryOptions.map((category) => (
+                <option key={category} value={category}>
+                  {supportCategoryLabel(category)}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="admin-list">
-            {data.supportMessages.length ? (
-              data.supportMessages.slice(0, 10).map((support) => (
+            {filteredSupportMessages.length ? (
+              filteredSupportMessages.slice(0, 16).map((support) => (
                 <article className="admin-list-item" key={support.id}>
                   <div>
                     <small>
-                      {formatDate(support.created_at)} · {supportUrgencyLabel(support.urgency)}
+                      {formatDate(support.created_at)} · {supportUrgencyLabel(support.urgency)} · {supportCategoryLabel(support.category)}
                     </small>
                     <strong>{getSupportContactLabel(support)}</strong>
                     <em>
@@ -6275,7 +6358,7 @@ function AdminDashboardView({
                 </article>
               ))
             ) : (
-              <p className="admin-drawer-message">Noch keine Supportnachrichten vorhanden.</p>
+              <p className="admin-drawer-message">Keine passenden Supportnachrichten vorhanden.</p>
             )}
           </div>
         </article>
