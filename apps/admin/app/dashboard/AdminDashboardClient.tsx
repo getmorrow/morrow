@@ -463,6 +463,7 @@ type AgencyDraft = {
   managed_property_ids: string[];
   response_due_days: string;
   available_dates_note: string;
+  next_follow_up_at: string;
   notes: string;
 };
 
@@ -2022,6 +2023,7 @@ function AdminDashboardView({
     managed_property_ids: [],
     response_due_days: "2",
     available_dates_note: "",
+    next_follow_up_at: "",
     notes: "",
   });
   const [providerDraft, setProviderDraft] = useState<ProviderDraft>({
@@ -2158,6 +2160,15 @@ function AdminDashboardView({
     ? data.packageDates.find((item) => item.id === dateSelection.id) ?? null
     : null;
   const workspace = adminWorkspaces.find((item) => item.id === activeWorkspace) ?? adminWorkspaces[0];
+  const activeAgencies = data.agencies.filter((agency) => agency.status === "active");
+  const agenciesWithoutDates = data.agencies.filter((agency) =>
+    agency.status !== "paused" && !String(agency.available_dates_note || "").trim(),
+  );
+  const agenciesWithProperties = data.agencies.filter((agency) => agency.managed_property_ids.length > 0);
+  const agencyFollowUpsDue = data.agencies.filter((agency) => {
+    const followUpAt = getPayloadText(agency.payload ?? {}, ["nextFollowUpAt", "next_follow_up_at"]);
+    return Boolean(agency.status !== "paused" && followUpAt && followUpAt.slice(0, 10) <= todayIsoDate());
+  });
 
   useEffect(() => {
     setInventoryMessage(null);
@@ -2736,6 +2747,7 @@ function AdminDashboardView({
       managed_property_ids: agency.managed_property_ids ?? [],
       response_due_days: agency.response_due_days?.toString() || "2",
       available_dates_note: agency.available_dates_note || "",
+      next_follow_up_at: getPayloadText(agency.payload ?? {}, ["nextFollowUpAt", "next_follow_up_at"]) || "",
       notes: getPayloadText(agency.payload ?? {}, ["notes", "note", "internalNote"]) || "",
     });
     setAgencyMessage("Agentur zum Bearbeiten geladen.");
@@ -2756,6 +2768,7 @@ function AdminDashboardView({
       const supabase = createSupabaseBrowserClient();
       const payload = {
         source: "next-admin",
+        nextFollowUpAt: agencyDraft.next_follow_up_at || null,
         notes: agencyDraft.notes.trim(),
         updatedAt: new Date().toISOString(),
       };
@@ -2811,6 +2824,7 @@ function AdminDashboardView({
         managed_property_ids: [],
         response_due_days: "2",
         available_dates_note: "",
+        next_follow_up_at: "",
         notes: "",
       });
       setAgencyMessage("Agentur gespeichert.");
@@ -6135,6 +6149,56 @@ function AdminDashboardView({
       </section>
 
       <section className="admin-grid" id="agenturen" hidden={activeWorkspace !== "partners"}>
+        <article className="admin-card admin-card-wide">
+          <p className="admin-eyebrow">Agenturarbeit</p>
+          <h2>Startpartner im Blick</h2>
+          <p>
+            Agenturen sind im MVP der schnelle Zugang zu Objekten, freien
+            Terminen und Nutzungsfreigaben. Diese Übersicht zeigt, wo operativ
+            nachgefasst werden muss.
+          </p>
+          <div className="admin-metrics">
+            <article>
+              <span>{activeAgencies.length}</span>
+              <strong>Aktiv</strong>
+              <p>Startpartner mit laufender Abstimmung</p>
+            </article>
+            <article>
+              <span>{agenciesWithoutDates.length}</span>
+              <strong>Termine offen</strong>
+              <p>Verfügbarkeitsnotiz fehlt</p>
+            </article>
+            <article>
+              <span>{agenciesWithProperties.length}</span>
+              <strong>Mit Objekten</strong>
+              <p>Agenturen mit verbundenem Bestand</p>
+            </article>
+            <article>
+              <span>{agencyFollowUpsDue.length}</span>
+              <strong>Heute fällig</strong>
+              <p>Wiedervorlagen prüfen</p>
+            </article>
+          </div>
+          {agencyFollowUpsDue.length ? (
+            <div className="admin-linked-list">
+              {agencyFollowUpsDue.map((agency) => (
+                <article key={agency.id}>
+                  <div>
+                    <strong>{agency.name}</strong>
+                    <span>
+                      {getPayloadText(agency.payload ?? {}, ["nextFollowUpAt", "next_follow_up_at"])}
+                      {agency.contact_name ? ` · ${agency.contact_name}` : ""}
+                    </span>
+                  </div>
+                  <button onClick={() => editAgency(agency)} type="button">
+                    Öffnen
+                  </button>
+                </article>
+              ))}
+            </div>
+          ) : null}
+        </article>
+
         <article className="admin-card">
           <p className="admin-eyebrow">Agenturen</p>
           <h2>Phase-1-Partner pflegen</h2>
@@ -6200,6 +6264,14 @@ function AdminDashboardView({
                 value={agencyDraft.response_due_days}
               />
             </label>
+            <label>
+              Wiedervorlage
+              <input
+                onChange={(event) => setAgencyDraft((current) => ({ ...current, next_follow_up_at: event.target.value }))}
+                type="date"
+                value={agencyDraft.next_follow_up_at}
+              />
+            </label>
             <label className="admin-form-grid-full">
               Freie Termine / Verfügbarkeitsnotiz
               <textarea
@@ -6262,6 +6334,7 @@ function AdminDashboardView({
                 const linkedPropertyNames = agency.managed_property_ids
                   .map((propertyId) => getPropertyName(data.properties, propertyId))
                   .join(" · ");
+                const nextFollowUpAt = getPayloadText(agency.payload ?? {}, ["nextFollowUpAt", "next_follow_up_at"]);
                 return (
                   <article className="admin-list-item" key={agency.id}>
                     <div>
@@ -6274,6 +6347,7 @@ function AdminDashboardView({
                         {agency.response_due_days ? ` · Rückmeldung ${agency.response_due_days} Tage` : ""}
                       </em>
                       <p>{linkedPropertyNames || "Noch kein Objekt verbunden."}</p>
+                      {nextFollowUpAt ? <p>Wiedervorlage: {nextFollowUpAt}</p> : null}
                       {agency.available_dates_note ? <p>{agency.available_dates_note}</p> : null}
                     </div>
                     <div className="admin-row-actions">
