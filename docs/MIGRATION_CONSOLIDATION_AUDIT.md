@@ -128,7 +128,7 @@ Risiko:
 | Owner-Dokumente | nicht voll im Vite-Fokus | `owner_documents`, `apps/admin`, `apps/owner` | migriert fuer MVP-Light | mittel | Upload und Dokumentenablage statt URL offen. |
 | Owner-Abrechnungen | Prototyp-Idee | `owner_statements`, `apps/admin`, `apps/owner` | migriert fuer MVP-Light | mittel | Noch kein echtes Abrechnungssystem/Export. |
 | Owner-Operations | Prototyp-Idee | `owner_operations`, `apps/admin`, `apps/owner` | migriert fuer MVP-Light | mittel | Reinigungs-/Maengelprozesse noch nicht voll operativ. |
-| Audit-Log | Vite Aktivitaet + `admin_audit_logs` | `apps/admin` | teilweise | hoch | Viele Mutationen schreiben Audit; Vollstaendigkeit je Aktion noch pruefen. |
+| Audit-Log | Vite Aktivitaet + `admin_audit_logs` | `apps/admin` + `scripts/qa-admin-audit-coverage.mjs` | weitgehend migriert | hoch | Business-Mutationen im Next-Admin schreiben Audit und werden statisch per `npm run qa:admin-audit` geprueft; semantische Payload-Tiefe und externe Edge-Function-Actions weiter pruefen. |
 | Shared Domain/Types | verstreut in `src/App.tsx`, Apps | `packages/domain`, `packages/supabase` | fehlt / teilweise | kritisch | Duplizierte Typen/Mapper in Apps; hohes Risiko fuer spaetere Logikdrift. |
 | Dev/Deployment | Root Vite Scripts + Next Scripts | Monorepo Scripts/Vercel Apps | teilweise | kritisch | Root `npm run dev` startet weiter Vite; fuer Next muss bewusst `web:dev`, `admin:dev`, `guest:dev`, `owner:dev` genutzt werden. |
 
@@ -207,6 +207,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 - Owner Build: `npm run owner:build`
 - Apps-Production-QA: `npm run qa:apps`
 - Public-Website-QA: `QA_BASE_URL=https://www.getmorrow.de npm run qa:production`
+- Admin-Audit-QA: `npm run qa:admin-audit`
 - Guest-RPC/Browsertest: `npm run supabase:verify-guest`
 - Owner-RPC/E2E-Test: `npm run supabase:verify-owner`
 - Supabase Backup: `npm run supabase:backup`

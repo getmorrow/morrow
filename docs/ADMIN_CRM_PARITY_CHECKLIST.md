@@ -44,7 +44,7 @@ Bis dahin gilt:
 | Vor-Ort-Orte | Kandidaten, Kategorien, Freigabe, Details, Bilder, Links, Karte | Pflege von `local_places` mit Kategorie, Status, Koordinaten, Links, Rating, Oeffnungszeiten, Bilderpayload | migriert/teilweise | Datenqualitaet und Kandidaten-vs-Erlebnis-Trennung pruefen | Freigegebene Orte erscheinen passend in Guest-App; Kandidaten bleiben intern. |
 | Feedback | Feedback nach Aufenthalt, Historie, Wiederbuchungsimpuls | Feedbackliste, Durchschnitt, niedrige Bewertungen als Signal | teilweise | Tags/Aufgaben aus Feedback und Wiederbuchungsimpulse spaeter | Feedback ist sichtbar, nachvollziehbar und fuehrt zu Nachfassarbeit. |
 | Owner-Daten | im alten Admin nur teilweise/konzeptionell | Profile, Zugriffe, Dokumente, Statements, Operations | Next besser als Vite | Paritaet nicht am Vite messen, sondern an Architektur | Owner-App zeigt nur Daten, die Admin pflegen und freigeben kann. |
-| Audit | Aktivitaetsbereich, Supabase `admin_audit_logs` | Viele Mutationen schreiben Audit; Aktivitaet wird angezeigt | teilweise | Vollstaendigkeit je Mutation pruefen | Jede kritische Admin-Aktion erzeugt einen nachvollziehbaren Audit-Eintrag. |
+| Audit | Aktivitaetsbereich, Supabase `admin_audit_logs` | Business-Mutationen im Next-Admin schreiben Audit; Aktivitaet wird angezeigt; statisches QA-Gate `npm run qa:admin-audit` prueft mutierende Admin-Funktionen auf `writeAuditLog` | weitgehend migriert | Semantische Vollstaendigkeit der Audit-Payloads und externe Edge-Function-Actions weiter pruefen | Jede kritische Admin-Aktion erzeugt einen nachvollziehbaren Audit-Eintrag und das Gate verhindert stille neue Mutationen ohne Audit. |
 
 ## Konsolidierungsreihenfolge
 
@@ -198,7 +198,8 @@ Vor der Freigabe von `apps/admin` als alleiniger Admin muessen diese Gates durch
 15. Vor-Ort-Ort als Kandidat anlegen und freigeben.
 16. Owner-Dokument, Owner-Abrechnung und Owner-Operation anlegen/freigeben.
 17. Audit-Log zeigt die kritischen Aktionen.
-18. `npm run admin:build`, `npm run typecheck`, `npm run lint` laufen durch.
+18. `npm run qa:admin-audit` laeuft durch und verhindert neue Admin-Business-Mutationen ohne Audit.
+19. `npm run admin:build`, `npm run typecheck`, `npm run lint` laufen durch.
 
 ## Entscheidungsregel
 
