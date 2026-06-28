@@ -8,6 +8,7 @@ import {
   type AdminTaskRowBase,
   adminTaskSelectColumns,
   type AdminAuditLogRow,
+  adminAuditLogSelectColumns,
   createSupabaseBrowserClient,
   type CommunicationEventRowBase,
   communicationEventSelectColumns,
@@ -17,6 +18,8 @@ import {
   experienceBlockSelectColumns,
   type ExperienceProviderRowBase,
   experienceProviderSelectColumns,
+  type GuestFeedbackRowBase,
+  guestFeedbackSelectColumns,
   insertAdminAuditLog,
   type InventoryRowBase,
   localPlaceAdminSelectColumns,
@@ -87,15 +90,7 @@ type AgencyRow = AgencyRowBase;
 
 type CommunicationEventRow = CommunicationEventRowBase;
 
-type GuestFeedbackRow = {
-  id: string;
-  lead_id: string | null;
-  booking_id: string | null;
-  rating: number | null;
-  return_interest: string | null;
-  payload: Record<string, unknown>;
-  created_at: string;
-};
+type GuestFeedbackRow = GuestFeedbackRowBase;
 
 type AuditLogRow = AdminAuditLogRow;
 
@@ -1894,12 +1889,12 @@ export function AdminDashboardClient() {
               .order("name"),
             supabase
               .from("guest_feedback")
-              .select("id,lead_id,booking_id,rating,return_interest,payload,created_at")
+              .select(guestFeedbackSelectColumns)
               .order("created_at", { ascending: false })
               .limit(40),
             supabase
               .from("admin_audit_logs")
-              .select("id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at")
+              .select(adminAuditLogSelectColumns)
               .order("created_at", { ascending: false })
               .limit(80),
           ]);
@@ -2706,7 +2701,7 @@ function AdminDashboardView({
 
         const { data: auditLogs } = await supabase
           .from("admin_audit_logs")
-          .select("id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at")
+          .select(adminAuditLogSelectColumns)
           .eq("entity_type", activeSelection.type)
           .eq("entity_id", activeSelection.id)
           .order("created_at", { ascending: false })
@@ -2775,7 +2770,7 @@ function AdminDashboardView({
           leadIds.length
             ? supabase
                 .from("admin_audit_logs")
-                .select("id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at")
+                .select(adminAuditLogSelectColumns)
                 .eq("entity_type", "lead")
                 .in("entity_id", leadIds)
                 .order("created_at", { ascending: false })
@@ -2784,7 +2779,7 @@ function AdminDashboardView({
           bookingIds.length
             ? supabase
                 .from("admin_audit_logs")
-                .select("id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at")
+                .select(adminAuditLogSelectColumns)
                 .eq("entity_type", "booking")
                 .in("entity_id", bookingIds)
                 .order("created_at", { ascending: false })
@@ -2793,7 +2788,7 @@ function AdminDashboardView({
           activeCustomer.customerRecord
             ? supabase
                 .from("admin_audit_logs")
-                .select("id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at")
+                .select(adminAuditLogSelectColumns)
                 .eq("entity_type", "customer")
                 .eq("entity_id", activeCustomer.customerRecord.id)
                 .order("created_at", { ascending: false })

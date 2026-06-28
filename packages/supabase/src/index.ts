@@ -103,6 +103,9 @@ export const adminTaskSelectColumns =
 export const packageDateSelectColumns =
   "id,package_id,label,starts_on,ends_on,capacity,status,payload,created_at" as const;
 
+export const guestFeedbackSelectColumns =
+  "id,lead_id,booking_id,rating,return_interest,payload,created_at" as const;
+
 export type ExperienceBlockRowBase = {
   id: string;
   package_id: string | null;
@@ -394,6 +397,16 @@ export type PackageDateRowBase = {
   ends_on: string | null;
   capacity: number | null;
   status: string;
+  payload: JsonRecord;
+  created_at: string;
+};
+
+export type GuestFeedbackRowBase = {
+  id: string;
+  lead_id: string | null;
+  booking_id: string | null;
+  rating: number | null;
+  return_interest: string | null;
   payload: JsonRecord;
   created_at: string;
 };
