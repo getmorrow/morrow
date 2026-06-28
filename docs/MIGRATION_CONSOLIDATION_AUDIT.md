@@ -4,7 +4,7 @@ Stand: 2026-06-28
 
 Dieses Dokument ist der neue Arbeitsrahmen fuer den Konsolidierungs-Sprint. Es gilt zusammen mit `docs/MORROW_MASTER_FRAME.md`, `docs/STRATEGIC_FOUNDATION_MORROW.md` und `docs/PLATFORM_ARCHITECTURE.md`.
 
-Die konkrete Admin-CRM-Paritaet wird in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` abgearbeitet.
+Die konkrete Admin-CRM-Paritaet wird in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` abgearbeitet. Die Payload-Grenzen und Normalisierungskandidaten sind in `docs/PAYLOAD_NORMALIZATION_INVENTORY.md` festgehalten.
 
 ## Leitentscheidung
 
@@ -24,7 +24,7 @@ Grund:
 | Gaeste-App | `apps/guest` fuer Next-Zugang, Vite als Referenz | `apps/guest` | Next ist technisch fuehrend fuer codegeschuetzten Zugang. Vite bleibt Referenz fuer noch nicht ueberfuehrte Guest-UX-Details. |
 | Eigentuemer-App | `apps/owner` | `apps/owner` | MVP-Light fuehrend, aber nur fuer Ausschnitte, die Admin/Supabase bereits pflegen kann. |
 | Admin-App | `apps/admin` teilweise, Vite-Prototyp weiterhin Referenz | `apps/admin` | Noch nicht voll produktiv fuehrend. Next-Admin wird erst nach CRM-Paritaetscheck und fehlenden Kernfunktionen als alleinige Quelle der Wahrheit behandelt. |
-| Shared Domain/Supabase | verteilt in Apps + `src/lib/morrowBackend.ts` | `packages/domain`, `packages/supabase` | Noch nicht konsolidiert. Mapper, Typen und Mutationen sind zu stark in App-Komponenten verstreut. |
+| Shared Domain/Supabase | verteilt in Apps + `src/lib/morrowBackend.ts` | `packages/domain`, `packages/supabase` | Teilweise konsolidiert. Erste gemeinsame Typen, Select-Grenzen und Audit-Write-Helper sind vorhanden; Payload-Normalisierungsinventar ist dokumentiert. Mapper, Typen und Mutationen sind aber weiter zu stark in App-Komponenten verstreut. |
 
 ## Bestandsaufnahme
 
@@ -94,7 +94,7 @@ Fuehrende Tabellen/RPCs im aktuellen Stand:
 
 Risiko:
 
-- Viele Felder liegen weiter in `payload`.
+- Viele Felder liegen weiter in `payload`; die aktuelle Inventur und V1-Kandidaten stehen in `docs/PAYLOAD_NORMALIZATION_INVENTORY.md`.
 - Typen und Mapper sind mehrfach in App-Komponenten statt in `packages/domain` oder `packages/supabase`.
 - Einige Next-Admin-Mutationen schreiben direkt aus der Komponente in Supabase. Das funktioniert, ist aber schwer zu pruefen und wiederzuverwenden.
 
@@ -130,7 +130,7 @@ Risiko:
 | Owner-Abrechnungen | Prototyp-Idee | `owner_statements`, `apps/admin`, `apps/owner` | migriert fuer MVP-Light | mittel | Noch kein echtes Abrechnungssystem/Export. |
 | Owner-Operations | Prototyp-Idee | `owner_operations`, `apps/admin`, `apps/owner` | migriert fuer MVP-Light | mittel | Reinigungs-/Maengelprozesse noch nicht voll operativ. |
 | Audit-Log | Vite Aktivitaet + `admin_audit_logs` | `apps/admin`, `packages/supabase`, `scripts/qa-admin-audit-coverage.mjs` | weitgehend migriert | hoch | Business-Mutationen im Next-Admin schreiben Audit und werden statisch per `npm run qa:admin-audit` geprueft; der Insert laeuft ueber `insertAdminAuditLog` in `packages/supabase`. Semantische Payload-Tiefe und externe Edge-Function-Actions weiter pruefen. |
-| Shared Domain/Types | verstreut in `src/App.tsx`, Apps | `packages/domain`, `packages/supabase` | teilweise | kritisch | Erster gemeinsamer Supabase-Typanker fuer JSON-Payloads und `local_places` wird von Admin und Guest genutzt. Viele Admin-/Guest-/Owner-Zeilen, Mapper und Payload-Konventionen liegen aber weiter app-lokal; Risiko fuer Logikdrift bleibt hoch. |
+| Shared Domain/Types | verstreut in `src/App.tsx`, Apps | `packages/domain`, `packages/supabase`, `docs/PAYLOAD_NORMALIZATION_INVENTORY.md` | teilweise | kritisch | Erster gemeinsamer Supabase-Typanker fuer JSON-Payloads und `local_places` wird von Admin und Guest genutzt. Audit-Insert ist zentralisiert und Payload-Normalisierung ist inventarisiert. Viele Admin-/Guest-/Owner-Zeilen, Mapper und Payload-Konventionen liegen aber weiter app-lokal; Risiko fuer Logikdrift bleibt hoch. |
 | Dev/Deployment | Root Vite Scripts + Next Scripts | Monorepo Scripts/Vercel Apps | weitgehend migriert | mittel | Root `npm run dev` bleibt bewusst Prototyp. Next-Apps haben feste Port-Scripts (`web:dev:port`, `admin:dev:port`, `guest:dev:port`, `owner:dev:port`) und app-eigene Vercel-Konfigurationen. |
 
 ## Admin-Funktionsparitaet
@@ -244,6 +244,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 - `LocalPlaceRowBase`, `LocalPlaceCategory`, `LocalPlaceStatus` und `JsonRecord` werden als erste gemeinsame Typen von `apps/admin` und `apps/guest` genutzt.
 - `localPlaceBaseSelectColumns` und `localPlaceAdminSelectColumns` sind die erste gemeinsame Repository-Grenze fuer Vor-Ort-Daten: Guest liest nur Gastspalten, Admin liest zusaetzlich `created_at`.
 - `AdminAuditLogRow`, `AdminAuditLogInput`, `adminAuditLogSelectColumns` und `insertAdminAuditLog` sind die erste gemeinsame Schreib-Grenze fuer Admin-Aktivitaet. Die Admin-Komponente behaelt `writeAuditLog` als UI-State-Wrapper und QA-Anker.
+- `docs/PAYLOAD_NORMALIZATION_INVENTORY.md` ist die fuehrende Liste fuer Payload-Felder, V1-Normalisierungskandidaten und bewusst flexible Payload-Bereiche.
 - `packages/domain` bleibt der Ort fuer oeffentliche Website-/Marken-/Content-Domaenen wie Auszeiten, Ratgeber und Routen.
 - App-spezifische UI-Drafts, Formulare und abgeleitete Viewmodels bleiben zunaechst in der jeweiligen App.
 - Payload-basierte Felder sind Migrationsuebergang, nicht Zielarchitektur. Jede Normalisierung muss zuerst dokumentieren, welche App fuehrend schreibt und welche Apps nur lesen.

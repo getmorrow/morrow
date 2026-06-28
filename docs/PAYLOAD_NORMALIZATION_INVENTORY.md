@@ -1,0 +1,74 @@
+# Morrow Payload Normalization Inventory
+
+Stand: 2026-06-28
+
+Dieses Dokument gehoert zum Migration-/Konsolidierungs-Sprint. Es beschreibt, welche operativen Felder aktuell noch in JSON-`payload` liegen, welche App sie schreibt, welche Apps sie lesen und ob sie fuer den MVP als Payload akzeptabel sind oder spaeter relational normalisiert werden muessen.
+
+Grundregel:
+
+- Payload ist fuer flexible Copy, Hinweise, Listen und Uebergangsdaten okay.
+- Payload ist nicht ideal fuer Felder, die gefiltert, validiert, berechtigt, automatisiert, abgerechnet oder app-uebergreifend eindeutig interpretiert werden muessen.
+- Admin ist die Quelle der Wahrheit. Wenn Guest oder Owner ein Payload-Feld lesen, muss klar sein, ob Admin dieses Feld stabil pflegen kann.
+
+## Statusklassen
+
+| Status | Bedeutung |
+| --- | --- |
+| `MVP-Payload ok` | Kann fuer Phase 1 als JSON bleiben, weil es vor allem Copy, Notiz oder Darstellung ist. |
+| `Normalisieren V1` | Sollte vor Markteintritt oder kurz danach relational werden, weil Workflows, Filter oder Gastkommunikation davon abhaengen. |
+| `Normalisieren V2` | Kann spaeter normalisiert werden, wenn Volumen, Partnerzugang oder Reporting wachsen. |
+| `Pruefen` | Feld ist noch uneinheitlich benannt, unklar befuellt oder in mehreren Apps unterschiedlich interpretiert. |
+
+## Inventar Nach Bereich
+
+| Bereich / Tabelle | Payload-Felder Heute | Schreibt Fuehrend | Liest | Status | Entscheidung / Naechster Schritt |
+| --- | --- | --- | --- | --- | --- |
+| `leads` | `selectedDate`, `adults`, `children`, `childrenAges`, `dog`, `occasion`, `whatsappOptIn`, `followUpAt`, `internalNote`, `utm`, `updatedAt`, Testmarker | Admin, Web-Leadflow | Admin | `Normalisieren V1` fuer `followUpAt`, `whatsappOptIn`, Reisegruppe; `MVP-Payload ok` fuer Anlass/Notizen/UTM | Wiedervorlage, WhatsApp-Einwilligung und Reisegruppe sind operative Felder. Sie sollten eigene Spalten oder dedizierte Lead-Detailtabelle bekommen. UTM kann Payload bleiben, solange Reporting nicht granular wird. |
+| `customers` | `sourceLeadIds`, `bookingIds`, `lastContactAt`, `updatedAt`, Testmarker | Admin | Admin | `Pruefen` | Kundennotiz liegt bereits in `customers.notes`. Verknuepfungen sollten langfristig ueber echte Lead-/Booking-Relationen statt Payload-Arrays laufen. |
+| `bookings` | `guestName`, `email`, `phone`, `selectedDate`, `adults`, `children`, `childrenAges`, `dog`, `guestAccessCode`, `reservationDeadline`, `paymentDueDate`, `paymentAmount`, `paymentDate`, `paymentMethod`, `paymentReference`, `paymentProofUrl`, `checkInStatus`, `experienceStatus`, `nextTask`, `internalNote`, `updatedAt` | Admin | Admin, Guest, Owner teilweise | `Normalisieren V1` | Buchung ist Kernprozess. Reisegruppe, Zahlungsfristen, Zahlungsdetails, Guest-Code, Check-in/Erlebnisstatus und naechste Aufgabe sollten strukturiert werden. Freitextnotiz kann Payload bleiben. |
+| `packages` | `headline`, `subheadline`, `shortDescription`, `experienceFeeling`, `includedItems`, `highlights`, `recommendations`, `faq`, `launchNote`, `heroImage`, `galleryImages`, `updatedAt` | Admin | Admin, Guest; Website aktuell aus `packages/domain` | `MVP-Payload ok`, spaeter `Normalisieren V2` | Fuer MVP ist paketbezogene Story/Copy als Payload akzeptabel. Spaeter braucht es eine klare CMS-Grenze: Website-Copy in `packages/domain`/CMS, operative Paketdaten in Supabase. |
+| `package_dates` | `note`, `updatedAt` | Admin | Admin, Guest/Owner ueber Package-Kontext | `MVP-Payload ok` | Termin-Kernfelder sind relational. Notiz kann Payload bleiben. |
+| `properties` | `description`, `ownerName`, `email`, `phone`, `propertyType`, `currentRental`, `address`, `earliestArrival`, `latestArrival`, `checkOutTime`, `keySafeCode`, `checkInInstructions`, `amenities`, `attributes`, `experienceWorlds`, `houseRules`, `media`, `mediaAltTexts`, `cleaningStatus`, `maintenanceStatus`, `lastCheck`, `updatedAt` | Admin | Admin, Guest, Owner | `Normalisieren V1` fuer Check-in, Adresse, Regeln, Medienrechte; `Normalisieren V2` fuer Medienbibliothek/Operationsstatus | Unterkunftsdaten sind gast- und ownerrelevant. Check-in, Adresse, Regeln, Ausstattung, Medien und Rechte brauchen mittelfristig stabile Struktur. Medien-URL-Listen sind Uebergang. |
+| `experience_providers` | `contactName`, `audienceFit`, `collaborationNote`, `pricingNote`, `availabilityNote`, `notes`, `updatedAt` | Admin | Admin | `Normalisieren V2` | Fuer MVP als Akquise-CRM okay. Bei Partnerlogin, Konditionen oder Verfuegbarkeiten braucht es eigene Tabellen/Statushistorie. |
+| `experience_blocks` | `guestNote`, `priceNote`, `capacityNote`, `availabilityNote`, `qualityScore`, `qualityNote`, `updatedAt` | Admin | Admin, Guest | `Normalisieren V1` fuer Preis/Kapazitaet/Verfuegbarkeit; `MVP-Payload ok` fuer Gastnotiz/Qualitaetsnotiz | Erlebnisbausteine koennen mehrere Anbieter, Preise, Kapazitaeten und Terminlogik brauchen. Gastnotiz bleibt flexibel. |
+| `local_places` | `description`, `guestDescription`, `routeNote`, `morrowNote`, `cuisine`, `openingHours`, `packageFit`, `curationKind`, `eventDate`, `eventTime`, `eventAudience`, `eventSetting`, `eventFitNote`, `bestFor`, `audiences`, `images`, `ratingValue`, `updatedAt` | Admin/Scrape-Import | Admin, Guest | `Normalisieren V1` fuer Events, Bilder, Oeffnungszeiten/Ratings; `MVP-Payload ok` fuer Beschreibung/Best-for | Kategorie, Koordinaten, Links, Rating und `package_fit` sind teilweise relational. Event-Zeit, Bildergalerie, Live-Oeffnungszeiten und externe Ratings sollten strukturierter werden. |
+| `support_messages` | `supportCategory`, `supportId`, Statusnotizen, `updatedAt`, interne Kontextdaten | Guest, Owner, Admin | Admin, Guest, Owner | `Pruefen` | Support braucht klare Trennung: Gastanliegen, Owner-Anliegen, Objektproblem, Weiterleitung an Agentur/Hotel/Eigentuemer. Payload-Kontext ist Uebergang. |
+| `communication_events` | `supportId`, Mail-/Template-/Kontextdaten | Admin, Edge Functions, Guest/Owner-Flows | Admin, Guest/Owner teilweise | `MVP-Payload ok`, spaeter `Normalisieren V2` | Ereignisse sind historisch. Payload ist okay fuer Snapshot-Kontext; Templates, WhatsApp-Opt-in und Zustellstatus koennen spaeter eigene Struktur brauchen. |
+| `guest_feedback` | `loved`, `improve`, `returnInterest`, Freitext-Details, `updatedAt` | Guest | Admin | `MVP-Payload ok`, spaeter `Normalisieren V2` | Strukturierte Kernelemente sind vorhanden. Tags, Aufgaben und Wiederbuchungsimpulse koennen spaeter normalisiert werden. |
+| `owner_documents` | `periodLabel`, Dokumentkontext, `updatedAt` | Admin | Admin, Owner | `MVP-Payload ok` | Sobald Upload/Versionierung kommt, braucht es Storage-Metadaten und ggf. Dokumentversionen. |
+| `owner_statements` | Abrechnungsnotizen, `updatedAt` | Admin | Admin, Owner | `Normalisieren V2` | Fuer MVP-Light okay. Bei echter Abrechnung braucht es Positionen, Waehrung, Steuer, Exportstatus. |
+| `owner_operations` | Operationskontext, Dienstleister-/Objektinfos, `updatedAt` | Admin | Admin, Owner | `Normalisieren V2` | Bei echtem Operationssystem braucht es Statushistorie, Verantwortliche, Dateien und Objektbezug. |
+| `admin_tasks` | Bezugsdetails, urspruenglicher Kontext, `updatedAt` | Admin | Admin | `MVP-Payload ok`, spaeter `Pruefen` | Aufgabe hat relationale Kernfelder. Payload kann Kontext-Snapshot bleiben, solange Bezug sauber ueber `reference_type`/`reference_id` laeuft. |
+| `admin_audit_logs` | Snapshot der Aenderung, `from`, `to`, IDs, Statuswerte, technische Details | Admin via `insertAdminAuditLog` | Admin | `MVP-Payload ok` | Audit-Payload ist absichtlich Snapshot. Wichtig ist semantische Mindesttiefe je kritischer Aktion. |
+
+## Sofortige V1-Kandidaten
+
+Diese Felder sind die wichtigsten Kandidaten fuer fruehe Normalisierung, weil sie in Workflows, Filtern, Automationen oder im Gaestebereich relevant sind:
+
+1. `leads.followUpAt` aus Payload in eigene Spalte oder eigene Follow-up-Tabelle.
+2. `leads.whatsappOptIn` und Marketing-/Kontakt-Einwilligungen in eigene Consent-Struktur.
+3. Reisegruppe in Leads und Bookings: Erwachsene, Kinder, Kinderalter, Hund.
+4. Buchungsfristen und Zahlungsdetails: Reservierungsfrist, Zahlungsfrist, Zahlungsstatusdetails.
+5. `bookings.guestAccessCode` beziehungsweise Freigabe/Zugang als stabile Buchungszugangsstruktur.
+6. Unterkunfts-Check-in: Adresse, Schluesselart, Code, Anreisefenster, Checkout, Ansprechpartner.
+7. Lokale Events: Datum, Uhrzeit, Quelle, Zielgruppe, Indoor/Outdoor, Kuratierungsstatus.
+8. Lokale Bilder/Oeffnungszeiten/Ratings als strukturierte Daten statt reinem Payload.
+
+## Bewusst Als Payload Lassen
+
+Diese Felder sind fuer Phase 1 bewusst flexibel:
+
+- Story-/Copy-Felder einer Auszeit: Headlines, Gefuehl, Empfehlungen, FAQ, Highlights.
+- Interne Notizen und Momentaufnahmen.
+- Audit-Payload als Aenderungs-Snapshot.
+- Kommunikationspayloads als Zustell-/Kontext-Snapshot.
+- Best-for-/Empfehlungslisten, solange sie nicht fuer harte Filter oder Automationen gebraucht werden.
+
+## Nächster Technischer Schritt
+
+Wenn weiter konsolidiert wird, sollte nicht wahllos normalisiert werden. Die Reihenfolge sollte sein:
+
+1. Gemeinsame Payload-Key-Konstanten und kleine Mapper fuer `lead`, `booking`, `property`, `local_place`.
+2. Danach eine Supabase-Migration fuer den ersten V1-Kandidaten.
+3. Erst dann Admin-/Guest-/Owner-Code auf die neue Struktur umstellen.
+4. Zum Schluss Vite-Referenz markieren: ersetzt, migriert oder bewusst verworfen.

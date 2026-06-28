@@ -23,6 +23,7 @@ Bis dahin gilt:
 | `apps/admin/app/dashboard/AdminDashboardClient.tsx` | Neue Admin-App und aktueller Konsolidierungsstand. |
 | `supabase/migrations/*` | Tatsaechliche Datenbasis, RLS, RPCs und operative Tabellen. |
 | `docs/MIGRATION_CONSOLIDATION_AUDIT.md` | Fuehrender Rahmen fuer Migration und Stop-Regel. |
+| `docs/PAYLOAD_NORMALIZATION_INVENTORY.md` | Fuehrendes Inventar fuer JSON-Payload-Felder und Normalisierungskandidaten. |
 
 ## Paritaetsstatus Nach Bereich
 
@@ -46,7 +47,7 @@ Bis dahin gilt:
 | Feedback | Feedback nach Aufenthalt, Historie, Wiederbuchungsimpuls | Feedbackliste, Durchschnitt, niedrige Bewertungen, strukturierter Gut-/Verbesserungs-Text, Wiederbuchungsinteresse und Eintrag in `communication_events` | teilweise | Tags/Aufgaben aus Feedback und Wiederbuchungsimpulse spaeter | Feedback ist sichtbar, in der Kommunikationshistorie nachvollziehbar und fuehrt zu Nachfassarbeit. |
 | Owner-Daten | im alten Admin nur teilweise/konzeptionell | Profile, Zugriffe, Dokumente, Statements, Operations | Next besser als Vite | Paritaet nicht am Vite messen, sondern an Architektur | Owner-App zeigt nur Daten, die Admin pflegen und freigeben kann. |
 | Audit | Aktivitaetsbereich, Supabase `admin_audit_logs` | Business-Mutationen im Next-Admin schreiben Audit; Aktivitaet wird angezeigt; statisches QA-Gate `npm run qa:admin-audit` prueft mutierende Admin-Funktionen auf `writeAuditLog`; der Supabase-Insert liegt in `packages/supabase` | weitgehend migriert | Semantische Vollstaendigkeit der Audit-Payloads und externe Edge-Function-Actions weiter pruefen | Jede kritische Admin-Aktion erzeugt einen nachvollziehbaren Audit-Eintrag und das Gate verhindert stille neue Mutationen ohne Audit. |
-| Shared Types | lokale Typen in Admin-/Guest-/Owner-Komponenten | `packages/supabase` enthaelt gemeinsamen `JsonRecord` und `LocalPlaceRowBase`, genutzt in Admin und Guest | teilweise | Weitere Row-Typen und Mapper priorisiert extrahieren, sobald ein Bereich fachlich stabil ist | Geteilte Datenformen werden nicht mehrfach unterschiedlich definiert; lokale Viewmodels bleiben bewusst app-spezifisch. |
+| Shared Types | lokale Typen in Admin-/Guest-/Owner-Komponenten | `packages/supabase` enthaelt gemeinsamen `JsonRecord` und `LocalPlaceRowBase`, genutzt in Admin und Guest; Payload-Felder sind in `docs/PAYLOAD_NORMALIZATION_INVENTORY.md` inventarisiert | teilweise | Weitere Row-Typen und Mapper priorisiert extrahieren, sobald ein Bereich fachlich stabil ist | Geteilte Datenformen werden nicht mehrfach unterschiedlich definiert; lokale Viewmodels bleiben bewusst app-spezifisch. |
 
 ## Konsolidierungsreihenfolge
 
@@ -74,7 +75,7 @@ Warum zuerst:
 
 1. Gemeinsame Admin-/Guest-/Owner-Typen nach `packages/domain` oder `packages/supabase` ziehen. Stand: begonnen mit `JsonRecord` und `LocalPlaceRowBase` fuer Admin/Guest-Vor-Ort-Daten.
 2. Supabase-Mutationen aus Komponenten in klare Helper/Repository-Funktionen ziehen. Stand: begonnen mit gemeinsamen `localPlaceBaseSelectColumns`/`localPlaceAdminSelectColumns` und `insertAdminAuditLog`; damit nutzen Admin und Guest dieselbe Vor-Ort-Spaltengrenze und Admin-Audit hat eine zentrale Schreib-Grenze.
-3. Payload-Felder inventarisieren: was bleibt Payload, was wird normalisiert.
+3. Payload-Felder inventarisieren: was bleibt Payload, was wird normalisiert. Stand: dokumentiert in `docs/PAYLOAD_NORMALIZATION_INVENTORY.md`; V1-Kandidaten sind Leads-Follow-up/Consent/Reisegruppe, Booking-Zahlung/Zugang/Operationsdaten, Property-Check-in/Medien und Local-Place-Events/Bilder/Oeffnungszeiten.
 4. QA-Skripte fuer Admin-Paritaet ergaenzen.
 
 ## Detailtickets Fuer Sprint A
