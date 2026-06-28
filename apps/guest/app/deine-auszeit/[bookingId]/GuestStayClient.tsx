@@ -687,7 +687,9 @@ export function GuestStayClient({
   const [supportSent, setSupportSent] = useState(false);
   const [supportThreads, setSupportThreads] = useState<GuestSupportThread[]>([]);
   const [feedbackRating, setFeedbackRating] = useState("5");
-  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackLoved, setFeedbackLoved] = useState("");
+  const [feedbackImprove, setFeedbackImprove] = useState("");
+  const [feedbackReturnInterest, setFeedbackReturnInterest] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [localFilter, setLocalFilter] = useState<LocalFilter>("all");
   const [selectedPlace, setSelectedPlace] = useState<LocalPlace | null>(null);
@@ -942,22 +944,56 @@ export function GuestStayClient({
       return;
     }
 
+    const now = new Date().toISOString();
+    const feedbackPayload = {
+      source: "next-guest",
+      loved: feedbackLoved.trim(),
+      improve: feedbackImprove.trim(),
+      returnInterest: feedbackReturnInterest || undefined,
+      packageName: booking?.packageName ?? packageItem?.name ?? null,
+      packageSlug: booking?.packageSlug ?? packageItem?.slug ?? null,
+      selectedDate: booking?.selectedDate ?? booking?.dateLabel ?? null,
+      guestName,
+      email: booking?.email ?? null,
+    };
+    const feedbackBody = [
+      feedbackPayload.loved ? `Gut: ${feedbackPayload.loved}` : "",
+      feedbackPayload.improve ? `Verbessern: ${feedbackPayload.improve}` : "",
+      feedbackPayload.returnInterest ? `Wiederkommen: ${feedbackPayload.returnInterest}` : "",
+    ].filter(Boolean).join("\n");
+
     const { error: feedbackError } = await supabase.from("guest_feedback").insert({
       id: crypto.randomUUID(),
       lead_id: booking?.leadId ?? null,
       booking_id: bookingId,
       rating: Number(feedbackRating),
-      return_interest: "maybe",
-      payload: {
-        source: "next-guest",
-        loved: feedbackText.trim(),
-        packageName: booking?.packageName ?? packageItem?.name ?? null,
-      },
+      return_interest: feedbackReturnInterest || null,
+      payload: feedbackPayload,
+      created_at: now,
+      updated_at: now,
     });
 
     if (!feedbackError) {
+      await supabase.from("communication_events").insert({
+        id: crypto.randomUUID(),
+        lead_id: booking?.leadId ?? null,
+        booking_id: bookingId,
+        customer_id: booking?.customerId ?? null,
+        channel: "note",
+        direction: "inbound",
+        event_type: "guest_feedback",
+        subject: `Feedback · ${Number(feedbackRating)}/5`,
+        body: feedbackBody,
+        actor: guestName,
+        status: "received",
+        payload: feedbackPayload,
+        created_at: now,
+        updated_at: now,
+      });
       setFeedbackSent(true);
-      setFeedbackText("");
+      setFeedbackLoved("");
+      setFeedbackImprove("");
+      setFeedbackReturnInterest("");
     }
   }
 
@@ -1395,7 +1431,22 @@ export function GuestStayClient({
               <option value="2">2 · nicht stimmig</option>
               <option value="1">1 · enttäuschend</option>
             </select>
-            <textarea value={feedbackText} onChange={(event) => setFeedbackText(event.target.value)} placeholder="Was war besonders gut oder sollte besser werden?" />
+            <textarea
+              value={feedbackLoved}
+              onChange={(event) => setFeedbackLoved(event.target.value)}
+              placeholder="Was hat euch besonders gutgetan?"
+            />
+            <textarea
+              value={feedbackImprove}
+              onChange={(event) => setFeedbackImprove(event.target.value)}
+              placeholder="Was sollten wir besser vorbereiten?"
+            />
+            <select value={feedbackReturnInterest} onChange={(event) => setFeedbackReturnInterest(event.target.value)}>
+              <option value="">Dürfen wir euch später wieder zu passenden Auszeiten informieren?</option>
+              <option value="yes">Ja, gerne</option>
+              <option value="maybe">Vielleicht später</option>
+              <option value="no">Nein, danke</option>
+            </select>
             <button type="button" onClick={sendFeedback}>{feedbackSent ? "Danke für euer Feedback" : "Feedback senden"}</button>
           </section>
         )}

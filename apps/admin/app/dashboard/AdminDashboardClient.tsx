@@ -1653,10 +1653,14 @@ function getSupportContextItems(support: SupportRow) {
 }
 
 function getFeedbackText(feedback: GuestFeedbackRow) {
-  return (
-    getPayloadText(feedback.payload, ["loved", "message", "feedback", "text", "note"]) ||
-    "Kein Freitext hinterlegt."
-  );
+  const loved = getPayloadText(feedback.payload, ["loved", "message", "feedback", "text", "note"]);
+  const improve = getPayloadText(feedback.payload, ["improve", "improvement", "better"]);
+  const parts = [
+    loved ? `Gut: ${loved}` : "",
+    improve ? `Besser vorbereiten: ${improve}` : "",
+  ].filter(Boolean);
+
+  return parts.length ? parts.join("\n") : "Kein Freitext hinterlegt.";
 }
 
 function getFeedbackPackageLabel(feedback: GuestFeedbackRow, bookings: BookingRow[]) {
