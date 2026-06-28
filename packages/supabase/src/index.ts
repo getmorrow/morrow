@@ -76,6 +76,15 @@ export const ownerStatementSelectColumns =
 export const ownerOperationSelectColumns =
   "id,property_id,title,operation_type,status,visibility,scheduled_for,completed_at,note,payload,created_at" as const;
 
+export const customerSelectColumns =
+  "id,primary_lead_id,name,email,phone,customer_type,notes,payload,created_at" as const;
+
+export const ownerProfileSelectColumns =
+  "id,email,display_name,phone,status,payload,created_at" as const;
+
+export const ownerAccessSelectColumns =
+  "id,owner_profile_id,property_id,role,can_view_financials,can_view_operations,created_at" as const;
+
 export type ExperienceBlockRowBase = {
   id: string;
   package_id: string | null;
@@ -217,6 +226,38 @@ export type OwnerOperationRowBase = {
   completed_at: string | null;
   note: string | null;
   payload: JsonRecord;
+  created_at: string;
+};
+
+export type CustomerRecordRowBase = {
+  id: string;
+  primary_lead_id: string | null;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  customer_type: string;
+  notes: string | null;
+  payload: JsonRecord;
+  created_at: string;
+};
+
+export type OwnerProfileRowBase = {
+  id: string;
+  email: string;
+  display_name: string | null;
+  phone: string | null;
+  status: string;
+  payload: JsonRecord;
+  created_at: string;
+};
+
+export type OwnerAccessRowBase = {
+  id: string;
+  owner_profile_id: string;
+  property_id: string;
+  role: string;
+  can_view_financials: boolean;
+  can_view_operations: boolean;
   created_at: string;
 };
 

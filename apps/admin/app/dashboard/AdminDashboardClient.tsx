@@ -9,6 +9,8 @@ import {
   createSupabaseBrowserClient,
   type CommunicationEventRowBase,
   communicationEventSelectColumns,
+  type CustomerRecordRowBase,
+  customerSelectColumns,
   type ExperienceBlockRowBase,
   experienceBlockSelectColumns,
   type ExperienceProviderRowBase,
@@ -17,10 +19,14 @@ import {
   localPlaceAdminSelectColumns,
   type JsonRecord,
   type LocalPlaceRowBase,
+  type OwnerAccessRowBase,
+  ownerAccessSelectColumns,
   type OwnerDocumentRowBase,
   ownerDocumentSelectColumns,
   type OwnerOperationRowBase,
   ownerOperationSelectColumns,
+  type OwnerProfileRowBase,
+  ownerProfileSelectColumns,
   type OwnerStatementRowBase,
   ownerStatementSelectColumns,
   type SupportMessageRowBase,
@@ -86,17 +92,7 @@ type BookingRow = {
   payload: Record<string, unknown>;
 };
 
-type CustomerRecordRow = {
-  id: string;
-  primary_lead_id: string | null;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  customer_type: string;
-  notes: string | null;
-  payload: Record<string, unknown>;
-  created_at: string;
-};
+type CustomerRecordRow = CustomerRecordRowBase;
 
 type SimpleRow = {
   id: string;
@@ -175,25 +171,9 @@ type PackageDateRow = {
   created_at: string;
 };
 
-type OwnerProfileRow = {
-  id: string;
-  email: string;
-  display_name: string | null;
-  phone: string | null;
-  status: string;
-  payload: Record<string, unknown>;
-  created_at: string;
-};
+type OwnerProfileRow = OwnerProfileRowBase;
 
-type OwnerAccessRow = {
-  id: string;
-  owner_profile_id: string;
-  property_id: string;
-  role: string;
-  can_view_financials: boolean;
-  can_view_operations: boolean;
-  created_at: string;
-};
+type OwnerAccessRow = OwnerAccessRowBase;
 
 type OwnerDocumentRow = OwnerDocumentRowBase;
 
@@ -1929,7 +1909,7 @@ export function AdminDashboardClient() {
           await Promise.all([
             supabase
               .from("customers")
-              .select("id,primary_lead_id,name,email,phone,customer_type,notes,payload,created_at")
+              .select(customerSelectColumns)
               .order("updated_at", { ascending: false })
               .limit(160),
             supabase
@@ -1986,11 +1966,11 @@ export function AdminDashboardClient() {
               .order("created_at", { ascending: false }),
             supabase
               .from("owner_profiles")
-              .select("id,email,display_name,phone,status,payload,created_at")
+              .select(ownerProfileSelectColumns)
               .order("created_at", { ascending: false }),
             supabase
               .from("owner_property_access")
-              .select("id,owner_profile_id,property_id,role,can_view_financials,can_view_operations,created_at")
+              .select(ownerAccessSelectColumns)
               .order("created_at", { ascending: false }),
             supabase
               .from("owner_documents")
@@ -3006,12 +2986,12 @@ function AdminDashboardView({
           .from("customers")
           .update(customerPayload)
           .eq("id", selectedCustomer.customerRecord.id)
-          .select("id,primary_lead_id,name,email,phone,customer_type,notes,payload,created_at")
+          .select(customerSelectColumns)
           .single()
         : await supabase
           .from("customers")
           .insert(customerPayload)
-          .select("id,primary_lead_id,name,email,phone,customer_type,notes,payload,created_at")
+          .select(customerSelectColumns)
           .single();
 
       if (customerResult.error) throw customerResult.error;
@@ -3119,7 +3099,7 @@ function AdminDashboardView({
       const { data: inserted, error } = await supabase
         .from("owner_profiles")
         .upsert(insertPayload, { onConflict: "email" })
-        .select("id,email,display_name,phone,status,payload,created_at")
+        .select(ownerProfileSelectColumns)
         .single();
 
       if (error) throw error;
@@ -3570,7 +3550,7 @@ function AdminDashboardView({
       const { data: inserted, error } = await supabase
         .from("owner_property_access")
         .upsert(insertPayload, { onConflict: "owner_profile_id,property_id" })
-        .select("id,owner_profile_id,property_id,role,can_view_financials,can_view_operations,created_at")
+        .select(ownerAccessSelectColumns)
         .single();
 
       if (error) throw error;
@@ -3639,7 +3619,7 @@ function AdminDashboardView({
           },
         })
         .eq("id", profile.id)
-        .select("id,email,display_name,phone,status,payload,created_at")
+        .select(ownerProfileSelectColumns)
         .single();
 
       if (error) throw error;
@@ -4404,7 +4384,7 @@ function AdminDashboardView({
 
       const existingCustomerResult = await supabase
         .from("customers")
-        .select("id,primary_lead_id,name,email,phone,customer_type,notes,payload,created_at")
+        .select(customerSelectColumns)
         .eq("primary_lead_id", lead.id)
         .maybeSingle();
 
@@ -4432,12 +4412,12 @@ function AdminDashboardView({
           .from("customers")
           .update(customerPayload)
           .eq("id", existingCustomerResult.data.id)
-          .select("id,primary_lead_id,name,email,phone,customer_type,notes,payload,created_at")
+          .select(customerSelectColumns)
           .single()
         : await supabase
           .from("customers")
           .insert(customerPayload)
-          .select("id,primary_lead_id,name,email,phone,customer_type,notes,payload,created_at")
+          .select(customerSelectColumns)
           .single();
 
       if (customerResult.error) throw customerResult.error;
