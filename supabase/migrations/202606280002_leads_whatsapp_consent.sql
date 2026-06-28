@@ -4,19 +4,24 @@ alter table public.leads
 
 update public.leads
 set whatsapp_opt_in = case
-    when lower(consent_value.value) in ('true', 'yes', 'ja', 'zugestimmt', '1') then true
-    when lower(consent_value.value) in ('false', 'no', 'nein', 'abgelehnt', '0') then false
+    when lower(coalesce(
+      nullif(payload ->> 'whatsappOptIn', ''),
+      nullif(payload ->> 'whatsapp_opt_in', ''),
+      nullif(payload ->> 'whatsappConsent', '')
+    )) in ('true', 'yes', 'ja', 'zugestimmt', '1') then true
+    when lower(coalesce(
+      nullif(payload ->> 'whatsappOptIn', ''),
+      nullif(payload ->> 'whatsapp_opt_in', ''),
+      nullif(payload ->> 'whatsappConsent', '')
+    )) in ('false', 'no', 'nein', 'abgelehnt', '0') then false
     else null
   end
-from lateral (
-  select coalesce(
-    nullif(public.leads.payload ->> 'whatsappOptIn', ''),
-    nullif(public.leads.payload ->> 'whatsapp_opt_in', ''),
-    nullif(public.leads.payload ->> 'whatsappConsent', '')
-  ) as value
-) as consent_value
 where public.leads.whatsapp_opt_in is null
-  and consent_value.value is not null;
+  and coalesce(
+    nullif(payload ->> 'whatsappOptIn', ''),
+    nullif(payload ->> 'whatsapp_opt_in', ''),
+    nullif(payload ->> 'whatsappConsent', '')
+  ) is not null;
 
 update public.leads
 set whatsapp_consent_at = created_at
