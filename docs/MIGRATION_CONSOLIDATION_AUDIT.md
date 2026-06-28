@@ -6,6 +6,8 @@ Dieses Dokument ist der neue Arbeitsrahmen fuer den Konsolidierungs-Sprint. Es g
 
 Die konkrete Admin-CRM-Paritaet wird in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` abgearbeitet. Die operative Abnahme vor MVP-Start steht in `docs/ADMIN_PARITY_QA_RUNBOOK.md`. Die Payload-Grenzen und Normalisierungskandidaten sind in `docs/PAYLOAD_NORMALIZATION_INVENTORY.md` festgehalten.
 
+Der aktuelle Abschlusscheck gegen die urspruengliche Kurskorrektur steht in `docs/MIGRATION_COMPLETION_AUDIT_2026-06-28.md`.
+
 ## Leitentscheidung
 
 Bis zur Admin-CRM-Paritaet werden keine neuen Produktfeatures gebaut.
