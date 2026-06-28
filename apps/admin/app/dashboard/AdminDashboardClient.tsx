@@ -828,6 +828,23 @@ function getInventoryPropertyIssues(draft: InventoryDraft) {
   return issues;
 }
 
+function getExperienceIssues(draft: ExperienceDraft) {
+  const issues: string[] = [];
+
+  if (!String(draft.title || "").trim()) issues.push("Titel fehlt");
+  if (!String(draft.package_id || "").trim()) issues.push("Auszeit fehlt");
+  if (!String(draft.provider_id || "").trim()) issues.push("Anbieterprofil fehlt");
+  if (!String(draft.price_note || "").trim()) issues.push("Preislogik fehlt");
+  if (!String(draft.capacity_note || "").trim()) issues.push("Kapazität fehlt");
+  if (!String(draft.availability_note || "").trim()) issues.push("Verfügbarkeit fehlt");
+  if (!String(draft.guest_note || "").trim()) issues.push("Gastnotiz fehlt");
+  if (String(draft.role || "") === "included" && String(draft.confirmation_status || "") !== "confirmed") {
+    issues.push("Enthaltenes Erlebnis nicht bestätigt");
+  }
+
+  return issues;
+}
+
 function numberOrNull(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -2316,6 +2333,8 @@ function AdminDashboardView({
         price_note: "",
         capacity_note: "",
         availability_note: "",
+        quality_score: "",
+        quality_note: "",
       });
       return;
     }
@@ -2332,6 +2351,8 @@ function AdminDashboardView({
       price_note: getPayloadText(item.payload, ["priceNote", "price", "cost"]) || "",
       capacity_note: getPayloadText(item.payload, ["capacityNote", "capacity"]) || "",
       availability_note: getPayloadText(item.payload, ["availabilityNote", "availability"]) || "",
+      quality_score: getPayloadText(item.payload, ["qualityScore", "quality_score"]) || "",
+      quality_note: getPayloadText(item.payload, ["qualityNote", "quality_note"]) || "",
     } : {});
   }, [experienceSelection, data.experienceBlocks, data.packages]);
 
@@ -5025,6 +5046,8 @@ function AdminDashboardView({
         priceNote: String(experienceDraft.price_note || "").trim(),
         capacityNote: String(experienceDraft.capacity_note || "").trim(),
         availabilityNote: String(experienceDraft.availability_note || "").trim(),
+        qualityScore: String(experienceDraft.quality_score || "").trim(),
+        qualityNote: String(experienceDraft.quality_note || "").trim(),
         updatedAt: now,
       };
       const updatePayload = {
@@ -8818,6 +8841,8 @@ function AdminExperienceDrawer({
 }) {
   if (!experience && !isCreating) return null;
 
+  const experienceIssues = getExperienceIssues(draft);
+
   return (
     <div className="admin-drawer-layer" role="presentation">
       <button className="admin-drawer-backdrop" onClick={onClose} type="button" />
@@ -8832,6 +8857,25 @@ function AdminExperienceDrawer({
             Schließen
           </button>
         </header>
+
+        <section className="admin-drawer-section">
+          <p className="admin-eyebrow">Erlebnisprüfung</p>
+          <div className="admin-readiness-panel">
+            <div>
+              <strong>{experienceIssues.length === 0 ? "Bereit für Auszeiten" : "Noch nicht auszeitbereit"}</strong>
+              <span>
+                {experienceIssues.length === 0
+                  ? "Anbieter, Preislogik, Kapazität, Verfügbarkeit und Gastnotiz sind gepflegt."
+                  : `${experienceIssues.length} Punkt${experienceIssues.length === 1 ? "" : "e"} fehlen vor einer sauberen Nutzung.`}
+              </span>
+            </div>
+            <div className="admin-readiness-list">
+              {experienceIssues.length === 0
+                ? <span>Alle Pflichtpunkte gepflegt</span>
+                : experienceIssues.map((issue) => <span key={issue}>{issue}</span>)}
+            </div>
+          </div>
+        </section>
 
         <section className="admin-drawer-section">
           <p className="admin-eyebrow">Zuordnung</p>
@@ -8944,6 +8988,28 @@ function AdminExperienceDrawer({
               <input
                 onChange={(event) => onChange("availability_note", event.target.value)}
                 value={String(draft.availability_note || "")}
+              />
+            </label>
+            <label>
+              Qualitätsbewertung
+              <select
+                onChange={(event) => onChange("quality_score", event.target.value)}
+                value={String(draft.quality_score || "")}
+              >
+                <option value="">Noch nicht bewertet</option>
+                <option value="1">1 · kritisch</option>
+                <option value="2">2 · schwach</option>
+                <option value="3">3 · solide</option>
+                <option value="4">4 · gut</option>
+                <option value="5">5 · sehr passend</option>
+              </select>
+            </label>
+            <label>
+              Interne Qualitätsnotiz
+              <textarea
+                onChange={(event) => onChange("quality_note", event.target.value)}
+                rows={4}
+                value={String(draft.quality_note || "")}
               />
             </label>
           </div>
