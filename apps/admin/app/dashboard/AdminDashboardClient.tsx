@@ -534,6 +534,7 @@ const taskStatuses = ["open", "in_progress", "done"] as const;
 const experienceRoles = ["included", "optional", "recommendation", "planned"] as const;
 const experienceConfirmationStatuses = ["planned", "requested", "confirmed", "cancelled"] as const;
 const localPlaceStatuses = ["candidate", "approved", "paused", "rejected"] as const;
+const localPlaceCurationKinds = ["local_event", "local_tip", "bookable_experience"] as const;
 const localPlaceCategories = [
   "food",
   "beach",
@@ -871,6 +872,7 @@ function getLocalPlaceIssues(draft: LocalPlaceDraft) {
   const issues: string[] = [];
   const category = String(draft.category || "food");
   const status = String(draft.status || "candidate");
+  const curationKind = String(draft.curation_kind || (category === "event" ? "local_event" : "local_tip"));
   const hasCoordinates = Boolean(String(draft.lat || "").trim() && String(draft.lng || "").trim());
   const hasActionLink = Boolean(
     String(draft.website || "").trim() ||
@@ -893,8 +895,12 @@ function getLocalPlaceIssues(draft: LocalPlaceDraft) {
   }
 
   if (category === "event") {
+    if (curationKind === "bookable_experience") issues.push("Als Erlebnisbaustein/Anbieter führen, nicht als Veranstaltung");
     if (!String(draft.event_date || "").trim()) issues.push("Veranstaltungsdatum fehlt");
     if (!String(draft.event_time || "").trim()) issues.push("Veranstaltungszeit fehlt");
+    if (!String(draft.event_audience || "").trim()) issues.push("Event-Zielgruppe fehlt");
+    if (!String(draft.event_setting || "").trim()) issues.push("Indoor/Outdoor-Einschätzung fehlt");
+    if (!String(draft.event_fit_note || "").trim()) issues.push("Morrow-Fit für Gäste fehlt");
     if (!hasActionLink) issues.push("Programm- oder Website-Link fehlt");
   }
 
@@ -1072,6 +1078,16 @@ function localPlaceStatusLabel(status: string) {
   };
 
   return labels[status] || status;
+}
+
+function localPlaceCurationKindLabel(kind: string) {
+  const labels: Record<string, string> = {
+    local_event: "Öffentliche Veranstaltung",
+    local_tip: "Lokaler Tipp",
+    bookable_experience: "Buchbares Erlebnis",
+  };
+
+  return labels[kind] || kind;
 }
 
 function getLocalPlaceSummary(place: LocalPlaceRow) {
@@ -2603,8 +2619,12 @@ function AdminDashboardView({
         rating: "",
         opening_hours: "",
         package_fit: "",
+        curation_kind: "local_tip",
         event_date: "",
         event_time: "",
+        event_audience: "",
+        event_setting: "",
+        event_fit_note: "",
         description: "",
         cuisine: "",
         best_for: "",
@@ -2630,8 +2650,13 @@ function AdminDashboardView({
       package_fit: Array.isArray(item.package_fit) && item.package_fit.length
         ? item.package_fit.join("\n")
         : getPayloadLines(item.payload, ["packageFit"]),
+      curation_kind: getPayloadText(item.payload, ["curationKind", "curation_kind"]) ||
+        (item.category === "event" ? "local_event" : "local_tip"),
       event_date: getPayloadText(item.payload, ["eventDate", "startsOn", "date"]) || "",
       event_time: getPayloadText(item.payload, ["eventTime", "time"]) || "",
+      event_audience: getPayloadText(item.payload, ["eventAudience", "audience"]) || "",
+      event_setting: getPayloadText(item.payload, ["eventSetting", "setting"]) || "",
+      event_fit_note: getPayloadText(item.payload, ["eventFitNote", "fitNote", "morrowFit"]) || "",
       description: getPayloadText(item.payload, ["description", "guestDescription", "morrowNote", "routeNote"]) || "",
       cuisine: getPayloadText(item.payload, ["cuisine"]) || "",
       best_for: getPayloadLines(item.payload, ["bestFor", "audiences"]),
@@ -5527,13 +5552,20 @@ function AdminDashboardView({
       const name = String(localPlaceDraft.name || "").trim() || "Neuer Ort";
       const category = String(localPlaceDraft.category || "food").trim();
       const status = String(localPlaceDraft.status || "candidate").trim();
+      const curationKind = String(
+        localPlaceDraft.curation_kind || (category === "event" ? "local_event" : "local_tip"),
+      ).trim();
       const payload = {
         description: String(localPlaceDraft.description || "").trim(),
         cuisine: String(localPlaceDraft.cuisine || "").trim(),
         openingHours: String(localPlaceDraft.opening_hours || "").trim(),
         packageFit: splitLines(String(localPlaceDraft.package_fit || "")),
+        curationKind,
         eventDate: String(localPlaceDraft.event_date || "").trim(),
         eventTime: String(localPlaceDraft.event_time || "").trim(),
+        eventAudience: String(localPlaceDraft.event_audience || "").trim(),
+        eventSetting: String(localPlaceDraft.event_setting || "").trim(),
+        eventFitNote: String(localPlaceDraft.event_fit_note || "").trim(),
         bestFor: splitLines(String(localPlaceDraft.best_for || "")),
         images: splitLines(String(localPlaceDraft.images || "")),
         updatedAt: now,
@@ -9648,6 +9680,19 @@ function AdminLocalPlaceDrawer({
               </select>
             </label>
             <label>
+              Kuratierungsart
+              <select
+                onChange={(event) => onChange("curation_kind", event.target.value)}
+                value={String(draft.curation_kind || (String(draft.category || "") === "event" ? "local_event" : "local_tip"))}
+              >
+                {localPlaceCurationKinds.map((kind) => (
+                  <option key={kind} value={kind}>
+                    {localPlaceCurationKindLabel(kind)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
               Bewertung
               <input
                 inputMode="decimal"
@@ -9742,6 +9787,43 @@ function AdminLocalPlaceDrawer({
                 value={String(draft.event_time || "")}
               />
             </label>
+            {String(draft.category || "") === "event" ? (
+              <>
+                <label>
+                  Zielgruppe
+                  <select
+                    onChange={(event) => onChange("event_audience", event.target.value)}
+                    value={String(draft.event_audience || "")}
+                  >
+                    <option value="">Offen</option>
+                    <option value="families">Familien</option>
+                    <option value="couples">Paare</option>
+                    <option value="both">Familien und Paare</option>
+                  </select>
+                </label>
+                <label>
+                  Indoor / Outdoor
+                  <select
+                    onChange={(event) => onChange("event_setting", event.target.value)}
+                    value={String(draft.event_setting || "")}
+                  >
+                    <option value="">Offen</option>
+                    <option value="indoor">Indoor</option>
+                    <option value="outdoor">Outdoor</option>
+                    <option value="both">Beides möglich</option>
+                  </select>
+                </label>
+                <label>
+                  Morrow-Fit
+                  <textarea
+                    onChange={(event) => onChange("event_fit_note", event.target.value)}
+                    placeholder="Warum passt dieses Event wirklich zur Auszeit?"
+                    rows={3}
+                    value={String(draft.event_fit_note || "")}
+                  />
+                </label>
+              </>
+            ) : null}
           </div>
         </section>
 
