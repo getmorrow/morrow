@@ -58,6 +58,9 @@ export const experienceBlockSelectColumns =
 export const supportMessageSelectColumns =
   "id,lead_id,booking_id,owner_profile_id,property_id,category,message,status,urgency,source,subject,contact_name,contact_email,contact_phone,property_name,package_name,requested_starts_on,requested_ends_on,requested_date_range_label,payload,created_at,updated_at" as const;
 
+export const experienceProviderSelectColumns =
+  "id,name,location,category,status,website,email,phone,contact_name,audience_fit,collaboration_note,pricing_note,availability_note,notes,payload" as const;
+
 export type ExperienceBlockRowBase = {
   id: string;
   package_id: string | null;
@@ -99,6 +102,24 @@ export type SupportMessageRowBase = {
   payload: JsonRecord;
   created_at: string;
   updated_at?: string | null;
+};
+
+export type ExperienceProviderRowBase = {
+  id: string;
+  name: string;
+  location: string | null;
+  category: string | null;
+  status: string;
+  website: string | null;
+  email: string | null;
+  phone: string | null;
+  contact_name?: string | null;
+  audience_fit?: string | null;
+  collaboration_note?: string | null;
+  pricing_note?: string | null;
+  availability_note?: string | null;
+  notes?: string | null;
+  payload: JsonRecord;
 };
 
 export type AdminAuditLogRow = {

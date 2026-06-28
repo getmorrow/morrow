@@ -7,6 +7,8 @@ import {
   createSupabaseBrowserClient,
   type ExperienceBlockRowBase,
   experienceBlockSelectColumns,
+  type ExperienceProviderRowBase,
+  experienceProviderSelectColumns,
   insertAdminAuditLog,
   localPlaceAdminSelectColumns,
   type JsonRecord,
@@ -143,17 +145,7 @@ type AdminTaskRow = {
 
 type SupportRow = SupportMessageRowBase;
 
-type ExperienceProviderRow = {
-  id: string;
-  name: string;
-  location: string | null;
-  category: string | null;
-  status: string;
-  website: string | null;
-  email: string | null;
-  phone: string | null;
-  payload: Record<string, unknown>;
-};
+type ExperienceProviderRow = ExperienceProviderRowBase;
 
 type ExperienceBlockRow = ExperienceBlockRowBase;
 
@@ -2032,7 +2024,7 @@ export function AdminDashboardClient() {
               .limit(20),
             supabase
               .from("experience_providers")
-              .select("id,name,location,category,status,website,email,phone,payload")
+              .select(experienceProviderSelectColumns)
               .order("name"),
             supabase
               .from("experience_blocks")
@@ -3412,18 +3404,18 @@ function AdminDashboardView({
     setProviderDraft({
       id: provider.id,
       name: provider.name || "",
-      contact_name: getPayloadText(provider.payload ?? {}, ["contactName", "contact_name"]) || "",
+      contact_name: provider.contact_name || getPayloadText(provider.payload ?? {}, ["contactName", "contact_name"]) || "",
       email: provider.email || "",
       phone: provider.phone || "",
       location: provider.location || "Sankt Peter-Ording",
       category: provider.category || "",
       status: provider.status || "lead",
       website: provider.website || "",
-      audience_fit: getPayloadText(provider.payload ?? {}, ["audienceFit", "audience_fit"]) || "both",
-      collaboration_note: getPayloadText(provider.payload ?? {}, ["collaborationNote", "collaboration_note"]) || "",
-      pricing_note: getPayloadText(provider.payload ?? {}, ["pricingNote", "pricing_note"]) || "",
-      availability_note: getPayloadText(provider.payload ?? {}, ["availabilityNote", "availability_note"]) || "",
-      notes: getPayloadText(provider.payload ?? {}, ["notes", "note", "internalNote"]) || "",
+      audience_fit: provider.audience_fit || getPayloadText(provider.payload ?? {}, ["audienceFit", "audience_fit"]) || "both",
+      collaboration_note: provider.collaboration_note || getPayloadText(provider.payload ?? {}, ["collaborationNote", "collaboration_note"]) || "",
+      pricing_note: provider.pricing_note || getPayloadText(provider.payload ?? {}, ["pricingNote", "pricing_note"]) || "",
+      availability_note: provider.availability_note || getPayloadText(provider.payload ?? {}, ["availabilityNote", "availability_note"]) || "",
+      notes: provider.notes || getPayloadText(provider.payload ?? {}, ["notes", "note", "internalNote"]) || "",
     });
     setProviderMessage("Erlebnisanbieter zum Bearbeiten geladen.");
   }
@@ -3460,6 +3452,12 @@ function AdminDashboardView({
         website: providerDraft.website.trim() || null,
         email: providerDraft.email.trim() || null,
         phone: providerDraft.phone.trim() || null,
+        contact_name: providerDraft.contact_name.trim() || null,
+        audience_fit: providerDraft.audience_fit || null,
+        collaboration_note: providerDraft.collaboration_note.trim() || null,
+        pricing_note: providerDraft.pricing_note.trim() || null,
+        availability_note: providerDraft.availability_note.trim() || null,
+        notes: providerDraft.notes.trim() || null,
         payload,
         updated_at: new Date().toISOString(),
       };
@@ -3467,7 +3465,7 @@ function AdminDashboardView({
       const { data: saved, error } = await supabase
         .from("experience_providers")
         .upsert(upsertPayload)
-        .select("id,name,location,category,status,website,email,phone,payload")
+        .select(experienceProviderSelectColumns)
         .single();
 
       if (error) throw error;
@@ -3533,7 +3531,7 @@ function AdminDashboardView({
           updated_at: new Date().toISOString(),
         })
         .eq("id", provider.id)
-        .select("id,name,location,category,status,website,email,phone,payload")
+        .select(experienceProviderSelectColumns)
         .single();
 
       if (error) throw error;
@@ -7408,9 +7406,9 @@ function AdminDashboardView({
             {data.experienceProviders.length ? (
               data.experienceProviders.map((provider) => {
                 const linkedExperiences = data.experienceBlocks.filter((experience) => experience.provider_id === provider.id);
-                const contactName = getPayloadText(provider.payload ?? {}, ["contactName", "contact_name"]);
-                const audienceFit = getPayloadText(provider.payload ?? {}, ["audienceFit", "audience_fit"]) || "Zielgruppe offen";
-                const availabilityNote = getPayloadText(provider.payload ?? {}, ["availabilityNote", "availability_note"]);
+                const contactName = provider.contact_name || getPayloadText(provider.payload ?? {}, ["contactName", "contact_name"]);
+                const audienceFit = provider.audience_fit || getPayloadText(provider.payload ?? {}, ["audienceFit", "audience_fit"]) || "Zielgruppe offen";
+                const availabilityNote = provider.availability_note || getPayloadText(provider.payload ?? {}, ["availabilityNote", "availability_note"]);
 
                 return (
                   <article className="admin-list-item" key={provider.id}>
