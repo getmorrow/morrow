@@ -150,9 +150,9 @@ Risiko:
 
 ### In `apps/admin` vorhanden, aber noch nicht paritaetisch bewiesen
 
-- CRM-Filter und Arbeitsansichten aus dem alten Admin.
-- Kundenbereich mit Anfrage- und Buchungshistorie, echter `customers`-Quelle und zentraler Kundennotiz.
-- Aufgabenbearbeitung, Loeschung und Statusflow.
+- CRM-Filter und Arbeitsansichten aus dem alten Admin sind umgesetzt, muessen aber mit echten Tagesablaeufen abgenommen werden.
+- Kundenbereich mit Anfrage- und Buchungshistorie, echter `customers`-Quelle und zentraler Kundennotiz ist vorhanden; Dublettenlogik und spaetere Customer-Erzeugung bleiben offen.
+- Aufgabenbearbeitung, Loeschung und Statusflow sind vorhanden; Archivierungsstrategie und dedizierte Anbieterbearbeitung bleiben offen.
 - Spam-Policy und Marketing-Consent pruefen; Wiedervorlage, WhatsApp-Kontaktzustimmung und Lead-Reisegruppe sind normalisiert.
 - Pruefen, ob clientseitige Arbeitsbereiche fuer MVP reichen oder echte Admin-Routen noetig werden.
 - Voller Auszeiten-Builder inklusive Copy, FAQ, Medien, Momente, Empfehlungen und Launch-Check.
@@ -179,9 +179,9 @@ Risiko:
 ### Dashboard/Stubs oder noch zu schwache Funktionen
 
 - `apps/admin/README.md` war bis zu diesem Audit noch als Platzhalter formuliert.
-- `apps/admin` ist aktuell eher eine lange operative Seite als ein ausgereifter CRM-Arbeitsbereich.
+- `apps/admin` nutzt clientseitige Arbeitsbereiche; fuer MVP kann das reichen, echte interne Routen bleiben spaetere Architekturentscheidung.
 - `packages/domain` ist fuer Website-Inhalte stark, aber nicht fuer operative Admin-Domaenen.
-- `packages/supabase` typisiert Owner stark, aber nicht Admin/Guest komplett.
+- `packages/supabase` typisiert Admin-/Guest-/Owner-Rowformen inzwischen breit; Repository-/Mutation-Helper sind noch nicht konsequent extrahiert.
 - Lokale Ports und Fuehrungsrollen waren bisher ueber mehrere Dokumente verteilt.
 
 ## Dev- Und Betriebsbasis
@@ -241,8 +241,8 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 ### Shared Types Und Payload-Grenzen
 
 - `packages/supabase` ist der technische Typanker fuer Supabase-nahe Row-Formen, Browserclient und app-uebergreifende Datenformen.
-- `LocalPlaceRowBase`, `LocalPlaceCategory`, `LocalPlaceStatus` und `JsonRecord` werden als erste gemeinsame Typen von `apps/admin` und `apps/guest` genutzt.
-- `localPlaceBaseSelectColumns` und `localPlaceAdminSelectColumns` sind die erste gemeinsame Repository-Grenze fuer Vor-Ort-Daten: Guest liest nur Gastspalten, Admin liest zusaetzlich `created_at`.
+- Gemeinsame Row-Basen und Select-Konstanten existieren fuer Leads, Buchungen, Kunden, Auszeiten, Unterkuenfte, Termine, Aufgaben, Vor-Ort-Orte, Kommunikation, Support, Feedback, Audit, Erlebnisbausteine, Anbieter, Agenturen sowie Owner-Daten.
+- `localPlaceBaseSelectColumns` und `localPlaceAdminSelectColumns` bleiben die differenzierte Grenze fuer Vor-Ort-Daten: Guest liest Gastspalten, Admin liest zusaetzlich `created_at`.
 - `AdminAuditLogRow`, `AdminAuditLogInput`, `adminAuditLogSelectColumns` und `insertAdminAuditLog` sind die erste gemeinsame Schreib-Grenze fuer Admin-Aktivitaet. Die Admin-Komponente behaelt `writeAuditLog` als UI-State-Wrapper und QA-Anker.
 - `docs/PAYLOAD_NORMALIZATION_INVENTORY.md` ist die fuehrende Liste fuer Payload-Felder, V1-Normalisierungskandidaten und bewusst flexible Payload-Bereiche.
 - `packages/domain` bleibt der Ort fuer oeffentliche Website-/Marken-/Content-Domaenen wie Auszeiten, Ratgeber und Routen.
@@ -266,12 +266,12 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 ## Konsolidierungs-Backlog Vor Neuem Featurebau
 
 1. `apps/admin` gegen alten Vite-Admin bereichsweise abnehmen.
-2. Admin-README und Plattformdoku auf realen Stand bringen.
+2. Admin-README und Plattformdoku weiter auf realen Stand bringen.
 3. Clientseitige Admin-Arbeitsbereiche gegen reale Nutzung testen und spaeter entscheiden, ob echte Admin-Routen noetig werden.
-4. Kundenbereich in `apps/admin` paritaetisch weiterfuehren: zentrale Kundennotiz und Entscheidung echte `customers`-Quelle vs. Ableitung.
-5. Aufgabenbereich paritaetisch weiterfuehren: Archivierungsstrategie statt hartem Loeschen und dedizierte Anbieterbearbeitung entscheiden.
+4. Kundenbereich in `apps/admin` real testen: Dublettenlogik und spaetere Customer-Erzeugung klaeren.
+5. Aufgabenbereich real testen: Archivierungsstrategie statt hartem Loeschen und dedizierte Anbieterbearbeitung entscheiden.
 6. Lead-Spam-/Loeschpolicy und Marketing-Consent pruefen/entscheiden; `leads.follow_up_at`, WhatsApp-Kontaktzustimmung und Lead-Reisegruppe sind bereits normalisiert.
-7. Domain-/Supabase-Typen aus App-Komponenten in `packages/domain` und `packages/supabase` ziehen.
+7. Repository-/Mutation-Helper aus App-Komponenten in klare Supabase-/Domain-Services ziehen.
 8. Entscheiden, welche Vite-Funktionen explizit ersetzt sind und welche als Referenz offen bleiben.
 9. QA-Gates fuer Admin-Paritaet definieren: mindestens Login, Leads, Reservierung, Buchung, Aufgabe, Supportantwort, Paket, Unterkunft, Erlebnis, Ort, Owner-Dokument, Abrechnung, Operation.
 10. Erst danach neue Produktfeatures wieder aufnehmen.

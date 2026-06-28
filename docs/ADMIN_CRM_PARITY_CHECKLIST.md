@@ -53,16 +53,18 @@ Bis dahin gilt:
 
 ### Sprint A: CRM-Kern
 
-1. Kundenbereich in `apps/admin` herstellen.
-2. Aufgabenbereich in `apps/admin` paritaetisch machen.
-3. Lead-Archiv, Wiedervorlagen, Reaktivierung und Testloeschung pruefen/umsetzen.
-4. Admin-Shell/Navigation entscheiden, damit Bereiche nicht als lange Seite verschwimmen.
+Status: funktional weitgehend umgesetzt, aber vor Freigabe als alleiniger Admin noch gegen echte Workflows abnehmen.
+
+1. Kundenbereich in `apps/admin` abnehmen.
+2. Aufgabenbereich in `apps/admin` abnehmen.
+3. Lead-Archiv, Wiedervorlagen, Reaktivierung und Testloeschung in realem QA-Flow pruefen.
+4. Clientseitige Admin-Shell/Navigation mit realer Nutzung testen; spaeter entscheiden, ob echte interne Routen noetig werden.
 
 Warum zuerst:
 
 - Kunden, Aufgaben und Leads sind der taegliche CRM-Kern.
-- Ohne diese Bereiche ist `apps/admin` noch kein gleichwertiger Ersatz fuer den Vite-Admin.
-- Diese Arbeit reduziert operative Unsicherheit staerker als weitere Guest-/Owner-Features.
+- Diese Bereiche sind in Next vorhanden, muessen aber vor Go-Live als Tagesarbeitsfluss getestet werden.
+- Diese Abnahme reduziert operative Unsicherheit staerker als weitere Guest-/Owner-Features.
 
 ### Sprint B: Operative Tiefe
 
@@ -73,8 +75,8 @@ Warum zuerst:
 
 ### Sprint C: Technische Konsolidierung
 
-1. Gemeinsame Admin-/Guest-/Owner-Typen nach `packages/domain` oder `packages/supabase` ziehen. Stand: begonnen mit `JsonRecord` und `LocalPlaceRowBase` fuer Admin/Guest-Vor-Ort-Daten.
-2. Supabase-Mutationen aus Komponenten in klare Helper/Repository-Funktionen ziehen. Stand: begonnen mit gemeinsamen `localPlaceBaseSelectColumns`/`localPlaceAdminSelectColumns` und `insertAdminAuditLog`; damit nutzen Admin und Guest dieselbe Vor-Ort-Spaltengrenze und Admin-Audit hat eine zentrale Schreib-Grenze.
+1. Gemeinsame Admin-/Guest-/Owner-Typen nach `packages/domain` oder `packages/supabase` ziehen. Stand: breit begonnen mit geteilten Row-Basen und Selects fuer Leads, Buchungen, Kunden, Auszeiten, Unterkuenfte, Termine, Aufgaben, Vor-Ort-Orte, Kommunikation, Support, Feedback, Audit, Erlebnisbausteine, Anbieter, Agenturen sowie Owner-Daten.
+2. Supabase-Mutationen aus Komponenten in klare Helper/Repository-Funktionen ziehen. Stand: begonnen mit gemeinsamen Select-Grenzen und `insertAdminAuditLog`; der naechste technische Schritt waeren Repository-/Service-Helper fuer Admin-Mutationen, nicht neue Produktfunktionen.
 3. Payload-Felder inventarisieren: was bleibt Payload, was wird normalisiert. Stand: dokumentiert in `docs/PAYLOAD_NORMALIZATION_INVENTORY.md`; `leads.follow_up_at`, WhatsApp-Kontaktzustimmung, Lead-Reisegruppe, operative Booking-Kernfelder, Property-Kernfelder und Local-Place-Kuratierungsfelder sind normalisiert, weitere V1-Kandidaten sind Live-Oeffnungszeiten/Ratings und Medienqualitaet.
 4. QA-Skripte fuer Admin-Paritaet ergaenzen.
 
@@ -85,7 +87,7 @@ Warum zuerst:
 Problem:
 
 - Vite hat einen echten Kundenbereich mit Kundenstatus, naechstem Schritt, Anfragehistorie und Buchungshistorie.
-- `apps/admin` laedt aktuell keine eigene `customers`-Liste und hat keinen gleichwertigen Kundenarbeitsbereich.
+- `apps/admin` hat inzwischen einen Kundenarbeitsbereich mit echter `customers`-Quelle; die verbleibende Arbeit ist Workflow-Abnahme, Dublettenlogik und spaetere Normalisierung der Customer-Erzeugung.
 
 Umsetzung:
 
@@ -111,7 +113,7 @@ Abnahme:
 Problem:
 
 - Vite kann Aufgaben erstellen, filtern, statusaendern, referenzieren, springen und loeschen.
-- `apps/admin` zeigt Aufgaben im Tagesbereich und kann Status aendern, aber kein vollwertiger Aufgabenbereich.
+- `apps/admin` hat inzwischen einen eigenen Aufgabenbereich; offen bleiben Workflow-Abnahme, Archivierungsstrategie und bessere Bearbeitung mancher Partner-/Anbieterbezuege.
 
 Umsetzung:
 
