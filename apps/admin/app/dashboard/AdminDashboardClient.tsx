@@ -232,13 +232,16 @@ type CommunicationEventRow = {
   id: string;
   lead_id: string | null;
   booking_id: string | null;
+  customer_id?: string | null;
   channel: string;
   direction: string;
   event_type: string;
   subject: string | null;
   body: string | null;
+  recipient?: string | null;
   actor: string | null;
   status: string;
+  payload?: Record<string, unknown>;
   created_at: string;
 };
 
@@ -268,6 +271,7 @@ type DashboardData = {
   customers: CustomerRecordRow[];
   leads: LeadRow[];
   bookings: BookingRow[];
+  communicationEvents: CommunicationEventRow[];
   packages: SimpleRow[];
   properties: SimpleRow[];
   tasks: AdminTaskRow[];
@@ -298,6 +302,7 @@ type DetailSelection =
   | null;
 
 type CustomerPhaseFilter = "all" | "request" | "booking" | "due";
+type CommunicationChannelFilter = "all" | "email" | "note" | "inbound" | "outbound" | "internal";
 type LeadScopeFilter = "active" | "archived";
 type LeadTypeFilter = "all" | LeadRow["type"];
 type LeadStatusFilter = "all" | string;
@@ -1054,6 +1059,46 @@ function auditPayloadSummary(log: AuditLogRow) {
   return log.entity_label || `${log.entity_type} · ${log.entity_id}`;
 }
 
+function communicationChannelLabel(channel: string) {
+  if (channel === "email") return "E-Mail";
+  if (channel === "note") return "Notiz";
+  if (channel === "whatsapp") return "WhatsApp";
+  if (channel === "support") return "Support";
+  return channel || "Kommunikation";
+}
+
+function communicationDirectionLabel(direction: string) {
+  if (direction === "outbound") return "ausgehend";
+  if (direction === "inbound") return "eingehend";
+  if (direction === "internal") return "intern";
+  return direction || "offen";
+}
+
+function communicationContextLabel(event: CommunicationEventRow, data: DashboardData) {
+  if (event.lead_id) {
+    const lead = data.leads.find((item) => item.id === event.lead_id);
+    if (lead) return `Anfrage · ${getLeadLabel(lead)}`;
+  }
+
+  if (event.booking_id) {
+    const booking = data.bookings.find((item) => item.id === event.booking_id);
+    if (booking) return `Buchung · ${getBookingLabel(booking)}`;
+  }
+
+  if (event.customer_id) {
+    const customer = data.customers.find((item) => item.id === event.customer_id);
+    if (customer) return `Kunde · ${customer.name}`;
+  }
+
+  const supportId = event.payload ? getPayloadText(event.payload, ["supportId", "support_id"]) : "";
+  if (supportId) {
+    const support = data.supportMessages.find((item) => item.id === supportId);
+    return support ? `Support · ${getSupportContactLabel(support)}` : "Support";
+  }
+
+  return "Ohne direkten Bezug";
+}
+
 function supportUrgencyLabel(urgency: string | null) {
   const labels: Record<string, string> = {
     low: "Normal",
@@ -1796,6 +1841,7 @@ export function AdminDashboardClient() {
           customersResult,
           leadsResult,
           bookingsResult,
+          communicationEventsResult,
           packagesResult,
           propertiesResult,
           tasksResult,
@@ -1829,6 +1875,11 @@ export function AdminDashboardClient() {
               .select("id,lead_id,customer_id,package_id,status,payment_status,guest_access_code,created_at,payload")
               .order("created_at", { ascending: false })
               .limit(30),
+            supabase
+              .from("communication_events")
+              .select("id,lead_id,booking_id,customer_id,channel,direction,event_type,subject,body,recipient,actor,status,payload,created_at")
+              .order("created_at", { ascending: false })
+              .limit(120),
             supabase
               .from("packages")
               .select("id,name,slug,audience,location,status,property_id,price_from,concrete_price,payload")
@@ -1910,6 +1961,7 @@ export function AdminDashboardClient() {
           customersResult.error ||
           leadsResult.error ||
           bookingsResult.error ||
+          communicationEventsResult.error ||
           packagesResult.error ||
           propertiesResult.error ||
           tasksResult.error ||
@@ -1934,6 +1986,7 @@ export function AdminDashboardClient() {
             customers: (customersResult.data ?? []) as CustomerRecordRow[],
             leads: (leadsResult.data ?? []) as LeadRow[],
             bookings: (bookingsResult.data ?? []) as BookingRow[],
+            communicationEvents: (communicationEventsResult.data ?? []) as CommunicationEventRow[],
             packages: (packagesResult.data ?? []) as SimpleRow[],
             properties: (propertiesResult.data ?? []) as SimpleRow[],
             tasks: (tasksResult.data ?? []) as AdminTaskRow[],
@@ -2016,6 +2069,8 @@ function AdminDashboardView({
   const [selection, setSelection] = useState<DetailSelection>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [customerPhaseFilter, setCustomerPhaseFilter] = useState<CustomerPhaseFilter>("all");
+  const [communicationChannelFilter, setCommunicationChannelFilter] = useState<CommunicationChannelFilter>("all");
+  const [communicationSearch, setCommunicationSearch] = useState("");
   const [leadScopeFilter, setLeadScopeFilter] = useState<LeadScopeFilter>("active");
   const [leadTypeFilter, setLeadTypeFilter] = useState<LeadTypeFilter>("all");
   const [leadStatusFilter, setLeadStatusFilter] = useState<LeadStatusFilter>("all");
@@ -2211,6 +2266,34 @@ function AdminDashboardView({
   const monitoring = monitoringItems(data);
   const averageRating = averageFeedbackRating(data.guestFeedback);
   const lowFeedback = data.guestFeedback.filter((feedback) => typeof feedback.rating === "number" && feedback.rating <= 3);
+  const filteredCommunicationEvents = useMemo(() => {
+    const search = communicationSearch.trim().toLowerCase();
+
+    return data.communicationEvents.filter((event) => {
+      if (communicationChannelFilter === "email" && event.channel !== "email") return false;
+      if (communicationChannelFilter === "note" && event.channel !== "note") return false;
+      if (
+        ["inbound", "outbound", "internal"].includes(communicationChannelFilter) &&
+        event.direction !== communicationChannelFilter
+      ) return false;
+
+      if (!search) return true;
+
+      const context = communicationContextLabel(event, data);
+      const searchable = [
+        context,
+        communicationChannelLabel(event.channel),
+        communicationDirectionLabel(event.direction),
+        event.subject,
+        event.body,
+        event.recipient,
+        event.actor,
+        event.status,
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      return searchable.includes(search);
+    });
+  }, [communicationChannelFilter, communicationSearch, data]);
   const displayName = data.profile.name || data.profile.email;
   const selectedLead = selection?.type === "lead"
     ? data.leads.find((lead) => lead.id === selection.id) ?? null
@@ -2557,7 +2640,7 @@ function AdminDashboardView({
         const supabase = createSupabaseBrowserClient();
         const query = supabase
           .from("communication_events")
-          .select("id,lead_id,booking_id,channel,direction,event_type,subject,body,actor,status,created_at")
+          .select("id,lead_id,booking_id,customer_id,channel,direction,event_type,subject,body,recipient,actor,status,payload,created_at")
           .order("created_at", { ascending: false })
           .limit(40);
         const selectedSupportCase = activeSelection.type === "support"
@@ -2644,7 +2727,7 @@ function AdminDashboardView({
           leadIds.length
             ? supabase
                 .from("communication_events")
-                .select("id,lead_id,booking_id,channel,direction,event_type,subject,body,actor,status,created_at")
+                .select("id,lead_id,booking_id,customer_id,channel,direction,event_type,subject,body,recipient,actor,status,payload,created_at")
                 .in("lead_id", leadIds)
                 .order("created_at", { ascending: false })
                 .limit(40)
@@ -2652,7 +2735,7 @@ function AdminDashboardView({
           bookingIds.length
             ? supabase
                 .from("communication_events")
-                .select("id,lead_id,booking_id,channel,direction,event_type,subject,body,actor,status,created_at")
+                .select("id,lead_id,booking_id,customer_id,channel,direction,event_type,subject,body,recipient,actor,status,payload,created_at")
                 .in("booking_id", bookingIds)
                 .order("created_at", { ascending: false })
                 .limit(40)
@@ -4497,13 +4580,17 @@ function AdminDashboardView({
             entityId: selection.id,
           },
         })
-        .select("id,lead_id,booking_id,channel,direction,event_type,subject,body,actor,status,created_at")
+        .select("id,lead_id,booking_id,customer_id,channel,direction,event_type,subject,body,recipient,actor,status,payload,created_at")
         .single();
 
       if (eventResult.error) throw eventResult.error;
 
       setDataState((current) => ({
         ...current,
+        communicationEvents: [
+          eventResult.data as CommunicationEventRow,
+          ...current.communicationEvents,
+        ].slice(0, 120),
         leads: isLead
           ? current.leads.map((lead) => (lead.id === selection.id ? { ...lead, payload } : lead))
           : current.leads,
@@ -4604,6 +4691,10 @@ function AdminDashboardView({
       const event = (result as { event?: CommunicationEventRow | null } | null)?.event;
       if (event) {
         setCommunicationEvents((current) => [event, ...current]);
+        setDataState((current) => ({
+          ...current,
+          communicationEvents: [event, ...current.communicationEvents].slice(0, 120),
+        }));
       }
 
       await writeAuditLog({
@@ -5820,6 +5911,77 @@ function AdminDashboardView({
             ) : (
               <p className="admin-drawer-message">Noch keine Änderungen protokolliert.</p>
             )}
+          </div>
+        </article>
+        ) : null}
+
+        {activeWorkspace === "activity" ? (
+        <article className="admin-card admin-card-wide" id="kommunikation">
+          <p className="admin-eyebrow">Kommunikation</p>
+          <h2>Zentrale Historie</h2>
+          <p>
+            Alle geladenen Kommunikationsereignisse aus Anfragen, Buchungen,
+            Kunden und Support. Detailarbeit bleibt im jeweiligen Drawer.
+          </p>
+          <div className="admin-communication-controls">
+            <label>
+              Suche
+              <input
+                onChange={(event) => setCommunicationSearch(event.target.value)}
+                placeholder="Name, Betreff, Inhalt, Empfänger"
+                value={communicationSearch}
+              />
+            </label>
+            <div className="admin-card-toolbar" aria-label="Kommunikationsfilter">
+              {([
+                ["all", "Alle"],
+                ["email", "E-Mail"],
+                ["note", "Notizen"],
+                ["inbound", "Eingehend"],
+                ["outbound", "Ausgehend"],
+                ["internal", "Intern"],
+              ] as [CommunicationChannelFilter, string][]).map(([value, label]) => (
+                <button
+                  aria-pressed={communicationChannelFilter === value}
+                  className={communicationChannelFilter === value ? "is-active" : undefined}
+                  key={value}
+                  onClick={() => setCommunicationChannelFilter(value)}
+                  type="button"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="admin-list">
+            {filteredCommunicationEvents.slice(0, 24).map((event) => (
+              <article className="admin-list-item" key={event.id}>
+                <div>
+                  <small>
+                    {formatDate(event.created_at)} · {communicationChannelLabel(event.channel)} · {communicationDirectionLabel(event.direction)}
+                  </small>
+                  <strong>{event.subject || event.event_type}</strong>
+                  <em>{communicationContextLabel(event, data)}</em>
+                  {event.body ? <p>{event.body}</p> : null}
+                </div>
+                <div className="admin-row-actions">
+                  {event.recipient ? <a href={`mailto:${event.recipient}`}>{event.recipient}</a> : null}
+                  {event.lead_id ? (
+                    <button onClick={() => setSelection({ type: "lead", id: event.lead_id as string })} type="button">
+                      Anfrage öffnen
+                    </button>
+                  ) : null}
+                  {event.booking_id ? (
+                    <button onClick={() => setSelection({ type: "booking", id: event.booking_id as string })} type="button">
+                      Buchung öffnen
+                    </button>
+                  ) : null}
+                </div>
+              </article>
+            ))}
+            {filteredCommunicationEvents.length === 0 ? (
+              <p className="admin-drawer-message">Keine passende Kommunikation gefunden.</p>
+            ) : null}
           </div>
         </article>
         ) : null}
