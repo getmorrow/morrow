@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import {
   type AdminAuditLogRow,
   createSupabaseBrowserClient,
+  type ExperienceBlockRowBase,
+  experienceBlockSelectColumns,
   insertAdminAuditLog,
   localPlaceAdminSelectColumns,
   type JsonRecord,
@@ -160,17 +162,7 @@ type ExperienceProviderRow = {
   payload: Record<string, unknown>;
 };
 
-type ExperienceBlockRow = {
-  id: string;
-  package_id: string | null;
-  provider_id: string | null;
-  title: string;
-  role: string;
-  included_in_price: boolean;
-  confirmation_status: string;
-  payload: Record<string, unknown>;
-  created_at: string;
-};
+type ExperienceBlockRow = ExperienceBlockRowBase;
 
 type LocalPlaceRow = LocalPlaceRowBase & {
   created_at: string;
@@ -2038,7 +2030,7 @@ export function AdminDashboardClient() {
               .order("name"),
             supabase
               .from("experience_blocks")
-              .select("id,package_id,provider_id,title,role,included_in_price,confirmation_status,payload,created_at")
+              .select(experienceBlockSelectColumns)
               .order("created_at", { ascending: false }),
             supabase
               .from("local_places")
@@ -2699,12 +2691,12 @@ function AdminDashboardView({
       role: item.role || "planned",
       confirmation_status: item.confirmation_status || "planned",
       included_in_price: Boolean(item.included_in_price),
-      guest_note: getPayloadText(item.payload, ["guestNote", "guestNotes", "description"]) || "",
-      price_note: getPayloadText(item.payload, ["priceNote", "price", "cost"]) || "",
-      capacity_note: getPayloadText(item.payload, ["capacityNote", "capacity"]) || "",
-      availability_note: getPayloadText(item.payload, ["availabilityNote", "availability"]) || "",
-      quality_score: getPayloadText(item.payload, ["qualityScore", "quality_score"]) || "",
-      quality_note: getPayloadText(item.payload, ["qualityNote", "quality_note"]) || "",
+      guest_note: item.guest_note || getPayloadText(item.payload, ["guestNote", "guestNotes", "description"]) || "",
+      price_note: item.price_note || getPayloadText(item.payload, ["priceNote", "price", "cost"]) || "",
+      capacity_note: item.capacity_note || getPayloadText(item.payload, ["capacityNote", "capacity"]) || "",
+      availability_note: item.availability_note || getPayloadText(item.payload, ["availabilityNote", "availability"]) || "",
+      quality_score: item.quality_score ? String(item.quality_score) : getPayloadText(item.payload, ["qualityScore", "quality_score"]) || "",
+      quality_note: item.quality_note || getPayloadText(item.payload, ["qualityNote", "quality_note"]) || "",
     } : {});
   }, [experienceSelection, data.experienceBlocks, data.packages]);
 
@@ -5702,14 +5694,21 @@ function AdminDashboardView({
       const supabase = createSupabaseBrowserClient();
       const now = new Date().toISOString();
       const title = String(experienceDraft.title || "").trim() || "Neuer Erlebnisbaustein";
+      const guestNote = String(experienceDraft.guest_note || "").trim();
+      const priceNote = String(experienceDraft.price_note || "").trim();
+      const capacityNote = String(experienceDraft.capacity_note || "").trim();
+      const availabilityNote = String(experienceDraft.availability_note || "").trim();
+      const qualityScoreRaw = String(experienceDraft.quality_score || "").trim();
+      const qualityScore = qualityScoreRaw ? Number.parseInt(qualityScoreRaw, 10) : null;
+      const qualityNote = String(experienceDraft.quality_note || "").trim();
 
       const payload = {
-        guestNote: String(experienceDraft.guest_note || "").trim(),
-        priceNote: String(experienceDraft.price_note || "").trim(),
-        capacityNote: String(experienceDraft.capacity_note || "").trim(),
-        availabilityNote: String(experienceDraft.availability_note || "").trim(),
-        qualityScore: String(experienceDraft.quality_score || "").trim(),
-        qualityNote: String(experienceDraft.quality_note || "").trim(),
+        guestNote,
+        priceNote,
+        capacityNote,
+        availabilityNote,
+        qualityScore: qualityScoreRaw,
+        qualityNote,
         updatedAt: now,
       };
       const updatePayload = {
@@ -5719,6 +5718,12 @@ function AdminDashboardView({
         role: String(experienceDraft.role || "planned").trim(),
         included_in_price: Boolean(experienceDraft.included_in_price),
         confirmation_status: String(experienceDraft.confirmation_status || "planned").trim(),
+        guest_note: guestNote || null,
+        price_note: priceNote || null,
+        capacity_note: capacityNote || null,
+        availability_note: availabilityNote || null,
+        quality_score: qualityScore !== null && Number.isFinite(qualityScore) ? qualityScore : null,
+        quality_note: qualityNote || null,
         payload,
         updated_at: now,
       };
@@ -5727,7 +5732,7 @@ function AdminDashboardView({
         const { data: inserted, error } = await supabase
           .from("experience_blocks")
           .insert(updatePayload)
-          .select("id,package_id,provider_id,title,role,included_in_price,confirmation_status,payload,created_at")
+          .select(experienceBlockSelectColumns)
           .single();
 
         if (error) throw error;

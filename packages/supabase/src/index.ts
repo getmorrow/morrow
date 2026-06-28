@@ -52,6 +52,27 @@ export const localPlaceAdminSelectColumns =
 export const adminAuditLogSelectColumns =
   "id,actor_email,action,entity_type,entity_id,entity_label,payload,created_at" as const;
 
+export const experienceBlockSelectColumns =
+  "id,package_id,provider_id,title,role,included_in_price,confirmation_status,guest_note,price_note,capacity_note,availability_note,quality_score,quality_note,payload,created_at" as const;
+
+export type ExperienceBlockRowBase = {
+  id: string;
+  package_id: string | null;
+  provider_id: string | null;
+  title: string;
+  role: string;
+  included_in_price: boolean;
+  confirmation_status: string;
+  guest_note?: string | null;
+  price_note?: string | null;
+  capacity_note?: string | null;
+  availability_note?: string | null;
+  quality_score?: number | null;
+  quality_note?: string | null;
+  payload: JsonRecord;
+  created_at: string;
+};
+
 export type AdminAuditLogRow = {
   id: string;
   actor_email: string | null;
