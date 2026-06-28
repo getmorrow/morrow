@@ -466,6 +466,23 @@ type AgencyDraft = {
   notes: string;
 };
 
+type ProviderDraft = {
+  id: string;
+  name: string;
+  contact_name: string;
+  email: string;
+  phone: string;
+  location: string;
+  category: string;
+  status: string;
+  website: string;
+  audience_fit: string;
+  collaboration_note: string;
+  pricing_note: string;
+  availability_note: string;
+  notes: string;
+};
+
 type ExperienceSelection =
   | { mode: "create" }
   | { mode: "edit"; id: string }
@@ -920,6 +937,9 @@ function auditActionLabel(action: string) {
     internal_note_updated: "Interne Notiz gespeichert",
     experience_created: "Erlebnis angelegt",
     experience_updated: "Erlebnis geändert",
+    experience_provider_deleted: "Erlebnisanbieter entfernt",
+    experience_provider_status_updated: "Erlebnisanbieterstatus geändert",
+    experience_provider_upserted: "Erlebnisanbieter gespeichert",
     lead_reserved: "Reservierung angelegt",
     lead_archived: "Anfrage archiviert",
     lead_follow_up_updated: "Wiedervorlage geändert",
@@ -1493,6 +1513,17 @@ function agencyStatusLabel(status: string) {
   return labels[status] || status;
 }
 
+function providerStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    "in-review": "In Prüfung",
+    lead: "Kontakt prüfen",
+    partner: "Partner",
+    paused: "Pausiert",
+  };
+
+  return labels[status] || status;
+}
+
 function getInternalNote(payload: Record<string, unknown>) {
   return getPayloadText(payload, ["internalNote", "note", "notes"]) || "";
 }
@@ -1993,8 +2024,25 @@ function AdminDashboardView({
     available_dates_note: "",
     notes: "",
   });
+  const [providerDraft, setProviderDraft] = useState<ProviderDraft>({
+    id: "",
+    name: "",
+    contact_name: "",
+    email: "",
+    phone: "",
+    location: "Sankt Peter-Ording",
+    category: "",
+    status: "lead",
+    website: "",
+    audience_fit: "both",
+    collaboration_note: "",
+    pricing_note: "",
+    availability_note: "",
+    notes: "",
+  });
   const [ownerMessage, setOwnerMessage] = useState<string | null>(null);
   const [agencyMessage, setAgencyMessage] = useState<string | null>(null);
+  const [providerMessage, setProviderMessage] = useState<string | null>(null);
   const [communicationEvents, setCommunicationEvents] = useState<CommunicationEventRow[]>([]);
   const [drawerAuditLogs, setDrawerAuditLogs] = useState<AuditLogRow[]>([]);
   const [customerCommunicationEvents, setCustomerCommunicationEvents] = useState<CommunicationEventRow[]>([]);
@@ -2857,6 +2905,203 @@ function AdminDashboardView({
       setAgencyMessage("Agentur entfernt.");
     } catch {
       setAgencyMessage("Die Agentur konnte nicht entfernt werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  function editProvider(provider: ExperienceProviderRow) {
+    setProviderDraft({
+      id: provider.id,
+      name: provider.name || "",
+      contact_name: getPayloadText(provider.payload ?? {}, ["contactName", "contact_name"]) || "",
+      email: provider.email || "",
+      phone: provider.phone || "",
+      location: provider.location || "Sankt Peter-Ording",
+      category: provider.category || "",
+      status: provider.status || "lead",
+      website: provider.website || "",
+      audience_fit: getPayloadText(provider.payload ?? {}, ["audienceFit", "audience_fit"]) || "both",
+      collaboration_note: getPayloadText(provider.payload ?? {}, ["collaborationNote", "collaboration_note"]) || "",
+      pricing_note: getPayloadText(provider.payload ?? {}, ["pricingNote", "pricing_note"]) || "",
+      availability_note: getPayloadText(provider.payload ?? {}, ["availabilityNote", "availability_note"]) || "",
+      notes: getPayloadText(provider.payload ?? {}, ["notes", "note", "internalNote"]) || "",
+    });
+    setProviderMessage("Erlebnisanbieter zum Bearbeiten geladen.");
+  }
+
+  async function saveProvider() {
+    const name = providerDraft.name.trim();
+    if (!name) {
+      setProviderMessage("Bitte einen Anbieternamen eintragen.");
+      return;
+    }
+
+    const providerId = providerDraft.id || `provider-${slugify(name) || crypto.randomUUID()}`;
+    setPendingAction(`provider-save-${providerId}`);
+    setProviderMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const payload = {
+        source: "next-admin",
+        contactName: providerDraft.contact_name.trim(),
+        audienceFit: providerDraft.audience_fit,
+        collaborationNote: providerDraft.collaboration_note.trim(),
+        pricingNote: providerDraft.pricing_note.trim(),
+        availabilityNote: providerDraft.availability_note.trim(),
+        notes: providerDraft.notes.trim(),
+        updatedAt: new Date().toISOString(),
+      };
+      const upsertPayload = {
+        id: providerId,
+        name,
+        location: providerDraft.location.trim() || null,
+        category: providerDraft.category.trim() || null,
+        status: providerDraft.status || "lead",
+        website: providerDraft.website.trim() || null,
+        email: providerDraft.email.trim() || null,
+        phone: providerDraft.phone.trim() || null,
+        payload,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data: saved, error } = await supabase
+        .from("experience_providers")
+        .upsert(upsertPayload)
+        .select("id,name,location,category,status,website,email,phone,payload")
+        .single();
+
+      if (error) throw error;
+
+      setDataState((current) => {
+        const nextProvider = saved as ExperienceProviderRow;
+        return {
+          ...current,
+          experienceProviders: current.experienceProviders.some((provider) => provider.id === nextProvider.id)
+            ? current.experienceProviders.map((provider) => provider.id === nextProvider.id ? nextProvider : provider)
+            : [nextProvider, ...current.experienceProviders],
+        };
+      });
+
+      await writeAuditLog({
+        action: "experience_provider_upserted",
+        entityType: "experienceProvider",
+        entityId: (saved as ExperienceProviderRow).id,
+        entityLabel: name,
+        payload: upsertPayload,
+      });
+
+      setProviderDraft({
+        id: "",
+        name: "",
+        contact_name: "",
+        email: "",
+        phone: "",
+        location: "Sankt Peter-Ording",
+        category: "",
+        status: "lead",
+        website: "",
+        audience_fit: "both",
+        collaboration_note: "",
+        pricing_note: "",
+        availability_note: "",
+        notes: "",
+      });
+      setProviderMessage("Erlebnisanbieter gespeichert.");
+    } catch {
+      setProviderMessage("Der Erlebnisanbieter konnte nicht gespeichert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function updateProviderStatus(provider: ExperienceProviderRow, status: string) {
+    setPendingAction(`provider-status-${provider.id}`);
+    setProviderMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const payload = {
+        ...(provider.payload ?? {}),
+        source: "next-admin",
+        statusUpdatedAt: new Date().toISOString(),
+      };
+      const { data: updated, error } = await supabase
+        .from("experience_providers")
+        .update({
+          status,
+          payload,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", provider.id)
+        .select("id,name,location,category,status,website,email,phone,payload")
+        .single();
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        experienceProviders: current.experienceProviders.map((item) =>
+          item.id === provider.id ? updated as ExperienceProviderRow : item,
+        ),
+      }));
+
+      await writeAuditLog({
+        action: "experience_provider_status_updated",
+        entityType: "experienceProvider",
+        entityId: provider.id,
+        entityLabel: provider.name,
+        payload: { from: provider.status, to: status },
+      });
+
+      setProviderMessage(status === "partner" ? "Erlebnisanbieter als Partner markiert." : "Erlebnisanbieter pausiert.");
+    } catch {
+      setProviderMessage("Der Anbieterstatus konnte nicht geändert werden.");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function deleteProvider(provider: ExperienceProviderRow) {
+    const linkedExperiences = data.experienceBlocks.filter((experience) => experience.provider_id === provider.id);
+    if (linkedExperiences.length > 0) {
+      setProviderMessage("Anbieter mit verbundenen Erlebnissen erst bearbeiten, nicht löschen.");
+      return;
+    }
+
+    setPendingAction(`provider-delete-${provider.id}`);
+    setProviderMessage(null);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("experience_providers")
+        .delete()
+        .eq("id", provider.id);
+
+      if (error) throw error;
+
+      setDataState((current) => ({
+        ...current,
+        experienceProviders: current.experienceProviders.filter((item) => item.id !== provider.id),
+      }));
+
+      await writeAuditLog({
+        action: "experience_provider_deleted",
+        entityType: "experienceProvider",
+        entityId: provider.id,
+        entityLabel: provider.name,
+        payload: {
+          category: provider.category,
+          location: provider.location,
+          status: provider.status,
+        },
+      });
+
+      setProviderMessage("Erlebnisanbieter entfernt.");
+    } catch {
+      setProviderMessage("Der Erlebnisanbieter konnte nicht entfernt werden.");
     } finally {
       setPendingAction(null);
     }
@@ -6070,6 +6315,214 @@ function AdminDashboardView({
               })
             ) : (
               <p className="admin-drawer-message">Noch keine Agenturen angelegt oder Migration noch nicht live.</p>
+            )}
+          </div>
+        </article>
+      </section>
+
+      <section className="admin-grid" id="erlebnisanbieter" hidden={activeWorkspace !== "partners"}>
+        <article className="admin-card">
+          <p className="admin-eyebrow">Erlebnisanbieter</p>
+          <h2>Partnerprofile pflegen</h2>
+          <p>
+            Anbieterprofile sind die Grundlage für Erlebnisbausteine, Konditionen,
+            Verfügbarkeit und spätere Partnerkommunikation.
+          </p>
+          <div className="admin-form-grid">
+            <label>
+              Anbietername
+              <input
+                onChange={(event) => setProviderDraft((current) => ({ ...current, name: event.target.value }))}
+                value={providerDraft.name}
+              />
+            </label>
+            <label>
+              Status
+              <select
+                onChange={(event) => setProviderDraft((current) => ({ ...current, status: event.target.value }))}
+                value={providerDraft.status}
+              >
+                <option value="lead">Kontakt prüfen</option>
+                <option value="in-review">In Prüfung</option>
+                <option value="partner">Partner</option>
+                <option value="paused">Pausiert</option>
+              </select>
+            </label>
+            <label>
+              Ansprechpartner
+              <input
+                onChange={(event) => setProviderDraft((current) => ({ ...current, contact_name: event.target.value }))}
+                value={providerDraft.contact_name}
+              />
+            </label>
+            <label>
+              Geeignet für
+              <select
+                onChange={(event) => setProviderDraft((current) => ({ ...current, audience_fit: event.target.value }))}
+                value={providerDraft.audience_fit}
+              >
+                <option value="both">Familien und Paare</option>
+                <option value="families">Familien</option>
+                <option value="couples">Paare</option>
+              </select>
+            </label>
+            <label>
+              E-Mail
+              <input
+                onChange={(event) => setProviderDraft((current) => ({ ...current, email: event.target.value }))}
+                type="email"
+                value={providerDraft.email}
+              />
+            </label>
+            <label>
+              Telefon
+              <input
+                onChange={(event) => setProviderDraft((current) => ({ ...current, phone: event.target.value }))}
+                type="tel"
+                value={providerDraft.phone}
+              />
+            </label>
+            <label>
+              Ort
+              <input
+                onChange={(event) => setProviderDraft((current) => ({ ...current, location: event.target.value }))}
+                value={providerDraft.location}
+              />
+            </label>
+            <label>
+              Kategorie
+              <input
+                onChange={(event) => setProviderDraft((current) => ({ ...current, category: event.target.value }))}
+                placeholder="z. B. Yoga, Wattwandern, Reiten"
+                value={providerDraft.category}
+              />
+            </label>
+            <label className="admin-form-grid-full">
+              Website
+              <input
+                onChange={(event) => setProviderDraft((current) => ({ ...current, website: event.target.value }))}
+                placeholder="https://..."
+                value={providerDraft.website}
+              />
+            </label>
+            <label className="admin-form-grid-full">
+              Konditionen / Preislogik
+              <textarea
+                onChange={(event) => setProviderDraft((current) => ({ ...current, pricing_note: event.target.value }))}
+                placeholder="Einkaufspreise, Inklusivlogik, Storno oder Mindestteilnehmer."
+                rows={3}
+                value={providerDraft.pricing_note}
+              />
+            </label>
+            <label className="admin-form-grid-full">
+              Verfügbarkeit / Kapazität
+              <textarea
+                onChange={(event) => setProviderDraft((current) => ({ ...current, availability_note: event.target.value }))}
+                placeholder="Wann möglich, welche Gruppen, wetterabhängig?"
+                rows={3}
+                value={providerDraft.availability_note}
+              />
+            </label>
+            <label className="admin-form-grid-full">
+              Kooperationsstand
+              <textarea
+                onChange={(event) => setProviderDraft((current) => ({ ...current, collaboration_note: event.target.value }))}
+                placeholder="Was wurde besprochen, was fehlt, nächster Schritt?"
+                rows={3}
+                value={providerDraft.collaboration_note}
+              />
+            </label>
+            <label className="admin-form-grid-full">
+              Interne Notiz
+              <textarea
+                onChange={(event) => setProviderDraft((current) => ({ ...current, notes: event.target.value }))}
+                rows={3}
+                value={providerDraft.notes}
+              />
+            </label>
+          </div>
+          <button
+            className="admin-button"
+            disabled={Boolean(pendingAction?.startsWith("provider-save"))}
+            onClick={saveProvider}
+            type="button"
+          >
+            Erlebnisanbieter speichern
+          </button>
+          {providerMessage ? <p className="admin-drawer-message">{providerMessage}</p> : null}
+        </article>
+
+        <article className="admin-card">
+          <p className="admin-eyebrow">Anbieterbestand</p>
+          <h2>{data.experienceProviders.length} Kontakte</h2>
+          <p>
+            Verknüpfte Erlebnisbausteine zeigen, welche Anbieter bereits in
+            Auszeiten eingeplant sind.
+          </p>
+          <div className="admin-list">
+            {data.experienceProviders.length ? (
+              data.experienceProviders.map((provider) => {
+                const linkedExperiences = data.experienceBlocks.filter((experience) => experience.provider_id === provider.id);
+                const contactName = getPayloadText(provider.payload ?? {}, ["contactName", "contact_name"]);
+                const audienceFit = getPayloadText(provider.payload ?? {}, ["audienceFit", "audience_fit"]) || "Zielgruppe offen";
+                const availabilityNote = getPayloadText(provider.payload ?? {}, ["availabilityNote", "availability_note"]);
+
+                return (
+                  <article className="admin-list-item" key={provider.id}>
+                    <div>
+                      <small>
+                        {providerStatusLabel(provider.status)} · {provider.category || "Kategorie offen"}
+                      </small>
+                      <strong>{provider.name}</strong>
+                      <em>
+                        {contactName || "Ansprechpartner offen"} · {provider.location || "Ort offen"} · {audienceFit}
+                      </em>
+                      <p>
+                        {linkedExperiences.length
+                          ? `${linkedExperiences.length} Erlebnisbaustein${linkedExperiences.length === 1 ? "" : "e"} verbunden`
+                          : "Noch kein Erlebnisbaustein verbunden."}
+                      </p>
+                      {availabilityNote ? <p>{availabilityNote}</p> : null}
+                    </div>
+                    <div className="admin-row-actions">
+                      <button onClick={() => editProvider(provider)} type="button">
+                        Bearbeiten
+                      </button>
+                      {provider.email ? <a href={`mailto:${provider.email}`}>E-Mail</a> : null}
+                      {provider.phone ? <a href={`tel:${provider.phone.replace(/\s/g, "")}`}>Telefon</a> : null}
+                      {provider.status === "paused" ? (
+                        <button
+                          disabled={pendingAction === `provider-status-${provider.id}`}
+                          onClick={() => updateProviderStatus(provider, "partner")}
+                          type="button"
+                        >
+                          Reaktivieren
+                        </button>
+                      ) : (
+                        <button
+                          disabled={pendingAction === `provider-status-${provider.id}`}
+                          onClick={() => updateProviderStatus(provider, "paused")}
+                          type="button"
+                        >
+                          Pausieren
+                        </button>
+                      )}
+                      {!linkedExperiences.length ? (
+                        <button
+                          className="is-danger"
+                          disabled={pendingAction === `provider-delete-${provider.id}`}
+                          onClick={() => deleteProvider(provider)}
+                          type="button"
+                        >
+                          Löschen
+                        </button>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })
+            ) : (
+              <p className="admin-drawer-message">Noch keine Erlebnisanbieter angelegt oder Migration noch nicht live.</p>
             )}
           </div>
         </article>
