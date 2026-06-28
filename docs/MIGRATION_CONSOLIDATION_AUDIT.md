@@ -131,7 +131,7 @@ Risiko:
 | Owner-Operations | Prototyp-Idee | `owner_operations`, `apps/admin`, `apps/owner` | migriert fuer MVP-Light | mittel | Reinigungs-/Maengelprozesse noch nicht voll operativ. |
 | Audit-Log | Vite Aktivitaet + `admin_audit_logs` | `apps/admin` + `scripts/qa-admin-audit-coverage.mjs` | weitgehend migriert | hoch | Business-Mutationen im Next-Admin schreiben Audit und werden statisch per `npm run qa:admin-audit` geprueft; semantische Payload-Tiefe und externe Edge-Function-Actions weiter pruefen. |
 | Shared Domain/Types | verstreut in `src/App.tsx`, Apps | `packages/domain`, `packages/supabase` | fehlt / teilweise | kritisch | Duplizierte Typen/Mapper in Apps; hohes Risiko fuer spaetere Logikdrift. |
-| Dev/Deployment | Root Vite Scripts + Next Scripts | Monorepo Scripts/Vercel Apps | teilweise | kritisch | Root `npm run dev` startet weiter Vite; fuer Next muss bewusst `web:dev`, `admin:dev`, `guest:dev`, `owner:dev` genutzt werden. |
+| Dev/Deployment | Root Vite Scripts + Next Scripts | Monorepo Scripts/Vercel Apps | weitgehend migriert | mittel | Root `npm run dev` bleibt bewusst Prototyp. Next-Apps haben feste Port-Scripts (`web:dev:port`, `admin:dev:port`, `guest:dev:port`, `owner:dev:port`) und app-eigene Vercel-Konfigurationen. |
 
 ## Admin-Funktionsparitaet
 
@@ -191,12 +191,12 @@ Risiko:
 | App | Kommando | Typischer Port | Zweck |
 | --- | --- | --- | --- |
 | Vite-Prototyp | `npm run prototype:dev` oder aktuell auch `npm run dev` | `5173` | Prototyp/Funktionsreferenz, nicht finale Produktionsarchitektur. |
-| Web | `npm run web:dev -- --port 4300` | `4300` empfohlen | Oeffentliche SEO-Website. |
-| Admin | `npm run admin:dev -- --port 4301` | `4301` empfohlen | Neue Admin-App, noch in CRM-Paritaetsphase. |
-| Guest | `npm run guest:dev -- --port 4310` | `4310` empfohlen | Gaeste-App / Deine Auszeit. |
-| Owner | `npm run owner:dev -- --port 4320` | `4320` empfohlen | Eigentuemer-App MVP-Light. |
+| Web | `npm run web:dev:port` | `4300` | Oeffentliche SEO-Website. |
+| Admin | `npm run admin:dev:port` | `4301` | Neue Admin-App, noch in CRM-Paritaetsphase. |
+| Guest | `npm run guest:dev:port` | `4310` | Gaeste-App / Deine Auszeit. |
+| Owner | `npm run owner:dev:port` | `4320` | Eigentuemer-App MVP-Light. |
 
-Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegtem Port weiter. Fuer Tests sollten feste Ports genutzt werden.
+Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegtem Port weiter. Fuer Tests und Review sind die festen `*:dev:port`-Kommandos der Standard; die ungebundenen `web:dev`, `admin:dev`, `guest:dev` und `owner:dev` bleiben fuer Sonderfaelle verfuegbar.
 
 ### Admin-Workspace-Zuordnung
 
