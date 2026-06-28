@@ -108,6 +108,7 @@ Risiko:
 | Rechtstexte | Prototyp/Footer | `apps/web/app/agb`, `datenschutz`, `buchungsbedingungen`, `stornobedingungen`, `zahlungsbedingungen` | migriert / teilweise | hoch | Juristische Finalpruefung offen. |
 | Leadformulare | Vite-Formulare + `morrowBackend.ts` | `apps/web/app/_components/LeadForm.tsx`, Supabase Edge Functions | migriert | hoch | Mailfehler duerfen Lead nicht blockieren; Tracking/UTM live pruefen. |
 | Admin-Login/Rollen | `src/App.tsx` AdminAccess | `apps/admin/app/page.tsx`, `AdminLoginForm`, Supabase Auth/RPC | migriert | kritisch | Admin-Userpflege/Rotation operativ dokumentieren. |
+| Admin-Shell | Vite `AdminSection` Navigation | `apps/admin/app/dashboard/AdminDashboardClient.tsx` | weitgehend migriert | kritisch | Alte Kernbereiche sind in Workspaces gebuendelt und im Hero sichtbar zugeordnet: Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer, Aktivitaet. Echte interne Routen bleiben spaetere Architekturentscheidung. |
 | Admin-Uebersicht | Vite `overview` | `apps/admin/app/dashboard/AdminDashboardClient.tsx` | weitgehend migriert | kritisch | Next hat clientseitige Arbeitsbereiche fuer Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer und Aktivitaet; Uebersicht zeigt Kennzahlen, Tagessteuerung, Monitoring und Audit. Echte Routen bleiben spaetere Architekturentscheidung. |
 | Anfragen/Leads | Vite `leads`, Lead-Drawer | `apps/admin` Leads-Sektion | weitgehend migriert | kritisch | Status, Reservierung, Detailbearbeitung im Drawer, Aktiv-/Archivfilter, Wiedervorlage, Reaktivierung und Testloeschung vorhanden; Spam-Policy und relationale Wiedervorlage-Spalte pruefen. |
 | Kunden | Vite `customers` | `apps/admin` | weitgehend migriert | kritisch | Next verbindet echte `customers`-Datensaetze mit Gastanfragen und Buchungen, zeigt Kontaktlinks, Anfrage-/Buchungsbezug, naechsten Schritt, zentrale Kundennotiz und Kundendetail mit Kommunikations-/Aenderungshistorie; Dublettenbereinigung und spaetere Normalisierung der Customer-Erzeugung bleiben offen. |
@@ -196,6 +197,20 @@ Risiko:
 | Owner | `npm run owner:dev -- --port 4320` | `4320` empfohlen | Eigentuemer-App MVP-Light. |
 
 Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegtem Port weiter. Fuer Tests sollten feste Ports genutzt werden.
+
+### Admin-Workspace-Zuordnung
+
+| Neuer Workspace | Alte Vite-Admin-Bereiche | Zweck im Konsolidierungsstand |
+| --- | --- | --- |
+| Uebersicht | Uebersicht | Tagessteuerung, Kennzahlen, Monitoring, Audit-Auszug. |
+| CRM | Anfragen, Kunden, Buchungen | Gast-CRM von Anfrage bis Buchung. |
+| Aufgaben | Aufgaben | Fälligkeiten, Prioritäten, Bezuege und Aufgabenstatus. |
+| Support | Gaestesupport, Feedback | Supportfaelle, Gastnachrichten und Rueckmeldungen nach Aufenthalt. |
+| Operations | Erlebnisse, Vor Ort, Termine | Erlebnisbausteine, lokale Orte, Veranstaltungen und Pakettermine. |
+| Bestand | Auszeiten, Unterkuenfte | Paket-Builder, Objektprofile, Regeln, Medien- und Check-in-Daten. |
+| Partner | Agenturen, Erlebnisanbieter | Phase-1-Agenturen und Erlebnispartner. |
+| Eigentuemer | Eigentuemer | Owner-Profile, Zugriffe, Dokumente, Abrechnungen und Operationsmeldungen. |
+| Aktivitaet | Aktivitaet, Kommunikation | Audit-Log und zentrale Kommunikationshistorie. |
 
 ### Build- Und QA-Kommandos
 

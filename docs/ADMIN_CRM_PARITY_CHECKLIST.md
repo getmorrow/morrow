@@ -28,7 +28,7 @@ Bis dahin gilt:
 
 | Bereich | Vite-Referenz | Next-Stand | Status | Naechste Arbeit | Abnahmekriterium |
 | --- | --- | --- | --- | --- | --- |
-| Admin-Shell | `AdminSection` mit Bereichen `overview`, `leads`, `tasks`, `guestSupport`, `customers`, `bookings`, `packages`, `experiences`, `localPlaces`, `owners`, `agencies`, `experienceProviders`, `activity` | Clientseitige Arbeitsbereichsnavigation mit Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer, Aktivitaet | teilweise | Pruefen, ob spaeter echte Routen statt clientseitiger Bereiche noetig sind | Jeder alte Kernbereich ist in `apps/admin` eindeutig erreichbar, nicht nur als Kartenblock. |
+| Admin-Shell | `AdminSection` mit Bereichen `overview`, `leads`, `tasks`, `guestSupport`, `customers`, `bookings`, `packages`, `experiences`, `localPlaces`, `owners`, `agencies`, `experienceProviders`, `activity` | Clientseitige Arbeitsbereichsnavigation mit Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer, Aktivitaet plus sichtbarer Zuordnung der alten Bereiche je Workspace | weitgehend migriert | Spaeter echte Routen statt clientseitiger Bereiche entscheiden, wenn der Admin weiter waechst | Jeder alte Kernbereich ist in `apps/admin` eindeutig erreichbar und im jeweiligen Workspace benannt. |
 | Uebersicht | Tagesboard, Faelligkeiten, Wiedervorlagen, kommende Termine, aktive Arbeit | Kennzahlen, kompakte Tagessteuerung mit Aufgaben/Leads/Support/Feedback, Monitoring und Audit | weitgehend migriert | Kuenftig ggf. kommende Termine/Termindruck noch staerker priorisieren | Uebersicht zeigt Tagessteuerung und verlinkt in Detailbereiche; Detailarbeit findet nicht auf der Uebersicht statt. |
 | Leads/Anfragen | Status, Filter aktiv/archiviert, Typ/Status/Arbeitsstand, Wiedervorlage, Archiv, Reaktivierung, Testloeschung, Drawer | Leads laden, filtern, Status aendern, Detaildaten bearbeiten, Wiedervorlage setzen, archivieren, reaktivieren, Testdatensaetze loeschen, Reservierung anlegen, Drawer fuer Notiz/E-Mail/Historie | weitgehend migriert | Spam-/Loeschpolicy und ggf. eigene Wiedervorlage-Spalte pruefen | Ein Lead kann von neu bis archiviert und reaktiviert komplett in Next bearbeitet werden; Historie bleibt sichtbar. |
 | Kunden | Kundensatz aus Gastanfragen, Kunden-Cards, Kontaktlinks, Anfragehistorie, Buchungshistorie, Filter Anfrage/Buchung/faellig | Eigener Kundenbereich verbindet echte `customers`-Datensaetze mit Gastanfragen und Buchungen, zeigt Kontaktlinks, naechsten Schritt, Kundendetail, zentrale Kundennotiz, Anfrage-, Buchungs-, Kommunikations- und Aenderungshistorie | weitgehend migriert | Dedizierte Kundensuche, Dublettenbereinigung und spaetere Normalisierung der Customer-Erzeugung pruefen | Ein Gastkontakt ist unabhaengig von einzelner Anfrage auffindbar, mit Kontakt, Anfragen, Buchungen, Kundennotiz und naechstem Schritt. |
@@ -168,13 +168,15 @@ Umsetzung:
 
 - Entscheidung: Fuer den Konsolidierungsschritt wird eine clientseitige Arbeitsbereichsnavigation umgesetzt. Damit bleiben die bestehenden Drawer und Mutationen stabil, waehrend die lange Seite in Arbeitsbereiche aufgeteilt wird.
 - Bereiche vorhanden: Uebersicht, CRM, Aufgaben, Support, Operations, Bestand, Partner, Eigentuemer, Aktivitaet.
-- Uebersicht bleibt kurz und zeigt Kennzahlen, Monitoring und Aktivitaet.
+- Jeder Workspace zeigt im Hero, welche alten Vite-Admin-Bereiche darin migriert sind.
+- Uebersicht bleibt kurz und zeigt Kennzahlen, Tagessteuerung, Monitoring und Aktivitaet.
 - Detailarbeit ist jeweils in einem sichtbaren Arbeitsbereich gebuendelt.
 - Offene Architekturentscheidung: spaeter echte interne Routen, falls Admin weiter waechst.
 
 Abnahme:
 
 - Nutzer kann gezielt in einen Arbeitsbereich wechseln. Stand: umgesetzt.
+- Alte Kernbereiche sind in den Workspaces sichtbar benannt. Stand: umgesetzt.
 - Keine zentrale Seite muss alle Detailarbeit gleichzeitig tragen. Stand: umgesetzt durch `activeWorkspace`.
 - Mobile/kleine Viewports bleiben bedienbar. Stand: technisch umgesetzt mit bestehender flexibler Navigation; visuelle QA auf echten Viewports bleibt sinnvoll.
 

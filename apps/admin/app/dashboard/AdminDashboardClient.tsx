@@ -588,60 +588,70 @@ const adminWorkspaces: Array<{
   label: string;
   title: string;
   text: string;
+  legacySections: string[];
 }> = [
   {
     id: "overview",
     label: "Übersicht",
     title: "Guten Überblick.",
     text: "Tagessteuerung mit Kennzahlen, Monitoring und aktuellen Änderungen.",
+    legacySections: ["Übersicht"],
   },
   {
     id: "crm",
     label: "CRM",
     title: "Anfragen, Kunden und Buchungen.",
     text: "Gastkontakte von der ersten Anfrage bis zur verbindlichen Buchung führen.",
+    legacySections: ["Anfragen", "Kunden", "Buchungen"],
   },
   {
     id: "tasks",
     label: "Aufgaben",
     title: "Operative To-dos steuern.",
     text: "Aufgaben mit Bezug, Fälligkeit und Priorität anlegen und abarbeiten.",
+    legacySections: ["Aufgaben"],
   },
   {
     id: "support",
     label: "Support",
     title: "Gäste begleiten und Feedback prüfen.",
     text: "Supportfälle, Nachrichten aus dem Gästebereich und Rückmeldungen nach dem Aufenthalt.",
+    legacySections: ["Gästesupport", "Feedback"],
   },
   {
     id: "operations",
     label: "Operations",
     title: "Vor Ort, Erlebnisse und Termine.",
     text: "Kuratierte Orte, Erlebnisbausteine und buchbare Zeiträume pflegen.",
+    legacySections: ["Erlebnisse", "Vor Ort", "Termine"],
   },
   {
     id: "inventory",
     label: "Bestand",
     title: "Auszeiten und Unterkünfte.",
     text: "Paket- und Objektbestand als Grundlage der Plattform pflegen.",
+    legacySections: ["Auszeiten", "Unterkünfte"],
   },
   {
     id: "partners",
     label: "Partner",
     title: "Agenturen und Startpartner.",
     text: "Phase-1-Partner, Objektzugang und Verfügbarkeitsabsprachen steuern.",
+    legacySections: ["Agenturen", "Erlebnisanbieter"],
   },
   {
     id: "owners",
     label: "Eigentümer",
     title: "Eigentümerdaten und Freigaben.",
     text: "Profile, Objektzugriffe, Dokumente, Abrechnungen und Objektarbeit verwalten.",
+    legacySections: ["Eigentümer"],
   },
   {
     id: "activity",
     label: "Aktivität",
     title: "Änderungen nachvollziehen.",
     text: "Audit-Log und letzte operative Änderungen prüfen.",
+    legacySections: ["Aktivität", "Kommunikation"],
   },
 ];
 const propertyAttributeOptions = [
@@ -5842,6 +5852,7 @@ function AdminDashboardView({
         <p className="admin-eyebrow">Morrow Admin</p>
         <h1>{workspace.title}</h1>
         <p>{workspace.text}</p>
+        <p className="admin-hero-meta">Migrierte Bereiche: {workspace.legacySections.join(" · ")}</p>
         <p className="admin-hero-meta">Angemeldet als {displayName}</p>
         {actionMessage ? <p className="admin-action-message">{actionMessage}</p> : null}
       </section>
