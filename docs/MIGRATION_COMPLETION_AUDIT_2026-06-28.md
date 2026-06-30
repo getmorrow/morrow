@@ -45,7 +45,7 @@ Diese Punkte verhindern, dass die Konsolidierung als fertig markiert wird:
 1. `docs/ADMIN_PARITY_QA_RUNBOOK.md` wurde noch nicht mit echten Testdaten vollständig ausgefüllt.
 2. `apps/admin` ist funktional weit, aber noch nicht per Runbook als alleinige Quelle der Wahrheit freigegeben.
 3. `npm run qa:apps` prüft ohne vollständige `ADMIN_BASE_URL`, `GUEST_BASE_URL` und `OWNER_BASE_URL` nicht alle App-Deployment-URLs und muss deshalb als rotes App-QA-Ergebnis behandelt werden. Teilprüfungen sind nur mit `MORROW_QA_ALLOW_PARTIAL_APPS=1` zulässig.
-4. `npm run qa:launch-gates` ist rot durch 11 Blocker, dokumentiert in `docs/LAUNCH_STATUS_SNAPSHOT_2026-06-28.md`.
+4. `npm run qa:launch-gates` ist rot durch 11 Blocker, zuletzt dokumentiert in `docs/LAUNCH_STATUS_SNAPSHOT_2026-06-30.md`.
 5. Rechtstexte, Secret-Rotation, Angebotsfreigabe und App-URL-/Env-Konfiguration sind noch nicht final.
 
 ## Abschlusskriterium Für Dieses Ziel

@@ -277,7 +277,7 @@ Naechste technische Prioritaet:
 
 ## Naechster Konkreter Schritt
 
-Aktueller Go-/No-Go-Snapshot: `docs/LAUNCH_STATUS_SNAPSHOT_2026-06-28.md`
+Aktueller Go-/No-Go-Snapshot: `docs/LAUNCH_STATUS_SNAPSHOT_2026-06-30.md`
 
 Weiter mit Production-Rehearsal und Launch-Gates:
 
