@@ -9,10 +9,10 @@ Tester: Codex
 Umgebung: Production consolidation
 
 URLs:
-- Website:
-- Admin:
-- Gäste-App:
-- Owner-App:
+- Website: https://www.getmorrow.de
+- Admin: Offen, `ADMIN_BASE_URL`/`MORROW_ADMIN_APP_URL` fehlt im QA-Kontext.
+- Gäste-App: Offen, `GUEST_BASE_URL`/`MORROW_GUEST_APP_URL` fehlt im QA-Kontext.
+- Owner-App: Offen, `OWNER_BASE_URL`/`MORROW_OWNER_APP_URL` fehlt im QA-Kontext.
 
 Testdaten:
 - Testlead:
@@ -24,16 +24,16 @@ Testdaten:
 
 ## Automatische Gates
 
-- [ ] npm run typecheck
-- [ ] npx supabase db push --dry-run --linked
-- [ ] git diff --check
-- [ ] npm run lint
-- [ ] npm run qa:admin-audit
+- [x] npm run typecheck
+- [x] npx supabase db push --dry-run --linked
+- [x] git diff --check
+- [x] npm run lint
+- [x] npm run qa:admin-audit
 - [ ] npm run qa:readiness
-- [ ] npm run admin:build
-- [ ] npm run guest:build
-- [ ] npm run owner:build
-- [ ] QA_BASE_URL=https://www.getmorrow.de npm run qa:production
+- [x] npm run admin:build
+- [x] npm run guest:build
+- [x] npm run owner:build
+- [x] QA_BASE_URL=https://www.getmorrow.de npm run qa:production
 - [ ] npm run qa:launch-gates
 - [ ] npm run qa:apps
 
@@ -81,13 +81,17 @@ Audit-Log-Einträge:
 - 
 
 Offene Blocker:
-- 
+- `npm run qa:readiness` rot: Admin-Paritätslauf nicht grün, Rechtstexte/Env/App-URLs/Secrets/Angebotsdaten/Tracking offen.
+- `npm run qa:admin-parity:preflight` rot: Admin-, Gäste- und Owner-App-URL fehlen; Admin-Testlogin, Guest-Testbuchung mit Access-Code und Owner-Testlogin fehlen.
+- `npm run qa:launch-gates` rot: 11 Blocker, darunter Rechtstexte/Arbeitsfassungen, Supabase Public Env, App-URLs, Secret-Rotation und Angebotsfreigabe.
+- `npm run qa:apps` rot: `checkedApps: 0`, keine App Base URLs gesetzt.
+- Manuelle Gates 1-24 noch nicht durchgeführt und ohne Evidenz.
 
 ## Bewertung
 
-Ergebnis: Offen
+Ergebnis: Rot
 
-Begründung:
+Begründung: Automatische lokale Build-/Code-Gates sind weitgehend grün, aber App-URLs, Testzugänge, Recht/Freigaben und alle manuellen CRM-Paritätsflows fehlen noch.
 
 Freigabe für echte Leads: Nein
 
