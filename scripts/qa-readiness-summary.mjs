@@ -1,5 +1,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import {
+  extractAdminParityResult,
+  findLatestAdminParityRun,
+  validateAdminParityRun,
+} from './lib/admin-parity-run.mjs'
 
 const rootDir = process.cwd()
 
@@ -35,23 +40,6 @@ function findLatestLaunchSnapshot() {
   return snapshots.at(-1) ? `docs/${snapshots.at(-1)}` : null
 }
 
-function findLatestAdminParityRun() {
-  const runsDir = path.join(rootDir, 'docs/qa/admin-parity')
-  if (!fs.existsSync(runsDir)) return null
-
-  const runs = fs
-    .readdirSync(runsDir)
-    .filter((file) => /^\d{4}-\d{2}-\d{2}-admin-parity-run\.md$/.test(file))
-    .sort()
-
-  return runs.at(-1) ? `docs/qa/admin-parity/${runs.at(-1)}` : null
-}
-
-function extractAdminParityResult(body) {
-  const match = body.match(/^Ergebnis:\s*(.+)$/im)
-  return match?.[1]?.trim() || 'Missing'
-}
-
 const requiredDocs = [
   'docs/MORROW_MASTER_FRAME.md',
   'docs/STRATEGIC_FOUNDATION_MORROW.md',
@@ -82,29 +70,21 @@ const legalPlaceholderPatterns = [
 ]
 
 const latestSnapshot = findLatestLaunchSnapshot()
-const latestAdminParityRun = findLatestAdminParityRun()
+const latestAdminParityRun = findLatestAdminParityRun(rootDir)
 const runbookPath = 'docs/ADMIN_PARITY_QA_RUNBOOK.md'
 const runbook = exists(runbookPath) ? read(runbookPath) : ''
 const parityRun = latestAdminParityRun ? read(latestAdminParityRun) : ''
+const parityValidation = parityRun ? validateAdminParityRun(parityRun) : null
 
 const missingDocs = requiredDocs.filter((doc) => !exists(doc))
 const openRunbookManualGates = countMatches(runbook, /\|\s*\d+\s+\|[^\n]*\|\s*Offen\s*\|/g)
 const uncheckedRunbookTemplateGates = countMatches(runbook, /- \[ \]/g)
-const openParityRunManualGates = parityRun
-  ? countMatches(parityRun, /\|\s*\d+\s+\|[^\n]*\|\s*Offen\s*\|/g)
-  : null
-const uncheckedParityRunItems = parityRun ? countMatches(parityRun, /- \[ \]/g) : null
 const adminParityResult = parityRun ? extractAdminParityResult(parityRun) : 'Missing'
-const adminParityResultNormalized = adminParityResult
-  .toLowerCase()
-  .normalize('NFD')
-  .replace(/[\u0300-\u036f]/g, '')
-const adminParityRunComplete = Boolean(parityRun)
-  && openParityRunManualGates === 0
-  && uncheckedParityRunItems === 0
-const adminParityGreen = adminParityRunComplete && adminParityResultNormalized === 'grun'
-const adminParityAllowsControlledLeads = adminParityRunComplete
-  && ['gelb', 'grun'].includes(adminParityResultNormalized)
+const adminParityRunComplete = Boolean(parityValidation?.valid)
+const adminParityGreen = Boolean(parityValidation?.valid && parityValidation.resultAllowsPaidGuests)
+const adminParityAllowsControlledLeads = Boolean(
+  parityValidation?.valid && parityValidation.resultAllowsControlledLeads,
+)
 
 const legalPlaceholders = legalFiles.flatMap(([file, label]) => {
   if (!exists(file)) return [{ file, label, issue: 'missing' }]
@@ -192,8 +172,7 @@ if (!checks.adminParityRunPresent) {
     detail: {
       latestAdminParityRun,
       adminParityResult,
-      openParityRunManualGates,
-      uncheckedParityRunItems,
+      validation: parityValidation,
     },
   })
 }
@@ -214,8 +193,9 @@ const result = {
   counts: {
     openRunbookManualGates,
     uncheckedRunbookTemplateItems: uncheckedRunbookTemplateGates,
-    openParityRunManualGates,
-    uncheckedParityRunItems,
+    openParityRunManualGates: parityValidation?.openManualRows ?? null,
+    uncheckedParityRunItems: parityValidation?.uncheckedItems ?? null,
+    missingParityRunEvidenceRows: parityValidation?.missingEvidenceRows ?? null,
     legalPlaceholderFiles: legalPlaceholders.length,
     blockers: blockers.length,
   },

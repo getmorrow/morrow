@@ -255,6 +255,12 @@ npm run qa:admin-parity:new
 
 Die Protokolle liegen unter `docs/qa/admin-parity/` und werden von `npm run qa:readiness` ausgewertet.
 
+Vor Freigabe wird das neueste Protokoll direkt validiert:
+
+```bash
+npm run qa:admin-parity:validate
+```
+
 Automatisierter Basischeck:
 
 ```bash

@@ -8,6 +8,18 @@ Neues Protokoll erzeugen:
 npm run qa:admin-parity:new
 ```
 
+Neuestes Protokoll validieren:
+
+```bash
+npm run qa:admin-parity:validate
+```
+
+Ein bestimmtes Protokoll validieren:
+
+```bash
+npm run qa:admin-parity:validate -- docs/qa/admin-parity/YYYY-MM-DD-admin-parity-run.md
+```
+
 Optional mit Angaben:
 
 ```bash
@@ -23,3 +35,4 @@ Regel:
 - Ein Protokoll mit `Ergebnis: Gelb` kann nur kontrollierte echte Leads erlauben.
 - `Ergebnis: Offen` oder `Ergebnis: Rot` blockiert den Start.
 - Alle automatischen und manuellen Gates brauchen Evidenz.
+- `npm run qa:readiness` akzeptiert nur validierte Protokolle. Ein nur formal vorhandenes Protokoll reicht nicht.

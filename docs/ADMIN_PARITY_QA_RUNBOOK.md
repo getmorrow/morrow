@@ -41,6 +41,7 @@ git diff --check
 npm run lint
 npm run qa:admin-audit
 npm run qa:readiness
+npm run qa:admin-parity:validate
 npm run admin:build
 npm run guest:build
 npm run owner:build
@@ -161,6 +162,12 @@ npm run qa:admin-parity:new
 
 `npm run qa:readiness` liest den neuesten Lauf aus `docs/qa/admin-parity/` aus. Ein Runbook ohne ausgefülltes Protokoll gilt nicht als Abnahme.
 
+Das neueste Protokoll wird so validiert:
+
+```bash
+npm run qa:admin-parity:validate
+```
+
 Ergänzend können visuelle/UX-Notizen in `docs/PAGE_REVIEW_LOG.md` und fachliche Paritätsentscheidungen in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` festgehalten werden.
 
 ## Abnahmeprotokoll Vorlage
@@ -192,6 +199,7 @@ Automatische Gates:
 - [ ] npm run lint
 - [ ] npm run qa:admin-audit
 - [ ] npm run qa:readiness
+- [ ] npm run qa:admin-parity:validate
 - [ ] npm run admin:build
 - [ ] npm run guest:build
 - [ ] npm run owner:build

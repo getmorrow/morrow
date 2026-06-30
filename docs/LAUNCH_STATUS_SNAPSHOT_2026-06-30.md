@@ -28,7 +28,7 @@ ok: false
 latestAdminParityRun: null
 adminParityResult: Missing
 openRunbookManualGates: 24
-uncheckedRunbookTemplateItems: 35
+uncheckedRunbookTemplateItems: 36
 legalPlaceholderFiles: 3
 blockerGroups: 7
 ```
