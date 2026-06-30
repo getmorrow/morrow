@@ -54,6 +54,8 @@ Dieser Check ist die kompakte Startstufen-Ampel für:
 
 Ergebnis: rot.
 
+Detail-Fixliste: `docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md`
+
 Vorhanden:
 
 - Supabase Public URL lokal gesetzt.

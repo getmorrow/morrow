@@ -47,7 +47,8 @@ Diese Punkte verhindern, dass die Konsolidierung als fertig markiert wird:
 2. `apps/admin` ist funktional weit, aber noch nicht per Runbook als alleinige Quelle der Wahrheit freigegeben.
 3. `npm run qa:apps` prüft ohne vollständige `ADMIN_BASE_URL`, `GUEST_BASE_URL` und `OWNER_BASE_URL` nicht alle App-Deployment-URLs und muss deshalb als rotes App-QA-Ergebnis behandelt werden. Teilprüfungen sind nur mit `MORROW_QA_ALLOW_PARTIAL_APPS=1` zulässig.
 4. `npm run qa:launch-gates` ist rot durch 11 Blocker, zuletzt dokumentiert in `docs/LAUNCH_STATUS_SNAPSHOT_2026-06-30.md`.
-5. Rechtstexte, Secret-Rotation, Angebotsfreigabe und App-URL-/Env-Konfiguration sind noch nicht final.
+5. `npm run qa:admin-parity:preflight` ist rot; die fehlenden App-URLs und Testzugänge stehen in `docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md`.
+6. Rechtstexte, Secret-Rotation, Angebotsfreigabe und App-URL-/Env-Konfiguration sind noch nicht final.
 
 ## Abschlusskriterium Für Dieses Ziel
 
@@ -68,7 +69,8 @@ Als nächstes die App-URLs und Testdaten für das Runbook vorbereiten, dann die 
 
 1. Admin-, Guest- und Owner-Base-URLs setzen.
 2. Testlead, Testbuchung, Testkunde, Test-Auszeit, Test-Unterkunft und Test-Owner festlegen.
-3. `npm run qa:admin-parity:preflight` ausführen und fehlende URLs/Testzugänge schließen.
-4. `docs/ADMIN_PARITY_EXECUTION_PLAN.md` von Block 1 bis 6 abarbeiten.
-5. Die 24 manuellen Gates mit Evidenz abnehmen.
-6. `npm run qa:admin-parity:validate` und `npm run qa:readiness` ausführen.
+3. `docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md` abarbeiten.
+4. `npm run qa:admin-parity:preflight` ausführen und fehlende URLs/Testzugänge schließen.
+5. `docs/ADMIN_PARITY_EXECUTION_PLAN.md` von Block 1 bis 6 abarbeiten.
+6. Die 24 manuellen Gates mit Evidenz abnehmen.
+7. `npm run qa:admin-parity:validate` und `npm run qa:readiness` ausführen.

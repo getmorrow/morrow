@@ -24,6 +24,8 @@ npm run qa:admin-parity:preflight
 
 Der Preflight gibt keine Secret-Werte aus. Er prüft nur, ob die für den Paritätslauf nötigen URLs und Testzugänge vorhanden sind.
 
+Wenn der Preflight rot ist, zuerst `docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md` abarbeiten.
+
 2. Aktuelles Protokoll anlegen:
 
 ```bash
