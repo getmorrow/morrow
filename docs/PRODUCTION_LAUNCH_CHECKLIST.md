@@ -262,6 +262,12 @@ Vor Freigabe wird das neueste Protokoll direkt validiert:
 npm run qa:admin-parity:validate
 ```
 
+Zusätzlich muss die Migration selbst grün sein:
+
+```bash
+npm run qa:migration-consolidation
+```
+
 Automatisierter Basischeck:
 
 ```bash

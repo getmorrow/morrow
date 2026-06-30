@@ -55,6 +55,7 @@
     "qa:admin-parity:preflight": "node scripts/qa-admin-parity-preflight.mjs",
     "qa:admin-parity:validate": "node scripts/validate-admin-parity-run.mjs",
     "qa:admin-audit": "node scripts/qa-admin-audit-coverage.mjs",
+    "qa:migration-consolidation": "node scripts/qa-migration-consolidation.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

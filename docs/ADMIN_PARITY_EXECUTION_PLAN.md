@@ -167,6 +167,7 @@ Danach:
 ```bash
 npm run qa:admin-parity:validate
 npm run qa:readiness
+npm run qa:migration-consolidation
 ```
 
 ## Bewertungsregel

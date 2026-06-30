@@ -70,6 +70,20 @@ Fehlend:
 - Guest-Testbuchung mit Access-Code.
 - Owner-Testlogin.
 
+### `npm run qa:migration-consolidation`
+
+Ergebnis: rot.
+
+```text
+ok: false
+blockers: 1
+passed: 24
+```
+
+Blocker:
+
+- Kein Admin-Paritätslauf unter `docs/qa/admin-parity/`.
+
 ### `npm run qa:launch-gates`
 
 Ergebnis: rot.
