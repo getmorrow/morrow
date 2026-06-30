@@ -326,6 +326,14 @@ Einmal vollständig testen:
 
 ## 8a. App Production Rehearsal
 
+Vor dem Browser-Rehearsal Admin-Zugang und Rollen-/RLS-Zugriff pruefen:
+
+```bash
+ADMIN_EMAIL=<admin-email> \
+ADMIN_PASSWORD=<admin-password> \
+npm run supabase:verify-admin
+```
+
 Nach dem Deployment der drei App-Welten:
 
 ```bash

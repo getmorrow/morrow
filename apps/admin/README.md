@@ -104,6 +104,14 @@ npm run qa:admin-audit
 npm run admin:build
 ```
 
+Admin-Login und Rollen-/RLS-Zugriff pruefen:
+
+```bash
+ADMIN_EMAIL=<admin-email> \
+ADMIN_PASSWORD=<admin-password> \
+npm run supabase:verify-admin
+```
+
 Vor produktiver Fuehrung:
 
 ```bash

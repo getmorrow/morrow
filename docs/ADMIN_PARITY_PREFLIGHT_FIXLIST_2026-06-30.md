@@ -16,6 +16,7 @@ Vorhanden:
 
 - Supabase Public URL
 - Supabase anon key
+- Admin-Testlogin `auszeiten@getmorrow.de` ist per `npm run supabase:verify-admin` Login/RPC-geprueft.
 - Guest-Testbuchung `e44489db-70ec-4935-8007-588985f2fb63` mit Access-Code `QA7509EE93` ist erzeugt und per `npm run supabase:verify-guest` RPC-geprueft.
 - Owner-Testlogin `owner-qa-20260630@getmorrow.de` ist erzeugt und per `npm run supabase:verify-owner` Login/RPC-geprueft.
 - lokale `.env.local` wird gelesen
@@ -27,7 +28,6 @@ Fehlend:
 | Admin-App | `ADMIN_BASE_URL` oder `MORROW_ADMIN_APP_URL` | Admin-App im App-QA und Paritaetslauf oeffnen. |
 | Gaeste-App | `GUEST_BASE_URL` oder `MORROW_GUEST_APP_URL` | Persoenlichen Gaestebereich testen. |
 | Owner-App | `OWNER_BASE_URL` oder `MORROW_OWNER_APP_URL` | Eigentuemer-App gegen Admin-Daten pruefen. |
-| Admin-Testlogin | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Rollenbasierten Admin-Zugang pruefen. |
 
 Optional, aber fuer sauberere Protokolle hilfreich:
 

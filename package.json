@@ -31,6 +31,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "db:build": "bash scripts/build-database.sh",
     "supabase:backup": "node scripts/export-supabase-backup.mjs",
+    "supabase:verify-admin": "node scripts/verify-supabase-admin-access.mjs",
     "supabase:verify-owner": "node scripts/verify-supabase-owner-portal.mjs",
     "supabase:verify-guest": "node scripts/verify-supabase-guest-stay.mjs",
     "events:scrape": "node scripts/scrape-spo-events.mjs",
