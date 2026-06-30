@@ -76,13 +76,15 @@ Screenshot:
 
 ### `npm run qa:apps`
 
-Ergebnis: formal grün, aber ohne Aussagekraft für die App-Welten.
+Ergebnis zum Zeitpunkt des Snapshots: ohne Aussagekraft für die App-Welten, weil keine App-URLs gesetzt waren.
 
 ```text
 ok: true
 checkedApps: 0
 reason: No app base URLs set. Provide ADMIN_BASE_URL, OWNER_BASE_URL and/or GUEST_BASE_URL.
 ```
+
+Nachfolgende Konsolidierungsregel: `qa:apps` darf bei `checkedApps: 0` nicht mehr als grün gelten. Fehlende App-URLs sind ein rotes App-QA-Ergebnis, bis mindestens eine App-Base-URL geprüft wird.
 
 ## Bewertung Nach Startstufe
 

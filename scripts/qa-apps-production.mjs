@@ -139,12 +139,12 @@ const configuredTargets = targets
   .filter((target) => target.baseUrl)
 
 if (configuredTargets.length === 0) {
-  console.log(JSON.stringify({
-    ok: true,
+  console.error(JSON.stringify({
+    ok: false,
     checkedApps: 0,
     reason: 'No app base URLs set. Provide ADMIN_BASE_URL, OWNER_BASE_URL and/or GUEST_BASE_URL.',
   }, null, 2))
-  process.exit(0)
+  process.exit(1)
 }
 
 fs.mkdirSync(screenshotsDir, { recursive: true })
