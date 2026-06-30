@@ -239,6 +239,14 @@ Fuer einen reinen lokalen Statusbericht trotz bekannter Blocker:
 MORROW_QA_ALLOW_LAUNCH_BLOCKERS=1 npm run qa:launch-gates
 ```
 
+Kompakter Startstufen-Status:
+
+```bash
+npm run qa:readiness
+```
+
+Dieser Check fasst zusammen, ob Morrow nur fuer interne Tests, fuer kontrollierte echte Leads, fuer zahlende Gaeste oder fuer Paid Ads bereit ist. Er zaehlt offene Admin-Runbook-Gates, prueft die wichtigsten Launch-Freigaben und bleibt rot, solange die Admin-Paritaet nicht belegt ist.
+
 Automatisierter Basischeck:
 
 ```bash

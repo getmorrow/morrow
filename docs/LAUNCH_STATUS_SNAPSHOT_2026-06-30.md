@@ -19,6 +19,35 @@ Aktueller Status:
 
 ## Ausgeführte Checks
 
+### `npm run qa:readiness`
+
+Ergebnis: rot.
+
+```text
+ok: false
+openManualRunbookGates: 24
+uncheckedRunbookTemplateItems: 35
+legalPlaceholderFiles: 3
+blockerGroups: 7
+```
+
+Blockergruppen:
+
+- Admin-Paritätslauf noch nicht ausgeführt.
+- Rechtstexte/Freigaben noch nicht sauber.
+- Supabase Public Env im aktuellen Gate-Kontext nicht gesetzt.
+- Admin-, Gäste- und Owner-App-URLs im aktuellen Gate-Kontext nicht gesetzt.
+- Secret-Rotation nicht bestätigt.
+- Angebotsdaten nicht freigegeben.
+- Tracking/Consent nicht freigegeben oder nicht konfiguriert.
+
+Dieser Check ist die kompakte Startstufen-Ampel für:
+
+- interne Tests
+- kontrollierte echte Leads
+- zahlende Gäste
+- Paid Ads
+
 ### `npm run qa:launch-gates`
 
 Ergebnis: rot.

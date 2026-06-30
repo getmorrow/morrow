@@ -40,6 +40,7 @@ npx supabase db push --dry-run --linked
 git diff --check
 npm run lint
 npm run qa:admin-audit
+npm run qa:readiness
 npm run admin:build
 npm run guest:build
 npm run owner:build
@@ -172,6 +173,7 @@ Automatische Gates:
 - [ ] git diff --check
 - [ ] npm run lint
 - [ ] npm run qa:admin-audit
+- [ ] npm run qa:readiness
 - [ ] npm run admin:build
 - [ ] npm run guest:build
 - [ ] npm run owner:build

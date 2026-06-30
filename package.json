@@ -50,6 +50,7 @@
     "qa:production": "node scripts/qa-production-rehearsal.mjs",
     "qa:apps": "node scripts/qa-apps-production.mjs",
     "qa:launch-gates": "node scripts/qa-launch-gates.mjs",
+    "qa:readiness": "node scripts/qa-readiness-summary.mjs",
     "qa:admin-audit": "node scripts/qa-admin-audit-coverage.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
