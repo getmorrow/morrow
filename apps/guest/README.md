@@ -72,7 +72,17 @@ npm run supabase:seed-active-guest-test
 Der Seed benoetigt `SUPABASE_SERVICE_ROLE_KEY` und erzeugt:
 
 ```text
-/deine-auszeit/11111111-1111-4111-8111-111111111111?code=MORROW1
+GUEST_BOOKING_ID=...
+GUEST_ACCESS_CODE=...
+url: /deine-auszeit/<booking-id>?code=<access-code>
+```
+
+Fuer einen reproduzierbaren Testlauf koennen die Werte bewusst vorgegeben werden:
+
+```bash
+GUEST_TEST_BOOKING_ID=<uuid> \
+GUEST_TEST_ACCESS_CODE=<code> \
+npm run supabase:seed-active-guest-test
 ```
 
 Wiederholbarer Supabase-/Browser-Check:

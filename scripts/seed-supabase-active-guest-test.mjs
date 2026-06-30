@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { randomBytes, randomUUID } from 'node:crypto'
 import { packages } from '../src/data.ts'
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
@@ -11,8 +12,12 @@ if (!supabaseUrl || !serviceRoleKey) {
 
 const supabase = createClient(supabaseUrl, serviceRoleKey)
 const now = new Date().toISOString()
-const bookingId = '11111111-1111-4111-8111-111111111111'
-const guestAccessCode = 'MORROW1'
+const bookingId = process.env.GUEST_TEST_BOOKING_ID || process.env.GUEST_BOOKING_ID || randomUUID()
+const guestAccessCode = (
+  process.env.GUEST_TEST_ACCESS_CODE ||
+  process.env.GUEST_ACCESS_CODE ||
+  `QA${randomBytes(4).toString('hex').toUpperCase()}`
+).toUpperCase()
 const packageItem = packages.find((item) => item.slug === 'couple-reset') ?? packages[0]
 
 if (!packageItem) {
@@ -177,4 +182,6 @@ const bookingResult = await supabase
 if (bookingResult.error) throw bookingResult.error
 
 console.log('active-next-guest-test-seeded')
+console.log(`GUEST_BOOKING_ID=${bookingId}`)
+console.log(`GUEST_ACCESS_CODE=${guestAccessCode}`)
 console.log(`url: /deine-auszeit/${bookingId}?code=${guestAccessCode}`)

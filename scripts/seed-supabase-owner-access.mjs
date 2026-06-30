@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { randomBytes } from 'node:crypto'
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -6,7 +7,9 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const ownerEmail = process.env.OWNER_EMAIL
 const ownerName = process.env.OWNER_NAME ?? null
 const ownerPhone = process.env.OWNER_PHONE ?? null
-const ownerAuthUserId = process.env.OWNER_AUTH_USER_ID ?? null
+let ownerAuthUserId = process.env.OWNER_AUTH_USER_ID ?? null
+let ownerPassword = process.env.OWNER_PASSWORD ?? null
+const shouldCreateAuthUser = process.env.OWNER_CREATE_AUTH_USER === '1'
 const propertyIds = (process.env.OWNER_PROPERTY_IDS ?? '')
   .split(',')
   .map((id) => id.trim())
@@ -23,6 +26,22 @@ if (!ownerEmail || propertyIds.length === 0) {
 }
 
 const supabase = createClient(supabaseUrl, serviceRoleKey)
+
+if (shouldCreateAuthUser && !ownerAuthUserId) {
+  ownerPassword = ownerPassword || `Morrow-${randomBytes(18).toString('base64url')}!1`
+
+  const authResult = await supabase.auth.admin.createUser({
+    email: ownerEmail,
+    password: ownerPassword,
+    email_confirm: true,
+    user_metadata: {
+      source: 'owner-access-seed',
+    },
+  })
+
+  if (authResult.error) throw authResult.error
+  ownerAuthUserId = authResult.data.user.id
+}
 
 const ownerProfilePayload = {
   email: ownerEmail,
@@ -62,3 +81,7 @@ for (const propertyId of propertyIds) {
 }
 
 console.log('supabase-owner-access-seeded')
+if (shouldCreateAuthUser) {
+  console.log(`OWNER_EMAIL=${ownerEmail}`)
+  console.log(`OWNER_PASSWORD=${ownerPassword}`)
+}

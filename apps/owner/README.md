@@ -92,6 +92,18 @@ OWNER_VERIFY_OPERATION_ACCESS=1 \
 npm run supabase:verify-owner
 ```
 
+Persistenter QA-Owner fuer den Admin-Paritaetslauf:
+
+```bash
+OWNER_CREATE_AUTH_USER=1 \
+OWNER_EMAIL=owner-qa-<datum>@getmorrow.de \
+OWNER_NAME="Morrow QA Owner" \
+OWNER_PROPERTY_IDS=<property-id> \
+npm run supabase:seed-owner-access
+```
+
+Die Ausgabe enthaelt `OWNER_EMAIL` und `OWNER_PASSWORD`. Das Passwort nicht committen, sondern nur lokal fuer `qa:admin-parity:preflight` und `qa:apps` setzen.
+
 Production-App-QA:
 
 ```bash

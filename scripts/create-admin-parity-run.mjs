@@ -42,6 +42,7 @@ Testdaten:
 
 ## Automatische Gates
 
+- [ ] npm run qa:admin-parity:preflight
 - [ ] npm run typecheck
 - [ ] npx supabase db push --dry-run --linked
 - [ ] git diff --check

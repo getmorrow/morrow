@@ -65,14 +65,17 @@ Vorhanden:
 - Supabase Public URL lokal gesetzt.
 - Supabase anon key lokal gesetzt.
 
+Vorbereitet:
+
+- Guest-Testbuchung `e44489db-70ec-4935-8007-588985f2fb63` mit Access-Code `QA7509EE93`; `npm run supabase:verify-guest` ist per RPC grün.
+- Owner-Testlogin `owner-qa-20260630@getmorrow.de`; `npm run supabase:verify-owner` ist per Login/RPC grün.
+
 Fehlend:
 
 - Admin-App-URL.
 - Gäste-App-URL.
 - Owner-App-URL.
 - Admin-Testlogin.
-- Guest-Testbuchung mit Access-Code.
-- Owner-Testlogin.
 
 ### `npm run qa:migration-consolidation`
 

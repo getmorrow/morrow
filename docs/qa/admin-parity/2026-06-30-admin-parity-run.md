@@ -16,14 +16,15 @@ URLs:
 
 Testdaten:
 - Testlead:
-- Testbuchung:
+- Testbuchung: `e44489db-70ec-4935-8007-588985f2fb63`
 - Testkunde:
 - Test-Auszeit:
 - Test-Unterkunft:
-- Test-Owner:
+- Test-Owner: `owner-qa-20260630@getmorrow.de`
 
 ## Automatische Gates
 
+- [ ] npm run qa:admin-parity:preflight
 - [x] npm run typecheck
 - [x] npx supabase db push --dry-run --linked
 - [x] git diff --check
@@ -72,7 +73,8 @@ Screenshots:
 - 
 
 Supabase-Datensätze:
-- 
+- Guest-Testbuchung `e44489db-70ec-4935-8007-588985f2fb63` mit Access-Code `QA7509EE93` erzeugt; `npm run supabase:verify-guest` grün per RPC: Status `Vor Anreise`, Auszeit `Couple Reset`, Gast `Sophie Krüger`.
+- Owner-Testlogin `owner-qa-20260630@getmorrow.de` erzeugt; `npm run supabase:verify-owner` grün per Login/RPC: 1 Objekt, 1 Auszeit, 2 Termine, 6 Buchungen sichtbar.
 
 E-Mail-/Communication-Events:
 - 
@@ -82,7 +84,7 @@ Audit-Log-Einträge:
 
 Offene Blocker:
 - `npm run qa:readiness` rot: Admin-Paritätslauf nicht grün, Rechtstexte/Env/App-URLs/Secrets/Angebotsdaten/Tracking offen.
-- `npm run qa:admin-parity:preflight` rot: Admin-, Gäste- und Owner-App-URL fehlen; Admin-Testlogin, Guest-Testbuchung mit Access-Code und Owner-Testlogin fehlen.
+- `npm run qa:admin-parity:preflight` rot: Admin-, Gäste- und Owner-App-URL fehlen; Admin-Testlogin fehlt. Guest-Testbuchung und Owner-Testlogin sind vorbereitet und per RPC/Login geprüft.
 - `npm run qa:launch-gates` rot: 11 Blocker, darunter Rechtstexte/Arbeitsfassungen, Supabase Public Env, App-URLs, Secret-Rotation und Angebotsfreigabe.
 - `npm run qa:apps` rot: `checkedApps: 0`, keine App Base URLs gesetzt.
 - Manuelle Gates 1-24 noch nicht durchgeführt und ohne Evidenz.
