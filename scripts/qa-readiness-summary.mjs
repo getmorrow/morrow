@@ -35,6 +35,23 @@ function findLatestLaunchSnapshot() {
   return snapshots.at(-1) ? `docs/${snapshots.at(-1)}` : null
 }
 
+function findLatestAdminParityRun() {
+  const runsDir = path.join(rootDir, 'docs/qa/admin-parity')
+  if (!fs.existsSync(runsDir)) return null
+
+  const runs = fs
+    .readdirSync(runsDir)
+    .filter((file) => /^\d{4}-\d{2}-\d{2}-admin-parity-run\.md$/.test(file))
+    .sort()
+
+  return runs.at(-1) ? `docs/qa/admin-parity/${runs.at(-1)}` : null
+}
+
+function extractAdminParityResult(body) {
+  const match = body.match(/^Ergebnis:\s*(.+)$/im)
+  return match?.[1]?.trim() || 'Missing'
+}
+
 const requiredDocs = [
   'docs/MORROW_MASTER_FRAME.md',
   'docs/STRATEGIC_FOUNDATION_MORROW.md',
@@ -65,12 +82,29 @@ const legalPlaceholderPatterns = [
 ]
 
 const latestSnapshot = findLatestLaunchSnapshot()
+const latestAdminParityRun = findLatestAdminParityRun()
 const runbookPath = 'docs/ADMIN_PARITY_QA_RUNBOOK.md'
 const runbook = exists(runbookPath) ? read(runbookPath) : ''
+const parityRun = latestAdminParityRun ? read(latestAdminParityRun) : ''
 
 const missingDocs = requiredDocs.filter((doc) => !exists(doc))
-const openManualGates = countMatches(runbook, /\|\s*\d+\s+\|[^\n]*\|\s*Offen\s*\|/g)
-const uncheckedTemplateGates = countMatches(runbook, /- \[ \]/g)
+const openRunbookManualGates = countMatches(runbook, /\|\s*\d+\s+\|[^\n]*\|\s*Offen\s*\|/g)
+const uncheckedRunbookTemplateGates = countMatches(runbook, /- \[ \]/g)
+const openParityRunManualGates = parityRun
+  ? countMatches(parityRun, /\|\s*\d+\s+\|[^\n]*\|\s*Offen\s*\|/g)
+  : null
+const uncheckedParityRunItems = parityRun ? countMatches(parityRun, /- \[ \]/g) : null
+const adminParityResult = parityRun ? extractAdminParityResult(parityRun) : 'Missing'
+const adminParityResultNormalized = adminParityResult
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+const adminParityRunComplete = Boolean(parityRun)
+  && openParityRunManualGates === 0
+  && uncheckedParityRunItems === 0
+const adminParityGreen = adminParityRunComplete && adminParityResultNormalized === 'grun'
+const adminParityAllowsControlledLeads = adminParityRunComplete
+  && ['gelb', 'grun'].includes(adminParityResultNormalized)
 
 const legalPlaceholders = legalFiles.flatMap(([file, label]) => {
   if (!exists(file)) return [{ file, label, issue: 'missing' }]
@@ -92,7 +126,10 @@ const checks = {
   docsPresent: missingDocs.length === 0,
   launchSnapshotPresent: Boolean(latestSnapshot),
   adminRunbookPresent: Boolean(runbook),
-  adminRunbookExecuted: openManualGates === 0 && uncheckedTemplateGates === 0,
+  adminParityRunPresent: Boolean(latestAdminParityRun),
+  adminParityRunComplete,
+  adminParityAllowsControlledLeads,
+  adminParityGreen,
   legalClean: legalPlaceholders.length === 0 && env('MORROW_LEGAL_APPROVED_AT'),
   supabasePublicEnv: envAny(['NEXT_PUBLIC_SUPABASE_URL', 'VITE_SUPABASE_URL'])
     && envAny(['NEXT_PUBLIC_SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY']),
@@ -113,6 +150,7 @@ const stageStatus = {
     && checks.supabasePublicEnv
     && checks.appUrlsComplete
     && checks.secretsRotated
+    && checks.adminParityAllowsControlledLeads
       ? 'yellow'
       : 'red',
   paidGuests:
@@ -121,7 +159,7 @@ const stageStatus = {
     && checks.appUrlsComplete
     && checks.secretsRotated
     && checks.offerDataApproved
-    && checks.adminRunbookExecuted
+    && checks.adminParityGreen
       ? 'green'
       : 'red',
   paidAds:
@@ -131,7 +169,7 @@ const stageStatus = {
     && checks.secretsRotated
     && checks.offerDataApproved
     && checks.trackingApproved
-    && checks.adminRunbookExecuted
+    && checks.adminParityGreen
       ? 'green'
       : 'red',
 }
@@ -140,10 +178,23 @@ const blockers = []
 if (missingDocs.length > 0) blockers.push({ id: 'docs:missing', detail: missingDocs })
 if (!latestSnapshot) blockers.push({ id: 'launch:snapshot-missing' })
 if (!checks.adminRunbookPresent) blockers.push({ id: 'admin:runbook-missing' })
-if (!checks.adminRunbookExecuted) {
+if (!checks.adminParityRunPresent) {
   blockers.push({
-    id: 'admin:runbook-not-executed',
-    detail: { openManualGates, uncheckedTemplateGates },
+    id: 'admin:parity-run-missing',
+    detail: {
+      runbookOpenManualGates: openRunbookManualGates,
+      runbookUncheckedTemplateItems: uncheckedRunbookTemplateGates,
+    },
+  })
+} else if (!checks.adminParityRunComplete || !checks.adminParityGreen) {
+  blockers.push({
+    id: 'admin:parity-run-not-green',
+    detail: {
+      latestAdminParityRun,
+      adminParityResult,
+      openParityRunManualGates,
+      uncheckedParityRunItems,
+    },
   })
 }
 if (!checks.legalClean) blockers.push({ id: 'legal:not-approved-or-placeholders', detail: legalPlaceholders })
@@ -156,11 +207,15 @@ if (!checks.trackingApproved) blockers.push({ id: 'tracking:not-approved-or-miss
 const result = {
   ok: stageStatus.paidGuests === 'green' && stageStatus.paidAds === 'green',
   latestSnapshot,
+  latestAdminParityRun,
+  adminParityResult,
   checks,
   stageStatus,
   counts: {
-    openManualRunbookGates: openManualGates,
-    uncheckedRunbookTemplateItems: uncheckedTemplateGates,
+    openRunbookManualGates,
+    uncheckedRunbookTemplateItems: uncheckedRunbookTemplateGates,
+    openParityRunManualGates,
+    uncheckedParityRunItems,
     legalPlaceholderFiles: legalPlaceholders.length,
     blockers: blockers.length,
   },

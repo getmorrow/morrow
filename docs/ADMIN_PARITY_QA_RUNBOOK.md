@@ -143,11 +143,29 @@ Für jeden Testlauf festhalten:
 - Ergebnis: Grün, Gelb oder Rot.
 - Offene Folgeaufgaben.
 
-Empfohlener Ablageort: `docs/PAGE_REVIEW_LOG.md` für visuelle/UX-Evidenz und `docs/ADMIN_CRM_PARITY_CHECKLIST.md` für fachliche Parität.
+Verbindlicher Ablageort für Admin-Paritätsläufe: `docs/qa/admin-parity/`.
+
+Neues Protokoll erzeugen:
+
+```bash
+npm run qa:admin-parity:new
+```
+
+Optional mit Tester-/Umgebungsangaben:
+
+```bash
+QA_TESTER="Gerwin / Codex" \
+QA_ENVIRONMENT="Production" \
+npm run qa:admin-parity:new
+```
+
+`npm run qa:readiness` liest den neuesten Lauf aus `docs/qa/admin-parity/` aus. Ein Runbook ohne ausgefülltes Protokoll gilt nicht als Abnahme.
+
+Ergänzend können visuelle/UX-Notizen in `docs/PAGE_REVIEW_LOG.md` und fachliche Paritätsentscheidungen in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` festgehalten werden.
 
 ## Abnahmeprotokoll Vorlage
 
-Diese Vorlage wird pro echtem Testlauf kopiert und ausgefüllt. Ein leerer oder nur teilweise ausgefüllter Lauf gilt nicht als Freigabe.
+Diese Vorlage wird vom Generator pro echtem Testlauf angelegt und ausgefüllt. Ein leerer oder nur teilweise ausgefüllter Lauf gilt nicht als Freigabe.
 
 ```md
 ## YYYY-MM-DD - Admin Parity QA Run

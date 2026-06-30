@@ -51,6 +51,7 @@
     "qa:apps": "node scripts/qa-apps-production.mjs",
     "qa:launch-gates": "node scripts/qa-launch-gates.mjs",
     "qa:readiness": "node scripts/qa-readiness-summary.mjs",
+    "qa:admin-parity:new": "node scripts/create-admin-parity-run.mjs",
     "qa:admin-audit": "node scripts/qa-admin-audit-coverage.mjs",
     "lint": "eslint .",
     "preview": "vite preview"

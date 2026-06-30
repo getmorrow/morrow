@@ -25,7 +25,9 @@ Ergebnis: rot.
 
 ```text
 ok: false
-openManualRunbookGates: 24
+latestAdminParityRun: null
+adminParityResult: Missing
+openRunbookManualGates: 24
 uncheckedRunbookTemplateItems: 35
 legalPlaceholderFiles: 3
 blockerGroups: 7
@@ -33,7 +35,7 @@ blockerGroups: 7
 
 Blockergruppen:
 
-- Admin-Paritätslauf noch nicht ausgeführt.
+- Admin-Paritätslauf unter `docs/qa/admin-parity/` fehlt noch.
 - Rechtstexte/Freigaben noch nicht sauber.
 - Supabase Public Env im aktuellen Gate-Kontext nicht gesetzt.
 - Admin-, Gäste- und Owner-App-URLs im aktuellen Gate-Kontext nicht gesetzt.
