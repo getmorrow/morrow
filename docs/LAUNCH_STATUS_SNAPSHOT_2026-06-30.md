@@ -11,6 +11,7 @@ Morrow ist weiterhin öffentlich erreichbar und technisch weit, aber noch nicht 
 Aktueller Status:
 
 - Öffentliche Website: Production-Basischeck grün.
+- Admin-Paritätslauf: angelegt, aber rot/offen.
 - Launch-Gates: rot durch 11 Blocker.
 - App-QA: rot, weil Admin-, Gäste- und Owner-App-URLs nicht gesetzt sind.
 - Paid Ads: nicht freigeben.
@@ -25,17 +26,20 @@ Ergebnis: rot.
 
 ```text
 ok: false
-latestAdminParityRun: null
-adminParityResult: Missing
+latestAdminParityRun: docs/qa/admin-parity/2026-06-30-admin-parity-run.md
+adminParityResult: Offen
 openRunbookManualGates: 24
-uncheckedRunbookTemplateItems: 36
+uncheckedRunbookTemplateItems: 37
+openParityRunManualGates: 24
+uncheckedParityRunItems: 12
+missingParityRunEvidenceRows: 24
 legalPlaceholderFiles: 3
 blockerGroups: 7
 ```
 
 Blockergruppen:
 
-- Admin-Paritätslauf unter `docs/qa/admin-parity/` fehlt noch.
+- Admin-Paritätslauf unter `docs/qa/admin-parity/2026-06-30-admin-parity-run.md` ist vorhanden, aber nicht grün: 12 automatische Gates offen, 24 manuelle Gates offen, 24 Evidenzen fehlen.
 - Rechtstexte/Freigaben noch nicht sauber.
 - Supabase Public Env im aktuellen Gate-Kontext nicht gesetzt.
 - Admin-, Gäste- und Owner-App-URLs im aktuellen Gate-Kontext nicht gesetzt.
@@ -82,7 +86,11 @@ passed: 24
 
 Blocker:
 
-- Kein Admin-Paritätslauf unter `docs/qa/admin-parity/`.
+- Der neueste Admin-Paritätslauf `docs/qa/admin-parity/2026-06-30-admin-parity-run.md` ist noch nicht validiert grün.
+- Ergebnis steht auf `Offen`.
+- 12 automatische Gates sind nicht abgehakt.
+- 24 manuelle Gates stehen auf `Offen`.
+- 24 manuelle Gates haben noch keine Evidenz.
 
 ### `npm run qa:launch-gates`
 
@@ -164,17 +172,25 @@ Aktuelle Regel:
 | --- | --- | --- |
 | Interne Tests | Grün | Lokale Checks und Doku-Gates laufen; Runbook ist vorbereitet. |
 | Öffentliche Website live sichtbar | Grün/Gelb | Website ist erreichbar, aber Rechtstexte, Env und Freigaben sind offen. |
-| Kontrollierte echte Leads | Gelb/Rot | Erst nach rechtlicher Mindestbereinigung, App-URLs und Admin-Paritätslauf mindestens gelb. |
+| Kontrollierte echte Leads | Rot | Erst nach rechtlicher Mindestbereinigung, App-URLs und Admin-Paritätslauf mindestens gelb. |
 | Zahlende Gäste | Rot | Admin-Paritätsrun muss grün sein; App-QA, Recht, Secrets und Angebotsdaten müssen abgeschlossen sein. |
 | Paid Ads | Rot | Tracking/Consent, Recht, Conversion-Messung und Angebotsfreigabe sind nicht final. |
 
 ## Nächste Konsolidierungsschritte
 
-1. Rechtstexte und Impressum aus Arbeitsfassung/Platzhalterstatus bringen.
-2. App-Projekt-URLs für Admin, Gäste und Owner final in Vercel setzen.
-3. Supabase Public Env im Launch-Gate-Kontext setzen.
-4. Geteilte Secrets rotieren und `MORROW_SECRETS_ROTATED_AT` erst danach setzen.
-5. Finale Angebotsdaten freigeben und `MORROW_OFFER_DATA_APPROVED_AT` setzen.
-6. Tracking-/Consent-Entscheidung treffen und bei Bedarf GA/Meta-IDs testen.
-7. `docs/ADMIN_PARITY_EXECUTION_PLAN.md` mit echten Testdaten abarbeiten und Protokoll unter `docs/qa/admin-parity/` ausfüllen.
-8. `npm run qa:admin-parity:validate`, `npm run qa:readiness`, `npm run qa:launch-gates`, `npm run qa:production` und `npm run qa:apps` erneut mit allen URLs und Testzugängen ausführen.
+### Reihenfolge Bis Kontrollierte Echte Leads
+
+1. App-Projekt-URLs für Admin, Gäste und Owner final in Vercel setzen und in `.env.local`/Shell für QA hinterlegen.
+2. Testdaten für den Paritätslauf vorbereiten: Admin-Testlogin, Guest-Testbuchung mit Access-Code, Owner-Testlogin.
+3. `npm run qa:admin-parity:preflight` grün bekommen.
+4. `docs/ADMIN_PARITY_EXECUTION_PLAN.md` mit echten Testdaten abarbeiten und `docs/qa/admin-parity/2026-06-30-admin-parity-run.md` mit Evidenz füllen.
+5. Rechtstexte und Impressum aus Arbeitsfassung/Platzhalterstatus bringen.
+6. Supabase Public Env im Launch-Gate-Kontext setzen.
+7. `npm run qa:admin-parity:validate`, `npm run qa:readiness`, `npm run qa:migration-consolidation`, `npm run qa:launch-gates`, `QA_BASE_URL=https://www.getmorrow.de npm run qa:production` und `npm run qa:apps` erneut ausführen.
+
+### Danach Erst Für Zahlende Gäste
+
+1. Geteilte Secrets rotieren und `MORROW_SECRETS_ROTATED_AT` erst danach setzen.
+2. Finale Angebotsdaten freigeben und `MORROW_OFFER_DATA_APPROVED_AT` setzen.
+3. Tracking-/Consent-Entscheidung treffen und bei Bedarf GA/Meta-IDs testen.
+4. Admin-Paritätslauf auf `Grün` bringen; `Gelb` reicht höchstens für kontrollierte echte Leads, nicht für zahlende Gäste.
