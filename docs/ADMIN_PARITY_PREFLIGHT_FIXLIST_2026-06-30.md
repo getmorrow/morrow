@@ -29,6 +29,14 @@ Fehlend:
 | Gaeste-App | `GUEST_BASE_URL` oder `MORROW_GUEST_APP_URL` | Persoenlichen Gaestebereich testen. |
 | Owner-App | `OWNER_BASE_URL` oder `MORROW_OWNER_APP_URL` | Eigentuemer-App gegen Admin-Daten pruefen. |
 
+Preflight-Regel:
+
+- Eine App-URL gilt erst als gesetzt, wenn `<app-url>/health` erreichbar ist.
+- Admin muss `{"app":"admin","status":"ok"}` liefern.
+- Gaeste-App muss `{"app":"guest","status":"ok"}` liefern.
+- Owner-App muss `{"app":"owner","status":"ok"}` liefern.
+- Website-Pfade wie `https://www.getmorrow.de/admin` oder `https://www.getmorrow.de/deine-auszeit` duerfen nicht als App-Base-URLs gelten, solange sie kein passendes App-Health-Signal liefern.
+
 ## Live-Routing-Evidenz
 
 Stand 2026-06-30:

@@ -57,6 +57,69 @@ function labelAny(names) {
   return names.join(' or ')
 }
 
+function firstUsableValue(names) {
+  for (const name of names) {
+    if (has(name)) return value(name)
+  }
+
+  return ''
+}
+
+function normalizeBaseUrl(url) {
+  return url.trim().replace(/\/$/, '')
+}
+
+async function checkAppHealth(names, expectedApp) {
+  const rawUrl = firstUsableValue(names)
+
+  if (!rawUrl) {
+    return {
+      pass: false,
+      missing: labelAny(names),
+    }
+  }
+
+  const baseUrl = normalizeBaseUrl(rawUrl)
+
+  try {
+    const response = await fetch(`${baseUrl}/health`, {
+      headers: { accept: 'application/json' },
+    })
+
+    if (!response.ok) {
+      return {
+        pass: false,
+        missing: `${labelAny(names)} with /health returning app=${expectedApp}`,
+        detail: `${baseUrl}/health returned HTTP ${response.status}`,
+      }
+    }
+
+    const body = await response.json()
+    if (body?.app !== expectedApp || body?.status !== 'ok') {
+      return {
+        pass: false,
+        missing: `${labelAny(names)} with /health returning app=${expectedApp}`,
+        detail: `${baseUrl}/health returned app=${body?.app ?? 'missing'} status=${body?.status ?? 'missing'}`,
+      }
+    }
+
+    return {
+      pass: true,
+      detail: `${baseUrl}/health returned app=${body.app} status=${body.status}`,
+    }
+  } catch (error) {
+    return {
+      pass: false,
+      missing: `${labelAny(names)} with reachable /health`,
+      detail: `${baseUrl}/health failed: ${error instanceof Error ? error.message : String(error)}`,
+    }
+  }
+}
+
+const adminApp = await checkAppHealth(['ADMIN_BASE_URL', 'MORROW_ADMIN_APP_URL'], 'admin')
+const guestApp = await checkAppHealth(['GUEST_BASE_URL', 'MORROW_GUEST_APP_URL'], 'guest')
+const ownerApp = await checkAppHealth(['OWNER_BASE_URL', 'MORROW_OWNER_APP_URL'], 'owner')
+
 const requiredGroups = [
   {
     id: 'website:url',
@@ -79,20 +142,23 @@ const requiredGroups = [
   {
     id: 'apps:admin-url',
     label: 'Admin app URL',
-    pass: hasAny(['ADMIN_BASE_URL', 'MORROW_ADMIN_APP_URL']),
-    missing: labelAny(['ADMIN_BASE_URL', 'MORROW_ADMIN_APP_URL']),
+    pass: adminApp.pass,
+    missing: adminApp.missing,
+    detail: adminApp.detail,
   },
   {
     id: 'apps:guest-url',
     label: 'Guest app URL',
-    pass: hasAny(['GUEST_BASE_URL', 'MORROW_GUEST_APP_URL']),
-    missing: labelAny(['GUEST_BASE_URL', 'MORROW_GUEST_APP_URL']),
+    pass: guestApp.pass,
+    missing: guestApp.missing,
+    detail: guestApp.detail,
   },
   {
     id: 'apps:owner-url',
     label: 'Owner app URL',
-    pass: hasAny(['OWNER_BASE_URL', 'MORROW_OWNER_APP_URL']),
-    missing: labelAny(['OWNER_BASE_URL', 'MORROW_OWNER_APP_URL']),
+    pass: ownerApp.pass,
+    missing: ownerApp.missing,
+    detail: ownerApp.detail,
   },
   {
     id: 'admin:credentials',
