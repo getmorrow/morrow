@@ -6,6 +6,8 @@ Quelle: `npm run qa:admin-parity:preflight`
 
 Diese Liste dokumentiert, was vor dem echten Admin-Paritaetslauf noch gesetzt werden muss. Sie enthaelt bewusst keine Secret-Werte.
 
+Wichtig: Der Preflight akzeptiert keine Platzhalterwerte wie `https://<admin-app-domain>`, `example.com`, Dummy-Buchungs-IDs oder bekannte Template-Beispiele.
+
 ## Ergebnis
 
 Status: rot

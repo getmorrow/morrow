@@ -27,8 +27,26 @@ function value(name) {
   return process.env[name] || envFile[name] || ''
 }
 
+function isPlaceholder(value) {
+  const normalized = value.trim()
+  if (!normalized) return true
+
+  return [
+    /^<.+>$/,
+    /<[^>]+>/,
+    /example\.com/i,
+    /eigentuemer@example\.com/i,
+    /^https:\/\/<.+>$/i,
+    /^11111111-1111-4111-8111-111111111111$/i,
+    /^MORROW1$/i,
+    /^your_/i,
+    /^todo$/i,
+    /^tbd$/i,
+  ].some((pattern) => pattern.test(normalized))
+}
+
 function has(name) {
-  return Boolean(value(name))
+  return !isPlaceholder(value(name))
 }
 
 function hasAny(names) {
