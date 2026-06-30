@@ -16,7 +16,13 @@ Nicht beweisen:
 
 ## Vor Dem Lauf
 
-1. Preflight ausführen:
+1. Fehlende Testlauf-Werte anhand der Vorlage setzen:
+
+```bash
+docs/qa/admin-parity/env.template
+```
+
+2. Preflight ausführen:
 
 ```bash
 npm run qa:admin-parity:preflight
@@ -26,7 +32,7 @@ Der Preflight gibt keine Secret-Werte aus. Er prüft nur, ob die für den Parit�
 
 Wenn der Preflight rot ist, zuerst `docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md` abarbeiten.
 
-2. Aktuelles Protokoll anlegen:
+3. Aktuelles Protokoll anlegen:
 
 ```bash
 QA_TESTER="Gerwin / Codex" \
@@ -34,7 +40,7 @@ QA_ENVIRONMENT="Production oder Staging" \
 npm run qa:admin-parity:new
 ```
 
-3. Testdaten im Protokoll eintragen:
+4. Testdaten im Protokoll eintragen:
 
 - Website-URL
 - Admin-URL
@@ -47,7 +53,7 @@ npm run qa:admin-parity:new
 - Test-Unterkunft
 - Test-Owner
 
-4. Automatische Gates ausfuehren und im Protokoll abhaken.
+5. Automatische Gates ausfuehren und im Protokoll abhaken.
 
 ## Laufreihenfolge
 

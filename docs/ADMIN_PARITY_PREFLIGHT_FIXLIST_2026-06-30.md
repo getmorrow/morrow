@@ -39,6 +39,7 @@ Optional, aber fuer sauberere Protokolle hilfreich:
 Lokal:
 
 - `.env.local`
+- Vorlage: `docs/qa/admin-parity/env.template`
 
 Vercel/Deployment:
 
@@ -46,6 +47,9 @@ Vercel/Deployment:
 - Website-Projekt benoetigt zusaetzlich `MORROW_ADMIN_APP_URL`, `MORROW_GUEST_APP_URL`, `MORROW_OWNER_APP_URL` fuer Redirect-/Launch-Gates.
 
 ## Danach Ausfuehren
+
+1. Fehlende Werte aus `docs/qa/admin-parity/env.template` in `.env.local` oder als Shell-Exports setzen.
+2. Preflight erneut ausfuehren:
 
 ```bash
 npm run qa:admin-parity:preflight

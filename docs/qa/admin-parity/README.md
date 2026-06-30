@@ -2,6 +2,12 @@
 
 Hier werden konkrete Admin-Paritaetslaeufe abgelegt.
 
+Env-Vorlage fuer den Lauf:
+
+```bash
+docs/qa/admin-parity/env.template
+```
+
 Neues Protokoll erzeugen:
 
 ```bash
