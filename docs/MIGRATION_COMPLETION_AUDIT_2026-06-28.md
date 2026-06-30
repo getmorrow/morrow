@@ -34,6 +34,7 @@ Aktuelle Entscheidung:
 - Bestandsaufnahme und Migrationsmatrix existieren zentral.
 - Admin-Paritätscheckliste existiert mit Status pro Bereich.
 - Operatives Admin-Paritäts-Runbook existiert inklusive Stop-Regeln und Evidenzvorlage.
+- Konkreter Admin-Paritäts-Ausführungsplan existiert in `docs/ADMIN_PARITY_EXECUTION_PLAN.md` und ordnet die 24 Gates in eine praktische Testreihenfolge.
 - Launch-Status-Snapshot dokumentiert aktuelle Blocker aus `qa:launch-gates`.
 - Build-/QA-Kommandos sind dokumentiert und zuletzt für Konsolidierungsänderungen grün gelaufen.
 - `qa:admin-audit` prüft aktuell 34 mutierende Admin-Funktionen auf Audit-Logs.
@@ -42,7 +43,7 @@ Aktuelle Entscheidung:
 
 Diese Punkte verhindern, dass die Konsolidierung als fertig markiert wird:
 
-1. `docs/ADMIN_PARITY_QA_RUNBOOK.md` wurde noch nicht mit echten Testdaten vollständig ausgefüllt.
+1. Es liegt noch kein validiertes Protokoll unter `docs/qa/admin-parity/` vor.
 2. `apps/admin` ist funktional weit, aber noch nicht per Runbook als alleinige Quelle der Wahrheit freigegeben.
 3. `npm run qa:apps` prüft ohne vollständige `ADMIN_BASE_URL`, `GUEST_BASE_URL` und `OWNER_BASE_URL` nicht alle App-Deployment-URLs und muss deshalb als rotes App-QA-Ergebnis behandelt werden. Teilprüfungen sind nur mit `MORROW_QA_ALLOW_PARTIAL_APPS=1` zulässig.
 4. `npm run qa:launch-gates` ist rot durch 11 Blocker, zuletzt dokumentiert in `docs/LAUNCH_STATUS_SNAPSHOT_2026-06-30.md`.
@@ -52,8 +53,9 @@ Diese Punkte verhindern, dass die Konsolidierung als fertig markiert wird:
 
 Die Konsolidierung darf erst als abgeschlossen gelten, wenn mindestens diese Evidenz vorliegt:
 
-- `docs/ADMIN_PARITY_QA_RUNBOOK.md` ist mit realitätsnahen Testdaten vollständig ausgefüllt.
-- Ergebnis des Runbooks ist grün oder jedes rote/gelbe Ergebnis ist bewusst als nicht mehr benötigte Vite-Funktion dokumentiert.
+- Ein Admin-Paritätsprotokoll unter `docs/qa/admin-parity/` ist mit realitätsnahen Testdaten vollständig ausgefüllt.
+- `npm run qa:admin-parity:validate` ist grün.
+- Ergebnis des validierten Protokolls ist grün oder jedes rote/gelbe Ergebnis ist bewusst als nicht mehr benötigte Vite-Funktion dokumentiert.
 - `npm run qa:launch-gates` läuft ohne Blocker oder bekannte Blocker sind ausdrücklich als Nicht-Launch-relevant dokumentiert.
 - `npm run qa:apps` prüft Admin-, Guest- und Owner-Production- oder Staging-URLs tatsächlich mit `checkedApps: 3` und läuft ohne vollständige App-URLs nicht grün durch.
 - `apps/admin` wird danach in `docs/MIGRATION_CONSOLIDATION_AUDIT.md` entweder als führend freigegeben oder der alte Vite-Admin bleibt weiter als Referenz markiert.
@@ -66,6 +68,6 @@ Als nächstes die App-URLs und Testdaten für das Runbook vorbereiten, dann die 
 
 1. Admin-, Guest- und Owner-Base-URLs setzen.
 2. Testlead, Testbuchung, Testkunde, Test-Auszeit, Test-Unterkunft und Test-Owner festlegen.
-3. Automatische Gates aus `docs/ADMIN_PARITY_QA_RUNBOOK.md` ausführen.
+3. `docs/ADMIN_PARITY_EXECUTION_PLAN.md` von Block 1 bis 6 abarbeiten.
 4. Die 24 manuellen Gates mit Evidenz abnehmen.
-5. Ergebnis grün/gelb/rot dokumentieren.
+5. `npm run qa:admin-parity:validate` und `npm run qa:readiness` ausführen.

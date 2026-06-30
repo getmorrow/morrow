@@ -142,5 +142,5 @@ Aktuelle Regel:
 4. Geteilte Secrets rotieren und `MORROW_SECRETS_ROTATED_AT` erst danach setzen.
 5. Finale Angebotsdaten freigeben und `MORROW_OFFER_DATA_APPROVED_AT` setzen.
 6. Tracking-/Consent-Entscheidung treffen und bei Bedarf GA/Meta-IDs testen.
-7. `docs/ADMIN_PARITY_QA_RUNBOOK.md` mit echten Testdaten durchlaufen.
-8. Danach `npm run qa:launch-gates`, `npm run qa:production` und `npm run qa:apps` erneut mit allen URLs und Testzugängen ausführen.
+7. `docs/ADMIN_PARITY_EXECUTION_PLAN.md` mit echten Testdaten abarbeiten und Protokoll unter `docs/qa/admin-parity/` ausfüllen.
+8. `npm run qa:admin-parity:validate`, `npm run qa:readiness`, `npm run qa:launch-gates`, `npm run qa:production` und `npm run qa:apps` erneut mit allen URLs und Testzugängen ausführen.

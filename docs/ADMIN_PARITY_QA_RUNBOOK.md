@@ -6,6 +6,8 @@ Dieses Runbook ist die operative Abnahme vor einem kontrollierten MVP-Start. Es 
 
 Ziel: beweisen, dass `apps/admin` den alten Vite-Admin-CRM für die tägliche Arbeit ersetzen kann und dass Website, Gäste-App, Owner-App und Supabase denselben operativen Stand zeigen.
 
+Die konkrete Reihenfolge fuer den naechsten Testlauf steht in `docs/ADMIN_PARITY_EXECUTION_PLAN.md`.
+
 ## Grundregel
 
 Keine neue Produktfunktion wird als startklar bewertet, solange diese Abnahme nicht mit echten oder realitätsnahen Testdaten dokumentiert ist.

@@ -254,6 +254,7 @@ npm run qa:admin-parity:new
 ```
 
 Die Protokolle liegen unter `docs/qa/admin-parity/` und werden von `npm run qa:readiness` ausgewertet.
+Die praktische Reihenfolge steht in `docs/ADMIN_PARITY_EXECUTION_PLAN.md`.
 
 Vor Freigabe wird das neueste Protokoll direkt validiert:
 
