@@ -84,7 +84,7 @@ checkedApps: 0
 reason: No app base URLs set. Provide ADMIN_BASE_URL, OWNER_BASE_URL and/or GUEST_BASE_URL.
 ```
 
-Nachfolgende Konsolidierungsregel: `qa:apps` darf bei `checkedApps: 0` nicht mehr als grün gelten. Fehlende App-URLs sind ein rotes App-QA-Ergebnis, bis mindestens eine App-Base-URL geprüft wird.
+Nachfolgende Konsolidierungsregel: `qa:apps` darf bei fehlenden App-URLs nicht mehr als grün gelten. Standard ist die vollständige Prüfung von Admin-, Gäste- und Owner-App. Teilprüfungen sind nur bewusst mit `MORROW_QA_ALLOW_PARTIAL_APPS=1` erlaubt und gelten nicht als vollständige Launch-Abnahme.
 
 ## Bewertung Nach Startstufe
 

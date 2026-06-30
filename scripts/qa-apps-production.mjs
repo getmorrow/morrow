@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import { chromium } from 'playwright'
 
 const screenshotsDir = 'tmp/qa/apps-production'
+const allowPartialApps = process.env.MORROW_QA_ALLOW_PARTIAL_APPS === '1'
 
 const targets = [
   {
@@ -137,12 +138,25 @@ async function checkGuestStay(page, target) {
 const configuredTargets = targets
   .map((target) => ({ ...target, baseUrl: normalizeBaseUrl(target.baseUrl) }))
   .filter((target) => target.baseUrl)
+const missingTargets = targets
+  .filter((target) => !normalizeBaseUrl(target.baseUrl))
+  .map((target) => target.key)
 
 if (configuredTargets.length === 0) {
   console.error(JSON.stringify({
     ok: false,
     checkedApps: 0,
     reason: 'No app base URLs set. Provide ADMIN_BASE_URL, OWNER_BASE_URL and/or GUEST_BASE_URL.',
+  }, null, 2))
+  process.exit(1)
+}
+
+if (!allowPartialApps && missingTargets.length > 0) {
+  console.error(JSON.stringify({
+    ok: false,
+    checkedApps: configuredTargets.length,
+    missingApps: missingTargets,
+    reason: 'Incomplete app QA configuration. Provide ADMIN_BASE_URL, OWNER_BASE_URL and GUEST_BASE_URL, or set MORROW_QA_ALLOW_PARTIAL_APPS=1 for an explicit partial check.',
   }, null, 2))
   process.exit(1)
 }
@@ -196,6 +210,8 @@ try {
   console.log(JSON.stringify({
     ok: true,
     checkedApps: results.length,
+    partial: allowPartialApps && missingTargets.length > 0,
+    missingApps: missingTargets,
     results,
   }, null, 2))
 } catch (error) {

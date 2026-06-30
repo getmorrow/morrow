@@ -95,7 +95,16 @@ npm run supabase:verify-owner
 Production-App-QA:
 
 ```bash
-OWNER_BASE_URL=https://<owner-app-domain> npm run qa:apps
+ADMIN_BASE_URL=https://<admin-app-domain> \
+GUEST_BASE_URL=https://<guest-app-domain> \
+OWNER_BASE_URL=https://<owner-app-domain> \
+npm run qa:apps
+```
+
+Ein isolierter Owner-App-Check ist nur bewusst als Teilpruefung erlaubt:
+
+```bash
+MORROW_QA_ALLOW_PARTIAL_APPS=1 OWNER_BASE_URL=https://<owner-app-domain> npm run qa:apps
 ```
 
 ## Env

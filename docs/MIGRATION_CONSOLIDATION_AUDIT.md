@@ -222,7 +222,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 - Admin Build: `npm run admin:build`
 - Guest Build: `npm run guest:build`
 - Owner Build: `npm run owner:build`
-- Apps-Production-QA: `npm run qa:apps` (schlaegt fehl, wenn keine `ADMIN_BASE_URL`, `GUEST_BASE_URL` oder `OWNER_BASE_URL` gesetzt ist)
+- Apps-Production-QA: `npm run qa:apps` (schlaegt fehl, wenn nicht alle drei `ADMIN_BASE_URL`, `GUEST_BASE_URL` und `OWNER_BASE_URL` gesetzt sind; Teilpruefung nur bewusst mit `MORROW_QA_ALLOW_PARTIAL_APPS=1`)
 - Public-Website-QA: `QA_BASE_URL=https://www.getmorrow.de npm run qa:production`
 - Admin-Audit-QA: `npm run qa:admin-audit`
 - Admin-Paritaetsabnahme: `docs/ADMIN_PARITY_QA_RUNBOOK.md`

@@ -107,7 +107,16 @@ npm run admin:build
 Vor produktiver Fuehrung:
 
 ```bash
-ADMIN_BASE_URL=https://<admin-app-domain> npm run qa:apps
+ADMIN_BASE_URL=https://<admin-app-domain> \
+GUEST_BASE_URL=https://<guest-app-domain> \
+OWNER_BASE_URL=https://<owner-app-domain> \
+npm run qa:apps
+```
+
+Ein isolierter Admin-App-Check ist nur bewusst als Teilpruefung erlaubt:
+
+```bash
+MORROW_QA_ALLOW_PARTIAL_APPS=1 ADMIN_BASE_URL=https://<admin-app-domain> npm run qa:apps
 ```
 
 Danach den manuellen Lauf aus `docs/ADMIN_PARITY_QA_RUNBOOK.md` durchfuehren.
