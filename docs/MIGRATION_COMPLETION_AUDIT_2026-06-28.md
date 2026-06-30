@@ -68,6 +68,7 @@ Als nächstes die App-URLs und Testdaten für das Runbook vorbereiten, dann die 
 
 1. Admin-, Guest- und Owner-Base-URLs setzen.
 2. Testlead, Testbuchung, Testkunde, Test-Auszeit, Test-Unterkunft und Test-Owner festlegen.
-3. `docs/ADMIN_PARITY_EXECUTION_PLAN.md` von Block 1 bis 6 abarbeiten.
-4. Die 24 manuellen Gates mit Evidenz abnehmen.
-5. `npm run qa:admin-parity:validate` und `npm run qa:readiness` ausführen.
+3. `npm run qa:admin-parity:preflight` ausführen und fehlende URLs/Testzugänge schließen.
+4. `docs/ADMIN_PARITY_EXECUTION_PLAN.md` von Block 1 bis 6 abarbeiten.
+5. Die 24 manuellen Gates mit Evidenz abnehmen.
+6. `npm run qa:admin-parity:validate` und `npm run qa:readiness` ausführen.

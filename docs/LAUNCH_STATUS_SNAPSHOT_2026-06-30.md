@@ -50,6 +50,24 @@ Dieser Check ist die kompakte Startstufen-Ampel für:
 - zahlende Gäste
 - Paid Ads
 
+### `npm run qa:admin-parity:preflight`
+
+Ergebnis: rot.
+
+Vorhanden:
+
+- Supabase Public URL lokal gesetzt.
+- Supabase anon key lokal gesetzt.
+
+Fehlend:
+
+- Admin-App-URL.
+- Gäste-App-URL.
+- Owner-App-URL.
+- Admin-Testlogin.
+- Guest-Testbuchung mit Access-Code.
+- Owner-Testlogin.
+
 ### `npm run qa:launch-gates`
 
 Ergebnis: rot.

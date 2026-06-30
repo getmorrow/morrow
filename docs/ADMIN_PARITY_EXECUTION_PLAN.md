@@ -16,7 +16,15 @@ Nicht beweisen:
 
 ## Vor Dem Lauf
 
-1. Aktuelles Protokoll anlegen:
+1. Preflight ausführen:
+
+```bash
+npm run qa:admin-parity:preflight
+```
+
+Der Preflight gibt keine Secret-Werte aus. Er prüft nur, ob die für den Paritätslauf nötigen URLs und Testzugänge vorhanden sind.
+
+2. Aktuelles Protokoll anlegen:
 
 ```bash
 QA_TESTER="Gerwin / Codex" \
@@ -24,7 +32,7 @@ QA_ENVIRONMENT="Production oder Staging" \
 npm run qa:admin-parity:new
 ```
 
-2. Testdaten im Protokoll eintragen:
+3. Testdaten im Protokoll eintragen:
 
 - Website-URL
 - Admin-URL
@@ -37,7 +45,7 @@ npm run qa:admin-parity:new
 - Test-Unterkunft
 - Test-Owner
 
-3. Automatische Gates ausfuehren und im Protokoll abhaken.
+4. Automatische Gates ausfuehren und im Protokoll abhaken.
 
 ## Laufreihenfolge
 
@@ -179,7 +187,8 @@ Rot:
 Der naechste reale Schritt ist nicht weiterer Featurebau, sondern:
 
 1. App-URLs und Testzugänge setzen.
-2. Protokoll erzeugen.
-3. Block 1 bis 6 in dieser Reihenfolge abarbeiten.
-4. Validator laufen lassen.
-5. Ergebnis in `docs/LAUNCH_STATUS_SNAPSHOT_*.md` aktualisieren.
+2. `npm run qa:admin-parity:preflight` ausführen.
+3. Protokoll erzeugen.
+4. Block 1 bis 6 in dieser Reihenfolge abarbeiten.
+5. Validator laufen lassen.
+6. Ergebnis in `docs/LAUNCH_STATUS_SNAPSHOT_*.md` aktualisieren.

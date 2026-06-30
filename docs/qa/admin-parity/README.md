@@ -8,6 +8,12 @@ Neues Protokoll erzeugen:
 npm run qa:admin-parity:new
 ```
 
+Vorher Voraussetzungen prüfen:
+
+```bash
+npm run qa:admin-parity:preflight
+```
+
 Neuestes Protokoll validieren:
 
 ```bash

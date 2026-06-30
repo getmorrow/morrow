@@ -37,6 +37,7 @@ Vor dem Test vorbereiten:
 Diese Checks laufen vor manueller Abnahme:
 
 ```bash
+npm run qa:admin-parity:preflight
 npm run typecheck
 npx supabase db push --dry-run --linked
 git diff --check
@@ -195,6 +196,7 @@ Testdaten:
 - Test-Owner:
 
 Automatische Gates:
+- [ ] npm run qa:admin-parity:preflight
 - [ ] npm run typecheck
 - [ ] npx supabase db push --dry-run --linked
 - [ ] git diff --check
