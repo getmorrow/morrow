@@ -89,6 +89,7 @@ Offene Blocker:
 - `npm run qa:admin-parity:preflight` rot: Admin-, Gäste- und Owner-App-URL fehlen. Admin-Testlogin, Guest-Testbuchung und Owner-Testlogin sind vorbereitet und per Login/RPC geprüft.
 - `npm run qa:launch-gates` rot: 11 Blocker, darunter Rechtstexte/Arbeitsfassungen, Supabase Public Env, App-URLs, Secret-Rotation und Angebotsfreigabe.
 - `npm run qa:apps` rot: `checkedApps: 0`, keine App Base URLs gesetzt.
+- Live-Routing geprüft: `https://www.getmorrow.de/health` meldet `app=web`; `https://www.getmorrow.de/admin`, `/deine-auszeit`, `/owner` und `/app/eigentuemer` liefern HTTP 404 und sind keine gültigen App-Base-URLs.
 - Manuelle Gates 1-24 noch nicht durchgeführt und ohne Evidenz.
 
 ## Bewertung

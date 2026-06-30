@@ -77,6 +77,12 @@ Fehlend:
 - Gäste-App-URL.
 - Owner-App-URL.
 
+Live-Routing-Evidenz:
+
+- `https://www.getmorrow.de/health` ist grün und meldet `app=web`.
+- `https://www.getmorrow.de/admin`, `/deine-auszeit`, `/owner` und `/app/eigentuemer` liefern aktuell HTTP 404.
+- Die App-Pfade der Website ersetzen deshalb keine eigenen Admin-/Gaeste-/Owner-App-URLs.
+
 ### `npm run qa:migration-consolidation`
 
 Ergebnis: rot.

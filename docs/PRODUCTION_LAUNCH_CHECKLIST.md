@@ -87,6 +87,22 @@ Damit leitet die oeffentliche Website diese Einstiegspunkte weiter:
 
 Die oeffentliche Eigentuemer-Landingpage bleibt bewusst unter `/eigentuemer`.
 
+App-Domains duerfen erst als gesetzt gelten, wenn diese Health-Checks gruen sind:
+
+```bash
+curl -fsS https://<admin-app-domain>/health
+curl -fsS https://<guest-app-domain>/health
+curl -fsS https://<owner-app-domain>/health
+```
+
+Erwartete App-IDs:
+
+| URL | Erwartung |
+| --- | --- |
+| `https://<admin-app-domain>/health` | `app=admin` |
+| `https://<guest-app-domain>/health` | `app=guest` |
+| `https://<owner-app-domain>/health` | `app=owner` |
+
 Nicht in Vercel-Frontend setzen:
 - `RESEND_API_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`

@@ -29,6 +29,18 @@ Fehlend:
 | Gaeste-App | `GUEST_BASE_URL` oder `MORROW_GUEST_APP_URL` | Persoenlichen Gaestebereich testen. |
 | Owner-App | `OWNER_BASE_URL` oder `MORROW_OWNER_APP_URL` | Eigentuemer-App gegen Admin-Daten pruefen. |
 
+## Live-Routing-Evidenz
+
+Stand 2026-06-30:
+
+- `https://www.getmorrow.de/health` liefert `{"app":"web","status":"ok"}`.
+- `https://www.getmorrow.de/admin` liefert HTTP 404.
+- `https://www.getmorrow.de/deine-auszeit` liefert HTTP 404.
+- `https://www.getmorrow.de/owner` liefert HTTP 404.
+- `https://www.getmorrow.de/app/eigentuemer` liefert HTTP 404.
+
+Diese Pfade sind deshalb keine gueltigen App-URLs fuer den Paritaetslauf. Admin-, Gaeste- und Owner-App brauchen eigene Vercel-Deployments oder funktionierende Weiterleitungen auf eigene App-Domains.
+
 Optional, aber fuer sauberere Protokolle hilfreich:
 
 | Variable | Zweck |
@@ -47,6 +59,32 @@ Vercel/Deployment:
 
 - App-spezifische Project Settings fuer `apps/admin`, `apps/guest`, `apps/owner`.
 - Website-Projekt benoetigt zusaetzlich `MORROW_ADMIN_APP_URL`, `MORROW_GUEST_APP_URL`, `MORROW_OWNER_APP_URL` fuer Redirect-/Launch-Gates.
+
+## App-Deployments Schliessen
+
+Fuer jedes App-Projekt in Vercel:
+
+| App | Root Directory | Build Command | Erwarteter Health-Check |
+| --- | --- | --- | --- |
+| Admin | `apps/admin` | aus `apps/admin/vercel.json` | `/health` liefert `app=admin` |
+| Gaeste | `apps/guest` | aus `apps/guest/vercel.json` | `/health` liefert `app=guest` |
+| Owner | `apps/owner` | aus `apps/owner/vercel.json` | `/health` liefert `app=owner` |
+
+Danach lokal fuer QA setzen:
+
+```bash
+ADMIN_BASE_URL=https://<admin-app-domain>
+GUEST_BASE_URL=https://<guest-app-domain>
+OWNER_BASE_URL=https://<owner-app-domain>
+```
+
+Und im Website-Projekt fuer Redirects/Launch-Gates:
+
+```bash
+MORROW_ADMIN_APP_URL=https://<admin-app-domain>
+MORROW_GUEST_APP_URL=https://<guest-app-domain>
+MORROW_OWNER_APP_URL=https://<owner-app-domain>
+```
 
 ## Guest-Testbuchung Erzeugen
 
