@@ -99,6 +99,14 @@ npm run qa:admin-parity:block3
 
 Dieser Check prueft lesend, ob eine aktuelle Testbuchung den richtigen Gaestebereich oeffnet und ob Support, Admin-Antwort, Feedback und Kommunikationshistorie als Supabase-Daten zusammenhaengen. Er ersetzt keine Screenshots, macht aber fehlende Datenbelege sofort sichtbar.
 
+Vor Block 4 kann die technische Grundlage so geprüft werden:
+
+```bash
+npm run qa:admin-parity:block4
+```
+
+Dieser Check prueft lesend, ob Auszeit, Termin, Unterkunft, Erlebnisbaustein, freigegebener Vor-Ort-Ort, Veranstaltung und Audit-Log als Admin-/Supabase-Daten zusammenhaengen. Er ersetzt keine manuelle Evidenz, verhindert aber, dass Operationsdaten nur als UI-Eindruck abgehakt werden.
+
 | Nr. | Flow | Erwartung | Status/Evidenz |
 | --- | --- | --- | --- |
 | 1 | Admin-Login | Nur freigeschaltete Admin-User kommen in `apps/admin`. | Offen |

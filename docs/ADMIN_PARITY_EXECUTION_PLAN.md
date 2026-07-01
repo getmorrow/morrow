@@ -167,6 +167,14 @@ Stop, wenn:
 
 Ziel: Beweisen, dass Admin die Inhalte pflegen kann, die Website/Gaeste-App/Owner-App spaeter gezielt anzeigen.
 
+Vor dem manuellen Block-4-Test:
+
+```bash
+npm run qa:admin-parity:block4
+```
+
+Dieser Check verbindet den Admin-Blick auf `packages`, `package_dates`, `properties`, `experience_blocks`, `local_places` und `admin_audit_logs`. Er veraendert keine Daten. Wenn der Check rot ist, zuerst die ausgegebenen `nextActions` abarbeiten: aktuelle Auszeit/Unterkunft/Erlebnis/Ort/Veranstaltung setzen oder pflegen und Audit-Evidenz erzeugen.
+
 | Runbook-Gate | Flow | Evidenz |
 | --- | --- | --- |
 | 15 | Auszeit pflegen | Auszeit-ID, geaenderte Kernfelder, Terminbezug. |
