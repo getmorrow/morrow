@@ -156,6 +156,68 @@ if (!has('QA_ENVIRONMENT')) {
 
 const missing = requiredGroups.filter((group) => !group.pass)
 
+function buildNextActions(missingGroups) {
+  const missingIds = new Set(missingGroups.map((group) => group.id))
+  const actions = []
+
+  if (['apps:admin-url', 'apps:guest-url', 'apps:owner-url'].some((id) => missingIds.has(id))) {
+    actions.push({
+      id: 'deploy-or-set-app-urls',
+      label: 'Set deployed app URLs with valid /health responses',
+      detail: 'Admin, Guest and Owner need their own deployed app base URLs; website paths returning app=web or 404 are not valid.',
+      requiredEnv: [
+        'ADMIN_BASE_URL or MORROW_ADMIN_APP_URL',
+        'GUEST_BASE_URL or MORROW_GUEST_APP_URL',
+        'OWNER_BASE_URL or MORROW_OWNER_APP_URL',
+      ],
+      verifyWith: 'npm run qa:admin-parity:preflight',
+    })
+  }
+
+  if (missingIds.has('admin:credentials')) {
+    actions.push({
+      id: 'set-admin-test-login',
+      label: 'Set current admin QA credentials locally',
+      detail: 'Use a real allowed admin user. Do not commit credentials.',
+      requiredEnv: ['ADMIN_EMAIL', 'ADMIN_PASSWORD'],
+      verifyWith: 'npm run qa:admin-parity:block1',
+    })
+  }
+
+  if (missingIds.has('guest:test-stay')) {
+    actions.push({
+      id: 'set-or-seed-guest-test-booking',
+      label: 'Set or seed a current guest test booking',
+      detail: 'The guest booking must be a real QA booking with a working access code.',
+      requiredEnv: ['GUEST_BOOKING_ID', 'GUEST_ACCESS_CODE'],
+      prepareWith: 'npm run supabase:seed-active-guest-test',
+      verifyWith: 'npm run supabase:verify-guest',
+    })
+  }
+
+  if (missingIds.has('owner:credentials')) {
+    actions.push({
+      id: 'set-or-seed-owner-test-login',
+      label: 'Set or seed a current owner test login',
+      detail: 'The owner user must be linked to at least one property access record.',
+      requiredEnv: ['OWNER_EMAIL', 'OWNER_PASSWORD'],
+      prepareWith: 'OWNER_CREATE_AUTH_USER=1 OWNER_EMAIL=owner-qa-<date>@getmorrow.de OWNER_PROPERTY_IDS=<property-id> npm run supabase:seed-owner-access',
+      verifyWith: 'npm run supabase:verify-owner',
+    })
+  }
+
+  if (actions.length > 0) {
+    actions.push({
+      id: 'rerun-preflight',
+      label: 'Rerun preflight before manual QA',
+      detail: 'Only create or continue the manual parity run when this preflight is green.',
+      verifyWith: 'npm run qa:admin-parity:preflight',
+    })
+  }
+
+  return actions
+}
+
 const result = {
   ok: missing.length === 0,
   checkedEnvSources: {
@@ -169,6 +231,7 @@ const result = {
     missing: group.pass ? undefined : group.missing,
     detail: group.detail,
   })),
+  nextActions: buildNextActions(missing),
   warnings,
 }
 

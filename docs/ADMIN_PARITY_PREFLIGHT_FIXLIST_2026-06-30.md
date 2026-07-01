@@ -8,6 +8,8 @@ Diese Liste dokumentiert, was vor dem echten Admin-Paritaetslauf noch gesetzt we
 
 Wichtig: Der Preflight akzeptiert keine Platzhalterwerte wie `https://<admin-app-domain>`, `example.com`, Dummy-Buchungs-IDs oder bekannte Template-Beispiele.
 
+Der Preflight gibt zusaetzlich `nextActions` aus. Diese Aktionen sind der operative Wegweiser fuer den naechsten Schritt, ersetzen aber keine manuelle Evidenz im Admin-Paritaetsprotokoll.
+
 ## Ergebnis
 
 Status: rot
