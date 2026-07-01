@@ -169,14 +169,59 @@ function checkEnvironment() {
   requireEnv('MORROW_GUEST_APP_URL', 'Website must know the deployed Gäste-App URL before final launch.')
   requireEnv('MORROW_OWNER_APP_URL', 'Website must know the deployed Eigentümer-App URL before final launch.')
 
-  warnEnv(
-    'NEXT_PUBLIC_GA_MEASUREMENT_ID',
-    'GA4 is not configured. This is acceptable only if tracking is intentionally delayed.',
-  )
-  warnEnv(
-    'NEXT_PUBLIC_META_PIXEL_ID',
-    'Meta Pixel is not configured. This is acceptable only if paid social tracking is intentionally delayed.',
-  )
+  const trackingMode = (envValue('MORROW_TRACKING_MODE') || '').toLowerCase()
+  const trackingModeKnown = trackingMode === 'enabled' || trackingMode === 'disabled'
+  const trackingEnabled = trackingMode === 'enabled'
+  const trackingDisabled = trackingMode === 'disabled'
+  const ga4Set = Boolean(envValue('NEXT_PUBLIC_GA_MEASUREMENT_ID'))
+  const metaSet = Boolean(envValue('NEXT_PUBLIC_META_PIXEL_ID'))
+
+  if (!trackingModeKnown) {
+    addWarning(
+      'tracking:mode-missing',
+      'Tracking decision mode is missing. Set MORROW_TRACKING_MODE=enabled or disabled after the final consent/tracking decision.',
+      'MORROW_TRACKING_MODE is not set to enabled or disabled',
+    )
+  } else {
+    addPassed('tracking:mode', `Tracking mode is ${trackingMode}.`)
+  }
+
+  if (trackingEnabled) {
+    if (ga4Set) {
+      addPassed('env:NEXT_PUBLIC_GA_MEASUREMENT_ID', 'NEXT_PUBLIC_GA_MEASUREMENT_ID is set.')
+    } else {
+      addBlocker(
+        'env:NEXT_PUBLIC_GA_MEASUREMENT_ID',
+        'GA4 is required when MORROW_TRACKING_MODE=enabled.',
+        'NEXT_PUBLIC_GA_MEASUREMENT_ID is not set',
+      )
+    }
+
+    if (metaSet) {
+      addPassed('env:NEXT_PUBLIC_META_PIXEL_ID', 'NEXT_PUBLIC_META_PIXEL_ID is set.')
+    } else {
+      addBlocker(
+        'env:NEXT_PUBLIC_META_PIXEL_ID',
+        'Meta Pixel is required when MORROW_TRACKING_MODE=enabled.',
+        'NEXT_PUBLIC_META_PIXEL_ID is not set',
+      )
+    }
+  }
+
+  if (trackingDisabled) {
+    if (!ga4Set && !metaSet) {
+      addPassed('tracking:disabled-without-ids', 'Tracking is intentionally disabled and no GA/Meta public IDs are set.')
+    } else {
+      addWarning(
+        'tracking:disabled-with-public-ids',
+        'Tracking is marked disabled, but GA/Meta public IDs are present. Remove IDs or set MORROW_TRACKING_MODE=enabled.',
+        {
+          ga4Set,
+          metaSet,
+        },
+      )
+    }
+  }
 
   if (!envValue('MORROW_TRACKING_APPROVED_AT')) {
     addWarning(

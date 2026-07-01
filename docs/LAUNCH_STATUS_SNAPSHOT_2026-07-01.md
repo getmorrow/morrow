@@ -74,6 +74,8 @@ openRunbookManualGates: 24
 uncheckedRunbookTemplateItems: 42
 openParityRunManualGates: 0
 missingParityRunEvidenceRows: 0
+trackingModeKnown: false
+trackingDecisionApproved: false
 ```
 
 Blockergruppen:
@@ -81,7 +83,7 @@ Blockergruppen:
 - Rechtstexte enthalten keine erkannten Platzhalter mehr; die echte Rechtsfreigabe fehlt noch.
 - Secret-Rotation ist nicht bestätigt.
 - Angebotsdaten sind nicht final freigegeben.
-- Tracking/Consent ist nicht freigegeben oder nicht vollständig konfiguriert.
+- Tracking/Consent ist noch nicht entschieden: `MORROW_TRACKING_MODE` und `MORROW_TRACKING_APPROVED_AT` fehlen.
 
 ### `npm run qa:launch-gates`
 
@@ -89,7 +91,7 @@ Ergebnis: rot.
 
 ```text
 blockers: 3
-warnings: 4
+warnings: 3
 passed: 42
 ```
 
@@ -101,9 +103,8 @@ Blocker:
 
 Warnings:
 
-- GA4 fehlt.
-- Meta Pixel fehlt.
-- Tracking-Freigabe fehlt.
+- Tracking-Modus fehlt: `MORROW_TRACKING_MODE=enabled` oder `disabled`.
+- Tracking-Freigabe fehlt: `MORROW_TRACKING_APPROVED_AT`.
 - Server-Secret ist im lokalen Shell-/Env-Kontext vorhanden und darf nicht in Frontend-Projekte gelangen.
 
 ### `npm run qa:migration-consolidation`
@@ -141,7 +142,7 @@ Vor einem echten Start muessen zuerst erledigt und belegt werden:
 - Rechtstexte rechtlich/fachlich freigeben; die oeffentlichen Platzhaltertexte sind bereinigt, aber die Freigabevariable bleibt bis zur echten Freigabe leer.
 - Geteilte Secrets rotieren und Freigabezeitpunkt setzen.
 - Angebotsdaten final pruefen: Termine, Preise, enthaltene Leistungen, Bildrechte, Verantwortlichkeit.
-- Tracking-/Consent-Entscheidung treffen und, falls aktiv, GA4/Meta IDs setzen.
+- Tracking-/Consent-Entscheidung treffen: `MORROW_TRACKING_MODE=disabled` fuer Start ohne Paid Ads oder `enabled` mit GA4/Meta IDs fuer Paid Ads.
 - Nach Deployment den Owner-App-Bildfallback mit `qa:apps` erneut gegen Production pruefen.
 
 Danach:

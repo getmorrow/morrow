@@ -26,6 +26,10 @@ function env(name) {
   return qaEnv.has(name)
 }
 
+function envValue(name) {
+  return qaEnv.value(name)
+}
+
 function countMatches(text, pattern) {
   return [...text.matchAll(pattern)].length
 }
@@ -110,6 +114,13 @@ const appUrls = {
   guest: env('GUEST_BASE_URL') || env('MORROW_GUEST_APP_URL'),
   owner: env('OWNER_BASE_URL') || env('MORROW_OWNER_APP_URL'),
 }
+const trackingMode = (envValue('MORROW_TRACKING_MODE') || '').toLowerCase()
+const trackingModeKnown = trackingMode === 'enabled' || trackingMode === 'disabled'
+const trackingEnabled = trackingMode === 'enabled'
+const trackingDisabled = trackingMode === 'disabled'
+const trackingIdsPresent = env('NEXT_PUBLIC_GA_MEASUREMENT_ID') && env('NEXT_PUBLIC_META_PIXEL_ID')
+const trackingDecisionApproved = env('MORROW_TRACKING_APPROVED_AT') && trackingModeKnown
+const paidAdsTrackingReady = trackingDecisionApproved && trackingEnabled && trackingIdsPresent
 
 const checks = {
   docsPresent: missingDocs.length === 0,
@@ -126,9 +137,11 @@ const checks = {
   appUrlsComplete: appUrls.admin && appUrls.guest && appUrls.owner,
   secretsRotated: env('MORROW_SECRETS_ROTATED_AT'),
   offerDataApproved: env('MORROW_OFFER_DATA_APPROVED_AT'),
-  trackingApproved: env('MORROW_TRACKING_APPROVED_AT')
-    && env('NEXT_PUBLIC_GA_MEASUREMENT_ID')
-    && env('NEXT_PUBLIC_META_PIXEL_ID'),
+  trackingModeKnown,
+  trackingDisabled,
+  trackingIdsPresent,
+  trackingDecisionApproved,
+  paidAdsTrackingReady,
 }
 
 const stageStatus = {
@@ -158,7 +171,7 @@ const stageStatus = {
     && checks.appUrlsComplete
     && checks.secretsRotated
     && checks.offerDataApproved
-    && checks.trackingApproved
+    && checks.paidAdsTrackingReady
     && checks.adminParityManualComplete
       ? 'green'
       : 'red',
@@ -199,10 +212,29 @@ if (!checks.supabasePublicEnv) blockers.push({ id: 'env:supabase-public-missing'
 if (!checks.appUrlsComplete) blockers.push({ id: 'env:app-urls-missing', detail: appUrls })
 if (!checks.secretsRotated) blockers.push({ id: 'security:secrets-rotation-missing' })
 if (!checks.offerDataApproved) blockers.push({ id: 'offer:data-approval-missing' })
-if (!checks.trackingApproved) blockers.push({ id: 'tracking:not-approved-or-missing' })
+if (!checks.trackingDecisionApproved) {
+  blockers.push({
+    id: 'tracking:not-approved-or-missing',
+    detail: {
+      trackingMode,
+      trackingModeKnown,
+      trackingApprovalSet: env('MORROW_TRACKING_APPROVED_AT'),
+      trackingIdsPresent,
+    },
+  })
+}
+if (trackingEnabled && !trackingIdsPresent) {
+  blockers.push({
+    id: 'tracking:enabled-without-ids',
+    detail: {
+      ga4Set: env('NEXT_PUBLIC_GA_MEASUREMENT_ID'),
+      metaPixelSet: env('NEXT_PUBLIC_META_PIXEL_ID'),
+    },
+  })
+}
 
 const result = {
-  ok: stageStatus.paidGuests === 'green' && stageStatus.paidAds === 'green',
+  ok: stageStatus.paidGuests === 'green' && (stageStatus.paidAds === 'green' || trackingDisabled),
   latestSnapshot,
   latestAdminParityRun,
   adminParityResult,

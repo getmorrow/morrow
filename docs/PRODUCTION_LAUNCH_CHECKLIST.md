@@ -197,11 +197,11 @@ Vor Ads/echtem Traffic erforderlich:
 
 ## 6. Tracking
 
-Vor Aktivierung klären:
-- GA4 oder Plausible?
-- Meta Pixel?
-- Google Ads Conversion?
-- Consent Mode / Cookie Banner nötig?
+Vor Aktivierung entscheiden:
+- `MORROW_TRACKING_MODE=disabled`: keine GA4-/Meta-Messung, keine Paid-Ads-Freigabe.
+- `MORROW_TRACKING_MODE=enabled`: GA4 und Meta Pixel aktivieren, Consent-Gate testen und IDs setzen.
+- Google Ads Conversion kann spaeter ergaenzt werden.
+- Consent Mode / Cookie Banner final pruefen.
 
 Für Phase 1 messen:
 - Formular-Abschluss Gast.
@@ -239,6 +239,7 @@ MORROW_OWNER_APP_URL=https://<owner-app-domain> \
 MORROW_LEGAL_APPROVED_AT=2026-..-.. \
 MORROW_SECRETS_ROTATED_AT=2026-..-.. \
 MORROW_OFFER_DATA_APPROVED_AT=2026-..-.. \
+MORROW_TRACKING_MODE=disabled \
 MORROW_TRACKING_APPROVED_AT=2026-..-.. \
 npm run qa:launch-gates
 ```
@@ -248,7 +249,7 @@ Dieser Check ist bewusst streng. Er stoppt den Launch, wenn:
 - Supabase- oder App-URL-Variablen fuer die Next-App-Welten fehlen.
 - Secret-Rotation, finale Angebotsdaten oder Rechtsfreigabe nicht bestaetigt sind.
 - WhatsApp-Opt-in nicht optional ist.
-- Tracking nicht consent-gated ist.
+- Tracking nicht entschieden ist oder bei aktivem Tracking nicht consent-gated ist.
 
 Fuer einen reinen lokalen Statusbericht trotz bekannter Blocker:
 

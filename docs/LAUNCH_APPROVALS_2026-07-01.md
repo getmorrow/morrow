@@ -93,8 +93,8 @@ MORROW_OFFER_DATA_APPROVED_AT=2026-..-..
 Status: offen
 
 Entscheidung erforderlich:
-- GA4 aktivieren: ja/nein
-- Meta Pixel aktivieren: ja/nein
+- `MORROW_TRACKING_MODE=disabled`: keine GA4-/Meta-Messung, keine Paid Ads Freigabe
+- `MORROW_TRACKING_MODE=enabled`: GA4 und Meta Pixel mit Consent-Gate aktivieren
 - Paid Ads starten: ja/nein
 - Consent-Gate final pruefen
 - Test-Events fuer Formularabschluss und relevante CTAs pruefen, falls Tracking aktiv ist
@@ -112,6 +112,16 @@ Empfohlene Launch-Entscheidung:
 Erst nach finaler Entscheidung und, falls aktiv, getesteten IDs setzen:
 
 ```bash
+MORROW_TRACKING_MODE=disabled
+MORROW_TRACKING_APPROVED_AT=2026-..-..
+```
+
+Oder bei aktivem Tracking:
+
+```bash
+MORROW_TRACKING_MODE=enabled
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-...
+NEXT_PUBLIC_META_PIXEL_ID=...
 MORROW_TRACKING_APPROVED_AT=2026-..-..
 ```
 
