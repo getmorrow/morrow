@@ -140,6 +140,14 @@ Stop, wenn:
 
 Ziel: Beweisen, dass aus der Buchung der richtige Gaestebereich entsteht und Support/Feedback im Admin ankommen.
 
+Vor dem manuellen Block-3-Test:
+
+```bash
+npm run qa:admin-parity:block3
+```
+
+Dieser Check verbindet den Gaeste-Zugang mit dem Admin-Blick: `get_guest_stay()`, `get_guest_support_events()`, `support_messages`, `guest_feedback` und `communication_events`. Er veraendert keine Daten. Wenn der Check rot ist, zuerst die ausgegebenen `nextActions` abarbeiten: aktuelle Testbuchung setzen, Support aus der Gaeste-App senden, im Admin beantworten, Feedback senden und Kommunikationshistorie belegen.
+
 | Runbook-Gate | Flow | Evidenz |
 | --- | --- | --- |
 | 11 | Gästebereich öffnen | Booking-ID, Access-Code, Screenshot Start/Buchung/Hilfe. |

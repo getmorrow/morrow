@@ -91,6 +91,14 @@ npm run qa:admin-parity:block2
 
 Dieser Check prueft lesend, ob ein aktueller Testfluss aus Gastlead, Kundensatz, Buchung, Aufgabe und Audit-Log vorhanden ist. Er ersetzt keine manuelle Evidenz, verhindert aber, dass die Gates 2 bis 10 nur aus UI-Eindruck ohne Datenbeleg abgehakt werden.
 
+Vor Block 3 kann die technische Grundlage so geprüft werden:
+
+```bash
+npm run qa:admin-parity:block3
+```
+
+Dieser Check prueft lesend, ob eine aktuelle Testbuchung den richtigen Gaestebereich oeffnet und ob Support, Admin-Antwort, Feedback und Kommunikationshistorie als Supabase-Daten zusammenhaengen. Er ersetzt keine Screenshots, macht aber fehlende Datenbelege sofort sichtbar.
+
 | Nr. | Flow | Erwartung | Status/Evidenz |
 | --- | --- | --- | --- |
 | 1 | Admin-Login | Nur freigeschaltete Admin-User kommen in `apps/admin`. | Offen |
