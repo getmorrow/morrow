@@ -1,52 +1,10 @@
-import fs from 'node:fs'
-import path from 'node:path'
+import { createQaEnv } from './lib/qa-env.mjs'
 
 const rootDir = process.cwd()
-
-function parseEnvFile(relativePath) {
-  const fullPath = path.join(rootDir, relativePath)
-  if (!fs.existsSync(fullPath)) return {}
-
-  return Object.fromEntries(
-    fs.readFileSync(fullPath, 'utf8')
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line && !line.startsWith('#') && line.includes('='))
-      .map((line) => {
-        const index = line.indexOf('=')
-        const key = line.slice(0, index).trim()
-        const value = line.slice(index + 1).trim().replace(/^['"]|['"]$/g, '')
-        return [key, value]
-      }),
-  )
-}
-
-const envFile = parseEnvFile('.env.local')
-
-function value(name) {
-  return process.env[name] || envFile[name] || ''
-}
-
-function isPlaceholder(value) {
-  const normalized = value.trim()
-  if (!normalized) return true
-
-  return [
-    /^<.+>$/,
-    /<[^>]+>/,
-    /example\.com/i,
-    /eigentuemer@example\.com/i,
-    /^https:\/\/<.+>$/i,
-    /^11111111-1111-4111-8111-111111111111$/i,
-    /^MORROW1$/i,
-    /^your_/i,
-    /^todo$/i,
-    /^tbd$/i,
-  ].some((pattern) => pattern.test(normalized))
-}
+const qaEnv = createQaEnv(rootDir)
 
 function has(name) {
-  return !isPlaceholder(value(name))
+  return qaEnv.has(name)
 }
 
 function hasAny(names) {
@@ -58,11 +16,7 @@ function labelAny(names) {
 }
 
 function firstUsableValue(names) {
-  for (const name of names) {
-    if (has(name)) return value(name)
-  }
-
-  return ''
+  return qaEnv.firstUsableValue(names)
 }
 
 function normalizeBaseUrl(url) {
@@ -206,7 +160,7 @@ const result = {
   ok: missing.length === 0,
   checkedEnvSources: {
     shell: true,
-    envLocal: fs.existsSync(path.join(rootDir, '.env.local')),
+    envLocal: qaEnv.envLocalExists,
   },
   required: requiredGroups.map((group) => ({
     id: group.id,

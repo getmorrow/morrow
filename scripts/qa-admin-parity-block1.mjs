@@ -1,31 +1,10 @@
 import { spawnSync } from 'node:child_process'
-import fs from 'node:fs'
-import path from 'node:path'
+import { createQaEnv, isPlaceholder } from './lib/qa-env.mjs'
 
 const rootDir = process.cwd()
-
-function parseEnvFile(relativePath) {
-  const fullPath = path.join(rootDir, relativePath)
-  if (!fs.existsSync(fullPath)) return {}
-
-  return Object.fromEntries(
-    fs.readFileSync(fullPath, 'utf8')
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line && !line.startsWith('#') && line.includes('='))
-      .map((line) => {
-        const index = line.indexOf('=')
-        const key = line.slice(0, index).trim()
-        const value = line.slice(index + 1).trim().replace(/^['"]|['"]$/g, '')
-        return [key, value]
-      }),
-  )
-}
-
-const envFile = parseEnvFile('.env.local')
+const qaEnv = createQaEnv(rootDir)
 const commandEnv = {
-  ...envFile,
-  ...process.env,
+  ...qaEnv.values,
 }
 
 if (!commandEnv.SUPABASE_URL) {
@@ -38,21 +17,6 @@ if (!commandEnv.SUPABASE_ANON_KEY) {
 
 function value(name) {
   return commandEnv[name] || ''
-}
-
-function isPlaceholder(value) {
-  const normalized = value.trim()
-  if (!normalized) return true
-
-  return [
-    /^<.+>$/,
-    /<[^>]+>/,
-    /example\.com/i,
-    /^https:\/\/<.+>$/i,
-    /^your_/i,
-    /^todo$/i,
-    /^tbd$/i,
-  ].some((pattern) => pattern.test(normalized))
 }
 
 function has(name) {
@@ -194,7 +158,7 @@ const output = {
   purpose: 'Prepare admin parity Block 1 evidence: Zugang Und Baseline.',
   checkedEnvSources: {
     shell: true,
-    envLocal: fs.existsSync(path.join(rootDir, '.env.local')),
+    envLocal: qaEnv.envLocalExists,
   },
   requiredEnv: envStatus,
   nextManualEvidence: [

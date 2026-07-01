@@ -5,8 +5,10 @@ import {
   findLatestAdminParityRun,
   validateAdminParityRun,
 } from './lib/admin-parity-run.mjs'
+import { createQaEnv } from './lib/qa-env.mjs'
 
 const rootDir = process.cwd()
+const qaEnv = createQaEnv(rootDir)
 
 function exists(relativePath) {
   return fs.existsSync(path.join(rootDir, relativePath))
@@ -16,36 +18,12 @@ function read(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), 'utf8')
 }
 
-function parseEnvFile(relativePath) {
-  const fullPath = path.join(rootDir, relativePath)
-  if (!fs.existsSync(fullPath)) return {}
-
-  return Object.fromEntries(
-    fs.readFileSync(fullPath, 'utf8')
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line && !line.startsWith('#') && line.includes('='))
-      .map((line) => {
-        const index = line.indexOf('=')
-        const key = line.slice(0, index).trim()
-        const value = line.slice(index + 1).trim().replace(/^['"]|['"]$/g, '')
-        return [key, value]
-      }),
-  )
-}
-
-const envFile = parseEnvFile('.env.local')
-
-function envValue(name) {
-  return process.env[name] || envFile[name] || ''
-}
-
 function envAny(names) {
-  return names.some((name) => Boolean(envValue(name)))
+  return qaEnv.hasAny(names)
 }
 
 function env(name) {
-  return Boolean(envValue(name))
+  return qaEnv.has(name)
 }
 
 function countMatches(text, pattern) {

@@ -1,35 +1,13 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { createQaEnv } from './lib/qa-env.mjs'
 
 const rootDir = process.cwd()
-const allowBlockers = process.env.MORROW_QA_ALLOW_LAUNCH_BLOCKERS === '1'
-
-function parseEnvFile(relativePath) {
-  const fullPath = path.join(rootDir, relativePath)
-  if (!fs.existsSync(fullPath)) return {}
-
-  return Object.fromEntries(
-    fs.readFileSync(fullPath, 'utf8')
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line && !line.startsWith('#') && line.includes('='))
-      .map((line) => {
-        const index = line.indexOf('=')
-        const key = line.slice(0, index).trim()
-        const value = line.slice(index + 1).trim().replace(/^['"]|['"]$/g, '')
-        return [key, value]
-      }),
-  )
-}
-
-const envFile = parseEnvFile('.env.local')
-const runtimeEnv = {
-  ...envFile,
-  ...process.env,
-}
+const qaEnv = createQaEnv(rootDir)
+const allowBlockers = qaEnv.value('MORROW_QA_ALLOW_LAUNCH_BLOCKERS') === '1'
 
 function envValue(name) {
-  return runtimeEnv[name] || ''
+  return qaEnv.value(name)
 }
 
 const blockers = []
@@ -212,7 +190,7 @@ function checkEnvironment() {
 }
 
 function checkSecretExposure() {
-  const unsafePublicNames = Object.keys(runtimeEnv).filter((name) => {
+  const unsafePublicNames = Object.keys(qaEnv.values).filter((name) => {
     const isPublic = name.startsWith('NEXT_PUBLIC_') || name.startsWith('VITE_')
     const looksSensitive = /SERVICE_ROLE|RESEND|ACCESS_TOKEN|PAT|PASSWORD|SECRET/i.test(name)
     return isPublic && looksSensitive
