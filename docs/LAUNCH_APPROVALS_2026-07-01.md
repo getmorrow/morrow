@@ -17,6 +17,14 @@ Vor Freigabe zu erledigen:
 - Datenschutz inklusive Supabase, Resend, WhatsApp, Supportdaten, Feedback, Tracking und Aufbewahrung pruefen.
 - AGB, Buchungsbedingungen, Storno- und Zahlungsbedingungen rechtlich/fachlich freigeben.
 
+Fehlende Daten fuer finale Anbieterkennzeichnung:
+- Rechtsform / vollstaendiger Anbietername
+- ladungsfaehige Anschrift
+- vertretungsberechtigte Person, falls anwendbar
+- Registergericht und Registernummer, falls anwendbar
+- Umsatzsteuer-ID oder Hinweis, falls anwendbar
+- verantwortliche Person fuer Inhalte, falls erforderlich
+
 Erst danach setzen:
 
 ```bash
@@ -40,6 +48,14 @@ Nach Rotation:
 - Supabase Edge Function Secrets fuer E-Mail-Versand neu setzen,
 - Admin-/Owner-/Testzugriffe mit neuen Passwoertern pruefen.
 
+Rotationsreihenfolge:
+1. GitHub PAT neu erstellen, alten Token widerrufen und Push/Deploy-Zugriff testen.
+2. Supabase Personal Access Token neu erstellen, alten Token widerrufen und CLI-/Management-Zugriff testen.
+3. Supabase Service Role Key rotieren oder neues Projekt-Secret setzen, danach alle Server-/QA-Umgebungen aktualisieren.
+4. Resend API Key neu erstellen, alten Key widerrufen, Supabase Edge Function Secret `RESEND_API_KEY` aktualisieren und Testmail senden.
+5. Geteilte Admin-/Owner-/Testpasswoerter zuruecksetzen, neue Werte nur im Passwortmanager ablegen und Login pruefen.
+6. Vercel-Frontend-Projekte kontrollieren: keine Service Role Keys, PATs, Resend Keys oder Passwoerter in Public- oder Frontend-Env.
+
 Erst danach setzen:
 
 ```bash
@@ -50,13 +66,21 @@ MORROW_SECRETS_ROTATED_AT=2026-..-..
 
 Status: offen
 
-Zu pruefen:
-- reale Termine je Auszeit,
-- reale Preise und Preislogik,
-- enthaltene Leistungen,
-- konkrete Unterkunft inklusive Nutzungsrechte an Bildern und Texten,
-- konkretes Erlebnis inklusive Anbieter, Kapazitaet, Preis-/Inklusivlogik und Verfuegbarkeit,
-- Verantwortlichkeit fuer Support, Check-in, Schluessel, Objektprobleme und Notfaelle.
+Aktuell sichtbare Angebotsdaten aus `packages/domain/src/index.ts`:
+
+| Auszeit | Termine | Preis | Personenlogik | Enthalten |
+| --- | --- | --- | --- | --- |
+| Family Escape | 12.-16. August, 19.-23. August | 1.190 EUR pro Aufenthalt | bis 4 Personen, Hund optional | 4 Naechte, 1 lokales Erlebnis, Empfehlungen, Ansprechpartner, Aufenthaltsinfos |
+| Couple Reset | 12.-16. August, 19.-23. August | 890 EUR pro Aufenthalt | 2 Personen, Hund optional | Unterkunft fuer 2, 1 Erlebnisbaustein, Dinner-/Spaziergangsempfehlungen, Abstimmung, Check-in-Infos |
+
+Vor Freigabe je Auszeit zu pruefen:
+- Termine sind real verfuegbar und mit Unterkunft/Partner bestaetigt.
+- Preis ist final und deckt Unterkunft, Erlebnis, Service, Zahlungsabwicklung und Marge ab.
+- enthaltene Leistungen sind exakt so lieferbar, wie sie oeffentlich kommuniziert werden.
+- konkrete Unterkunft ist freigegeben, inklusive Bild-/Textnutzungsrechten.
+- konkrete Erlebnispartner sind bestaetigt, inklusive Kapazitaet, Preis-/Inklusivlogik, Wetter-/Ausfallregeln und Verfuegbarkeit.
+- Verantwortlichkeit fuer Support, Check-in, Schluessel, Objektprobleme und Eskalation ist je Unterkunft eindeutig geklaert.
+- Gastkommunikation nach Buchung passt zu den realen Partnerbedingungen.
 
 Erst danach setzen:
 
@@ -78,6 +102,12 @@ Entscheidung erforderlich:
 Technisch vorhanden:
 - Tracking-Komponente laedt GA/Meta nur nach Zustimmung.
 - Ohne Public Tracking IDs werden keine Tracking-Skripte geladen.
+- CTA-Klicks mit `data-conversion` werden nach Zustimmung an GA4 und Meta gemeldet, wenn IDs gesetzt sind.
+
+Empfohlene Launch-Entscheidung:
+- Kontrollierte echte Leads koennen ohne GA4/Meta starten, wenn Recht, Secrets und Angebotsdaten freigegeben sind.
+- Paid Ads sollten erst starten, wenn GA4 und Meta Pixel bewusst aktiviert, Consent-Gate geprueft und Test-Events dokumentiert sind.
+- Wenn Tracking bewusst deaktiviert bleibt, bleibt Paid Ads rot.
 
 Erst nach finaler Entscheidung und, falls aktiv, getesteten IDs setzen:
 
