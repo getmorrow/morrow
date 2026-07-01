@@ -628,7 +628,11 @@ export function createSupabaseBrowserClient() {
     throw new Error("Missing public Supabase environment variables");
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey);
+  return createClient(normalizeSupabaseUrl(supabaseUrl), supabaseAnonKey);
+}
+
+function normalizeSupabaseUrl(value: string) {
+  return value.trim().replace(/\/rest\/v1\/?$/i, "").replace(/\/$/, "");
 }
 
 export async function insertAdminAuditLog(

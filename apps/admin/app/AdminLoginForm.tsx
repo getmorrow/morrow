@@ -41,7 +41,8 @@ export function AdminLoginForm() {
       }
 
       router.push("/dashboard");
-    } catch {
+    } catch (error) {
+      console.error("Admin login check failed", error);
       setMessage("Der Login konnte gerade nicht geprüft werden.");
     } finally {
       setIsSubmitting(false);
