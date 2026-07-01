@@ -38,14 +38,14 @@ openParityRunManualGates: 24
 uncheckedParityRunItems: 12
 missingParityRunEvidenceRows: 24
 legalPlaceholderFiles: 3
-blockerGroups: 7
+blockerGroups: 6
 ```
 
 Blockergruppen:
 
 - Admin-Paritätslauf unter `docs/qa/admin-parity/2026-06-30-admin-parity-run.md` ist vorhanden, aber nicht grün: 12 automatische Gates offen, 24 manuelle Gates offen, 24 Evidenzen fehlen.
 - Rechtstexte/Freigaben noch nicht sauber.
-- Supabase Public Env im aktuellen Gate-Kontext nicht gesetzt.
+- Supabase Public Env wird im aktuellen QA-Kontext aus `.env.local` erkannt.
 - Admin-, Gäste- und Owner-App-URLs im aktuellen Gate-Kontext nicht gesetzt.
 - Secret-Rotation nicht bestätigt.
 - Angebotsdaten nicht freigegeben.
@@ -137,6 +137,7 @@ Blocker:
 
 - `npm run supabase:verify-admin` kann ohne `ADMIN_EMAIL` und `ADMIN_PASSWORD` im aktuellen Shell-Kontext nicht laufen.
 - Supabase Public URL und anon key werden inzwischen aus `.env.local` gelesen.
+- Der Check gibt die fehlenden Env-Gruppen jetzt strukturiert unter `requiredEnv` und `blockers[].summary.missingEnv` aus.
 - `npm run qa:admin-audit` bleibt der statische Teil fuer Audit-Abdeckung und ist separat gruen dokumentiert.
 
 Wichtig: Dieser Block-1-Check ist nur technische Vorpruefung fuer `Zugang Und Baseline`. Die eigentliche Abnahme braucht weiterhin Screenshot Admin-Dashboard, Admin-User/Rolle und Audit-Log-Evidenz im Paritaetsprotokoll.
@@ -180,9 +181,9 @@ Ergebnis: rot.
 
 ```text
 ok: false
-blockers: 11
-warnings: 3
-passed: 35
+blockers: 9
+warnings: 4
+passed: 36
 exit: 1
 ```
 
@@ -194,8 +195,6 @@ Blocker:
 | Recht | AGB enthält noch `Arbeitsfassung`. |
 | Recht | Stornobedingungen enthält noch `Arbeitsfassung`. |
 | Freigabe | `MORROW_LEGAL_APPROVED_AT` fehlt. |
-| Env | `NEXT_PUBLIC_SUPABASE_URL` oder `VITE_SUPABASE_URL` fehlt im aktuellen Gate-Kontext. |
-| Env | `NEXT_PUBLIC_SUPABASE_ANON_KEY` oder `VITE_SUPABASE_ANON_KEY` fehlt im aktuellen Gate-Kontext. |
 | Env | `MORROW_ADMIN_APP_URL` fehlt. |
 | Env | `MORROW_GUEST_APP_URL` fehlt. |
 | Env | `MORROW_OWNER_APP_URL` fehlt. |
@@ -209,6 +208,7 @@ Warnings:
 | Tracking | `NEXT_PUBLIC_GA_MEASUREMENT_ID` fehlt. |
 | Tracking | `NEXT_PUBLIC_META_PIXEL_ID` fehlt. |
 | Freigabe | `MORROW_TRACKING_APPROVED_AT` fehlt. |
+| Sicherheit | Server-Secret-Name im lokalen Shell-/Env-Kontext erkannt; darf nicht in Frontend-Projekte gelangen. |
 
 ### `QA_BASE_URL=https://www.getmorrow.de npm run qa:production`
 

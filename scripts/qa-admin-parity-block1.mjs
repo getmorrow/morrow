@@ -24,8 +24,8 @@ function parseEnvFile(relativePath) {
 
 const envFile = parseEnvFile('.env.local')
 const commandEnv = {
-  ...process.env,
   ...envFile,
+  ...process.env,
 }
 
 if (!commandEnv.SUPABASE_URL) {
@@ -35,6 +35,60 @@ if (!commandEnv.SUPABASE_URL) {
 if (!commandEnv.SUPABASE_ANON_KEY) {
   commandEnv.SUPABASE_ANON_KEY = commandEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY || commandEnv.VITE_SUPABASE_ANON_KEY || ''
 }
+
+function value(name) {
+  return commandEnv[name] || ''
+}
+
+function isPlaceholder(value) {
+  const normalized = value.trim()
+  if (!normalized) return true
+
+  return [
+    /^<.+>$/,
+    /<[^>]+>/,
+    /example\.com/i,
+    /^https:\/\/<.+>$/i,
+    /^your_/i,
+    /^todo$/i,
+    /^tbd$/i,
+  ].some((pattern) => pattern.test(normalized))
+}
+
+function has(name) {
+  return !isPlaceholder(value(name))
+}
+
+const requiredEnvGroups = [
+  {
+    id: 'supabase:url',
+    label: 'Supabase public URL',
+    names: ['SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL', 'VITE_SUPABASE_URL'],
+  },
+  {
+    id: 'supabase:anon',
+    label: 'Supabase anon key',
+    names: ['SUPABASE_ANON_KEY', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY'],
+  },
+  {
+    id: 'admin:email',
+    label: 'Admin email',
+    names: ['ADMIN_EMAIL'],
+  },
+  {
+    id: 'admin:password',
+    label: 'Admin password',
+    names: ['ADMIN_PASSWORD'],
+  },
+]
+
+const envStatus = requiredEnvGroups.map((group) => ({
+  id: group.id,
+  label: group.label,
+  ok: group.names.some(has),
+  acceptedNames: group.names,
+}))
+const missingEnv = envStatus.filter((group) => !group.ok)
 
 const checks = [
   {
@@ -52,6 +106,25 @@ const checks = [
 ]
 
 function runCheck(check) {
+  if (check.id === 'admin-login-rpc' && missingEnv.length > 0) {
+    return {
+      id: check.id,
+      label: check.label,
+      command: check.command.join(' '),
+      evidenceTarget: check.evidenceTarget,
+      ok: false,
+      skipped: true,
+      exitCode: null,
+      summary: {
+        reason: 'Required environment for admin login check is missing.',
+        missingEnv: missingEnv.map((group) => ({
+          id: group.id,
+          acceptedNames: group.acceptedNames,
+        })),
+      },
+    }
+  }
+
   const result = spawnSync(check.command[0], check.command.slice(1), {
     cwd: rootDir,
     encoding: 'utf8',
@@ -123,6 +196,7 @@ const output = {
     shell: true,
     envLocal: fs.existsSync(path.join(rootDir, '.env.local')),
   },
+  requiredEnv: envStatus,
   nextManualEvidence: [
     'Screenshot Admin-Dashboard with signed-in admin user.',
     'Screenshot or exported list of current admin_audit_logs before test start.',

@@ -16,12 +16,36 @@ function read(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), 'utf8')
 }
 
+function parseEnvFile(relativePath) {
+  const fullPath = path.join(rootDir, relativePath)
+  if (!fs.existsSync(fullPath)) return {}
+
+  return Object.fromEntries(
+    fs.readFileSync(fullPath, 'utf8')
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('#') && line.includes('='))
+      .map((line) => {
+        const index = line.indexOf('=')
+        const key = line.slice(0, index).trim()
+        const value = line.slice(index + 1).trim().replace(/^['"]|['"]$/g, '')
+        return [key, value]
+      }),
+  )
+}
+
+const envFile = parseEnvFile('.env.local')
+
+function envValue(name) {
+  return process.env[name] || envFile[name] || ''
+}
+
 function envAny(names) {
-  return names.some((name) => Boolean(process.env[name]))
+  return names.some((name) => Boolean(envValue(name)))
 }
 
 function env(name) {
-  return Boolean(process.env[name])
+  return Boolean(envValue(name))
 }
 
 function countMatches(text, pattern) {

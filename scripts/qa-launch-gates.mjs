@@ -4,6 +4,34 @@ import path from 'node:path'
 const rootDir = process.cwd()
 const allowBlockers = process.env.MORROW_QA_ALLOW_LAUNCH_BLOCKERS === '1'
 
+function parseEnvFile(relativePath) {
+  const fullPath = path.join(rootDir, relativePath)
+  if (!fs.existsSync(fullPath)) return {}
+
+  return Object.fromEntries(
+    fs.readFileSync(fullPath, 'utf8')
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('#') && line.includes('='))
+      .map((line) => {
+        const index = line.indexOf('=')
+        const key = line.slice(0, index).trim()
+        const value = line.slice(index + 1).trim().replace(/^['"]|['"]$/g, '')
+        return [key, value]
+      }),
+  )
+}
+
+const envFile = parseEnvFile('.env.local')
+const runtimeEnv = {
+  ...envFile,
+  ...process.env,
+}
+
+function envValue(name) {
+  return runtimeEnv[name] || ''
+}
+
 const blockers = []
 const warnings = []
 const passed = []
@@ -39,7 +67,7 @@ function requireFile(relativePath, label = relativePath) {
 }
 
 function requireEnv(name, message) {
-  if (process.env[name]) {
+  if (envValue(name)) {
     addPassed(`env:${name}`, `${name} is set.`)
     return true
   }
@@ -49,7 +77,7 @@ function requireEnv(name, message) {
 }
 
 function requireAnyEnv(names, message) {
-  const found = names.find((name) => process.env[name])
+  const found = names.find((name) => envValue(name))
 
   if (found) {
     addPassed(`env:${names.join('|')}`, `${found} is set.`)
@@ -65,7 +93,7 @@ function requireAnyEnv(names, message) {
 }
 
 function warnEnv(name, message) {
-  if (process.env[name]) {
+  if (envValue(name)) {
     addPassed(`env:${name}`, `${name} is set.`)
     return true
   }
@@ -138,7 +166,7 @@ function checkLegalPages() {
     }
   }
 
-  if (!process.env.MORROW_LEGAL_APPROVED_AT) {
+  if (!envValue('MORROW_LEGAL_APPROVED_AT')) {
     addBlocker(
       'approval:legal',
       'Legal approval timestamp is missing. Set MORROW_LEGAL_APPROVED_AT after final legal review.',
@@ -172,7 +200,7 @@ function checkEnvironment() {
     'Meta Pixel is not configured. This is acceptable only if paid social tracking is intentionally delayed.',
   )
 
-  if (!process.env.MORROW_TRACKING_APPROVED_AT) {
+  if (!envValue('MORROW_TRACKING_APPROVED_AT')) {
     addWarning(
       'approval:tracking',
       'Tracking/consent approval timestamp is missing. Set MORROW_TRACKING_APPROVED_AT after GA/Meta/Consent decision.',
@@ -184,7 +212,7 @@ function checkEnvironment() {
 }
 
 function checkSecretExposure() {
-  const unsafePublicNames = Object.keys(process.env).filter((name) => {
+  const unsafePublicNames = Object.keys(runtimeEnv).filter((name) => {
     const isPublic = name.startsWith('NEXT_PUBLIC_') || name.startsWith('VITE_')
     const looksSensitive = /SERVICE_ROLE|RESEND|ACCESS_TOKEN|PAT|PASSWORD|SECRET/i.test(name)
     return isPublic && looksSensitive
@@ -200,17 +228,17 @@ function checkSecretExposure() {
     addPassed('secrets:public-env', 'No sensitive-looking public frontend env names detected.')
   }
 
-  if (process.env.RESEND_API_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (envValue('RESEND_API_KEY') || envValue('SUPABASE_SERVICE_ROLE_KEY')) {
     addWarning(
       'secrets:server-env-present',
       'Server secrets are present in this shell. Keep them out of Vercel frontend projects; they belong in Supabase Edge Function secrets or secure automation environments.',
-      ['RESEND_API_KEY', 'SUPABASE_SERVICE_ROLE_KEY'].filter((name) => process.env[name]),
+      ['RESEND_API_KEY', 'SUPABASE_SERVICE_ROLE_KEY'].filter((name) => envValue(name)),
     )
   } else {
     addPassed('secrets:server-env-present', 'No server secrets detected in current shell.')
   }
 
-  if (!process.env.MORROW_SECRETS_ROTATED_AT) {
+  if (!envValue('MORROW_SECRETS_ROTATED_AT')) {
     addBlocker(
       'approval:secret-rotation',
       'Secret rotation is not confirmed. Rotate shared Supabase PAT/service role, Resend key, GitHub PAT and shared passwords, then set MORROW_SECRETS_ROTATED_AT.',
@@ -291,7 +319,7 @@ function checkOfferDataApproval() {
     )
   }
 
-  if (!process.env.MORROW_OFFER_DATA_APPROVED_AT) {
+  if (!envValue('MORROW_OFFER_DATA_APPROVED_AT')) {
     addBlocker(
       'approval:offer-data',
       'Final offer data approval is missing. Set MORROW_OFFER_DATA_APPROVED_AT after real dates, price, included experience, image rights and support responsibility are checked.',
