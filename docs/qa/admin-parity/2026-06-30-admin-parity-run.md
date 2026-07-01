@@ -57,11 +57,11 @@ Testdaten:
 | 12 | Support senden | Technisch grün | Block-3-QA-Support `qa-block3-support-30b9ff18-03f0-49fd-af4d-b5f6947114a4` ist in `support_messages` sichtbar, Status `answered`. |
 | 13 | Support beantworten | Technisch grün | Support-Antwort ist im Gästebereich per `get_guest_support_events` sichtbar; Communication Event `5f27bdff-58a7-4f3d-aa6b-fa1e9d5e4ee9`. |
 | 14 | Feedback senden | Technisch grün | Feedback `qa-block3-feedback-30b9ff18-03f0-49fd-af4d-b5f6947114a4` gespeichert, Rating `5`, Wiederbuchungsinteresse `yes`. |
-| 15 | Auszeit pflegen | Offen |  |
-| 16 | Unterkunft pflegen | Offen |  |
-| 17 | Erlebnisbaustein pflegen | Offen |  |
-| 18 | Vor-Ort-Ort freigeben | Offen |  |
-| 19 | Veranstaltung prüfen | Offen |  |
+| 15 | Auszeit pflegen | Technisch grün | `npm run qa:admin-parity:block4` grün: Auszeit `pkg-couple-reset`, Status `published`, Unterkunft `duenenruhe-suite`, Termine `5f65eb9e-c3f1-41f8-8354-539c4b7c4132` (`2026-08-12` bis `2026-08-16`) und `a37731d3-c99c-40a8-ae1a-a1d19ad62933` (`2026-08-19` bis `2026-08-23`). |
+| 16 | Unterkunft pflegen | Technisch grün | Unterkunft `duenenruhe-suite` ist mit Check-in `key_safe`, Morrow-Support, bestätigten Bildrechten, Medien, Ausstattung und Hausregeln strukturiert. |
+| 17 | Erlebnisbaustein pflegen | Technisch grün | Erlebnisbaustein `exp-couple-wellness` ist mit Auszeit `pkg-couple-reset`, Anbieter `provider-nordsee-yoga`, Preislogik `included`, Kapazität und Verfügbarkeit verknüpft. |
+| 18 | Vor-Ort-Ort freigeben | Technisch grün | Vor-Ort-Ort `aerztlicher-bereitschaftsdienst-116117` ist `approved`, hat Koordinaten und Website und ist für die Gästekarte lesbar. |
+| 19 | Veranstaltung prüfen | Technisch grün | Veranstaltung `event-sound-of-urban-nature-2026` ist als `category=event`, `curationKind=local-event`, Datum `2026-08-15`, Zielgruppe `couples` getrennt von buchbaren Erlebnisbausteinen gepflegt. |
 | 20 | Owner-Dokument | Offen |  |
 | 21 | Owner-Abrechnung | Offen |  |
 | 22 | Owner-Operation | Offen |  |
@@ -81,6 +81,7 @@ Supabase-Datensätze:
 - Owner-Testlogin `owner-qa-20260701b@getmorrow.de` erzeugt; `npm run supabase:verify-owner`/`npm run qa:apps` grün per Login/RPC: Owner-App erreichbar und Dashboard sichtbar.
 - Block-2-Testfluss `30b9ff18-03f0-49fd-af4d-b5f6947114a4` technisch grün: Lead, Follow-up, Archiv/Reaktivierung, Buchung, Kunde, Aufgabe und Aufgabenbezug wurden über Supabase/Admin-Zugriff geprüft.
 - Block-3-Testfluss `30b9ff18-03f0-49fd-af4d-b5f6947114a4` technisch grün: `support_messages`, `guest_feedback` und `communication_events` sind an Buchung/Lead gekoppelt und über Gäste- sowie Admin-Zugriff lesbar.
+- Block-4-Bestandsfluss technisch grün: `pkg-couple-reset`, `duenenruhe-suite`, `exp-couple-wellness`, `aerztlicher-bereitschaftsdienst-116117` und `event-sound-of-urban-nature-2026` bestehen mit den für Operations relevanten Pflichtfeldern.
 
 E-Mail-/Communication-Events:
 - Support-Antwort: `5f27bdff-58a7-4f3d-aa6b-fa1e9d5e4ee9`, `event_type=support:qa-block3-support-30b9ff18-03f0-49fd-af4d-b5f6947114a4`, Kanal `email`, Status `sent`.
@@ -89,6 +90,7 @@ E-Mail-/Communication-Events:
 Audit-Log-Einträge:
 - Audit-Baseline statisch geprüft: `npm run qa:admin-audit` meldet `admin-audit-coverage-ok: 34 mutating functions write audit logs`.
 - Block-2-Audits: `2b10611d-347e-4a86-ac19-6dfb2cf04259`, `13c72c5d-ef36-4582-b8d9-241c572b9732`, `2724814a-ed7f-4893-9050-e7ec8568d271`, `c0a4c7e3-d371-45b2-80cc-c3cd54f7aaf4`, `1c3b8efc-36c6-41c6-ab66-7f11cbf095c5`.
+- Block-4-Audits: `a37879ca-149f-49a7-b5a0-26b1181e47e6`, `8644750c-e38b-42db-8dc8-1b643bc80e12`, `a90b56a6-e2dd-41c9-a122-bf32c2864ffb`, `34c16495-4c6c-42b7-b904-b6e6e8127574`, `3f6ec96f-6fce-4716-aefc-c04ab099d11a`.
 
 Offene Blocker:
 - `npm run qa:readiness` rot: Admin-Paritätslauf nicht grün, Rechtstexte/Secrets/Angebotsdaten/Tracking offen.
@@ -96,14 +98,14 @@ Offene Blocker:
 - `npm run qa:launch-gates` rot: 6 Blocker, darunter Rechtstexte/Arbeitsfassungen, Rechtsfreigabe, Secret-Rotation und Angebotsfreigabe.
 - `npm run qa:apps` grün: `checkedApps: 3`, Admin-Login, Owner-Login und Guest-Stay geprüft.
 - Live-Routing geprüft: `https://www.getmorrow.de/health` meldet `app=web`; App-Redirects zeigen auf Admin-, Gäste- und Owner-App.
-- Manuelle Gates 2-14 und 24 sind technisch grün; Gates 15-22 noch nicht durchgeführt und ohne Evidenz.
+- Manuelle Gates 2-19 und 24 sind technisch grün; Gates 20-22 noch nicht durchgeführt und ohne Evidenz.
 - Beobachtetes Schema-Risiko: Die Live-API akzeptierte `support_messages.customer_id` nicht (`PGRST204`), obwohl einige Codepfade Kontextfelder erwarten. Block 3 nutzt daher Buchung/Lead/Payload als verifizierte Kopplung; Normalisierung von Support-Kontextfeldern bleibt zu prüfen.
 
 ## Bewertung
 
 Ergebnis: Rot
 
-Begründung: App-URLs, Testzugänge sowie Block 1, Block 2 und Block 3 sind technisch grün. Der Lauf bleibt rot, weil Bestand und Owner-Flows in Gates 15-22 noch nicht mit Evidenz abgenommen sind und Recht/Freigaben weiter offen sind.
+Begründung: App-URLs, Testzugänge sowie Block 1, Block 2, Block 3 und Block 4 sind technisch grün. Der Lauf bleibt rot, weil Owner-Flows in Gates 20-22 noch nicht mit Evidenz abgenommen sind und Recht/Freigaben weiter offen sind.
 
 Freigabe für echte Leads: Nein
 
