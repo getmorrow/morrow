@@ -42,6 +42,7 @@ const requiredScripts = [
   'qa:admin-parity:block2',
   'qa:admin-parity:block3',
   'qa:admin-parity:block4',
+  'qa:admin-parity:block5',
   'qa:admin-parity:new',
   'qa:admin-parity:preflight',
   'qa:admin-parity:structure',

@@ -107,6 +107,14 @@ npm run qa:admin-parity:block4
 
 Dieser Check prueft lesend, ob Auszeit, Termin, Unterkunft, Erlebnisbaustein, freigegebener Vor-Ort-Ort, Veranstaltung und Audit-Log als Admin-/Supabase-Daten zusammenhaengen. Er ersetzt keine manuelle Evidenz, verhindert aber, dass Operationsdaten nur als UI-Eindruck abgehakt werden.
 
+Vor Block 5 kann die technische Grundlage so geprüft werden:
+
+```bash
+npm run qa:admin-parity:block5
+```
+
+Dieser Check prueft lesend, ob der signierte Owner-Zugang nur die zugeordneten Objekte sieht und ob sichtbare Dokumente, sichtbare/bezahlt markierte Abrechnungen, owner-sichtbare Operationsmeldungen und Audit-Logs zur Admin-/Supabase-Quelle passen. Er ersetzt keine Screenshots, macht aber Rechte- und Sichtbarkeitsfehler vor der manuellen Abnahme sichtbar.
+
 | Nr. | Flow | Erwartung | Status/Evidenz |
 | --- | --- | --- | --- |
 | 1 | Admin-Login | Nur freigeschaltete Admin-User kommen in `apps/admin`. | Offen |

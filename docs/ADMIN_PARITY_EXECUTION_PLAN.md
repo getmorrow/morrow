@@ -194,6 +194,14 @@ Stop, wenn:
 
 Ziel: Beweisen, dass der Owner-Bereich nur Daten zeigt, die Admin/Supabase korrekt pflegen.
 
+Vor dem manuellen Block-5-Test:
+
+```bash
+npm run qa:admin-parity:block5
+```
+
+Dieser Check verbindet den signierten Owner-Blick mit der Admin-/Supabase-Quelle: `get_owner_dashboard()`, `owner_profiles`, `owner_property_access`, `owner_documents`, `owner_statements`, `owner_operations` und `admin_audit_logs`. Er veraendert keine Daten. Wenn der Check rot ist, zuerst die ausgegebenen `nextActions` abarbeiten: aktives Owner-Profil, Objektzugriff, sichtbares Dokument, sichtbare/bezahlt markierte Abrechnung, owner-sichtbare Operation und Audit-Evidenz herstellen.
+
 | Runbook-Gate | Flow | Evidenz |
 | --- | --- | --- |
 | 20 | Owner-Dokument | Dokument-ID, Freigabe, Sichtbarkeit in Owner-App. |

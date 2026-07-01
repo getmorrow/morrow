@@ -235,6 +235,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 - Admin-Paritaet Block 2: `npm run qa:admin-parity:block2` (liest einen aktuellen Gastlead-zu-Kunde/Buchung/Aufgabe/Audit-Testfluss fuer `Anfrage Zu Kunde Und Buchung`)
 - Admin-Paritaet Block 3: `npm run qa:admin-parity:block3` (liest Gaeste-App-Zugang, Support, Feedback und zentrale Kommunikationshistorie fuer `Gaeste-App Und Kommunikation`)
 - Admin-Paritaet Block 4: `npm run qa:admin-parity:block4` (liest Auszeit, Termin, Unterkunft, Erlebnisbaustein, Vor-Ort-Ort, Veranstaltung und Audit-Log fuer `Bestand Und Operationsdaten`)
+- Admin-Paritaet Block 5: `npm run qa:admin-parity:block5` (vergleicht signierten Owner-Blick mit Admin-/Supabase-Daten fuer Objektzugriff, Dokumente, Abrechnungen, Operationsmeldungen und Audit-Log)
 - Admin-Paritaets-Strukturcheck: `npm run qa:admin-parity:structure` (prueft alte Vite-Admin-Bereiche gegen Next-Workspaces, UI-Anker, Supabase-Tabellen und Doku)
 - Admin-Paritaets-Statusreport: `npm run qa:admin-parity:status` (zeigt offene automatische Gates, manuelle Gates und Evidenzluecken des neuesten Laufprotokolls)
 - App-Deployment-Konfigurationscheck: `npm run qa:app-deployment-config` (prueft lokale Vercel-Konfigurationen und `/health`-Identitaet fuer Web, Admin, Guest und Owner)

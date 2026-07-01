@@ -59,6 +59,7 @@
     "qa:admin-parity:block2": "node scripts/qa-admin-parity-block2.mjs",
     "qa:admin-parity:block3": "node scripts/qa-admin-parity-block3.mjs",
     "qa:admin-parity:block4": "node scripts/qa-admin-parity-block4.mjs",
+    "qa:admin-parity:block5": "node scripts/qa-admin-parity-block5.mjs",
     "qa:admin-parity:preflight": "node scripts/qa-admin-parity-preflight.mjs",
     "qa:admin-parity:structure": "node scripts/qa-admin-parity-structure.mjs",
     "qa:admin-parity:status": "node scripts/report-admin-parity-status.mjs",
