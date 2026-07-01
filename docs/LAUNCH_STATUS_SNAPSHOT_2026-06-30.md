@@ -12,6 +12,7 @@ Aktueller Status:
 
 - Öffentliche Website: Production-Basischeck grün.
 - Admin-Paritätslauf: angelegt, aber rot/offen.
+- Admin-Paritäts-Statusreport: grün ausführbar; zeigt aktuell 4 offene automatische Gates, 24 offene manuelle Gates und 24 fehlende Gate-Evidenzen.
 - Admin-Paritäts-Strukturcheck: grün; strukturelle Abdeckung ersetzt keine manuelle Abnahme.
 - Prototyp-Speicher-Inventar: grün; alte Vite-LocalStorage- und Fallback-Datenflüsse sind dokumentiert, aber nicht produktiv führend.
 - Launch-Gates: rot durch 11 Blocker.
@@ -103,6 +104,28 @@ Blocker:
 - 12 automatische Gates sind nicht abgehakt.
 - 24 manuelle Gates stehen auf `Offen`.
 - 24 manuelle Gates haben noch keine Evidenz.
+
+### `npm run qa:admin-parity:status`
+
+Ergebnis: grün ausführbar, aber Status des Laufes rot.
+
+```text
+file: docs/qa/admin-parity/2026-06-30-admin-parity-run.md
+result: Rot
+automaticOpen: 4
+manualOpen: 24
+manualMissingEvidence: 24
+evidenceSectionsFilled: 1
+```
+
+Offene automatische Gates:
+
+- `npm run qa:admin-parity:preflight`
+- `npm run qa:readiness`
+- `npm run qa:launch-gates`
+- `npm run qa:apps`
+
+Wichtig: Der Statusreport ist nur eine Arbeitsliste. Er ersetzt nicht `npm run qa:admin-parity:validate` und gibt keine Launch-Freigabe.
 
 ### `npm run qa:admin-parity:structure`
 

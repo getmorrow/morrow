@@ -26,11 +26,19 @@ export function extractAdminParityResult(body) {
   return match?.[1]?.trim() || 'Missing'
 }
 
-function countUncheckedItems(body) {
+export function countUncheckedItems(body) {
   return [...body.matchAll(/- \[ \]/g)].length
 }
 
-function parseManualRows(body) {
+export function parseAutomaticGateRows(body) {
+  return [...body.matchAll(/^- \[( |x|X)\]\s+(.+)$/gm)]
+    .map((match) => ({
+      checked: match[1].toLowerCase() === 'x',
+      command: match[2].trim(),
+    }))
+}
+
+export function parseManualRows(body) {
   return [...body.matchAll(/^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]*?)\s*\|$/gm)]
     .map((match) => ({
       number: Number(match[1]),
@@ -41,12 +49,12 @@ function parseManualRows(body) {
     .filter((row) => Number.isInteger(row.number))
 }
 
-function evidenceIsFilled(value) {
+export function evidenceIsFilled(value) {
   const normalized = value.trim()
   return normalized.length > 0 && !/^[-–—]*$/.test(normalized)
 }
 
-function sectionHasEvidence(body, heading) {
+export function sectionHasEvidence(body, heading) {
   const escapedHeading = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const match = body.match(new RegExp(`^${escapedHeading}:\\n([\\s\\S]*?)(?=\\n\\n[A-ZÄÖÜa-zäöü].*?:|\\n## |$)`, 'm'))
   if (!match) return false

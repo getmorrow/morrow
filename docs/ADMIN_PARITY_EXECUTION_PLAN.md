@@ -55,6 +55,14 @@ npm run qa:admin-parity:new
 
 5. Automatische Gates ausfuehren und im Protokoll abhaken.
 
+6. Statusreport fuer den aktuellen Lauf anzeigen:
+
+```bash
+npm run qa:admin-parity:status
+```
+
+Der Statusreport ersetzt keine Abnahme. Er zeigt nur kompakt, welche automatischen Gates, manuellen Gates und Evidenzbereiche noch offen sind.
+
 ## Laufreihenfolge
 
 ### Block 1: Zugang Und Baseline
@@ -165,6 +173,7 @@ Zum Schluss im Protokoll festhalten:
 Danach:
 
 ```bash
+npm run qa:admin-parity:status
 npm run qa:admin-parity:validate
 npm run qa:readiness
 npm run qa:migration-consolidation

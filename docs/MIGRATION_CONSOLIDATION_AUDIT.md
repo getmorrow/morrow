@@ -226,6 +226,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 - Public-Website-QA: `QA_BASE_URL=https://www.getmorrow.de npm run qa:production`
 - Admin-Audit-QA: `npm run qa:admin-audit`
 - Admin-Paritaets-Strukturcheck: `npm run qa:admin-parity:structure` (prueft alte Vite-Admin-Bereiche gegen Next-Workspaces, UI-Anker, Supabase-Tabellen und Doku)
+- Admin-Paritaets-Statusreport: `npm run qa:admin-parity:status` (zeigt offene automatische Gates, manuelle Gates und Evidenzluecken des neuesten Laufprotokolls)
 - App-Deployment-Konfigurationscheck: `npm run qa:app-deployment-config` (prueft lokale Vercel-Konfigurationen und `/health`-Identitaet fuer Web, Admin, Guest und Owner)
 - Prototyp-Speicher-Inventar: `npm run qa:prototype-storage` (prueft bekannte Vite-LocalStorage-Keys, Prototyp-Adaptertabellen und Doku)
 - Admin-Paritaetsabnahme: `docs/ADMIN_PARITY_QA_RUNBOOK.md`

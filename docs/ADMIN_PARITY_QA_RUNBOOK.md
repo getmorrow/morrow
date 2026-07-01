@@ -171,6 +171,14 @@ Das neueste Protokoll wird so validiert:
 npm run qa:admin-parity:validate
 ```
 
+Der aktuelle Bearbeitungsstand des neuesten Protokolls wird so kompakt angezeigt:
+
+```bash
+npm run qa:admin-parity:status
+```
+
+Dieser Statusreport ist nur eine Arbeitsliste. Eine Freigabe entsteht erst durch ein validiertes Protokoll mit Evidenz.
+
 Ergänzend können visuelle/UX-Notizen in `docs/PAGE_REVIEW_LOG.md` und fachliche Paritätsentscheidungen in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` festgehalten werden.
 
 ## Abnahmeprotokoll Vorlage

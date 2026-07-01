@@ -35,6 +35,7 @@ Aktuelle Entscheidung:
 - Admin-Paritätscheckliste existiert mit Status pro Bereich.
 - Operatives Admin-Paritäts-Runbook existiert inklusive Stop-Regeln und Evidenzvorlage.
 - Konkreter Admin-Paritäts-Ausführungsplan existiert in `docs/ADMIN_PARITY_EXECUTION_PLAN.md` und ordnet die 24 Gates in eine praktische Testreihenfolge.
+- `qa:admin-parity:status` erzeugt eine kompakte Arbeitsliste zum neuesten Paritätslauf und zeigt offene automatische Gates, manuelle Gates und Evidenzlücken.
 - Launch-Status-Snapshot dokumentiert aktuelle Blocker aus `qa:launch-gates`.
 - Build-/QA-Kommandos sind dokumentiert und zuletzt für Konsolidierungsänderungen grün gelaufen.
 - `qa:admin-audit` prüft aktuell 34 mutierende Admin-Funktionen auf Audit-Logs.
