@@ -2,7 +2,7 @@
 
 Stand: 2026-07-01
 
-Dieser Snapshot dokumentiert den aktuellen Go-/No-Go-Stand nach der Vereinheitlichung der QA-Env-Ladung in `scripts/lib/qa-env.mjs`.
+Dieser Snapshot dokumentiert den aktuellen Go-/No-Go-Stand nach der Vereinheitlichung der QA-Env-Ladung in `scripts/lib/qa-env.mjs` und nach der Erweiterung der Admin-Paritaetschecks fuer Block 1 bis 5.
 
 ## Kurzfazit
 
@@ -67,6 +67,10 @@ controlledRealLeads: red
 paidGuests: red
 paidAds: red
 blockers: 6
+openRunbookManualGates: 24
+uncheckedRunbookTemplateItems: 42
+openParityRunManualGates: 24
+missingParityRunEvidenceRows: 24
 ```
 
 Blockergruppen:
@@ -111,9 +115,21 @@ Warnings:
 
 Ergebnis: rot.
 
+```text
+passed: 79
+warnings: 0
+blockers: 1
+```
+
 Einziger Konsolidierungsblocker:
 
 - Der neueste Admin-Paritätslauf `docs/qa/admin-parity/2026-06-30-admin-parity-run.md` ist nicht validiert grün.
+
+Die Strukturpruefungen sichern inzwischen nicht nur die Konsolidierungsdokumente und Scripts ab, sondern auch:
+
+- die automatischen Admin-Paritaets-Gates `block1` bis `block5` in Runbook und Protokollgenerator,
+- die gezielten QA-Selectoren `QA_BLOCK2_*`, `QA_BLOCK4_*` und `QA_BLOCK5_*` im Env-Template,
+- die erweiterten Testdatenlabels fuer Erlebnisbaustein, Vor-Ort-Ort, Veranstaltung und Owner-Daten.
 
 ## Nächster Abnahmeblock
 
@@ -148,4 +164,3 @@ Freigabe für echte Leads: Nein
 Freigabe für zahlende Gäste: Nein
 
 Freigabe für Paid Ads: Nein
-
