@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js'
 import { createQaEnv } from './lib/qa-env.mjs'
 
 const rootDir = process.cwd()
@@ -74,6 +75,81 @@ const adminApp = await checkAppHealth(['ADMIN_BASE_URL', 'MORROW_ADMIN_APP_URL']
 const guestApp = await checkAppHealth(['GUEST_BASE_URL', 'MORROW_GUEST_APP_URL'], 'guest')
 const ownerApp = await checkAppHealth(['OWNER_BASE_URL', 'MORROW_OWNER_APP_URL'], 'owner')
 
+async function checkAdminCredentials() {
+  const supabaseUrl = firstUsableValue(['SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL', 'VITE_SUPABASE_URL'])
+  const anonKey = firstUsableValue(['SUPABASE_ANON_KEY', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY'])
+  const email = firstUsableValue(['ADMIN_EMAIL'])
+  const password = firstUsableValue(['ADMIN_PASSWORD'])
+
+  if (!email || !password) {
+    return {
+      pass: false,
+      missing: 'ADMIN_EMAIL and ADMIN_PASSWORD',
+    }
+  }
+
+  if (!supabaseUrl || !anonKey) {
+    return {
+      pass: false,
+      missing: 'Supabase public URL and anon key for admin credential verification',
+    }
+  }
+
+  try {
+    const client = createClient(supabaseUrl, anonKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    })
+
+    const { error: signInError } = await client.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (signInError) {
+      return {
+        pass: false,
+        missing: 'valid ADMIN_EMAIL and ADMIN_PASSWORD',
+        detail: `Admin login failed: ${signInError.message}`,
+      }
+    }
+
+    const { data: profile, error: profileError } = await client.rpc('get_morrow_admin_profile')
+    await client.auth.signOut()
+
+    if (profileError) {
+      return {
+        pass: false,
+        missing: 'admin profile RPC access',
+        detail: `get_morrow_admin_profile failed: ${profileError.message}`,
+      }
+    }
+
+    if (!profile?.email || profile.status !== 'active') {
+      return {
+        pass: false,
+        missing: 'active admin profile',
+        detail: `Admin profile returned status=${profile?.status ?? 'missing'}`,
+      }
+    }
+
+    return {
+      pass: true,
+      detail: `Admin login verified for ${profile.email} role=${profile.role ?? 'unknown'} status=${profile.status}`,
+    }
+  } catch (error) {
+    return {
+      pass: false,
+      missing: 'reachable Supabase admin credential verification',
+      detail: error instanceof Error ? error.message : String(error),
+    }
+  }
+}
+
+const adminCredentials = await checkAdminCredentials()
+
 const requiredGroups = [
   {
     id: 'website:url',
@@ -117,8 +193,9 @@ const requiredGroups = [
   {
     id: 'admin:credentials',
     label: 'Admin test login',
-    pass: has('ADMIN_EMAIL') && has('ADMIN_PASSWORD'),
-    missing: 'ADMIN_EMAIL and ADMIN_PASSWORD',
+    pass: adminCredentials.pass,
+    missing: adminCredentials.missing,
+    detail: adminCredentials.detail,
   },
   {
     id: 'guest:test-stay',

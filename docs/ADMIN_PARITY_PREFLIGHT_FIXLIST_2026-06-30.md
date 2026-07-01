@@ -45,6 +45,7 @@ Preflight-Regel:
 - Admin muss `{"app":"admin","status":"ok"}` liefern.
 - Gaeste-App muss `{"app":"guest","status":"ok"}` liefern.
 - Owner-App muss `{"app":"owner","status":"ok"}` liefern.
+- Admin-Zugangsdaten gelten erst als gesetzt, wenn der Login mit Supabase Auth funktioniert und `get_morrow_admin_profile` ein aktives Admin-Profil zurueckgibt.
 - Website-Pfade wie `https://www.getmorrow.de/admin` oder `https://www.getmorrow.de/deine-auszeit` duerfen nicht als App-Base-URLs gelten, solange sie kein passendes App-Health-Signal liefern.
 
 ## Live-Routing-Evidenz
