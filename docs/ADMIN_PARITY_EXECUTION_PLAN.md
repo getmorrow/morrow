@@ -32,6 +32,8 @@ Der Preflight gibt keine Secret-Werte aus. Er prüft nur, ob die für den Parit�
 
 Wenn der Preflight rot ist, zuerst `docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md` abarbeiten.
 
+Wichtig: Historisch vorbereitete Testdaten reichen nicht. Admin-, Gäste- und Owner-Testwerte muessen im aktuellen QA-Kontext als `.env.local`-Werte oder Shell-Exports gesetzt sein und im aktuellen Lauf erneut gruen geprueft werden. Erst dann duerfen die zugehoerigen manuellen Gates Evidenz bekommen.
+
 3. Aktuelles Protokoll anlegen:
 
 ```bash
@@ -84,6 +86,8 @@ npm run qa:admin-parity:block1
 ```
 
 Dieser Check buendelt `npm run supabase:verify-admin` und `npm run qa:admin-audit`. Er ersetzt nicht die manuelle Evidenz, sondern zeigt, ob Admin-Login/Rolle/Tabellenzugriff und statische Audit-Abdeckung als Grundlage pruefbar sind.
+
+Wenn `ADMIN_EMAIL` oder `ADMIN_PASSWORD` fehlen, bleibt Block 1 offen. Der statische Audit-Check kann trotzdem gruen sein, zaehlt aber ohne aktuellen Admin-Login nicht als vollstaendige Block-1-Evidenz.
 
 | Runbook-Gate | Flow | Evidenz |
 | --- | --- | --- |
