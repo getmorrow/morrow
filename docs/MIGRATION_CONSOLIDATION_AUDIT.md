@@ -232,6 +232,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 - Public-Website-QA: `QA_BASE_URL=https://www.getmorrow.de npm run qa:production`
 - Admin-Audit-QA: `npm run qa:admin-audit`
 - Admin-Paritaet Block 1: `npm run qa:admin-parity:block1` (buendelt Admin-Login/Rolle/Tabellenzugriff und statische Audit-Abdeckung fuer `Zugang Und Baseline`)
+- Admin-Paritaet Block 2: `npm run qa:admin-parity:block2` (liest einen aktuellen Gastlead-zu-Kunde/Buchung/Aufgabe/Audit-Testfluss fuer `Anfrage Zu Kunde Und Buchung`)
 - Admin-Paritaets-Strukturcheck: `npm run qa:admin-parity:structure` (prueft alte Vite-Admin-Bereiche gegen Next-Workspaces, UI-Anker, Supabase-Tabellen und Doku)
 - Admin-Paritaets-Statusreport: `npm run qa:admin-parity:status` (zeigt offene automatische Gates, manuelle Gates und Evidenzluecken des neuesten Laufprotokolls)
 - App-Deployment-Konfigurationscheck: `npm run qa:app-deployment-config` (prueft lokale Vercel-Konfigurationen und `/health`-Identitaet fuer Web, Admin, Guest und Owner)
@@ -342,7 +343,7 @@ Als naechstes wird der Admin-Paritaetslauf blockweise abgearbeitet:
 1. Fehlende Preflight-Werte setzen: Admin-, Guest- und Owner-App-URLs, Admin-Testlogin, Guest-Testbuchung, Owner-Testlogin.
 2. `npm run qa:admin-parity:preflight` ausfuehren, bis alle Eingaben und Health-Checks gruen sind.
 3. Block 1 aus `docs/ADMIN_PARITY_EXECUTION_PLAN.md` abnehmen: Admin-Login und Audit-Log.
-4. Erst danach Block 2 starten: Anfrage zu Kunde und Buchung.
+4. Erst danach Block 2 starten: Anfrage zu Kunde und Buchung. Der technische Vorcheck dafuer ist `npm run qa:admin-parity:block2`.
 5. Jeder bestandene Flow bekommt Evidenz im aktuellen Protokoll unter `docs/qa/admin-parity/`.
 
 Erst wenn der neueste Admin-Paritaetslauf mindestens die fuer kontrollierte echte Leads noetigen Gates nachweist, darf ueber einen Softlaunch mit echten Leads gesprochen werden. Neue Produktfeatures bleiben bis dahin pausiert.

@@ -107,6 +107,16 @@ Stop, wenn:
 
 Ziel: Den Kernprozess Gastanfrage → CRM-Bearbeitung → Buchung → Kundensatz beweisen.
 
+Vor dem manuellen Block-2-Test:
+
+```bash
+npm run qa:admin-parity:block2
+```
+
+Dieser Check liest mit Admin-Zugang den aktuellen CRM-Zustand und sucht einen zusammenhaengenden Testfluss aus Gastlead, Kundensatz, Buchung, Aufgabe und Audit-Log. Er veraendert keine Daten und ersetzt keine Screenshots. Wenn `QA_BLOCK2_LEAD_ID` oder `QA_BLOCK2_BOOKING_ID` gesetzt sind, prueft er gezielt diesen Flow; sonst nutzt er den neuesten geeigneten Gastlead.
+
+Wenn der Check rot ist, zuerst die ausgegebenen `nextActions` abarbeiten und danach erneut ausfuehren. Erst wenn der Check gruen ist, sollten die manuellen Gates 2 bis 10 im aktuellen QA-Protokoll mit Evidenz markiert werden.
+
 | Runbook-Gate | Flow | Evidenz |
 | --- | --- | --- |
 | 2 | Neuer Gastlead | Lead-ID, Website-Formular, Admin-Lead, E-Mail-/Communication-Event. |

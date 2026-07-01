@@ -83,6 +83,14 @@ npm run qa:admin-parity:block1
 
 Wenn dieser Check rot ist, werden die manuellen Gates 1 und 23 nicht als bestanden gewertet. Screenshots und konkrete Datensatz-Evidenz bleiben trotzdem Pflicht.
 
+Vor Block 2 kann die technische Grundlage so geprüft werden:
+
+```bash
+npm run qa:admin-parity:block2
+```
+
+Dieser Check prueft lesend, ob ein aktueller Testfluss aus Gastlead, Kundensatz, Buchung, Aufgabe und Audit-Log vorhanden ist. Er ersetzt keine manuelle Evidenz, verhindert aber, dass die Gates 2 bis 10 nur aus UI-Eindruck ohne Datenbeleg abgehakt werden.
+
 | Nr. | Flow | Erwartung | Status/Evidenz |
 | --- | --- | --- | --- |
 | 1 | Admin-Login | Nur freigeschaltete Admin-User kommen in `apps/admin`. | Offen |

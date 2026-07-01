@@ -225,6 +225,12 @@ const nextCommands = nextBlock?.id === 'block-1'
       'npm run qa:admin-parity:block1',
       'npm run qa:admin-parity:status',
     ]
+  : nextBlock?.id === 'block-2'
+    ? [
+        'npm run qa:admin-parity:preflight',
+        'npm run qa:admin-parity:block2',
+        'npm run qa:admin-parity:status',
+      ]
   : validation.valid
     ? [
         'npm run qa:readiness',
