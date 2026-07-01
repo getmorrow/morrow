@@ -79,5 +79,5 @@ Als nächstes keine neuen Produktfeatures bauen, sondern Block 6 abschließen:
 1. Rechtstexte finalisieren und `MORROW_LEGAL_APPROVED_AT` erst nach Freigabe setzen.
 2. Geteilte Secrets rotieren und `MORROW_SECRETS_ROTATED_AT` setzen.
 3. Angebotsdaten final freigeben und `MORROW_OFFER_DATA_APPROVED_AT` setzen.
-4. Tracking-/Consent-Entscheidung treffen und ggf. GA4/Meta IDs plus `MORROW_TRACKING_APPROVED_AT` setzen.
+4. Tracking-/Consent-Entscheidung treffen: `MORROW_TRACKING_MODE=disabled` fuer Start ohne Paid Ads oder `enabled` mit GA4/Meta IDs fuer Paid Ads; danach `MORROW_TRACKING_APPROVED_AT` setzen.
 5. `npm run qa:readiness`, `npm run qa:launch-gates` und `npm run qa:admin-parity:status` erneut ausführen.

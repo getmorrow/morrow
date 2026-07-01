@@ -67,6 +67,7 @@ MORROW_OWNER_APP_URL=https://<owner-app-domain> \
 MORROW_LEGAL_APPROVED_AT=2026-..-.. \
 MORROW_SECRETS_ROTATED_AT=2026-..-.. \
 MORROW_OFFER_DATA_APPROVED_AT=2026-..-.. \
+MORROW_TRACKING_MODE=disabled \
 MORROW_TRACKING_APPROVED_AT=2026-..-.. \
 npm run qa:launch-gates
 ```
@@ -164,6 +165,7 @@ Kein Start mit bezahlten Gästen, wenn:
 Kein Paid-Ads-Start, wenn:
 
 - Tracking/Consent nicht final entschieden ist.
+- `MORROW_TRACKING_MODE=disabled` gesetzt ist.
 - Conversion-Ziele nicht getestet sind.
 - Angebotsdaten, Preise, Termine, Bildrechte und enthaltene Leistungen nicht final freigegeben sind.
 

@@ -263,7 +263,7 @@ Kompakter Startstufen-Status:
 npm run qa:readiness
 ```
 
-Dieser Check fasst zusammen, ob Morrow nur fuer interne Tests, fuer kontrollierte echte Leads, fuer zahlende Gaeste oder fuer Paid Ads bereit ist. Er liest den neuesten Admin-Paritaetslauf aus `docs/qa/admin-parity/`, prueft die wichtigsten Launch-Freigaben und bleibt rot, solange die Admin-Paritaet nicht belegt ist.
+Dieser Check fasst zusammen, ob Morrow nur fuer interne Tests, fuer kontrollierte echte Leads, fuer zahlende Gaeste oder fuer Paid Ads bereit ist. Er liest den neuesten Admin-Paritaetslauf aus `docs/qa/admin-parity/`, prueft die wichtigsten Launch-Freigaben und bleibt rot, solange Recht, Secret-Rotation, Angebotsfreigabe oder Tracking-Entscheidung offen sind.
 
 Ein neues Admin-Paritaetsprotokoll fuer die praktische Abnahme wird so angelegt:
 

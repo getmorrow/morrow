@@ -328,10 +328,10 @@ Der Check ist eine Schutzplanke gegen stilles Weglassen. Er ersetzt nicht den ma
 ## Konsolidierungs-Backlog Vor Neuem Featurebau
 
 1. Finale Bewertung Block 6 abschliessen: `npm run qa:readiness` und `npm run qa:launch-gates` muessen gruen oder bewusst mit dokumentierter Entscheidung eingeordnet sein.
-2. Rechtstexte finalisieren und rechtlich/fachlich freigeben: Impressum, AGB und Stornobedingungen enthalten noch Arbeits-/Platzhalterhinweise.
+2. Rechtstexte rechtlich/fachlich freigeben: Die oeffentlichen Arbeits-/Platzhalterhinweise sind bereinigt, aber `MORROW_LEGAL_APPROVED_AT` fehlt bis zur echten Freigabe.
 3. Geteilte Secrets rotieren und `MORROW_SECRETS_ROTATED_AT` erst danach setzen.
 4. Angebotsdaten final freigeben: reale Termine, Preise, enthaltene Leistungen, Bildrechte und Supportverantwortung je Auszeit.
-5. Tracking-/Consent-Entscheidung treffen: GA4/Meta entweder final konfigurieren und freigeben oder Paid-Ads bewusst weiter blockieren.
+5. Tracking-/Consent-Entscheidung treffen: `MORROW_TRACKING_MODE=enabled` mit GA4/Meta final konfigurieren oder `disabled` setzen und Paid Ads bewusst weiter blockieren.
 6. Nach Deployment den Owner-App-Bildfallback und `npm run qa:apps` erneut gegen Production pruefen.
 7. Repository-/Mutation-Helper aus App-Komponenten in klare Supabase-/Domain-Services ziehen, sobald die Launch-Gates geschlossen sind.
 8. Entscheiden, welche Vite-Funktionen explizit ersetzt sind und welche als Referenz offen bleiben.
