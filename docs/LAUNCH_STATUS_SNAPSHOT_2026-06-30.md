@@ -135,7 +135,8 @@ Ergebnis im aktuellen lokalen Shell-Kontext: rot.
 
 Blocker:
 
-- `npm run supabase:verify-admin` kann ohne Supabase-URL/anon key/Admin-Testlogin im aktuellen Shell-Kontext nicht laufen.
+- `npm run supabase:verify-admin` kann ohne `ADMIN_EMAIL` und `ADMIN_PASSWORD` im aktuellen Shell-Kontext nicht laufen.
+- Supabase Public URL und anon key werden inzwischen aus `.env.local` gelesen.
 - `npm run qa:admin-audit` bleibt der statische Teil fuer Audit-Abdeckung und ist separat gruen dokumentiert.
 
 Wichtig: Dieser Block-1-Check ist nur technische Vorpruefung fuer `Zugang Und Baseline`. Die eigentliche Abnahme braucht weiterhin Screenshot Admin-Dashboard, Admin-User/Rolle und Audit-Log-Evidenz im Paritaetsprotokoll.

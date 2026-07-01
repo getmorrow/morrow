@@ -1,4 +1,40 @@
 import { spawnSync } from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
+
+const rootDir = process.cwd()
+
+function parseEnvFile(relativePath) {
+  const fullPath = path.join(rootDir, relativePath)
+  if (!fs.existsSync(fullPath)) return {}
+
+  return Object.fromEntries(
+    fs.readFileSync(fullPath, 'utf8')
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('#') && line.includes('='))
+      .map((line) => {
+        const index = line.indexOf('=')
+        const key = line.slice(0, index).trim()
+        const value = line.slice(index + 1).trim().replace(/^['"]|['"]$/g, '')
+        return [key, value]
+      }),
+  )
+}
+
+const envFile = parseEnvFile('.env.local')
+const commandEnv = {
+  ...process.env,
+  ...envFile,
+}
+
+if (!commandEnv.SUPABASE_URL) {
+  commandEnv.SUPABASE_URL = commandEnv.NEXT_PUBLIC_SUPABASE_URL || commandEnv.VITE_SUPABASE_URL || ''
+}
+
+if (!commandEnv.SUPABASE_ANON_KEY) {
+  commandEnv.SUPABASE_ANON_KEY = commandEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY || commandEnv.VITE_SUPABASE_ANON_KEY || ''
+}
 
 const checks = [
   {
@@ -17,8 +53,9 @@ const checks = [
 
 function runCheck(check) {
   const result = spawnSync(check.command[0], check.command.slice(1), {
-    cwd: process.cwd(),
+    cwd: rootDir,
     encoding: 'utf8',
+    env: commandEnv,
     shell: false,
   })
 
@@ -82,6 +119,10 @@ const blockers = results
 const output = {
   ok: blockers.length === 0,
   purpose: 'Prepare admin parity Block 1 evidence: Zugang Und Baseline.',
+  checkedEnvSources: {
+    shell: true,
+    envLocal: fs.existsSync(path.join(rootDir, '.env.local')),
+  },
   nextManualEvidence: [
     'Screenshot Admin-Dashboard with signed-in admin user.',
     'Screenshot or exported list of current admin_audit_logs before test start.',
