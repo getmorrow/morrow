@@ -288,6 +288,12 @@ async function readOwnerDashboard(ownerClient) {
   return data
 }
 
+async function readOwnerOperationsRpc(ownerClient) {
+  const { data, error } = await ownerClient.rpc('get_owner_operations')
+  if (error) throw error
+  return data
+}
+
 function buildProfileResult(ownerProfile, dashboard) {
   if (!ownerProfile) {
     return fail(
@@ -475,10 +481,10 @@ function buildStatementResult(statements, accessRows, dashboard) {
   )
 }
 
-function buildOperationResult(operations, accessRows, dashboard) {
+function buildOperationResult(operations, accessRows, ownerOperations) {
   const operationPropertyIds = new Set(accessRows.filter((row) => row.can_view_operations).map((row) => row.property_id))
   const visibleOperations = operations.filter((operation) => operation.visibility === 'owner_visible' && operation.status !== 'archived' && operationPropertyIds.has(operation.property_id))
-  const dashboardOperations = asArray(dashboard?.operations)
+  const dashboardOperations = asArray(ownerOperations)
   const visibleIds = new Set(ids(visibleOperations))
   const dashboardIds = new Set(ids(dashboardOperations))
   const missing = [...visibleIds].filter((id) => !dashboardIds.has(id))
@@ -638,8 +644,9 @@ async function main() {
     }
   }
 
-  const [dashboard, ownerProfile] = await Promise.all([
+  const [dashboard, ownerOperations, ownerProfile] = await Promise.all([
     readOwnerDashboard(ownerClient),
+    readOwnerOperationsRpc(ownerClient),
     selectAdminOwnerProfile(adminClient),
   ])
   const accessRows = await readOwnerAccess(adminClient, ownerProfile?.id)
@@ -677,7 +684,7 @@ async function main() {
     buildAccessResult(accessRows, dashboard),
     buildDocumentResult(documents, dashboard),
     buildStatementResult(statements, accessRows, dashboard),
-    buildOperationResult(operations, accessRows, dashboard),
+    buildOperationResult(operations, accessRows, ownerOperations),
     buildAuditResult(auditLogs, selectedRecords),
   ]
   const blockers = results.filter((result) => !result.ok)
@@ -701,7 +708,7 @@ async function main() {
       dashboardProperties: asArray(dashboard?.properties).length,
       dashboardDocuments: asArray(dashboard?.documents).length,
       dashboardStatements: asArray(dashboard?.statements).length,
-      dashboardOperations: asArray(dashboard?.operations).length,
+      ownerOperations: asArray(ownerOperations).length,
       adminAccessRows: accessRows.length,
       adminDocuments: documents.length,
       adminStatements: statements.length,
