@@ -12,6 +12,7 @@ Aktueller Status:
 
 - Öffentliche Website: Production-Basischeck grün.
 - Admin-Paritätslauf: angelegt, aber rot/offen.
+- Admin-Paritäts-Strukturcheck: grün; strukturelle Abdeckung ersetzt keine manuelle Abnahme.
 - Launch-Gates: rot durch 11 Blocker.
 - App-QA: rot, weil Admin-, Gäste- und Owner-App-URLs nicht gesetzt sind.
 - App-Deployment-Konfiguration: gruen pruefbar im Repo; echte App-Deployments/URLs fehlen trotzdem.
@@ -101,6 +102,20 @@ Blocker:
 - 12 automatische Gates sind nicht abgehakt.
 - 24 manuelle Gates stehen auf `Offen`.
 - 24 manuelle Gates haben noch keine Evidenz.
+
+### `npm run qa:admin-parity:structure`
+
+Ergebnis: grün.
+
+Dieser Check prüft strukturell:
+
+- alle 13 alten Vite-Admin-Bereiche aus `src/App.tsx`,
+- Zuordnung zu Next-Admin-Workspaces,
+- sichtbare UI-Anker,
+- erwartete Supabase-Tabellen,
+- Dokumentation in Paritäts- oder Migrationsdoku.
+
+Wichtig: Dieser Check verhindert stilles Weglassen, ersetzt aber nicht die manuelle Admin-Paritätsabnahme mit echten Workflows.
 
 ### `npm run qa:launch-gates`
 

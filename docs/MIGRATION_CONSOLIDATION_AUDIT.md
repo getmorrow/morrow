@@ -225,6 +225,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 - Apps-Production-QA: `npm run qa:apps` (schlaegt fehl, wenn nicht alle drei `ADMIN_BASE_URL`, `GUEST_BASE_URL` und `OWNER_BASE_URL` gesetzt sind; Teilpruefung nur bewusst mit `MORROW_QA_ALLOW_PARTIAL_APPS=1`)
 - Public-Website-QA: `QA_BASE_URL=https://www.getmorrow.de npm run qa:production`
 - Admin-Audit-QA: `npm run qa:admin-audit`
+- Admin-Paritaets-Strukturcheck: `npm run qa:admin-parity:structure` (prueft alte Vite-Admin-Bereiche gegen Next-Workspaces, UI-Anker, Supabase-Tabellen und Doku)
 - App-Deployment-Konfigurationscheck: `npm run qa:app-deployment-config` (prueft lokale Vercel-Konfigurationen und `/health`-Identitaet fuer Web, Admin, Guest und Owner)
 - Admin-Paritaetsabnahme: `docs/ADMIN_PARITY_QA_RUNBOOK.md`
 - Guest-RPC/Browsertest: `npm run supabase:verify-guest`
@@ -285,6 +286,23 @@ Dieser Check beweist nur, dass die vier App-Projekte im Repository deploymentfae
 - Jede App hat einen eigenen `/health`-Endpoint mit passender App-ID.
 
 Er ersetzt nicht `npm run qa:apps`. Erst `qa:apps` prueft echte Production-/Staging-URLs und muss mit `checkedApps: 3` fuer Admin, Guest und Owner gruen sein, bevor `apps/admin` als produktive Quelle der Wahrheit freigegeben werden darf.
+
+### Admin-Paritaets-Strukturcheck
+
+Der strukturelle Admin-Migrationsstand ist pruefbar ueber:
+
+```bash
+npm run qa:admin-parity:structure
+```
+
+Dieser Check gleicht den alten Vite-Admin-Union-Typ `AdminSection` aus `src/App.tsx` gegen `apps/admin/app/dashboard/AdminDashboardClient.tsx` ab:
+
+- jeder alte Kernbereich muss einem Next-Workspace ueber `legacySections` zugeordnet sein,
+- jeder Bereich braucht einen sichtbaren UI-Anker,
+- die erwarteten Supabase-Tabellen muessen im Next-Admin geladen oder mutiert werden,
+- die Paritaet muss in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` oder im Migrationsaudit dokumentiert sein.
+
+Der Check ist eine Schutzplanke gegen stilles Weglassen. Er ersetzt nicht den manuellen Admin-Paritaetslauf mit 24 Gates und Evidenz.
 
 ## Konsolidierungs-Backlog Vor Neuem Featurebau
 

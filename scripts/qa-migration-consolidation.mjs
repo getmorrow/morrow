@@ -37,6 +37,7 @@ const requiredScripts = [
   'qa:admin-audit',
   'qa:admin-parity:new',
   'qa:admin-parity:preflight',
+  'qa:admin-parity:structure',
   'qa:admin-parity:validate',
   'qa:app-deployment-config',
   'qa:apps',

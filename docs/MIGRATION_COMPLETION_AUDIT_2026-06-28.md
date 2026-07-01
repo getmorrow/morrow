@@ -38,6 +38,7 @@ Aktuelle Entscheidung:
 - Launch-Status-Snapshot dokumentiert aktuelle Blocker aus `qa:launch-gates`.
 - Build-/QA-Kommandos sind dokumentiert und zuletzt für Konsolidierungsänderungen grün gelaufen.
 - `qa:admin-audit` prüft aktuell 34 mutierende Admin-Funktionen auf Audit-Logs.
+- `qa:admin-parity:structure` prüft strukturell, dass alte Vite-Admin-Kernbereiche in Next-Workspaces, UI-Ankern, Supabase-Tabellen und Doku abgebildet bleiben.
 - `qa:app-deployment-config` prüft die lokalen Vercel-Konfigurationen und Health-Endpunkte für Web, Admin, Guest und Owner.
 - `qa:migration-consolidation` prüft die Konsolidierungsartefakte gegen die ursprüngliche Kurskorrektur und bleibt rot, bis ein validierter grüner Admin-Paritätslauf existiert.
 - Admin-, Guest- und Owner-QA-Identitäten/Testdaten sind vorbereitet und per Supabase-Login/RPC geprüft; die echten App-Base-URLs fehlen weiterhin.
@@ -48,10 +49,11 @@ Diese Punkte verhindern, dass die Konsolidierung als fertig markiert wird:
 
 1. Es liegt noch kein grün validiertes Protokoll unter `docs/qa/admin-parity/` vor; der aktuelle Lauf `docs/qa/admin-parity/2026-06-30-admin-parity-run.md` steht auf `Rot`.
 2. `apps/admin` ist funktional weit, aber noch nicht per Runbook als alleinige Quelle der Wahrheit freigegeben.
-3. `npm run qa:apps` prüft ohne vollständige `ADMIN_BASE_URL`, `GUEST_BASE_URL` und `OWNER_BASE_URL` nicht alle App-Deployment-URLs und muss deshalb als rotes App-QA-Ergebnis behandelt werden. Teilprüfungen sind nur mit `MORROW_QA_ALLOW_PARTIAL_APPS=1` zulässig.
-4. `npm run qa:launch-gates` ist rot durch 11 Blocker, zuletzt dokumentiert in `docs/LAUNCH_STATUS_SNAPSHOT_2026-06-30.md`.
-5. `npm run qa:admin-parity:preflight` ist rot; Admin-/Guest-/Owner-Testdaten sind vorbereitet, aber die echten App-URLs fehlen weiter. Details stehen in `docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md`.
-6. Rechtstexte, Secret-Rotation, Angebotsfreigabe und App-URL-/Env-Konfiguration sind noch nicht final.
+3. `npm run qa:admin-parity:structure` ist grün und belegt strukturelle Abdeckung, ersetzt aber keine manuelle 24-Gate-Abnahme.
+4. `npm run qa:apps` prüft ohne vollständige `ADMIN_BASE_URL`, `GUEST_BASE_URL` und `OWNER_BASE_URL` nicht alle App-Deployment-URLs und muss deshalb als rotes App-QA-Ergebnis behandelt werden. Teilprüfungen sind nur mit `MORROW_QA_ALLOW_PARTIAL_APPS=1` zulässig.
+5. `npm run qa:launch-gates` ist rot durch 11 Blocker, zuletzt dokumentiert in `docs/LAUNCH_STATUS_SNAPSHOT_2026-06-30.md`.
+6. `npm run qa:admin-parity:preflight` ist rot; Admin-/Guest-/Owner-Testdaten sind vorbereitet, aber die echten App-URLs fehlen weiter. Details stehen in `docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md`.
+7. Rechtstexte, Secret-Rotation, Angebotsfreigabe und App-URL-/Env-Konfiguration sind noch nicht final.
 
 ## Abschlusskriterium Für Dieses Ziel
 

@@ -26,6 +26,9 @@ Bis dahin gilt:
 | `supabase/migrations/*` | Tatsaechliche Datenbasis, RLS, RPCs und operative Tabellen. |
 | `docs/MIGRATION_CONSOLIDATION_AUDIT.md` | Fuehrender Rahmen fuer Migration und Stop-Regel. |
 | `docs/PAYLOAD_NORMALIZATION_INVENTORY.md` | Fuehrendes Inventar fuer JSON-Payload-Felder und Normalisierungskandidaten. |
+| `npm run qa:admin-parity:structure` | Statischer Strukturcheck gegen alte Vite-Admin-Bereiche, Next-Workspaces, UI-Anker, Supabase-Tabellen und Doku. |
+
+Wichtig: `qa:admin-parity:structure` beweist strukturelle Abdeckung, aber keine operative Freigabe. Die Freigabe bleibt der echte Lauf aus `docs/ADMIN_PARITY_QA_RUNBOOK.md` mit 24 manuellen Gates und Evidenz.
 
 ## Paritaetsstatus Nach Bereich
 
@@ -208,7 +211,8 @@ Vor der Freigabe von `apps/admin` als alleiniger Admin muessen diese Gates durch
 16. Owner-Dokument, Owner-Abrechnung und Owner-Operation anlegen/freigeben.
 17. Audit-Log zeigt die kritischen Aktionen.
 18. `npm run qa:admin-audit` laeuft durch und verhindert neue Admin-Business-Mutationen ohne Audit.
-19. `npm run admin:build`, `npm run typecheck`, `npm run lint` laufen durch.
+19. `npm run qa:admin-parity:structure` laeuft durch und verhindert, dass alte Vite-Admin-Kernbereiche still aus der Next-Struktur fallen.
+20. `npm run admin:build`, `npm run typecheck`, `npm run lint` laufen durch.
 
 Die konkrete Durchfuehrung inklusive Stop-Regeln, automatischer Gates und Evidenzfeldern ist in `docs/ADMIN_PARITY_QA_RUNBOOK.md` festgelegt.
 
