@@ -3,7 +3,7 @@ import { LegalPage } from "../_components/LegalPage";
 
 export const metadata: Metadata = {
   title: "AGB",
-  description: "Arbeitsfassung der allgemeinen Bedingungen für Morrow.",
+  description: "Allgemeine Bedingungen für Morrow-Auszeiten.",
 };
 
 export default function TermsPage() {
@@ -31,6 +31,9 @@ export default function TermsPage() {
               Eine Anfrage über die Website ist noch keine Buchung. Morrow prüft
               Termin, Unterkunft, Erlebnis und Verfügbarkeit persönlich und
               meldet sich mit einer Rückmeldung oder einem konkreten Angebot.
+              Eine verbindliche Buchung entsteht erst, wenn Gäste das Angebot
+              ausdrücklich annehmen und die darin genannten Zahlungsbedingungen
+              erfüllt sind.
             </p>
           ),
         },
@@ -53,6 +56,17 @@ export default function TermsPage() {
               können Anpassungen erforderlich machen. Morrow achtet darauf, dass
               Änderungen zum Charakter der Auszeit passen und Gäste klar
               informiert werden.
+            </p>
+          ),
+        },
+        {
+          title: "Kommunikation",
+          children: (
+            <p>
+              E-Mail ist der Standardkanal für wichtige Informationen rund um
+              Anfrage, Angebot und Buchung. WhatsApp oder andere freiwillige
+              Kanäle werden nur genutzt, wenn Gäste dem jeweiligen Kanal
+              zustimmen.
             </p>
           ),
         },

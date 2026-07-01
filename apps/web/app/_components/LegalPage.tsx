@@ -19,17 +19,19 @@ export function LegalPage({
   eyebrow,
   title,
   intro,
-  notice = "Arbeitsfassung für den MVP-Start. Bitte vor verbindlicher Nutzung juristisch prüfen und mit den finalen Unternehmensdaten abgleichen.",
+  notice,
   sections,
 }: LegalPageProps) {
   return (
     <PublicPageShell eyebrow={eyebrow} text={intro} title={title}>
       <section className="section legal-content-section">
         <Container className="legal-layout">
-          <aside className="legal-notice" aria-label="Hinweis zur Rechtsfassung">
-            <span>Hinweis</span>
-            <p>{notice}</p>
-          </aside>
+          {notice ? (
+            <aside className="legal-notice" aria-label="Hinweis zur Rechtsfassung">
+              <span>Hinweis</span>
+              <p>{notice}</p>
+            </aside>
+          ) : null}
           <div className="legal-content">
             {sections.map((section) => (
               <section className="legal-block" key={section.title}>

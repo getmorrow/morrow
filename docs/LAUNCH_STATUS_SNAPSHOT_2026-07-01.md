@@ -69,6 +69,7 @@ controlledRealLeads: red
 paidGuests: red
 paidAds: red
 blockers: 4
+legalPlaceholderFiles: 0
 openRunbookManualGates: 24
 uncheckedRunbookTemplateItems: 42
 openParityRunManualGates: 0
@@ -77,7 +78,7 @@ missingParityRunEvidenceRows: 0
 
 Blockergruppen:
 
-- Rechtstexte/Freigaben sind noch nicht sauber.
+- Rechtstexte enthalten keine erkannten Platzhalter mehr; die echte Rechtsfreigabe fehlt noch.
 - Secret-Rotation ist nicht bestätigt.
 - Angebotsdaten sind nicht final freigegeben.
 - Tracking/Consent ist nicht freigegeben oder nicht vollständig konfiguriert.
@@ -87,16 +88,13 @@ Blockergruppen:
 Ergebnis: rot.
 
 ```text
-blockers: 6
+blockers: 3
 warnings: 4
-passed: 39
+passed: 42
 ```
 
 Blocker:
 
-- Impressum enthält noch Arbeits-/Platzhalterhinweise.
-- AGB enthält noch `Arbeitsfassung`.
-- Stornobedingungen enthält noch `Arbeitsfassung`.
 - `MORROW_LEGAL_APPROVED_AT` fehlt.
 - `MORROW_SECRETS_ROTATED_AT` fehlt.
 - `MORROW_OFFER_DATA_APPROVED_AT` fehlt.
@@ -110,17 +108,17 @@ Warnings:
 
 ### `npm run qa:migration-consolidation`
 
-Ergebnis: rot.
+Ergebnis: grün.
 
 ```text
-passed: 79
+passed: 80
 warnings: 0
-blockers: 1
+blockers: 0
 ```
 
 Konsolidierungsstatus:
 
-- `npm run qa:migration-consolidation` ist gruen: 0 Blocker, 0 Warnungen, 80 bestandene Prüfungen.
+- `npm run qa:migration-consolidation` ist gruen: 0 Blocker, 0 Warnungen, 80 bestandene Pruefungen.
 - Der neueste Admin-Paritätslauf `docs/qa/admin-parity/2026-06-30-admin-parity-run.md` beweist 24/24 manuelle Gates mit Evidenz.
 - Die Launch-Freigabe bleibt davon getrennt und weiter rot, bis Recht/Freigaben, Secret-Rotation, Angebotsdaten und Tracking/Consent geschlossen sind.
 
@@ -140,7 +138,7 @@ Aus `npm run qa:admin-parity:status`:
 
 Vor einem echten Start muessen zuerst erledigt und belegt werden:
 
-- Rechtstexte finalisieren und rechtlich/fachlich freigeben.
+- Rechtstexte rechtlich/fachlich freigeben; die oeffentlichen Platzhaltertexte sind bereinigt, aber die Freigabevariable bleibt bis zur echten Freigabe leer.
 - Geteilte Secrets rotieren und Freigabezeitpunkt setzen.
 - Angebotsdaten final pruefen: Termine, Preise, enthaltene Leistungen, Bildrechte, Verantwortlichkeit.
 - Tracking-/Consent-Entscheidung treffen und, falls aktiv, GA4/Meta IDs setzen.

@@ -3,24 +3,25 @@ import { LegalPage } from "../_components/LegalPage";
 
 export const metadata: Metadata = {
   title: "Stornobedingungen",
-  description: "Arbeitsfassung der Storno- und Änderungsbedingungen für Morrow.",
+  description: "Storno- und Änderungsbedingungen für Morrow-Auszeiten.",
 };
 
 export default function CancellationTermsPage() {
   return (
     <LegalPage
       eyebrow="Storno"
-      intro="Die Stornobedingungen müssen je Unterkunft, Partnerleistung und Buchungsmodell klar im Angebot ausgewiesen werden."
+      intro="Die Stornobedingungen beschreiben, wie Morrow mit Stornierungen, Änderungen und Ausfällen einzelner Bestandteile umgeht."
       title="Stornobedingungen."
       sections={[
         {
           title: "Stornierung durch Gäste",
           children: (
             <p>
-              Die konkreten Fristen, Kosten und Bedingungen einer Stornierung
-              werden im Angebot und in der Buchungsbestätigung ausgewiesen. Sie
-              können je Unterkunft, Erlebnispartner und Saison unterschiedlich
-              sein.
+              Gäste können eine Buchung in Textform stornieren. Maßgeblich sind
+              die im Angebot und in der Buchungsbestätigung genannten
+              Stornofristen und Kosten. Abweichende Bedingungen von Unterkunfts-,
+              Erlebnis- oder Servicepartnern gelten, wenn sie im Angebot
+              ausdrücklich benannt wurden.
             </p>
           ),
         },

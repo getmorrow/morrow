@@ -186,7 +186,15 @@ if (!checks.adminParityRunPresent) {
     },
   })
 }
-if (!checks.legalClean) blockers.push({ id: 'legal:not-approved-or-placeholders', detail: legalPlaceholders })
+if (!checks.legalClean) {
+  blockers.push({
+    id: 'legal:not-approved-or-placeholders',
+    detail: {
+      placeholderFiles: legalPlaceholders,
+      legalApprovalSet: env('MORROW_LEGAL_APPROVED_AT'),
+    },
+  })
+}
 if (!checks.supabasePublicEnv) blockers.push({ id: 'env:supabase-public-missing' })
 if (!checks.appUrlsComplete) blockers.push({ id: 'env:app-urls-missing', detail: appUrls })
 if (!checks.secretsRotated) blockers.push({ id: 'security:secrets-rotation-missing' })

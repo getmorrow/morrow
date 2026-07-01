@@ -186,10 +186,11 @@ Prüfen:
 ## 5. Rechtliches
 
 Vor Ads/echtem Traffic erforderlich:
-- Impressum als technische Arbeitsfassung vorhanden: `/impressum`.
-- Datenschutz als technische Arbeitsfassung vorhanden: `/datenschutz`.
-- echte Unternehmensdaten ergänzen.
-- Rechtstexte prüfen lassen.
+- Impressum technisch vorhanden: `/impressum`.
+- Datenschutz technisch vorhanden: `/datenschutz`.
+- AGB, Buchungsbedingungen, Stornobedingungen und Zahlungsbedingungen technisch vorhanden.
+- Anbieterkennzeichnung im Impressum fachlich/juristisch vervollstaendigen.
+- Rechtstexte pruefen und freigeben lassen.
 - WhatsApp-Opt-in-Text im Formular rechtlich prüfen.
 - Cookie-/Tracking-Hinweise, sobald Analytics oder Meta/Google Pixel aktiv werden.
 - Klare Speicherdauer und Zweck der Anfrage-/Kommunikationsdaten.

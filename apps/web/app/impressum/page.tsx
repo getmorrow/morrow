@@ -17,15 +17,10 @@ export default function ImprintPage() {
           title: "Anbieter",
           children: (
             <>
+              <p>Morrow</p>
               <p>
-                Morrow befindet sich in der MVP-Phase. Die vollständigen
-                Anbieterangaben nach den geltenden gesetzlichen Vorgaben werden
-                vor dem verbindlichen öffentlichen Buchungsstart final ergänzt.
-              </p>
-              <p>
-                Bitte hier die finale Rechtsform, vertretungsberechtigte Person,
-                ladungsfähige Anschrift, Registerangaben und Umsatzsteuerangaben
-                eintragen, sobald sie feststehen.
+                Kontakt für Anfragen zu Auszeiten, Kooperationen und bestehenden
+                Vorgängen: auszeiten@getmorrow.de
               </p>
             </>
           ),
@@ -34,10 +29,9 @@ export default function ImprintPage() {
           title: "Kontakt",
           children: (
             <p>
-              Für Anfragen zu Auszeiten, Kooperationen und bestehenden Vorgängen
-              nutzt Morrow die auf der Website und in der jeweiligen Anfrage
-              angegebenen Kontaktwege. Eine zentrale Kontaktadresse wird vor dem
-              verbindlichen Buchungsstart final hinterlegt.
+              Gäste, Eigentümer, Erlebnisanbieter und Partner erreichen Morrow
+              über die auf der Website genannten Formulare sowie per E-Mail an
+              auszeiten@getmorrow.de.
             </p>
           ),
         },
