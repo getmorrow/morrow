@@ -393,10 +393,13 @@ Technisch deutlich näher an production-ready:
 - Admin Auth + Rollen aktiv.
 - E-Mail-Automation aktiv.
 - Kommunikationshistorie V1 aktiv.
+- Öffentliche Website unter `getmorrow.de` ist erreichbar.
+- Lokale App-Deployment-Konfiguration ist grün: `npm run qa:app-deployment-config`.
 
 Noch nicht live-ready ohne:
 - finale Rechtstexte mit echten Unternehmensdaten.
-- Vercel/Domain-Setup.
+- getrennte, erreichbare Vercel-App-URLs fuer Admin, Gaeste-App und Owner-App mit korrektem `/health`-Signal.
 - Secret-Rotation.
 - finale echte Angebotsdaten.
 - Tracking-/Consent-Entscheidung.
+- Admin-Paritaetslauf mit Evidenz mindestens gelb fuer kontrollierte echte Leads und gruen fuer zahlende Gaeste.

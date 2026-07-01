@@ -80,6 +80,14 @@ Vercel/Deployment:
 
 ## App-Deployments Schliessen
 
+Lokaler Strukturstand 2026-07-01:
+
+- `npm run qa:app-deployment-config` ist gruen.
+- `apps/web`, `apps/admin`, `apps/guest` und `apps/owner` besitzen jeweils `vercel.json`.
+- Alle vier Apps haben einen `/health`-Endpunkt mit der erwarteten App-ID.
+
+Der offene Punkt ist deshalb nicht mehr die Repo-Konfiguration, sondern die echte erreichbare Deployment-URL je App. Diese URLs muessen eigenstaendige App-Projekte sein oder auf eigenstaendige App-Projekte zeigen. Die oeffentliche Website unter `https://www.getmorrow.de` ersetzt diese App-URLs nicht.
+
 Fuer jedes App-Projekt in Vercel:
 
 | App | Root Directory | Build Command | Erwarteter Health-Check |
@@ -150,8 +158,10 @@ Das Passwort nicht committen. Die Werte lokal in `.env.local` oder als Shell-Exp
 
 ## Danach Ausfuehren
 
-1. Fehlende Werte aus `docs/qa/admin-parity/env.template` in `.env.local` oder als Shell-Exports setzen.
-2. Preflight erneut ausfuehren:
+1. Admin-, Gaeste- und Owner-App als getrennte Vercel-Projekte deployen oder bestehende App-Domains notieren.
+2. Fuer jede App pruefen, dass `/health` die passende App-ID liefert.
+3. Fehlende Werte aus `docs/qa/admin-parity/env.template` in `.env.local` oder als Shell-Exports setzen.
+4. Preflight erneut ausfuehren:
 
 ```bash
 npm run qa:admin-parity:preflight

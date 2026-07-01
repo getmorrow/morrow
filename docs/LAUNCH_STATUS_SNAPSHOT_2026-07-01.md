@@ -17,6 +17,13 @@ Aktueller Status:
 
 Hauptgrund: Die Admin-CRM-Parität ist noch nicht mit aktueller Evidenz bewiesen. `apps/admin` bleibt Ziel-App, aber noch nicht alleinige produktive Quelle der Wahrheit.
 
+Einordnung der Entfernung zum Start:
+
+- Oeffentliche Website: technisch live, aber Launch-Gates fuer Recht, App-URLs, Freigaben und Tracking noch rot.
+- App-Fundament: lokal konsistent; `npm run qa:app-deployment-config` ist gruen.
+- Operativer MVP: noch nicht freigegeben, weil Admin-/Guest-/Owner-App-URLs und ein validierter Admin-Paritaetslauf fehlen.
+- Zahlende Gaeste und Paid Ads: noch nicht freigegeben.
+
 ## Aktuelle QA-Ergebnisse
 
 ### `npm run qa:admin-parity:preflight`
