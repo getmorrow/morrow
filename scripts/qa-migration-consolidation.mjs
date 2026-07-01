@@ -62,6 +62,38 @@ const activeLaunchSnapshotRefs = [
   'docs/MIGRATION_COMPLETION_AUDIT_2026-06-28.md',
 ]
 
+const requiredAdminParityBlockGates = [
+  'npm run qa:admin-parity:block1',
+  'npm run qa:admin-parity:block2',
+  'npm run qa:admin-parity:block3',
+  'npm run qa:admin-parity:block4',
+  'npm run qa:admin-parity:block5',
+]
+
+const requiredAdminParitySelectors = [
+  'QA_BLOCK2_LEAD_ID',
+  'QA_BLOCK2_BOOKING_ID',
+  'QA_BLOCK4_PACKAGE_ID',
+  'QA_BLOCK4_PROPERTY_ID',
+  'QA_BLOCK4_EXPERIENCE_ID',
+  'QA_BLOCK4_LOCAL_PLACE_ID',
+  'QA_BLOCK4_EVENT_ID',
+  'QA_BLOCK5_OWNER_PROFILE_ID',
+  'QA_BLOCK5_PROPERTY_ID',
+  'QA_BLOCK5_DOCUMENT_ID',
+  'QA_BLOCK5_STATEMENT_ID',
+  'QA_BLOCK5_OPERATION_ID',
+]
+
+const requiredAdminParityTestDataLabels = [
+  'Test-Erlebnisbaustein',
+  'Test-Vor-Ort-Ort',
+  'Test-Veranstaltung',
+  'Test-Owner-Dokument',
+  'Test-Owner-Abrechnung',
+  'Test-Owner-Operation',
+]
+
 const blockers = []
 const warnings = []
 const passed = []
@@ -101,6 +133,57 @@ for (const scriptName of requiredScripts) {
     passed.push({ id: `script:${scriptName}`, message: `${scriptName} exists.` })
   } else {
     blockers.push({ id: `script:${scriptName}`, message: `${scriptName} is missing.` })
+  }
+}
+
+const envTemplate = 'docs/qa/admin-parity/env.template'
+for (const selector of requiredAdminParitySelectors) {
+  if (fileContains(envTemplate, [new RegExp(`^${selector}=`, 'm')])) {
+    passed.push({
+      id: `admin-parity-env:${selector}`,
+      message: `${selector} is available in ${envTemplate}.`,
+    })
+  } else {
+    blockers.push({
+      id: `admin-parity-env:${selector}`,
+      message: `${selector} is missing in ${envTemplate}.`,
+    })
+  }
+}
+
+const runGenerator = 'scripts/create-admin-parity-run.mjs'
+const runbook = 'docs/ADMIN_PARITY_QA_RUNBOOK.md'
+for (const gate of requiredAdminParityBlockGates) {
+  const pattern = new RegExp(gate.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  for (const file of [runGenerator, runbook]) {
+    if (fileContains(file, [pattern])) {
+      passed.push({
+        id: `admin-parity-gate:${path.basename(file)}:${gate}`,
+        message: `${file} includes ${gate}.`,
+      })
+    } else {
+      blockers.push({
+        id: `admin-parity-gate:${path.basename(file)}:${gate}`,
+        message: `${file} must include automatic gate ${gate}.`,
+      })
+    }
+  }
+}
+
+for (const label of requiredAdminParityTestDataLabels) {
+  const pattern = new RegExp(`${label}:?`)
+  for (const file of [runGenerator, runbook, 'docs/ADMIN_PARITY_EXECUTION_PLAN.md']) {
+    if (fileContains(file, [pattern])) {
+      passed.push({
+        id: `admin-parity-testdata:${path.basename(file)}:${label}`,
+        message: `${file} includes ${label}.`,
+      })
+    } else {
+      blockers.push({
+        id: `admin-parity-testdata:${path.basename(file)}:${label}`,
+        message: `${file} must include test data label ${label}.`,
+      })
+    }
   }
 }
 
