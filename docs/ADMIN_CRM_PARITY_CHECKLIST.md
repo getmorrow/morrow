@@ -1,6 +1,6 @@
 # Morrow Admin CRM Parity Checklist
 
-Stand: 2026-06-28
+Stand: 2026-07-01
 
 Dieses Dokument bricht `docs/MIGRATION_CONSOLIDATION_AUDIT.md` in konkrete Admin-Paritaetstickets herunter. Es ist keine Feature-Roadmap, sondern eine Konsolidierungs-Checkliste: `apps/admin` darf erst dann als voll fuehrende Quelle der Wahrheit gelten, wenn diese Punkte gegen den alten Vite-Admin aus `src/App.tsx` abgenommen sind.
 
@@ -29,6 +29,18 @@ Bis dahin gilt:
 | `npm run qa:admin-parity:structure` | Statischer Strukturcheck gegen alte Vite-Admin-Bereiche, Next-Workspaces, UI-Anker, Supabase-Tabellen und Doku. |
 
 Wichtig: `qa:admin-parity:structure` beweist strukturelle Abdeckung, aber keine operative Freigabe. Die Freigabe bleibt der echte Lauf aus `docs/ADMIN_PARITY_QA_RUNBOOK.md` mit 24 manuellen Gates und Evidenz.
+
+## Statuslogik
+
+Die Statusspalte trennt bewusst Code-/Strukturabdeckung von operativer Freigabe:
+
+- `migriert`: Bereich ist in Next fachlich ersetzt und durch QA/Evidenz abgenommen.
+- `weitgehend migriert`: Bereich ist in `apps/admin` funktional angelegt, aber noch nicht durch den aktuellen Admin-Paritaetslauf freigegeben.
+- `teilweise`: Bereich ist nur in einem Ausschnitt vorhanden oder noch bewusst light.
+- `fehlt`: Bereich existiert noch nicht in der Ziel-App.
+- `ersetzt`: alte Vite-Funktion wird bewusst nicht 1:1 uebernommen.
+
+Aktueller Stand: Der Strukturcheck kann viele Bereiche als `weitgehend migriert` einstufen. Der neueste Admin-Paritaetslauf steht aber weiter auf Rot, weil die 24 manuellen Gates noch offene Evidenz haben. Deshalb ist `apps/admin` noch nicht alleinige operative Quelle der Wahrheit.
 
 ## Paritaetsstatus Nach Bereich
 
@@ -191,28 +203,36 @@ Abnahme:
 
 ## QA-Gates Fuer Admin-Paritaet
 
-Vor der Freigabe von `apps/admin` als alleiniger Admin muessen diese Gates durchlaufen:
+Vor der Freigabe von `apps/admin` als alleiniger Admin muessen die 24 manuellen Gates aus `docs/ADMIN_PARITY_QA_RUNBOOK.md` mit Evidenz durchlaufen werden:
 
-1. Admin-Login mit freigeschaltetem Admin-User.
-2. Neuer Gastlead sichtbar.
+1. Admin-Login.
+2. Neuer Gastlead.
 3. Leadstatus aendern.
-4. Lead mit Wiedervorlage versehen.
-5. Lead archivieren und reaktivieren.
-6. Gastlead reservieren und Buchung sehen.
-7. Kunde mit Anfrage- und Buchungshistorie sehen.
-8. Aufgabe fuer Buchung erstellen, erledigen und wieder oeffnen.
-9. Aufgabe oeffnet ihren Bezug.
-10. Buchung: Status, Zahlung, Reisegruppe, Check-in und naechste Aufgabe speichern.
-11. Supportfall beantworten; Antwort erscheint im Guest-/Owner-Verlauf, wenn sichtbar.
-12. Auszeit anlegen/bearbeiten und Termin zuordnen.
-13. Unterkunft anlegen/bearbeiten inklusive Check-in, Regeln und Medienrechte.
-14. Erlebnisbaustein mit Anbieter verbinden.
-15. Vor-Ort-Ort als Kandidat anlegen und freigeben.
-16. Owner-Dokument, Owner-Abrechnung und Owner-Operation anlegen/freigeben.
-17. Audit-Log zeigt die kritischen Aktionen.
-18. `npm run qa:admin-audit` laeuft durch und verhindert neue Admin-Business-Mutationen ohne Audit.
-19. `npm run qa:admin-parity:structure` laeuft durch und verhindert, dass alte Vite-Admin-Kernbereiche still aus der Next-Struktur fallen.
-20. `npm run admin:build`, `npm run typecheck`, `npm run lint` laufen durch.
+4. Wiedervorlage setzen.
+5. Lead archivieren/reaktivieren.
+6. Lead reservieren.
+7. Kunde pruefen.
+8. Aufgabe erstellen.
+9. Aufgabenbezug oeffnen.
+10. Buchung bearbeiten.
+11. Gaestebereich oeffnen.
+12. Support senden.
+13. Support beantworten.
+14. Feedback senden.
+15. Auszeit pflegen.
+16. Unterkunft pflegen.
+17. Erlebnisbaustein pflegen.
+18. Vor-Ort-Ort freigeben.
+19. Veranstaltung pruefen.
+20. Owner-Dokument.
+21. Owner-Abrechnung.
+22. Owner-Operation.
+23. Audit-Log.
+24. Kommunikationshistorie.
+
+Automatische Schutzgates bleiben zusaetzlich Pflicht: insbesondere `npm run qa:admin-parity:preflight`, `npm run qa:admin-audit`, `npm run qa:admin-parity:structure`, `npm run admin:build`, `npm run typecheck`, `npm run lint`, `git diff --check`, `npm run qa:readiness` und `npm run qa:launch-gates`.
+
+Aktuell zeigt `npm run qa:admin-parity:status` noch alle 24 manuellen Gates als offen. Diese Liste ist deshalb eine Abnahmeliste, keine Aussage, dass `apps/admin` bereits produktiv fuehrend ist.
 
 Die konkrete Durchfuehrung inklusive Stop-Regeln, automatischer Gates und Evidenzfeldern ist in `docs/ADMIN_PARITY_QA_RUNBOOK.md` festgelegt.
 

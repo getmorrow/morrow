@@ -1,6 +1,6 @@
 # Morrow Migration And Consolidation Audit
 
-Stand: 2026-06-28
+Stand: 2026-07-01
 
 Dieses Dokument ist der neue Arbeitsrahmen fuer den Konsolidierungs-Sprint. Es gilt zusammen mit `docs/MORROW_MASTER_FRAME.md`, `docs/STRATEGIC_FOUNDATION_MORROW.md` und `docs/PLATFORM_ARCHITECTURE.md`.
 
@@ -17,6 +17,12 @@ Grund:
 - Der Vite-Prototyp enthaelt weiterhin wichtige CRM-, Admin-, Guest- und Betriebslogik.
 - Die neue Next-Struktur ist richtig, aber `apps/admin` ist noch nicht vollstaendig als Ersatz fuer den alten Admin-CRM bewiesen.
 - Admin ist laut Architektur die Quelle der Wahrheit. Deshalb darf kein weiterer Funktionsausbau entstehen, der Datenlogik zwischen Prototyp, Next-Admin, Guest-App und Owner-App weiter verstreut.
+
+Aktueller maschineller Stand:
+
+- `npm run qa:migration-consolidation` besteht alle Struktur-, Dokumentations- und Snapshot-Pruefungen, bleibt aber rot wegen `admin-parity:not-green`.
+- `npm run qa:admin-parity:status` zeigt den neuesten Lauf weiter als Rot mit 24 offenen manuellen Gates und fehlender Evidenz.
+- Daraus folgt: `apps/admin` ist Ziel-App und Konsolidierungsort, aber noch nicht als alleinige operative Quelle der Wahrheit freigegeben.
 
 ## Fuehrende App Pro Bereich
 
@@ -331,9 +337,12 @@ Der Check ist eine Schutzplanke gegen stilles Weglassen. Er ersetzt nicht den ma
 
 Nicht weiter Guest-/Owner-Features bauen.
 
-Als naechstes sollte ein Admin-Paritaets-Sprint beginnen:
+Als naechstes wird der Admin-Paritaetslauf blockweise abgearbeitet:
 
-1. `docs/ADMIN_CRM_PARITY_CHECKLIST.md` als fuehrende Ticketliste verwenden.
-2. Mit Kunden und Aufgaben starten, weil diese im alten CRM zentrale Arbeitsbereiche waren und in Next noch nicht gleichwertig sind.
-3. Danach Lead-Archiv/Wiedervorlagen und echte Bereichsnavigation.
-4. Erst nach diesen Gates wieder Featureideen aufnehmen.
+1. Fehlende Preflight-Werte setzen: Admin-, Guest- und Owner-App-URLs, Admin-Testlogin, Guest-Testbuchung, Owner-Testlogin.
+2. `npm run qa:admin-parity:preflight` ausfuehren, bis alle Eingaben und Health-Checks gruen sind.
+3. Block 1 aus `docs/ADMIN_PARITY_EXECUTION_PLAN.md` abnehmen: Admin-Login und Audit-Log.
+4. Erst danach Block 2 starten: Anfrage zu Kunde und Buchung.
+5. Jeder bestandene Flow bekommt Evidenz im aktuellen Protokoll unter `docs/qa/admin-parity/`.
+
+Erst wenn der neueste Admin-Paritaetslauf mindestens die fuer kontrollierte echte Leads noetigen Gates nachweist, darf ueber einen Softlaunch mit echten Leads gesprochen werden. Neue Produktfeatures bleiben bis dahin pausiert.
