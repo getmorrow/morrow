@@ -153,6 +153,61 @@ const blockers = results
     summary: result.summary,
   }))
 
+function buildNextActions(blockingResults) {
+  const blockerIds = new Set(blockingResults.map((result) => result.id))
+  const actions = []
+
+  if (missingEnv.some((group) => group.id === 'admin:email' || group.id === 'admin:password')) {
+    actions.push({
+      id: 'set-admin-test-login',
+      label: 'Set current admin QA credentials locally',
+      detail: 'Block 1 cannot prove admin access without ADMIN_EMAIL and ADMIN_PASSWORD in the current QA context.',
+      requiredEnv: ['ADMIN_EMAIL', 'ADMIN_PASSWORD'],
+      verifyWith: 'npm run qa:admin-parity:block1',
+    })
+  }
+
+  if (blockerIds.has('admin-login-rpc') && missingEnv.length === 0) {
+    actions.push({
+      id: 'fix-admin-login-or-role',
+      label: 'Fix admin login, role or table access',
+      detail: 'The admin verification command ran but did not pass. Check Supabase Auth user, admin_users role/status and RLS access.',
+      verifyWith: 'npm run supabase:verify-admin',
+    })
+  }
+
+  if (blockerIds.has('admin-audit-static')) {
+    actions.push({
+      id: 'fix-admin-audit-coverage',
+      label: 'Restore audit coverage for mutating admin functions',
+      detail: 'Every mutating admin function must call the audit writer before Block 1 can be accepted.',
+      verifyWith: 'npm run qa:admin-audit',
+    })
+  }
+
+  if (blockingResults.length === 0) {
+    actions.push({
+      id: 'collect-manual-evidence',
+      label: 'Collect manual Block 1 evidence',
+      detail: 'Add dashboard/admin-role screenshot and audit-log evidence to the latest admin parity run before marking gates 1 and 23 complete.',
+      evidence: [
+        'Screenshot Admin-Dashboard with signed-in admin user.',
+        'Screenshot or exported list of current admin_audit_logs before test start.',
+        'Runbook rows 1 and 23 updated with concrete evidence.',
+      ],
+      update: 'docs/qa/admin-parity/<latest>-admin-parity-run.md',
+    })
+  }
+
+  actions.push({
+    id: 'rerun-status',
+    label: 'Rerun the admin parity status report',
+    verifyWith: 'npm run qa:admin-parity:status',
+  })
+
+  return actions
+}
+
 const output = {
   ok: blockers.length === 0,
   purpose: 'Prepare admin parity Block 1 evidence: Zugang Und Baseline.',
@@ -173,6 +228,7 @@ const output = {
   },
   results,
   blockers,
+  nextActions: buildNextActions(results.filter((result) => !result.ok)),
 }
 
 const serialized = JSON.stringify(output, null, 2)

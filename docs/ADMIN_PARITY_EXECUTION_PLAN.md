@@ -90,6 +90,8 @@ Dieser Check buendelt `npm run supabase:verify-admin` und `npm run qa:admin-audi
 
 Wenn `ADMIN_EMAIL` oder `ADMIN_PASSWORD` fehlen, bleibt Block 1 offen. Der statische Audit-Check kann trotzdem gruen sein, zaehlt aber ohne aktuellen Admin-Login nicht als vollstaendige Block-1-Evidenz.
 
+Der Block-1-Check gibt `nextActions` aus. Wenn die technische Pruefung gruen ist, fuehren diese Aktionen nicht automatisch zur Freigabe, sondern erinnern an die manuelle Evidenz fuer Gate 1 und Gate 23.
+
 | Runbook-Gate | Flow | Evidenz |
 | --- | --- | --- |
 | 1 | Admin-Login | Screenshot Admin-Dashboard, Admin-User/Rolle, keine Demo-Bypass-Nutzung. |
