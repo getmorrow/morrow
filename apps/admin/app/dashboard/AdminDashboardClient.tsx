@@ -8367,6 +8367,9 @@ function AdminDetailDrawer({
     : {};
   const leadMedium = getPayloadText(leadUtm, ["medium", "utm_medium"]);
   const leadContent = getPayloadText(leadUtm, ["content", "utm_content"]);
+  const leadClickId = getPayloadText(leadUtm, ["gclid"]) || getPayloadText(leadUtm, ["fbclid"]);
+  const leadLandingPath = getPayloadText(leadUtm, ["landingPath"]);
+  const leadReferrer = getPayloadText(leadUtm, ["referrer"]);
 
   return (
     <div className="admin-drawer-layer" role="presentation">
@@ -8413,6 +8416,14 @@ function AdminDetailDrawer({
               <article>
                 <small>Kampagnenkontext</small>
                 <strong>{[leadMedium, leadContent].filter(Boolean).join(" · ") || "nicht gesetzt"}</strong>
+              </article>
+              <article>
+                <small>Klick-ID</small>
+                <strong>{leadClickId || "nicht gesetzt"}</strong>
+              </article>
+              <article>
+                <small>Einstieg</small>
+                <strong>{leadLandingPath || leadReferrer || "nicht gesetzt"}</strong>
               </article>
             </>
           ) : null}

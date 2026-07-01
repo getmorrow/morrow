@@ -259,7 +259,7 @@ Felder:
 
 Status:
 - Umgesetzt in `Anfragen`: Leadquelle, Kampagne/Kontext, Verlustgrund und Conversion-Notiz sind im Lead-Drawer pflegbar.
-- Öffentliche Formulare übernehmen `utm_source`, `source`, `utm_campaign` und `campaign` automatisch in den Lead.
+- Öffentliche Formulare übernehmen Quelle, Medium, Kampagne, Content, Suchbegriff, Referrer, Landing Path, aktuelle URL und Click-IDs automatisch in den Lead.
 - Die Anfragen-Übersicht zeigt erste MVP-Lernwerte: Top-Quelle, Gast-zu-Buchung und häufigster Verlustgrund.
 
 Regel:

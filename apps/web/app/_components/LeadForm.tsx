@@ -57,15 +57,42 @@ function fieldLabel(type: LeadType) {
 
 function getUtmContext() {
   const params = new URLSearchParams(window.location.search);
+  const storedAttribution = readStoredAttribution();
+  const source = params.get("utm_source") || storedAttribution.source || "website";
+  const campaign = params.get("utm_campaign") || storedAttribution.campaign || "";
+  const medium = params.get("utm_medium") || storedAttribution.medium || "";
+  const content = params.get("utm_content") || storedAttribution.content || "";
+  const term = params.get("utm_term") || storedAttribution.term || "";
+  const gclid = params.get("gclid") || storedAttribution.gclid || "";
+  const fbclid = params.get("fbclid") || storedAttribution.fbclid || "";
+
   return {
-    campaign: params.get("utm_campaign") || "",
-    content: params.get("utm_content") || "",
-    medium: params.get("utm_medium") || "",
-    referrer: document.referrer || "",
-    source: params.get("utm_source") || "website",
-    term: params.get("utm_term") || "",
+    campaign,
+    content,
+    currentPath: window.location.pathname,
+    fbclid,
+    firstCapturedAt: storedAttribution.capturedAt || "",
+    gclid,
+    landingPath: storedAttribution.landingPath || window.location.pathname,
+    medium,
+    referrer: document.referrer || storedAttribution.referrer || "",
+    source,
+    term,
     url: window.location.href,
   };
+}
+
+function readStoredAttribution() {
+  try {
+    const rawAttribution = window.localStorage.getItem("morrow_attribution_v1");
+    if (!rawAttribution) return {} as Record<string, string>;
+    const attribution = JSON.parse(rawAttribution) as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.entries(attribution).map(([key, value]) => [key, typeof value === "string" ? value : ""]),
+    ) as Record<string, string>;
+  } catch {
+    return {} as Record<string, string>;
+  }
 }
 
 function integerOrNull(value: string) {

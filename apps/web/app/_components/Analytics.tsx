@@ -6,7 +6,38 @@ import { useEffect, useState } from "react";
 const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 const consentStorageKey = "morrow_cookie_consent_v1";
+const attributionStorageKey = "morrow_attribution_v1";
 type ConsentState = "accepted" | "declined" | null;
+
+function attributionFromCurrentPage() {
+  const params = new URLSearchParams(window.location.search);
+  const hasPaidOrUtmContext = [
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_content",
+    "utm_term",
+    "gclid",
+    "fbclid",
+  ].some((key) => params.has(key));
+
+  if (!hasPaidOrUtmContext && !document.referrer) return null;
+
+  return {
+    capturedAt: new Date().toISOString(),
+    campaign: params.get("utm_campaign") || "",
+    content: params.get("utm_content") || "",
+    currentPath: window.location.pathname,
+    fbclid: params.get("fbclid") || "",
+    gclid: params.get("gclid") || "",
+    landingPath: window.location.pathname,
+    medium: params.get("utm_medium") || "",
+    referrer: document.referrer || "",
+    source: params.get("utm_source") || "website",
+    term: params.get("utm_term") || "",
+    url: window.location.href,
+  };
+}
 
 declare global {
   interface Window {
@@ -26,6 +57,13 @@ export function Analytics() {
     const savedConsent = window.localStorage.getItem(consentStorageKey);
     if (savedConsent === "accepted" || savedConsent === "declined") {
       setConsent(savedConsent);
+    }
+    const attribution = attributionFromCurrentPage();
+    if (attribution) {
+      const savedAttribution = window.localStorage.getItem(attributionStorageKey);
+      if (!savedAttribution || attribution.gclid || attribution.fbclid || attribution.campaign) {
+        window.localStorage.setItem(attributionStorageKey, JSON.stringify(attribution));
+      }
     }
     setIsReady(true);
   }, []);

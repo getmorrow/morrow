@@ -92,6 +92,11 @@ MORROW_OFFER_DATA_APPROVED_AT=2026-..-..
 
 Status: offen
 
+Pflicht fuer jeden Lead:
+- First-Party-Herkunftserfassung bleibt aktiv, auch wenn GA4/Meta deaktiviert sind.
+- Oeffentliche Formulare speichern Quelle, Medium, Kampagne, Content, Suchbegriff, Referrer, Landing Path, aktuelle URL sowie Google-/Meta-Click-IDs (`gclid`, `fbclid`), sofern vorhanden.
+- Admin zeigt Quelle, Kampagne, Kampagnenkontext, Click-ID und Einstieg im Anfrage-Drawer.
+
 Entscheidung erforderlich:
 - `MORROW_TRACKING_MODE=disabled`: keine GA4-/Meta-Messung, keine Paid Ads Freigabe
 - `MORROW_TRACKING_MODE=enabled`: GA4 und Meta Pixel mit Consent-Gate aktivieren
