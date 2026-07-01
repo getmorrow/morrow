@@ -225,6 +225,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 - Apps-Production-QA: `npm run qa:apps` (schlaegt fehl, wenn nicht alle drei `ADMIN_BASE_URL`, `GUEST_BASE_URL` und `OWNER_BASE_URL` gesetzt sind; Teilpruefung nur bewusst mit `MORROW_QA_ALLOW_PARTIAL_APPS=1`)
 - Public-Website-QA: `QA_BASE_URL=https://www.getmorrow.de npm run qa:production`
 - Admin-Audit-QA: `npm run qa:admin-audit`
+- Admin-Paritaet Block 1: `npm run qa:admin-parity:block1` (buendelt Admin-Login/Rolle/Tabellenzugriff und statische Audit-Abdeckung fuer `Zugang Und Baseline`)
 - Admin-Paritaets-Strukturcheck: `npm run qa:admin-parity:structure` (prueft alte Vite-Admin-Bereiche gegen Next-Workspaces, UI-Anker, Supabase-Tabellen und Doku)
 - Admin-Paritaets-Statusreport: `npm run qa:admin-parity:status` (zeigt offene automatische Gates, manuelle Gates und Evidenzluecken des neuesten Laufprotokolls)
 - App-Deployment-Konfigurationscheck: `npm run qa:app-deployment-config` (prueft lokale Vercel-Konfigurationen und `/health`-Identitaet fuer Web, Admin, Guest und Owner)

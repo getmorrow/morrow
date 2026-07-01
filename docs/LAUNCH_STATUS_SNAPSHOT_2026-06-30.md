@@ -129,6 +129,17 @@ Offene automatische Gates:
 Wichtig: Der Statusreport ist nur eine Arbeitsliste. Er ersetzt nicht `npm run qa:admin-parity:validate` und gibt keine Launch-Freigabe.
 Der nächste abzuarbeitende Block ist aktuell `Zugang Und Baseline`: Admin-Login und Audit-Log-Baseline müssen zuerst mit Evidenz belegt werden.
 
+### `npm run qa:admin-parity:block1`
+
+Ergebnis im aktuellen lokalen Shell-Kontext: rot.
+
+Blocker:
+
+- `npm run supabase:verify-admin` kann ohne Supabase-URL/anon key/Admin-Testlogin im aktuellen Shell-Kontext nicht laufen.
+- `npm run qa:admin-audit` bleibt der statische Teil fuer Audit-Abdeckung und ist separat gruen dokumentiert.
+
+Wichtig: Dieser Block-1-Check ist nur technische Vorpruefung fuer `Zugang Und Baseline`. Die eigentliche Abnahme braucht weiterhin Screenshot Admin-Dashboard, Admin-User/Rolle und Audit-Log-Evidenz im Paritaetsprotokoll.
+
 ### `npm run qa:admin-parity:structure`
 
 Ergebnis: grün.

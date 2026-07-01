@@ -55,6 +55,7 @@
     "qa:prototype-storage": "node scripts/qa-prototype-storage-inventory.mjs",
     "qa:readiness": "node scripts/qa-readiness-summary.mjs",
     "qa:admin-parity:new": "node scripts/create-admin-parity-run.mjs",
+    "qa:admin-parity:block1": "node scripts/qa-admin-parity-block1.mjs",
     "qa:admin-parity:preflight": "node scripts/qa-admin-parity-preflight.mjs",
     "qa:admin-parity:structure": "node scripts/qa-admin-parity-structure.mjs",
     "qa:admin-parity:status": "node scripts/report-admin-parity-status.mjs",

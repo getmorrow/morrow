@@ -75,6 +75,14 @@ npm run qa:launch-gates
 
 Jeder Punkt braucht Ergebnis und Evidenz, zum Beispiel Screenshot, Supabase-Datensatz, Admin-Historie oder E-Mail-Event.
 
+Vor Block 1 kann die technische Grundlage so geprüft werden:
+
+```bash
+npm run qa:admin-parity:block1
+```
+
+Wenn dieser Check rot ist, werden die manuellen Gates 1 und 23 nicht als bestanden gewertet. Screenshots und konkrete Datensatz-Evidenz bleiben trotzdem Pflicht.
+
 | Nr. | Flow | Erwartung | Status/Evidenz |
 | --- | --- | --- | --- |
 | 1 | Admin-Login | Nur freigeschaltete Admin-User kommen in `apps/admin`. | Offen |

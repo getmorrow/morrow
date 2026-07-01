@@ -77,6 +77,14 @@ Er zeigt zusätzlich den nächsten offenen Abnahmeblock. Der Lauf soll blockweis
 
 Ziel: Sicherstellen, dass die Testumgebung und Rollen sauber sind.
 
+Vor dem manuellen Block-1-Test:
+
+```bash
+npm run qa:admin-parity:block1
+```
+
+Dieser Check buendelt `npm run supabase:verify-admin` und `npm run qa:admin-audit`. Er ersetzt nicht die manuelle Evidenz, sondern zeigt, ob Admin-Login/Rolle/Tabellenzugriff und statische Audit-Abdeckung als Grundlage pruefbar sind.
+
 | Runbook-Gate | Flow | Evidenz |
 | --- | --- | --- |
 | 1 | Admin-Login | Screenshot Admin-Dashboard, Admin-User/Rolle, keine Demo-Bypass-Nutzung. |
