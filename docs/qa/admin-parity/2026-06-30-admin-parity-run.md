@@ -10,22 +10,22 @@ Umgebung: Production consolidation
 
 URLs:
 - Website: https://www.getmorrow.de
-- Admin: Offen, `ADMIN_BASE_URL`/`MORROW_ADMIN_APP_URL` fehlt im QA-Kontext.
-- Gäste-App: Offen, `GUEST_BASE_URL`/`MORROW_GUEST_APP_URL` fehlt im QA-Kontext.
-- Owner-App: Offen, `OWNER_BASE_URL`/`MORROW_OWNER_APP_URL` fehlt im QA-Kontext.
+- Admin: https://morrow-admin.vercel.app
+- Gäste-App: https://morrow-guest.vercel.app
+- Owner-App: https://morrow-owner.vercel.app
 
 Testdaten:
 - Testlead:
-- Testbuchung: `e44489db-70ec-4935-8007-588985f2fb63`
+- Testbuchung: `30b9ff18-03f0-49fd-af4d-b5f6947114a4`
 - Testkunde:
 - Test-Auszeit:
 - Test-Unterkunft:
-- Test-Owner: `owner-qa-20260630@getmorrow.de`
+- Test-Owner: `owner-qa-20260701b@getmorrow.de`
 - Test-Admin: `auszeiten@getmorrow.de`
 
 ## Automatische Gates
 
-- [ ] npm run qa:admin-parity:preflight
+- [x] npm run qa:admin-parity:preflight
 - [x] npm run typecheck
 - [x] npx supabase db push --dry-run --linked
 - [x] git diff --check
@@ -37,13 +37,13 @@ Testdaten:
 - [x] npm run owner:build
 - [x] QA_BASE_URL=https://www.getmorrow.de npm run qa:production
 - [ ] npm run qa:launch-gates
-- [ ] npm run qa:apps
+- [x] npm run qa:apps
 
 ## Manuelle Gates
 
 | Nr. | Flow | Ergebnis | Evidenz |
 | --- | --- | --- | --- |
-| 1 | Admin-Login | Offen |  |
+| 1 | Admin-Login | Technisch grün | `npm run supabase:verify-admin` grün: `auszeiten@getmorrow.de`, Rolle `owner`, Status `active`, 10 Kern-Tabellen lesbar. Browser-Login in `morrow-admin` grün; Screenshot `tmp/qa/apps-production/admin-dashboard.png`. |
 | 2 | Neuer Gastlead | Offen |  |
 | 3 | Leadstatus ändern | Offen |  |
 | 4 | Wiedervorlage setzen | Offen |  |
@@ -65,13 +65,15 @@ Testdaten:
 | 20 | Owner-Dokument | Offen |  |
 | 21 | Owner-Abrechnung | Offen |  |
 | 22 | Owner-Operation | Offen |  |
-| 23 | Audit-Log | Offen |  |
+| 23 | Audit-Log | Technisch grün | `npm run qa:admin-audit` grün: 34 mutierende Admin-Funktionen schreiben Audit-Logs. Block-1-Check `npm run qa:admin-parity:block1` grün. |
 | 24 | Kommunikationshistorie | Offen |  |
 
 ## Evidenz
 
 Screenshots:
-- 
+- `tmp/qa/apps-production/admin-dashboard.png`
+- `tmp/qa/apps-production/owner-dashboard.png`
+- `tmp/qa/apps-production/guest-stay.png`
 
 Supabase-Datensätze:
 - Admin-Testlogin `auszeiten@getmorrow.de` geprüft; `npm run supabase:verify-admin` grün per Login/RPC: Rolle `owner`, Status `active`, Kern-Tabellen lesbar.
@@ -82,21 +84,21 @@ E-Mail-/Communication-Events:
 - 
 
 Audit-Log-Einträge:
-- 
+- Audit-Baseline statisch geprüft: `npm run qa:admin-audit` meldet `admin-audit-coverage-ok: 34 mutating functions write audit logs`.
 
 Offene Blocker:
-- `npm run qa:readiness` rot: Admin-Paritätslauf nicht grün, Rechtstexte/Env/App-URLs/Secrets/Angebotsdaten/Tracking offen.
-- `npm run qa:admin-parity:preflight` rot: Admin-, Gäste- und Owner-App-URL fehlen. Admin-Testlogin, Guest-Testbuchung und Owner-Testlogin sind vorbereitet und per Login/RPC geprüft.
-- `npm run qa:launch-gates` rot: 11 Blocker, darunter Rechtstexte/Arbeitsfassungen, Supabase Public Env, App-URLs, Secret-Rotation und Angebotsfreigabe.
-- `npm run qa:apps` rot: `checkedApps: 0`, keine App Base URLs gesetzt.
-- Live-Routing geprüft: `https://www.getmorrow.de/health` meldet `app=web`; `https://www.getmorrow.de/admin`, `/deine-auszeit`, `/owner` und `/app/eigentuemer` liefern HTTP 404 und sind keine gültigen App-Base-URLs.
-- Manuelle Gates 1-24 noch nicht durchgeführt und ohne Evidenz.
+- `npm run qa:readiness` rot: Admin-Paritätslauf nicht grün, Rechtstexte/Secrets/Angebotsdaten/Tracking offen.
+- `npm run qa:admin-parity:preflight` grün mit Admin-, Gäste- und Owner-App-URL, Admin-Testlogin, Guest-Testbuchung und Owner-Testlogin.
+- `npm run qa:launch-gates` rot: 6 Blocker, darunter Rechtstexte/Arbeitsfassungen, Rechtsfreigabe, Secret-Rotation und Angebotsfreigabe.
+- `npm run qa:apps` grün: `checkedApps: 3`, Admin-Login, Owner-Login und Guest-Stay geprüft.
+- Live-Routing geprüft: `https://www.getmorrow.de/health` meldet `app=web`; App-Redirects zeigen auf Admin-, Gäste- und Owner-App.
+- Manuelle Gates 2-22 und 24 noch nicht durchgeführt und ohne Evidenz.
 
 ## Bewertung
 
 Ergebnis: Rot
 
-Begründung: Automatische lokale Build-/Code-Gates sind weitgehend grün, aber App-URLs, Testzugänge, Recht/Freigaben und alle manuellen CRM-Paritätsflows fehlen noch.
+Begründung: App-URLs, Testzugänge und Block 1 sind technisch grün. Der Lauf bleibt rot, weil die Kern-CRM-, Gäste-App-, Bestand-, Owner- und Kommunikationsflows 2-22 und 24 noch nicht manuell mit Evidenz abgenommen sind und Recht/Freigaben weiter offen sind.
 
 Freigabe für echte Leads: Nein
 

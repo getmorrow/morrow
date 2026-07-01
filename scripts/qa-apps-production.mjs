@@ -105,6 +105,11 @@ async function checkLogin(page, target) {
   await page.getByRole('button', { name: /Einloggen/i }).click()
   await page.waitForURL(/\/dashboard(?:$|\?)/, { timeout: 20_000 })
   await page.waitForLoadState('networkidle')
+  const readyText = target.login.requiredDashboardTexts?.[0] ?? target.login.dashboardText
+  await page
+    .getByText(readyText, { exact: false })
+    .first()
+    .waitFor({ timeout: 30_000 })
 
   const body = await readBody(page)
   assertNoSoft404(`${target.name} dashboard`, body)
