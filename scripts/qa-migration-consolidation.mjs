@@ -38,6 +38,7 @@ const requiredScripts = [
   'qa:admin-parity:new',
   'qa:admin-parity:preflight',
   'qa:admin-parity:validate',
+  'qa:app-deployment-config',
   'qa:apps',
   'qa:launch-gates',
   'qa:production',
@@ -88,7 +89,7 @@ for (const scriptName of requiredScripts) {
 
 if (fileContains('docs/MIGRATION_COMPLETION_AUDIT_2026-06-28.md', [
   /Die Konsolidierung ist aber noch nicht abgeschlossen/,
-  /kein validiertes Protokoll unter `docs\/qa\/admin-parity\/`/,
+  /kein (gruen |grün )?validiertes Protokoll unter `docs\/qa\/admin-parity\/`/,
 ])) {
   passed.push({
     id: 'completion-audit:not-complete',

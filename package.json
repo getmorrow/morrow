@@ -49,6 +49,7 @@
     "instagram:insights": "node scripts/instagram-publisher.mjs insights",
     "qa:smoke": "node scripts/qa-smoke.mjs",
     "qa:production": "node scripts/qa-production-rehearsal.mjs",
+    "qa:app-deployment-config": "node scripts/qa-app-deployment-config.mjs",
     "qa:apps": "node scripts/qa-apps-production.mjs",
     "qa:launch-gates": "node scripts/qa-launch-gates.mjs",
     "qa:readiness": "node scripts/qa-readiness-summary.mjs",

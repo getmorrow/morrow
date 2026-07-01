@@ -225,6 +225,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 - Apps-Production-QA: `npm run qa:apps` (schlaegt fehl, wenn nicht alle drei `ADMIN_BASE_URL`, `GUEST_BASE_URL` und `OWNER_BASE_URL` gesetzt sind; Teilpruefung nur bewusst mit `MORROW_QA_ALLOW_PARTIAL_APPS=1`)
 - Public-Website-QA: `QA_BASE_URL=https://www.getmorrow.de npm run qa:production`
 - Admin-Audit-QA: `npm run qa:admin-audit`
+- App-Deployment-Konfigurationscheck: `npm run qa:app-deployment-config` (prueft lokale Vercel-Konfigurationen und `/health`-Identitaet fuer Web, Admin, Guest und Owner)
 - Admin-Paritaetsabnahme: `docs/ADMIN_PARITY_QA_RUNBOOK.md`
 - Guest-RPC/Browsertest: `npm run supabase:verify-guest`
 - Owner-RPC/E2E-Test: `npm run supabase:verify-owner`
@@ -266,6 +267,24 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 | Owner-App | `/owner` oder Weiterleitung ueber `/app/eigentuemer` | Geschuetzt, MVP-Light. |
 | Admin-App | `/admin` bzw. App-Root des Admin-Projekts | Geschuetzt, noch CRM-Paritaetsphase. |
 | Health | `/health` je Next-App | Deployment-Identitaet pruefen. |
+
+### App-Deployment-Konfiguration
+
+Der lokale Konfigurationsstand ist pruefbar ueber:
+
+```bash
+npm run qa:app-deployment-config
+```
+
+Dieser Check beweist nur, dass die vier App-Projekte im Repository deploymentfaehig vorbereitet sind:
+
+- `apps/web/vercel.json` baut `@morrow/web`.
+- `apps/admin/vercel.json` baut `@morrow/admin`.
+- `apps/guest/vercel.json` baut `@morrow/guest`.
+- `apps/owner/vercel.json` baut `@morrow/owner`.
+- Jede App hat einen eigenen `/health`-Endpoint mit passender App-ID.
+
+Er ersetzt nicht `npm run qa:apps`. Erst `qa:apps` prueft echte Production-/Staging-URLs und muss mit `checkedApps: 3` fuer Admin, Guest und Owner gruen sein, bevor `apps/admin` als produktive Quelle der Wahrheit freigegeben werden darf.
 
 ## Konsolidierungs-Backlog Vor Neuem Featurebau
 

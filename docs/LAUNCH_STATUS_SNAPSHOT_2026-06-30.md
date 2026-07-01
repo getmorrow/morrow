@@ -14,6 +14,7 @@ Aktueller Status:
 - Admin-Paritätslauf: angelegt, aber rot/offen.
 - Launch-Gates: rot durch 11 Blocker.
 - App-QA: rot, weil Admin-, Gäste- und Owner-App-URLs nicht gesetzt sind.
+- App-Deployment-Konfiguration: gruen pruefbar im Repo; echte App-Deployments/URLs fehlen trotzdem.
 - Paid Ads: nicht freigeben.
 - Zahlende Gäste: nicht freigeben.
 - Kontrollierte echte Leads: erst nach rechtlicher/env-seitiger Mindestbereinigung und mindestens gelbem Admin-Paritätslauf.
@@ -174,6 +175,22 @@ Aktuelle Regel:
 - Mit nur einem oder zwei App-URLs ist `qa:apps` ebenfalls rot.
 - Vollständige App-QA verlangt Admin-, Gäste- und Owner-App.
 - Teilprüfungen sind nur bewusst mit `MORROW_QA_ALLOW_PARTIAL_APPS=1` möglich und gelten nicht als Launch-Abnahme.
+
+### `npm run qa:app-deployment-config`
+
+Ergebnis: gruen.
+
+Dieser Check prueft nur die lokale Deployment-Basis:
+
+- `apps/web`, `apps/admin`, `apps/guest` und `apps/owner` haben eigene Vercel-Konfigurationen.
+- Die Build Commands zeigen auf das jeweilige Workspace-Package.
+- Jede App hat einen `/health`-Endpoint mit passender App-ID.
+
+Wichtig:
+
+- Das beweist nicht, dass die Apps live erreichbar sind.
+- Die Live-Pruefung bleibt `npm run qa:apps` mit echten `ADMIN_BASE_URL`, `GUEST_BASE_URL` und `OWNER_BASE_URL`.
+- Aktuell ist diese Live-Pruefung weiter rot, weil die App-URLs fehlen.
 
 ## Bewertung Nach Startstufe
 

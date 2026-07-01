@@ -38,17 +38,19 @@ Aktuelle Entscheidung:
 - Launch-Status-Snapshot dokumentiert aktuelle Blocker aus `qa:launch-gates`.
 - Build-/QA-Kommandos sind dokumentiert und zuletzt für Konsolidierungsänderungen grün gelaufen.
 - `qa:admin-audit` prüft aktuell 34 mutierende Admin-Funktionen auf Audit-Logs.
+- `qa:app-deployment-config` prüft die lokalen Vercel-Konfigurationen und Health-Endpunkte für Web, Admin, Guest und Owner.
 - `qa:migration-consolidation` prüft die Konsolidierungsartefakte gegen die ursprüngliche Kurskorrektur und bleibt rot, bis ein validierter grüner Admin-Paritätslauf existiert.
+- Admin-, Guest- und Owner-QA-Identitäten/Testdaten sind vorbereitet und per Supabase-Login/RPC geprüft; die echten App-Base-URLs fehlen weiterhin.
 
 ## Nicht Als Abgeschlossen Bewiesen
 
 Diese Punkte verhindern, dass die Konsolidierung als fertig markiert wird:
 
-1. Es liegt noch kein validiertes Protokoll unter `docs/qa/admin-parity/` vor.
+1. Es liegt noch kein grün validiertes Protokoll unter `docs/qa/admin-parity/` vor; der aktuelle Lauf `docs/qa/admin-parity/2026-06-30-admin-parity-run.md` steht auf `Rot`.
 2. `apps/admin` ist funktional weit, aber noch nicht per Runbook als alleinige Quelle der Wahrheit freigegeben.
 3. `npm run qa:apps` prüft ohne vollständige `ADMIN_BASE_URL`, `GUEST_BASE_URL` und `OWNER_BASE_URL` nicht alle App-Deployment-URLs und muss deshalb als rotes App-QA-Ergebnis behandelt werden. Teilprüfungen sind nur mit `MORROW_QA_ALLOW_PARTIAL_APPS=1` zulässig.
 4. `npm run qa:launch-gates` ist rot durch 11 Blocker, zuletzt dokumentiert in `docs/LAUNCH_STATUS_SNAPSHOT_2026-06-30.md`.
-5. `npm run qa:admin-parity:preflight` ist rot; die fehlenden App-URLs und Testzugänge stehen in `docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md`.
+5. `npm run qa:admin-parity:preflight` ist rot; Admin-/Guest-/Owner-Testdaten sind vorbereitet, aber die echten App-URLs fehlen weiter. Details stehen in `docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md`.
 6. Rechtstexte, Secret-Rotation, Angebotsfreigabe und App-URL-/Env-Konfiguration sind noch nicht final.
 
 ## Abschlusskriterium Für Dieses Ziel
@@ -69,10 +71,10 @@ Nicht neue Produktfeatures bauen.
 
 Als nächstes die App-URLs und Testdaten für das Runbook vorbereiten, dann die Admin-Paritätsabnahme praktisch durchlaufen:
 
-1. Admin-, Guest- und Owner-Base-URLs setzen.
-2. Testlead, Testbuchung, Testkunde, Test-Auszeit, Test-Unterkunft und Test-Owner festlegen.
+1. Admin-, Guest- und Owner-Apps in Vercel als eigene Projekte/Deployments erreichbar machen.
+2. `ADMIN_BASE_URL`, `GUEST_BASE_URL` und `OWNER_BASE_URL` auf echte App-Domains setzen; jede Domain muss `/health` mit der passenden App-ID liefern.
 3. `docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md` abarbeiten.
 4. `npm run qa:admin-parity:preflight` ausführen und fehlende URLs/Testzugänge schließen.
 5. `docs/ADMIN_PARITY_EXECUTION_PLAN.md` von Block 1 bis 6 abarbeiten.
 6. Die 24 manuellen Gates mit Evidenz abnehmen.
-7. `npm run qa:admin-parity:validate`, `npm run qa:readiness` und `npm run qa:migration-consolidation` ausführen.
+7. `npm run qa:admin-parity:validate`, `npm run qa:readiness`, `npm run qa:migration-consolidation` und `npm run qa:apps` ausführen.
