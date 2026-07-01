@@ -30,6 +30,7 @@ const requiredDocs = [
   'docs/MIGRATION_COMPLETION_AUDIT_2026-06-28.md',
   'docs/PAYLOAD_NORMALIZATION_INVENTORY.md',
   'docs/PROTOTYPE_STORAGE_INVENTORY.md',
+  'docs/LAUNCH_STATUS_SNAPSHOT_2026-07-01.md',
   'docs/PLATFORM_ARCHITECTURE.md',
   'docs/STRATEGIC_FOUNDATION_MORROW.md',
   'docs/qa/admin-parity/env.template',

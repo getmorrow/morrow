@@ -1,6 +1,6 @@
 # Morrow Migration Completion Audit
 
-Stand: 2026-06-28
+Stand: 2026-07-01
 
 Dieses Dokument prüft die ursprüngliche Kurskorrektur gegen den aktuellen Projektstand. Es dient nicht als neue Roadmap, sondern als Nachweis, ob die Konsolidierung schon als abgeschlossen gelten darf.
 
@@ -36,14 +36,16 @@ Aktuelle Entscheidung:
 - Operatives Admin-Paritäts-Runbook existiert inklusive Stop-Regeln und Evidenzvorlage.
 - Konkreter Admin-Paritäts-Ausführungsplan existiert in `docs/ADMIN_PARITY_EXECUTION_PLAN.md` und ordnet die 24 Gates in eine praktische Testreihenfolge.
 - `qa:admin-parity:status` erzeugt eine kompakte Arbeitsliste zum neuesten Paritätslauf und zeigt offene automatische Gates, manuelle Gates und Evidenzlücken.
-- Launch-Status-Snapshot dokumentiert aktuelle Blocker aus `qa:launch-gates`.
+- Launch-Status-Snapshot `docs/LAUNCH_STATUS_SNAPSHOT_2026-07-01.md` dokumentiert aktuelle Blocker aus `qa:readiness`, `qa:launch-gates`, `qa:admin-parity:preflight`, `qa:admin-parity:block1` und `qa:migration-consolidation`.
 - Build-/QA-Kommandos sind dokumentiert und zuletzt für Konsolidierungsänderungen grün gelaufen.
 - `qa:admin-audit` prüft aktuell 34 mutierende Admin-Funktionen auf Audit-Logs.
 - `qa:admin-parity:structure` prüft strukturell, dass alte Vite-Admin-Kernbereiche in Next-Workspaces, UI-Ankern, Supabase-Tabellen und Doku abgebildet bleiben.
 - `qa:app-deployment-config` prüft die lokalen Vercel-Konfigurationen und Health-Endpunkte für Web, Admin, Guest und Owner.
 - `docs/PROTOTYPE_STORAGE_INVENTORY.md` inventarisiert die lokalen Vite-Speicher-Keys und Prototyp-Fallbacks; `qa:prototype-storage` prüft, dass bekannte LocalStorage-Keys und alte Adaptertabellen nicht undokumentiert bleiben.
 - `qa:migration-consolidation` prüft die Konsolidierungsartefakte gegen die ursprüngliche Kurskorrektur und bleibt rot, bis ein validierter grüner Admin-Paritätslauf existiert.
-- Admin-, Guest- und Owner-QA-Identitäten/Testdaten sind vorbereitet und per Supabase-Login/RPC geprüft; die echten App-Base-URLs fehlen weiterhin.
+- Die QA-Ausgaben lesen `.env.local` ueber `scripts/lib/qa-env.mjs` konsistent aus.
+- `qa:admin-parity:preflight`, `qa:admin-parity:status` und `qa:admin-parity:block1` geben konkrete `nextActions` bzw. fehlende Preflight-Inputs aus.
+- Historische Admin-, Guest- und Owner-QA-Identitäten/Testdaten sind dokumentiert, gelten aber nur als aktuelle Evidenz, wenn die Werte im laufenden QA-Kontext gesetzt und erneut geprüft werden.
 
 ## Nicht Als Abgeschlossen Bewiesen
 
@@ -53,9 +55,10 @@ Diese Punkte verhindern, dass die Konsolidierung als fertig markiert wird:
 2. `apps/admin` ist funktional weit, aber noch nicht per Runbook als alleinige Quelle der Wahrheit freigegeben.
 3. `npm run qa:admin-parity:structure` ist grün und belegt strukturelle Abdeckung, ersetzt aber keine manuelle 24-Gate-Abnahme.
 4. `npm run qa:apps` prüft ohne vollständige `ADMIN_BASE_URL`, `GUEST_BASE_URL` und `OWNER_BASE_URL` nicht alle App-Deployment-URLs und muss deshalb als rotes App-QA-Ergebnis behandelt werden. Teilprüfungen sind nur mit `MORROW_QA_ALLOW_PARTIAL_APPS=1` zulässig.
-5. `npm run qa:launch-gates` ist rot durch 11 Blocker, zuletzt dokumentiert in `docs/LAUNCH_STATUS_SNAPSHOT_2026-06-30.md`.
-6. `npm run qa:admin-parity:preflight` ist rot; Admin-/Guest-/Owner-Testdaten sind vorbereitet, aber die echten App-URLs fehlen weiter. Details stehen in `docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md`.
-7. Rechtstexte, Secret-Rotation, Angebotsfreigabe und App-URL-/Env-Konfiguration sind noch nicht final.
+5. `npm run qa:launch-gates` ist rot durch 9 Blocker, zuletzt dokumentiert in `docs/LAUNCH_STATUS_SNAPSHOT_2026-07-01.md`.
+6. `npm run qa:admin-parity:preflight` ist rot; Admin-, Guest- und Owner-App-URLs sowie aktuelle Admin-/Guest-/Owner-Testwerte fehlen im lokalen QA-Kontext. Details stehen in `docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md`.
+7. `npm run qa:admin-parity:block1` ist rot; `ADMIN_EMAIL` und `ADMIN_PASSWORD` fehlen im aktuellen QA-Kontext. Der statische Audit-Check ist grün, reicht aber ohne aktuellen Admin-Login nicht für Block 1.
+8. Rechtstexte, Secret-Rotation, Angebotsfreigabe und App-URL-/Env-Konfiguration sind noch nicht final.
 
 ## Abschlusskriterium Für Dieses Ziel
 
@@ -78,7 +81,9 @@ Als nächstes die App-URLs und Testdaten für das Runbook vorbereiten, dann die 
 1. Admin-, Guest- und Owner-Apps in Vercel als eigene Projekte/Deployments erreichbar machen.
 2. `ADMIN_BASE_URL`, `GUEST_BASE_URL` und `OWNER_BASE_URL` auf echte App-Domains setzen; jede Domain muss `/health` mit der passenden App-ID liefern.
 3. `docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md` abarbeiten.
-4. `npm run qa:admin-parity:preflight` ausführen und fehlende URLs/Testzugänge schließen.
-5. `docs/ADMIN_PARITY_EXECUTION_PLAN.md` von Block 1 bis 6 abarbeiten.
-6. Die 24 manuellen Gates mit Evidenz abnehmen.
-7. `npm run qa:admin-parity:validate`, `npm run qa:readiness`, `npm run qa:migration-consolidation` und `npm run qa:apps` ausführen.
+4. Aktuelle QA-Testwerte lokal setzen oder erzeugen: `ADMIN_EMAIL`/`ADMIN_PASSWORD`, `GUEST_BOOKING_ID`/`GUEST_ACCESS_CODE`, `OWNER_EMAIL`/`OWNER_PASSWORD`.
+5. `npm run qa:admin-parity:preflight` ausführen und fehlende URLs/Testzugänge schließen.
+6. `npm run qa:admin-parity:block1` ausführen und Gate 1 sowie Gate 23 mit aktueller Evidenz dokumentieren.
+7. `docs/ADMIN_PARITY_EXECUTION_PLAN.md` von Block 1 bis 6 abarbeiten.
+8. Die 24 manuellen Gates mit Evidenz abnehmen.
+9. `npm run qa:admin-parity:validate`, `npm run qa:readiness`, `npm run qa:migration-consolidation` und `npm run qa:apps` ausführen.
