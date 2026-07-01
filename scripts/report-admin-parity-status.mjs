@@ -47,12 +47,128 @@ const evidenceSections = [
   'Audit-Log-Einträge',
 ]
 
+const parityBlocks = [
+  {
+    id: 'block-1',
+    name: 'Zugang Und Baseline',
+    goal: 'Admin-Zugang, Rollen und Audit-Basis beweisen.',
+    gates: [1, 23],
+    stopIf: [
+      'Login funktioniert nicht.',
+      'Nicht freigeschaltete Nutzer bekommen Zugriff.',
+      'Audit-Log ist nicht lesbar.',
+    ],
+  },
+  {
+    id: 'block-2',
+    name: 'Anfrage Zu Kunde Und Buchung',
+    goal: 'Gastanfrage, CRM-Bearbeitung, Buchung, Kundensatz und Aufgaben beweisen.',
+    gates: [2, 3, 4, 5, 6, 7, 10, 8, 9],
+    stopIf: [
+      'Lead landet nicht in Supabase/Admin.',
+      'Reservierung erzeugt keine Buchung oder keinen Kundensatz.',
+      'Buchungsdaten werden nicht gespeichert.',
+      'Aufgabenbezug führt ins Leere.',
+    ],
+  },
+  {
+    id: 'block-3',
+    name: 'Gäste-App Und Kommunikation',
+    goal: 'Codegeschützten Gästebereich, Support, Antwort, Feedback und Historie beweisen.',
+    gates: [11, 12, 13, 14, 24],
+    stopIf: [
+      'Gäste-App zeigt falsche Buchungsdaten.',
+      'Support kommt nicht im Admin an.',
+      'Antwort ist nicht im Gästeverlauf sichtbar.',
+      'Kommunikation bleibt nicht zentral nachvollziehbar.',
+    ],
+  },
+  {
+    id: 'block-4',
+    name: 'Bestand Und Operationsdaten',
+    goal: 'Pflege von Auszeit, Unterkunft, Erlebnis, Vor-Ort-Ort und Veranstaltung beweisen.',
+    gates: [15, 16, 17, 18, 19],
+    stopIf: [
+      'Auszeit ist nicht ohne Code pflegbar.',
+      'Unterkunftsdaten werden nicht strukturiert gespeichert.',
+      'Erlebnisbaustein ist nicht eindeutig Anbieter/Auszeit zugeordnet.',
+      'Vor-Ort-Freigabe wirkt nicht in der Gäste-App.',
+    ],
+  },
+  {
+    id: 'block-5',
+    name: 'Owner-App',
+    goal: 'Owner-Dokumente, Abrechnungen und Operationsmeldungen mit Rechtefilter beweisen.',
+    gates: [20, 21, 22],
+    stopIf: [
+      'Owner sieht falsche Objekte.',
+      'Freigaben wirken nicht.',
+      'Operationsstatus läuft zwischen Admin und Owner-App auseinander.',
+    ],
+  },
+  {
+    id: 'block-6',
+    name: 'Finale Bewertung',
+    goal: 'Automatische Gates, Evidenzbereiche und Ergebnisbewertung abschließen.',
+    gates: [],
+    stopIf: [
+      'Automatische Gates sind offen.',
+      'Evidenzbereiche sind leer.',
+      'Bewertung bleibt Rot oder unbegründet.',
+    ],
+  },
+]
+
 const openManualGates = manualRows.filter((row) => normalizeResult(row.result) === 'offen')
 const missingEvidenceGates = manualRows.filter((row) => {
   const rowResult = normalizeResult(row.result)
   const resultAllowsNoEvidence = ['nicht relevant', 'ersetzt'].includes(rowResult)
   return !resultAllowsNoEvidence && !evidenceIsFilled(row.evidence)
 })
+const manualRowsByNumber = new Map(manualRows.map((row) => [row.number, row]))
+const automaticOpen = automaticGates.filter((gate) => !gate.checked)
+const evidenceSectionRows = evidenceSections.map((heading) => ({
+  heading,
+  filled: sectionHasEvidence(body, heading),
+}))
+const blockStatus = parityBlocks.map((block) => {
+  const rows = block.gates
+    .map((number) => manualRowsByNumber.get(number))
+    .filter(Boolean)
+  const openRows = rows.filter((row) => normalizeResult(row.result) === 'offen')
+  const missingEvidenceRows = rows.filter((row) => {
+    const rowResult = normalizeResult(row.result)
+    const resultAllowsNoEvidence = ['nicht relevant', 'ersetzt'].includes(rowResult)
+    return !resultAllowsNoEvidence && !evidenceIsFilled(row.evidence)
+  })
+
+  const finaleOpen = block.id === 'block-6'
+    ? automaticOpen.length + evidenceSectionRows.filter((section) => !section.filled).length + (validation.valid ? 0 : 1)
+    : 0
+
+  return {
+    id: block.id,
+    name: block.name,
+    goal: block.goal,
+    gates: block.gates,
+    counts: {
+      gates: rows.length,
+      open: openRows.length + finaleOpen,
+      missingEvidence: missingEvidenceRows.length,
+    },
+    openGates: openRows.map((row) => ({
+      number: row.number,
+      flow: row.flow,
+    })),
+    missingEvidence: missingEvidenceRows.map((row) => ({
+      number: row.number,
+      flow: row.flow,
+      result: row.result,
+    })),
+    stopIf: block.stopIf,
+  }
+})
+const nextBlock = blockStatus.find((block) => block.counts.open > 0 || block.counts.missingEvidence > 0) || null
 
 const output = {
   ok: true,
@@ -66,15 +182,13 @@ const output = {
   },
   counts: {
     automaticGates: automaticGates.length,
-    automaticOpen: automaticGates.filter((gate) => !gate.checked).length,
+    automaticOpen: automaticOpen.length,
     manualGates: manualRows.length,
     manualOpen: openManualGates.length,
     manualMissingEvidence: missingEvidenceGates.length,
-    evidenceSectionsFilled: evidenceSections.filter((heading) => sectionHasEvidence(body, heading)).length,
+    evidenceSectionsFilled: evidenceSectionRows.filter((section) => section.filled).length,
   },
-  automaticOpen: automaticGates
-    .filter((gate) => !gate.checked)
-    .map((gate) => gate.command),
+  automaticOpen: automaticOpen.map((gate) => gate.command),
   manualOpen: openManualGates.map((row) => ({
     number: row.number,
     flow: row.flow,
@@ -84,13 +198,21 @@ const output = {
     flow: row.flow,
     result: row.result,
   })),
-  evidenceSections: evidenceSections.map((heading) => ({
-    heading,
-    filled: sectionHasEvidence(body, heading),
-  })),
+  evidenceSections: evidenceSectionRows,
+  blocks: blockStatus,
+  nextBlock: nextBlock
+    ? {
+        id: nextBlock.id,
+        name: nextBlock.name,
+        open: nextBlock.counts.open,
+        missingEvidence: nextBlock.counts.missingEvidence,
+      }
+    : null,
   nextStep: validation.valid
     ? 'Run qa:readiness and qa:migration-consolidation, then decide launch stage.'
-    : 'Fill the open automatic gates, execute the manual gates, and add concrete evidence in the run table.',
+    : nextBlock
+      ? `Work through ${nextBlock.name} first, then rerun qa:admin-parity:status.`
+      : 'Fill the open automatic gates, execute the manual gates, and add concrete evidence in the run table.',
 }
 
 console.log(JSON.stringify(output, null, 2))

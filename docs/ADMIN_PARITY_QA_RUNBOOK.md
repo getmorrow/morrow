@@ -178,6 +178,7 @@ npm run qa:admin-parity:status
 ```
 
 Dieser Statusreport ist nur eine Arbeitsliste. Eine Freigabe entsteht erst durch ein validiertes Protokoll mit Evidenz.
+Wenn der Report ein `nextBlock` ausgibt, wird zuerst dieser Block abgeschlossen. Dadurch bleibt die Abnahme streng: Zugang, Kern-CRM, Gäste-App, Bestand, Owner-App und finale Bewertung werden nacheinander freigegeben.
 
 Ergänzend können visuelle/UX-Notizen in `docs/PAGE_REVIEW_LOG.md` und fachliche Paritätsentscheidungen in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` festgehalten werden.
 

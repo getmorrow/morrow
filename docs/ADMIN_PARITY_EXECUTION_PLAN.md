@@ -62,6 +62,14 @@ npm run qa:admin-parity:status
 ```
 
 Der Statusreport ersetzt keine Abnahme. Er zeigt nur kompakt, welche automatischen Gates, manuellen Gates und Evidenzbereiche noch offen sind.
+Er zeigt zusätzlich den nächsten offenen Abnahmeblock. Der Lauf soll blockweise abgearbeitet werden, damit Kernrisiken früh stoppen:
+
+1. Zugang und Baseline
+2. Anfrage zu Kunde und Buchung
+3. Gäste-App und Kommunikation
+4. Bestand und Operationsdaten
+5. Owner-App
+6. Finale Bewertung
 
 ## Laufreihenfolge
 

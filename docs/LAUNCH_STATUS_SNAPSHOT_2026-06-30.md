@@ -116,6 +116,7 @@ automaticOpen: 4
 manualOpen: 24
 manualMissingEvidence: 24
 evidenceSectionsFilled: 1
+nextBlock: Zugang Und Baseline
 ```
 
 Offene automatische Gates:
@@ -126,6 +127,7 @@ Offene automatische Gates:
 - `npm run qa:apps`
 
 Wichtig: Der Statusreport ist nur eine Arbeitsliste. Er ersetzt nicht `npm run qa:admin-parity:validate` und gibt keine Launch-Freigabe.
+Der nächste abzuarbeitende Block ist aktuell `Zugang Und Baseline`: Admin-Login und Audit-Log-Baseline müssen zuerst mit Evidenz belegt werden.
 
 ### `npm run qa:admin-parity:structure`
 
