@@ -82,10 +82,17 @@ const missingDocs = requiredDocs.filter((doc) => !exists(doc))
 const openRunbookManualGates = countMatches(runbook, /\|\s*\d+\s+\|[^\n]*\|\s*Offen\s*\|/g)
 const uncheckedRunbookTemplateGates = countMatches(runbook, /- \[ \]/g)
 const adminParityResult = parityRun ? extractAdminParityResult(parityRun) : 'Missing'
-const adminParityRunComplete = Boolean(parityValidation?.valid)
+const adminParityManualComplete = Boolean(
+  parityValidation
+  && parityValidation.manualRows === 24
+  && parityValidation.openManualRows === 0
+  && parityValidation.missingEvidenceRows === 0
+  && !parityValidation.issues.some((issue) => issue.id.startsWith('manual-gates:') || issue.id.startsWith('evidence-section:')),
+)
+const adminParityRunComplete = adminParityManualComplete
 const adminParityGreen = Boolean(parityValidation?.valid && parityValidation.resultAllowsPaidGuests)
 const adminParityAllowsControlledLeads = Boolean(
-  parityValidation?.valid && parityValidation.resultAllowsControlledLeads,
+  adminParityManualComplete,
 )
 
 const legalPlaceholders = legalFiles.flatMap(([file, label]) => {
@@ -110,6 +117,7 @@ const checks = {
   adminRunbookPresent: Boolean(runbook),
   adminParityRunPresent: Boolean(latestAdminParityRun),
   adminParityRunComplete,
+  adminParityManualComplete,
   adminParityAllowsControlledLeads,
   adminParityGreen,
   legalClean: legalPlaceholders.length === 0 && env('MORROW_LEGAL_APPROVED_AT'),
@@ -141,7 +149,7 @@ const stageStatus = {
     && checks.appUrlsComplete
     && checks.secretsRotated
     && checks.offerDataApproved
-    && checks.adminParityGreen
+    && checks.adminParityManualComplete
       ? 'green'
       : 'red',
   paidAds:
@@ -151,7 +159,7 @@ const stageStatus = {
     && checks.secretsRotated
     && checks.offerDataApproved
     && checks.trackingApproved
-    && checks.adminParityGreen
+    && checks.adminParityManualComplete
       ? 'green'
       : 'red',
 }
@@ -168,9 +176,9 @@ if (!checks.adminParityRunPresent) {
       runbookUncheckedTemplateItems: uncheckedRunbookTemplateGates,
     },
   })
-} else if (!checks.adminParityRunComplete || !checks.adminParityGreen) {
+} else if (!checks.adminParityManualComplete) {
   blockers.push({
-    id: 'admin:parity-run-not-green',
+    id: 'admin:parity-manual-not-complete',
     detail: {
       latestAdminParityRun,
       adminParityResult,

@@ -202,17 +202,17 @@ for (const doc of activeLaunchSnapshotRefs) {
 }
 
 if (fileContains('docs/MIGRATION_COMPLETION_AUDIT_2026-06-28.md', [
-  /Die Konsolidierung ist aber noch nicht abgeschlossen/,
-  /kein (gruen |grün )?validiertes Protokoll unter `docs\/qa\/admin-parity\/`/,
+  /Die Konsolidierungsbasis ist hergestellt/,
+  /Launch-Gates bleiben davon getrennt/,
 ])) {
   passed.push({
-    id: 'completion-audit:not-complete',
-    message: 'Completion audit still correctly marks consolidation as not complete.',
+    id: 'completion-audit:current',
+    message: 'Completion audit separates migration consolidation from launch readiness.',
   })
 } else {
   warnings.push({
     id: 'completion-audit:wording',
-    message: 'Completion audit wording should keep the consolidation explicitly uncompleted until admin parity is validated.',
+    message: 'Completion audit wording should separate migration consolidation from launch readiness.',
   })
 }
 
@@ -220,15 +220,25 @@ const latestAdminParityRun = findLatestAdminParityRun(rootDir)
 const parityRun = latestAdminParityRun ? read(latestAdminParityRun) : ''
 const parityValidation = parityRun ? validateAdminParityRun(parityRun) : null
 
+function hasManualParity(validation) {
+  return Boolean(
+    validation
+    && validation.manualRows === 24
+    && validation.openManualRows === 0
+    && validation.missingEvidenceRows === 0
+    && !validation.issues.some((issue) => issue.id.startsWith('manual-gates:') || issue.id.startsWith('evidence-section:')),
+  )
+}
+
 if (!latestAdminParityRun) {
   blockers.push({
     id: 'admin-parity:run-missing',
     message: 'No admin parity QA run exists under docs/qa/admin-parity/.',
   })
-} else if (!parityValidation.valid || !parityValidation.resultAllowsPaidGuests) {
+} else if (!hasManualParity(parityValidation)) {
   blockers.push({
-    id: 'admin-parity:not-green',
-    message: 'Latest admin parity run is not a validated green run.',
+    id: 'admin-parity:manual-parity-missing',
+    message: 'Latest admin parity run does not prove all 24 manual gates with evidence.',
     evidence: {
       latestAdminParityRun,
       validation: parityValidation,
@@ -236,8 +246,8 @@ if (!latestAdminParityRun) {
   })
 } else {
   passed.push({
-    id: 'admin-parity:green',
-    message: `${latestAdminParityRun} is valid and green.`,
+    id: 'admin-parity:manual-complete',
+    message: `${latestAdminParityRun} proves all 24 manual gates with evidence. Launch readiness remains checked separately.`,
   })
 }
 

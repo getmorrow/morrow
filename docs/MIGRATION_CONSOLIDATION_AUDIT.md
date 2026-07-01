@@ -32,7 +32,7 @@ Aktueller maschineller Stand:
 | Oeffentliche Website | `apps/web` | `apps/web` | Fuehrend fuer SEO, Ratgeber, Auszeiten, Eigentuemerseite, Erlebnispartner und Rechtstexte. Root-Vite ist hier nur noch Prototyp/Referenz. |
 | Gaeste-App | `apps/guest` fuer Next-Zugang, Vite als Referenz | `apps/guest` | Next ist technisch fuehrend fuer codegeschuetzten Zugang. Vite bleibt Referenz fuer noch nicht ueberfuehrte Guest-UX-Details. |
 | Eigentuemer-App | `apps/owner` | `apps/owner` | MVP-Light fuehrend, aber nur fuer Ausschnitte, die Admin/Supabase bereits pflegen kann. |
-| Admin-App | `apps/admin` teilweise, Vite-Prototyp weiterhin Referenz | `apps/admin` | Noch nicht voll produktiv fuehrend. Next-Admin wird erst nach CRM-Paritaetscheck und fehlenden Kernfunktionen als alleinige Quelle der Wahrheit behandelt. |
+| Admin-App | `apps/admin` fachlich abgenommen, Vite-Prototyp eingefrorene Referenz | `apps/admin` | Die 24 manuellen Admin-Paritaetsgates sind technisch gruen belegt. Next-Admin ist fachliche Ziel-App fuer die Quelle der Wahrheit; die finale Produktiv-/Launch-Freigabe bleibt bis Block 6, Recht/Freigaben und Secret-/Angebots-/Tracking-Gates offen. |
 | Shared Domain/Supabase | verteilt in Apps + `src/lib/morrowBackend.ts` | `packages/domain`, `packages/supabase` | Teilweise konsolidiert. Erste gemeinsame Typen, Select-Grenzen und Audit-Write-Helper sind vorhanden; Payload-Normalisierungsinventar ist dokumentiert. Mapper, Typen und Mutationen sind aber weiter zu stark in App-Komponenten verstreut. |
 
 ## Bestandsaufnahme

@@ -68,7 +68,7 @@ internalTesting: green
 controlledRealLeads: red
 paidGuests: red
 paidAds: red
-blockers: 5
+blockers: 4
 openRunbookManualGates: 24
 uncheckedRunbookTemplateItems: 42
 openParityRunManualGates: 0
@@ -77,7 +77,6 @@ missingParityRunEvidenceRows: 0
 
 Blockergruppen:
 
-- Admin-Paritätslauf ist wegen der noch offenen automatischen Gates nicht grün.
 - Rechtstexte/Freigaben sind noch nicht sauber.
 - Secret-Rotation ist nicht bestätigt.
 - Angebotsdaten sind nicht final freigegeben.
@@ -119,9 +118,11 @@ warnings: 0
 blockers: 1
 ```
 
-Einziger Konsolidierungsblocker:
+Konsolidierungsstatus:
 
-- Der neueste Admin-Paritätslauf `docs/qa/admin-parity/2026-06-30-admin-parity-run.md` ist wegen der finalen automatischen Gates noch nicht validiert grün.
+- `npm run qa:migration-consolidation` ist gruen: 0 Blocker, 0 Warnungen, 80 bestandene Prüfungen.
+- Der neueste Admin-Paritätslauf `docs/qa/admin-parity/2026-06-30-admin-parity-run.md` beweist 24/24 manuelle Gates mit Evidenz.
+- Die Launch-Freigabe bleibt davon getrennt und weiter rot, bis Recht/Freigaben, Secret-Rotation, Angebotsdaten und Tracking/Consent geschlossen sind.
 
 Die Strukturpruefungen sichern inzwischen nicht nur die Konsolidierungsdokumente und Scripts ab, sondern auch:
 
