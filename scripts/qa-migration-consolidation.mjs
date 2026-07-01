@@ -52,6 +52,12 @@ const requiredScripts = [
   'qa:readiness',
 ]
 
+const activeLaunchSnapshotRefs = [
+  'docs/PRODUCTION_LAUNCH_CHECKLIST.md',
+  'docs/MORROW_MVP_COMPLETION_PLAN.md',
+  'docs/MIGRATION_COMPLETION_AUDIT_2026-06-28.md',
+]
+
 const blockers = []
 const warnings = []
 const passed = []
@@ -91,6 +97,20 @@ for (const scriptName of requiredScripts) {
     passed.push({ id: `script:${scriptName}`, message: `${scriptName} exists.` })
   } else {
     blockers.push({ id: `script:${scriptName}`, message: `${scriptName} is missing.` })
+  }
+}
+
+for (const doc of activeLaunchSnapshotRefs) {
+  if (fileContains(doc, [/docs\/LAUNCH_STATUS_SNAPSHOT_2026-07-01\.md/])) {
+    passed.push({
+      id: `launch-snapshot-ref:${doc}`,
+      message: `${doc} references the current launch snapshot.`,
+    })
+  } else {
+    warnings.push({
+      id: `launch-snapshot-ref:${doc}`,
+      message: `${doc} should reference docs/LAUNCH_STATUS_SNAPSHOT_2026-07-01.md.`,
+    })
   }
 }
 

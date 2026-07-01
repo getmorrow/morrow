@@ -1,6 +1,6 @@
 # Admin Parity Execution Plan
 
-Stand: 2026-06-30
+Stand: 2026-07-01
 
 Dieses Dokument ordnet die 24 Gates aus `docs/ADMIN_PARITY_QA_RUNBOOK.md` in eine praktische Testreihenfolge. Es ersetzt das Runbook nicht. Es ist die konkrete Durchfuehrungsreihenfolge fuer den naechsten echten Admin-Paritaetslauf unter `docs/qa/admin-parity/`.
 

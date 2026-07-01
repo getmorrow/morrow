@@ -386,7 +386,7 @@ Dieser Check prueft:
 
 ## Aktueller Status
 
-Aktueller maschineller Status-Snapshot: `docs/LAUNCH_STATUS_SNAPSHOT_2026-06-30.md`
+Aktueller maschineller Status-Snapshot: `docs/LAUNCH_STATUS_SNAPSHOT_2026-07-01.md`
 
 Technisch deutlich näher an production-ready:
 - Supabase verbunden.
