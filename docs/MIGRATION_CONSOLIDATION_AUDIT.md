@@ -4,7 +4,7 @@ Stand: 2026-06-28
 
 Dieses Dokument ist der neue Arbeitsrahmen fuer den Konsolidierungs-Sprint. Es gilt zusammen mit `docs/MORROW_MASTER_FRAME.md`, `docs/STRATEGIC_FOUNDATION_MORROW.md` und `docs/PLATFORM_ARCHITECTURE.md`.
 
-Die konkrete Admin-CRM-Paritaet wird in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` abgearbeitet. Die operative Abnahme vor MVP-Start steht in `docs/ADMIN_PARITY_QA_RUNBOOK.md`. Die Payload-Grenzen und Normalisierungskandidaten sind in `docs/PAYLOAD_NORMALIZATION_INVENTORY.md` festgehalten.
+Die konkrete Admin-CRM-Paritaet wird in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` abgearbeitet. Die operative Abnahme vor MVP-Start steht in `docs/ADMIN_PARITY_QA_RUNBOOK.md`. Die Payload-Grenzen und Normalisierungskandidaten sind in `docs/PAYLOAD_NORMALIZATION_INVENTORY.md` festgehalten. Die lokalen Speicher-Keys und Prototyp-Fallbacks stehen in `docs/PROTOTYPE_STORAGE_INVENTORY.md`.
 
 Der aktuelle Abschlusscheck gegen die urspruengliche Kurskorrektur steht in `docs/MIGRATION_COMPLETION_AUDIT_2026-06-28.md`.
 
@@ -227,6 +227,7 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 - Admin-Audit-QA: `npm run qa:admin-audit`
 - Admin-Paritaets-Strukturcheck: `npm run qa:admin-parity:structure` (prueft alte Vite-Admin-Bereiche gegen Next-Workspaces, UI-Anker, Supabase-Tabellen und Doku)
 - App-Deployment-Konfigurationscheck: `npm run qa:app-deployment-config` (prueft lokale Vercel-Konfigurationen und `/health`-Identitaet fuer Web, Admin, Guest und Owner)
+- Prototyp-Speicher-Inventar: `npm run qa:prototype-storage` (prueft bekannte Vite-LocalStorage-Keys, Prototyp-Adaptertabellen und Doku)
 - Admin-Paritaetsabnahme: `docs/ADMIN_PARITY_QA_RUNBOOK.md`
 - Guest-RPC/Browsertest: `npm run supabase:verify-guest`
 - Owner-RPC/E2E-Test: `npm run supabase:verify-owner`
@@ -254,6 +255,13 @@ Hinweis: Ohne Portargument nimmt Next typischerweise `3000` und sucht bei belegt
 - `packages/domain` bleibt der Ort fuer oeffentliche Website-/Marken-/Content-Domaenen wie Auszeiten, Ratgeber und Routen.
 - App-spezifische UI-Drafts, Formulare und abgeleitete Viewmodels bleiben zunaechst in der jeweiligen App.
 - Payload-basierte Felder sind Migrationsuebergang, nicht Zielarchitektur. Jede Normalisierung muss zuerst dokumentieren, welche App fuehrend schreibt und welche Apps nur lesen.
+
+### Prototyp-Speicher Und Fallbacks
+
+- Der alte Vite-Prototyp nutzt weiterhin lokale Speicher-Keys fuer Demo-/Fallback-Betrieb.
+- Diese Keys sind in `docs/PROTOTYPE_STORAGE_INVENTORY.md` inventarisiert.
+- `npm run qa:prototype-storage` verhindert, dass bekannte Prototyp-Speicherquellen und alte Adaptertabellen undokumentiert bleiben.
+- Neue produktive Logik darf keine neuen `morrow-admin-*`-LocalStorage-Datenmodelle einfuehren. Operative Zielstruktur ist Supabase plus `apps/admin`.
 
 ### Routen
 

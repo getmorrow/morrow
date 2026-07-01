@@ -13,6 +13,7 @@ Aktueller Status:
 - Öffentliche Website: Production-Basischeck grün.
 - Admin-Paritätslauf: angelegt, aber rot/offen.
 - Admin-Paritäts-Strukturcheck: grün; strukturelle Abdeckung ersetzt keine manuelle Abnahme.
+- Prototyp-Speicher-Inventar: grün; alte Vite-LocalStorage- und Fallback-Datenflüsse sind dokumentiert, aber nicht produktiv führend.
 - Launch-Gates: rot durch 11 Blocker.
 - App-QA: rot, weil Admin-, Gäste- und Owner-App-URLs nicht gesetzt sind.
 - App-Deployment-Konfiguration: gruen pruefbar im Repo; echte App-Deployments/URLs fehlen trotzdem.
@@ -116,6 +117,25 @@ Dieser Check prüft strukturell:
 - Dokumentation in Paritäts- oder Migrationsdoku.
 
 Wichtig: Dieser Check verhindert stilles Weglassen, ersetzt aber nicht die manuelle Admin-Paritätsabnahme mit echten Workflows.
+
+### `npm run qa:prototype-storage`
+
+Ergebnis: grün.
+
+```text
+ok: true
+blockers: 0
+passed: 55
+```
+
+Dieser Check prüft:
+
+- bekannte Vite-LocalStorage-Keys aus dem alten Prototyp,
+- dokumentierte Prototyp-Fallbacks in `docs/PROTOTYPE_STORAGE_INVENTORY.md`,
+- wichtige alte Adaptertabellen aus `src/lib/morrowBackend.ts`,
+- die Verknüpfung des Speicherinventars mit dem Konsolidierungs-Audit.
+
+Wichtig: Dieser Check ist ein Konsolidierungsschutz. Er bedeutet nicht, dass der alte Prototyp produktiv führend bleibt. Operative Zielstruktur bleibt Supabase plus `apps/admin`.
 
 ### `npm run qa:launch-gates`
 

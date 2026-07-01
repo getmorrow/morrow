@@ -28,6 +28,8 @@ const requiredDocs = [
   'docs/ADMIN_PARITY_EXECUTION_PLAN.md',
   'docs/ADMIN_PARITY_PREFLIGHT_FIXLIST_2026-06-30.md',
   'docs/MIGRATION_COMPLETION_AUDIT_2026-06-28.md',
+  'docs/PAYLOAD_NORMALIZATION_INVENTORY.md',
+  'docs/PROTOTYPE_STORAGE_INVENTORY.md',
   'docs/PLATFORM_ARCHITECTURE.md',
   'docs/STRATEGIC_FOUNDATION_MORROW.md',
   'docs/qa/admin-parity/env.template',
@@ -43,6 +45,7 @@ const requiredScripts = [
   'qa:apps',
   'qa:launch-gates',
   'qa:production',
+  'qa:prototype-storage',
   'qa:readiness',
 ]
 

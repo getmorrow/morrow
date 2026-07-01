@@ -40,6 +40,7 @@ Aktuelle Entscheidung:
 - `qa:admin-audit` prüft aktuell 34 mutierende Admin-Funktionen auf Audit-Logs.
 - `qa:admin-parity:structure` prüft strukturell, dass alte Vite-Admin-Kernbereiche in Next-Workspaces, UI-Ankern, Supabase-Tabellen und Doku abgebildet bleiben.
 - `qa:app-deployment-config` prüft die lokalen Vercel-Konfigurationen und Health-Endpunkte für Web, Admin, Guest und Owner.
+- `docs/PROTOTYPE_STORAGE_INVENTORY.md` inventarisiert die lokalen Vite-Speicher-Keys und Prototyp-Fallbacks; `qa:prototype-storage` prüft, dass bekannte LocalStorage-Keys und alte Adaptertabellen nicht undokumentiert bleiben.
 - `qa:migration-consolidation` prüft die Konsolidierungsartefakte gegen die ursprüngliche Kurskorrektur und bleibt rot, bis ein validierter grüner Admin-Paritätslauf existiert.
 - Admin-, Guest- und Owner-QA-Identitäten/Testdaten sind vorbereitet und per Supabase-Login/RPC geprüft; die echten App-Base-URLs fehlen weiterhin.
 
