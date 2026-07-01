@@ -53,10 +53,10 @@ Testdaten:
 | 8 | Aufgabe erstellen | Technisch grün | Block-2-QA-Aufgabe `qa-block2-30b9ff18-03f0-49fd-af4d-b5f6947114a4` erstellt/aktualisiert, Status `open`, Priorität `high`; Audit `c0a4c7e3-d371-45b2-80cc-c3cd54f7aaf4`. |
 | 9 | Aufgabenbezug öffnen | Technisch grün | Block-2-Check grün: Aufgabe referenziert `reference_type=booking`, `reference_id=30b9ff18-03f0-49fd-af4d-b5f6947114a4`. |
 | 10 | Buchung bearbeiten | Technisch grün | Block-2-Check grün: Buchung hat Status, Zahlungsstatus und Gästebereich-Code; Audit `1c3b8efc-36c6-41c6-ab66-7f11cbf095c5`. |
-| 11 | Gästebereich öffnen | Offen |  |
-| 12 | Support senden | Offen |  |
-| 13 | Support beantworten | Offen |  |
-| 14 | Feedback senden | Offen |  |
+| 11 | Gästebereich öffnen | Technisch grün | `npm run qa:admin-parity:block3` grün mit Buchung `30b9ff18-03f0-49fd-af4d-b5f6947114a4`: `get_guest_stay` liefert Buchung `Vor Anreise` und Auszeit `Couple Reset`. |
+| 12 | Support senden | Technisch grün | Block-3-QA-Support `qa-block3-support-30b9ff18-03f0-49fd-af4d-b5f6947114a4` ist in `support_messages` sichtbar, Status `answered`. |
+| 13 | Support beantworten | Technisch grün | Support-Antwort ist im Gästebereich per `get_guest_support_events` sichtbar; Communication Event `5f27bdff-58a7-4f3d-aa6b-fa1e9d5e4ee9`. |
+| 14 | Feedback senden | Technisch grün | Feedback `qa-block3-feedback-30b9ff18-03f0-49fd-af4d-b5f6947114a4` gespeichert, Rating `5`, Wiederbuchungsinteresse `yes`. |
 | 15 | Auszeit pflegen | Offen |  |
 | 16 | Unterkunft pflegen | Offen |  |
 | 17 | Erlebnisbaustein pflegen | Offen |  |
@@ -66,7 +66,7 @@ Testdaten:
 | 21 | Owner-Abrechnung | Offen |  |
 | 22 | Owner-Operation | Offen |  |
 | 23 | Audit-Log | Technisch grün | `npm run qa:admin-audit` grün: 34 mutierende Admin-Funktionen schreiben Audit-Logs. Block-1-Check `npm run qa:admin-parity:block1` grün. |
-| 24 | Kommunikationshistorie | Offen |  |
+| 24 | Kommunikationshistorie | Technisch grün | Block-3-Check grün: zentrale `communication_events` enthält Support-Antwort und Feedback für dieselbe Buchung; Events `5f27bdff-58a7-4f3d-aa6b-fa1e9d5e4ee9`, `998aa813-a7c5-46a7-a7ba-e84e957e6e81`. |
 
 ## Evidenz
 
@@ -80,9 +80,11 @@ Supabase-Datensätze:
 - Guest-Testbuchung `30b9ff18-03f0-49fd-af4d-b5f6947114a4` erzeugt; `npm run supabase:verify-guest` grün per RPC: Status `Vor Anreise`, Auszeit `Couple Reset`, Gast `Sophie Krüger`.
 - Owner-Testlogin `owner-qa-20260701b@getmorrow.de` erzeugt; `npm run supabase:verify-owner`/`npm run qa:apps` grün per Login/RPC: Owner-App erreichbar und Dashboard sichtbar.
 - Block-2-Testfluss `30b9ff18-03f0-49fd-af4d-b5f6947114a4` technisch grün: Lead, Follow-up, Archiv/Reaktivierung, Buchung, Kunde, Aufgabe und Aufgabenbezug wurden über Supabase/Admin-Zugriff geprüft.
+- Block-3-Testfluss `30b9ff18-03f0-49fd-af4d-b5f6947114a4` technisch grün: `support_messages`, `guest_feedback` und `communication_events` sind an Buchung/Lead gekoppelt und über Gäste- sowie Admin-Zugriff lesbar.
 
 E-Mail-/Communication-Events:
-- 
+- Support-Antwort: `5f27bdff-58a7-4f3d-aa6b-fa1e9d5e4ee9`, `event_type=support:qa-block3-support-30b9ff18-03f0-49fd-af4d-b5f6947114a4`, Kanal `email`, Status `sent`.
+- Feedback-Historie: `998aa813-a7c5-46a7-a7ba-e84e957e6e81`, `event_type=guest_feedback`, Kanal `app`, Status `recorded`.
 
 Audit-Log-Einträge:
 - Audit-Baseline statisch geprüft: `npm run qa:admin-audit` meldet `admin-audit-coverage-ok: 34 mutating functions write audit logs`.
@@ -94,13 +96,14 @@ Offene Blocker:
 - `npm run qa:launch-gates` rot: 6 Blocker, darunter Rechtstexte/Arbeitsfassungen, Rechtsfreigabe, Secret-Rotation und Angebotsfreigabe.
 - `npm run qa:apps` grün: `checkedApps: 3`, Admin-Login, Owner-Login und Guest-Stay geprüft.
 - Live-Routing geprüft: `https://www.getmorrow.de/health` meldet `app=web`; App-Redirects zeigen auf Admin-, Gäste- und Owner-App.
-- Manuelle Gates 2-10 sind technisch grün; Gates 11-22 und 24 noch nicht durchgeführt und ohne Evidenz.
+- Manuelle Gates 2-14 und 24 sind technisch grün; Gates 15-22 noch nicht durchgeführt und ohne Evidenz.
+- Beobachtetes Schema-Risiko: Die Live-API akzeptierte `support_messages.customer_id` nicht (`PGRST204`), obwohl einige Codepfade Kontextfelder erwarten. Block 3 nutzt daher Buchung/Lead/Payload als verifizierte Kopplung; Normalisierung von Support-Kontextfeldern bleibt zu prüfen.
 
 ## Bewertung
 
 Ergebnis: Rot
 
-Begründung: App-URLs, Testzugänge sowie Block 1 und Block 2 sind technisch grün. Der Lauf bleibt rot, weil Gäste-App-Kommunikation, Bestand, Owner-Flows und Kommunikationshistorie in Gates 11-22 und 24 noch nicht mit Evidenz abgenommen sind und Recht/Freigaben weiter offen sind.
+Begründung: App-URLs, Testzugänge sowie Block 1, Block 2 und Block 3 sind technisch grün. Der Lauf bleibt rot, weil Bestand und Owner-Flows in Gates 15-22 noch nicht mit Evidenz abgenommen sind und Recht/Freigaben weiter offen sind.
 
 Freigabe für echte Leads: Nein
 
