@@ -10,8 +10,10 @@ import {
   sectionHasEvidence,
   validateAdminParityRun,
 } from './lib/admin-parity-run.mjs'
+import { createQaEnv } from './lib/qa-env.mjs'
 
 const rootDir = process.cwd()
+const qaEnv = createQaEnv(rootDir)
 const requestedPath = process.argv[2]
 const relativePath = requestedPath || findLatestAdminParityRun(rootDir)
 
@@ -169,6 +171,69 @@ const blockStatus = parityBlocks.map((block) => {
   }
 })
 const nextBlock = blockStatus.find((block) => block.counts.open > 0 || block.counts.missingEvidence > 0) || null
+const preflightInputGroups = [
+  {
+    id: 'apps:admin-url',
+    label: 'Admin app URL',
+    acceptedNames: ['ADMIN_BASE_URL', 'MORROW_ADMIN_APP_URL'],
+  },
+  {
+    id: 'apps:guest-url',
+    label: 'Guest app URL',
+    acceptedNames: ['GUEST_BASE_URL', 'MORROW_GUEST_APP_URL'],
+  },
+  {
+    id: 'apps:owner-url',
+    label: 'Owner app URL',
+    acceptedNames: ['OWNER_BASE_URL', 'MORROW_OWNER_APP_URL'],
+  },
+  {
+    id: 'admin:credentials',
+    label: 'Admin test login',
+    acceptedNames: ['ADMIN_EMAIL', 'ADMIN_PASSWORD'],
+    requireAll: true,
+  },
+  {
+    id: 'guest:test-stay',
+    label: 'Guest test booking',
+    acceptedNames: ['GUEST_BOOKING_ID', 'GUEST_ACCESS_CODE'],
+    requireAll: true,
+  },
+  {
+    id: 'owner:credentials',
+    label: 'Owner test login',
+    acceptedNames: ['OWNER_EMAIL', 'OWNER_PASSWORD'],
+    requireAll: true,
+  },
+]
+const preflightInputs = preflightInputGroups.map((group) => {
+  const missingNames = group.acceptedNames.filter((name) => !qaEnv.has(name))
+  const ok = group.requireAll ? missingNames.length === 0 : qaEnv.hasAny(group.acceptedNames)
+
+  return {
+    id: group.id,
+    label: group.label,
+    ok,
+    acceptedNames: group.acceptedNames,
+    missingNames: ok ? [] : group.requireAll ? missingNames : group.acceptedNames,
+  }
+})
+const missingPreflightInputs = preflightInputs.filter((group) => !group.ok)
+const nextCommands = nextBlock?.id === 'block-1'
+  ? [
+      'npm run qa:admin-parity:preflight',
+      'npm run qa:admin-parity:block1',
+      'npm run qa:admin-parity:status',
+    ]
+  : validation.valid
+    ? [
+        'npm run qa:readiness',
+        'npm run qa:migration-consolidation',
+      ]
+    : [
+        'npm run qa:admin-parity:preflight',
+        'npm run qa:admin-parity:status',
+      ]
 
 const output = {
   ok: true,
@@ -199,6 +264,11 @@ const output = {
     result: row.result,
   })),
   evidenceSections: evidenceSectionRows,
+  preflightInputs: {
+    envLocal: qaEnv.envLocalExists,
+    missing: missingPreflightInputs.length,
+    groups: preflightInputs,
+  },
   blocks: blockStatus,
   nextBlock: nextBlock
     ? {
@@ -213,6 +283,7 @@ const output = {
     : nextBlock
       ? `Work through ${nextBlock.name} first, then rerun qa:admin-parity:status.`
       : 'Fill the open automatic gates, execute the manual gates, and add concrete evidence in the run table.',
+  nextCommands,
 }
 
 console.log(JSON.stringify(output, null, 2))

@@ -64,6 +64,7 @@ npm run qa:admin-parity:status
 ```
 
 Der Statusreport ersetzt keine Abnahme. Er zeigt nur kompakt, welche automatischen Gates, manuellen Gates und Evidenzbereiche noch offen sind.
+Er zeigt ausserdem unter `preflightInputs`, welche App-URLs und Testwerte im aktuellen QA-Kontext fehlen. Diese Anzeige ist eine lokale Vorbereitungshilfe; die echte Erreichbarkeit der App-URLs prueft weiterhin `npm run qa:admin-parity:preflight`.
 Er zeigt zusätzlich den nächsten offenen Abnahmeblock. Der Lauf soll blockweise abgearbeitet werden, damit Kernrisiken früh stoppen:
 
 1. Zugang und Baseline
