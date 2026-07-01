@@ -242,10 +242,21 @@ Testdaten:
 - Testkunde:
 - Test-Auszeit:
 - Test-Unterkunft:
+- Test-Erlebnisbaustein:
+- Test-Vor-Ort-Ort:
+- Test-Veranstaltung:
 - Test-Owner:
+- Test-Owner-Dokument:
+- Test-Owner-Abrechnung:
+- Test-Owner-Operation:
 
 Automatische Gates:
 - [ ] npm run qa:admin-parity:preflight
+- [ ] npm run qa:admin-parity:block1
+- [ ] npm run qa:admin-parity:block2
+- [ ] npm run qa:admin-parity:block3
+- [ ] npm run qa:admin-parity:block4
+- [ ] npm run qa:admin-parity:block5
 - [ ] npm run typecheck
 - [ ] npx supabase db push --dry-run --linked
 - [ ] git diff --check

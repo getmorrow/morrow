@@ -20,6 +20,18 @@ Vorher Voraussetzungen prüfen:
 npm run qa:admin-parity:preflight
 ```
 
+Blockweise technische Vorchecks ausführen:
+
+```bash
+npm run qa:admin-parity:block1
+npm run qa:admin-parity:block2
+npm run qa:admin-parity:block3
+npm run qa:admin-parity:block4
+npm run qa:admin-parity:block5
+```
+
+Für wiederholbare Läufe können die konkreten Datensätze in `env.template` gesetzt werden, zum Beispiel `QA_BLOCK2_LEAD_ID`, `QA_BLOCK4_PACKAGE_ID` oder `QA_BLOCK5_OWNER_PROFILE_ID`. Ohne diese Werte wählen die Checks die neuesten geeigneten Datensätze und sind dadurch weniger präzise als ein bewusst kuratierter Abnahmelauf.
+
 Neuestes Protokoll validieren:
 
 ```bash

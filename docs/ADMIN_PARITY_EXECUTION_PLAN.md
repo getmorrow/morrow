@@ -53,7 +53,13 @@ npm run qa:admin-parity:new
 - Testkunde
 - Test-Auszeit
 - Test-Unterkunft
+- Test-Erlebnisbaustein
+- Test-Vor-Ort-Ort
+- Test-Veranstaltung
 - Test-Owner
+- Test-Owner-Dokument
+- Test-Owner-Abrechnung
+- Test-Owner-Operation
 
 5. Automatische Gates ausfuehren und im Protokoll abhaken.
 
