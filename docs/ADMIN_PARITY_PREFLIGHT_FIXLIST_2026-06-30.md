@@ -110,6 +110,8 @@ OWNER_EMAIL=<owner-test-email>
 OWNER_PASSWORD=<owner-test-password>
 ```
 
+Alternativ koennen fuer App-URL-Pruefungen auch `MORROW_ADMIN_APP_URL`, `MORROW_GUEST_APP_URL` und `MORROW_OWNER_APP_URL` genutzt werden. Damit bleiben `qa:admin-parity:preflight`, `qa:apps` und die Website-Redirect-Konfiguration konsistent.
+
 Und im Website-Projekt fuer Redirects/Launch-Gates:
 
 ```bash

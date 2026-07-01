@@ -121,6 +121,8 @@ OWNER_BASE_URL=https://<owner-app-domain> \
 npm run qa:apps
 ```
 
+Alternativ akzeptiert `npm run qa:apps` auch `MORROW_ADMIN_APP_URL`, `MORROW_GUEST_APP_URL` und `MORROW_OWNER_APP_URL`.
+
 Ein isolierter Admin-App-Check ist nur bewusst als Teilpruefung erlaubt:
 
 ```bash

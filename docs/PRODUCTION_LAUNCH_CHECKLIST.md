@@ -359,6 +359,8 @@ GUEST_BASE_URL=https://<guest-app-domain> \
 npm run qa:apps
 ```
 
+`npm run qa:apps` akzeptiert alternativ dieselben URLs ueber `MORROW_ADMIN_APP_URL`, `MORROW_GUEST_APP_URL` und `MORROW_OWNER_APP_URL`, damit App-QA und Website-Redirect-Konfiguration dieselben Deployment-Werte verwenden koennen.
+
 Mit echten Testzugängen:
 
 ```bash

@@ -4,11 +4,16 @@ import { chromium } from 'playwright'
 const screenshotsDir = 'tmp/qa/apps-production'
 const allowPartialApps = process.env.MORROW_QA_ALLOW_PARTIAL_APPS === '1'
 
+function firstEnv(...names) {
+  return names.map((name) => process.env[name]).find(Boolean)
+}
+
 const targets = [
   {
     key: 'admin',
     name: 'Admin-App',
-    baseUrl: process.env.ADMIN_BASE_URL,
+    baseUrl: firstEnv('ADMIN_BASE_URL', 'MORROW_ADMIN_APP_URL'),
+    acceptedBaseUrlEnv: ['ADMIN_BASE_URL', 'MORROW_ADMIN_APP_URL'],
     expectedLandingText: /Morrow Admin|Steuerung für Anfragen/i,
     login: {
       email: process.env.ADMIN_EMAIL,
@@ -20,7 +25,8 @@ const targets = [
   {
     key: 'owner',
     name: 'Eigentümer-App',
-    baseUrl: process.env.OWNER_BASE_URL,
+    baseUrl: firstEnv('OWNER_BASE_URL', 'MORROW_OWNER_APP_URL'),
+    acceptedBaseUrlEnv: ['OWNER_BASE_URL', 'MORROW_OWNER_APP_URL'],
     expectedLandingText: /Morrow Eigentümer|Transparenz für Objekt/i,
     login: {
       email: process.env.OWNER_EMAIL,
@@ -32,7 +38,8 @@ const targets = [
   {
     key: 'guest',
     name: 'Gäste-App',
-    baseUrl: process.env.GUEST_BASE_URL,
+    baseUrl: firstEnv('GUEST_BASE_URL', 'MORROW_GUEST_APP_URL'),
+    acceptedBaseUrlEnv: ['GUEST_BASE_URL', 'MORROW_GUEST_APP_URL'],
     expectedLandingText: /Deine Auszeit|Alles Wichtige/i,
     guestStay: {
       bookingId: process.env.GUEST_BOOKING_ID,
@@ -146,7 +153,7 @@ if (configuredTargets.length === 0) {
   console.error(JSON.stringify({
     ok: false,
     checkedApps: 0,
-    reason: 'No app base URLs set. Provide ADMIN_BASE_URL, OWNER_BASE_URL and/or GUEST_BASE_URL.',
+    reason: 'No app base URLs set. Provide ADMIN_BASE_URL/MORROW_ADMIN_APP_URL, OWNER_BASE_URL/MORROW_OWNER_APP_URL and/or GUEST_BASE_URL/MORROW_GUEST_APP_URL.',
   }, null, 2))
   process.exit(1)
 }
@@ -156,7 +163,11 @@ if (!allowPartialApps && missingTargets.length > 0) {
     ok: false,
     checkedApps: configuredTargets.length,
     missingApps: missingTargets,
-    reason: 'Incomplete app QA configuration. Provide ADMIN_BASE_URL, OWNER_BASE_URL and GUEST_BASE_URL, or set MORROW_QA_ALLOW_PARTIAL_APPS=1 for an explicit partial check.',
+    acceptedBaseUrlEnv: targets.reduce((acc, target) => {
+      acc[target.key] = target.acceptedBaseUrlEnv
+      return acc
+    }, {}),
+    reason: 'Incomplete app QA configuration. Provide all app base URLs, or set MORROW_QA_ALLOW_PARTIAL_APPS=1 for an explicit partial check.',
   }, null, 2))
   process.exit(1)
 }
