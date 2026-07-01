@@ -163,8 +163,19 @@ function dateDistanceLabel(startsOn: string | null) {
 }
 
 function propertyImage(property: OwnerDashboardProperty) {
+  const fallbackImage = "/brand/generated/morrow-spo-interior.png";
   const media = property.media?.length ? property.media : getPayloadLines(property.payload ?? {}, ["media"]);
-  return getPayloadText(property.payload ?? {}, ["image"]) || media[0] || "/brand/generated/morrow-spo-interior.png";
+  const image = getPayloadText(property.payload ?? {}, ["image"]) || media[0] || fallbackImage;
+
+  if (
+    image.includes("/images/morrow/") ||
+    image.includes("/brand/generated/morrow-spo-couple") ||
+    image.includes("/brand/generated/morrow-spo-family")
+  ) {
+    return fallbackImage;
+  }
+
+  return image;
 }
 
 function propertyReadiness(property: OwnerDashboardProperty) {

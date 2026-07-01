@@ -2,7 +2,7 @@
 
 Stand: 2026-07-01
 
-Dieser Snapshot dokumentiert den aktuellen Go-/No-Go-Stand nach der Vereinheitlichung der QA-Env-Ladung in `scripts/lib/qa-env.mjs` und nach der Erweiterung der Admin-Paritaetschecks fuer Block 1 bis 5.
+Dieser Snapshot dokumentiert den aktuellen Go-/No-Go-Stand nach Abschluss der manuellen Admin-Paritaetsbloecke 1 bis 5 und nach der Vereinheitlichung der QA-Env-Ladung fuer App-Production-Checks.
 
 ## Kurzfazit
 
@@ -15,54 +15,49 @@ Aktueller Status:
 - Zahlende Gäste: rot
 - Paid Ads: rot
 
-Hauptgrund: Die Admin-CRM-Parität ist noch nicht mit aktueller Evidenz bewiesen. `apps/admin` bleibt Ziel-App, aber noch nicht alleinige produktive Quelle der Wahrheit.
+Hauptgrund: Die manuelle Admin-CRM-Parität ist technisch belegt, aber die finalen Launch-Gates fuer Recht, Secret-Rotation, Angebotsfreigabe und Tracking sind noch nicht geschlossen. `apps/admin` ist als Ziel-App fachlich naheliegend, wird aber erst nach Block 6/finalen Gates als alleinige produktive Quelle der Wahrheit freigegeben.
 
 Einordnung der Entfernung zum Start:
 
-- Oeffentliche Website: technisch live, aber Launch-Gates fuer Recht, App-URLs, Freigaben und Tracking noch rot.
-- App-Fundament: lokal konsistent; `npm run qa:app-deployment-config` ist gruen.
-- Operativer MVP: noch nicht freigegeben, weil Admin-/Guest-/Owner-App-URLs und ein validierter Admin-Paritaetslauf fehlen.
+- Oeffentliche Website: technisch live, aber Launch-Gates fuer Recht, finale Freigaben und Tracking noch rot.
+- App-Fundament: lokal konsistent; `npm run qa:app-deployment-config`, `npm run qa:apps` und die Health-Endpunkte fuer Web/Admin/Guest/Owner sind gruen, sobald die QA-URLs gesetzt sind.
+- Operativer MVP: noch nicht freigegeben, weil Recht/Secrets/Angebotsfreigabe/Tracking und die finale Bewertung offen sind.
 - Zahlende Gaeste und Paid Ads: noch nicht freigegeben.
 
 ## Aktuelle QA-Ergebnisse
 
-### `npm run qa:admin-parity:preflight`
+### `npm run qa:admin-parity:status`
 
-Ergebnis: rot.
+Ergebnis: technisch lesbar, Gesamtbewertung weiter rot.
 
-Vorhanden:
+```text
+manualGates: 24
+manualOpen: 0
+manualMissingEvidence: 0
+automaticOpen:
+- npm run qa:readiness
+- npm run qa:launch-gates
+nextBlock: Finale Bewertung
+```
 
-- `.env.local` wird gelesen.
-- Supabase Public URL ist gesetzt.
-- Supabase anon key ist gesetzt.
+Einordnung:
 
-Fehlend:
+- Die manuellen Gates 1 bis 24 sind technisch gruen dokumentiert.
+- Block 5 Owner-App ist mit Owner-Profil, Objektzugriff, Dokument, Abrechnung, Operation und Audit-Evidenz abgeschlossen.
+- Der Admin-Paritaetslauf bleibt rot, weil die automatischen finalen Gates noch nicht abgehakt werden duerfen.
 
-- `ADMIN_BASE_URL` oder `MORROW_ADMIN_APP_URL`
-- `GUEST_BASE_URL` oder `MORROW_GUEST_APP_URL`
-- `OWNER_BASE_URL` oder `MORROW_OWNER_APP_URL`
-- `ADMIN_EMAIL` und `ADMIN_PASSWORD`
-- `GUEST_BOOKING_ID` und `GUEST_ACCESS_CODE`
-- `OWNER_EMAIL` und `OWNER_PASSWORD`
+### `npm run qa:apps`
 
-Damit ist noch kein echter Admin-Paritätslauf möglich.
+Ergebnis: gruen fuer alle drei App-URLs.
 
-### `npm run qa:admin-parity:block1`
+```text
+checkedApps: 3
+partial: false
+missingApps: []
+```
 
-Ergebnis: rot.
+Mit gesetzten QA-Zugangsdaten wurden Admin-, Owner- und Guest-Flows zusaetzlich isoliert geoeffnet. Dabei fiel ein Owner-App-Bildpfad aus Supabase-Payload auf, der live auf ein nicht vorhandenes Legacy-Asset zeigte. Der Owner-Code normalisiert solche Legacy-Bildpfade jetzt auf ein vorhandenes Owner-App-Fallback-Asset; der Fix ist nach Deployment live zu pruefen.
 
-Vorhanden:
-
-- Supabase Public URL und anon key werden erkannt.
-- `npm run qa:admin-audit` ist grün: 34 mutierende Admin-Funktionen schreiben Audit-Logs.
-
-Blocker:
-
-- `ADMIN_EMAIL` fehlt.
-- `ADMIN_PASSWORD` fehlt.
-- `npm run supabase:verify-admin` wird deshalb übersprungen.
-
-Block 1 `Zugang Und Baseline` bleibt offen, bis Admin-Login/Rolle/Tabellenzugriff im aktuellen Lauf geprüft und mit Screenshot/Audit-Evidenz dokumentiert sind.
 
 ### `npm run qa:readiness`
 
@@ -73,18 +68,17 @@ internalTesting: green
 controlledRealLeads: red
 paidGuests: red
 paidAds: red
-blockers: 6
+blockers: 5
 openRunbookManualGates: 24
 uncheckedRunbookTemplateItems: 42
-openParityRunManualGates: 24
-missingParityRunEvidenceRows: 24
+openParityRunManualGates: 0
+missingParityRunEvidenceRows: 0
 ```
 
 Blockergruppen:
 
-- Admin-Paritätslauf ist nicht grün.
+- Admin-Paritätslauf ist wegen der noch offenen automatischen Gates nicht grün.
 - Rechtstexte/Freigaben sind noch nicht sauber.
-- App-URLs fehlen.
 - Secret-Rotation ist nicht bestätigt.
 - Angebotsdaten sind nicht final freigegeben.
 - Tracking/Consent ist nicht freigegeben oder nicht vollständig konfiguriert.
@@ -94,9 +88,9 @@ Blockergruppen:
 Ergebnis: rot.
 
 ```text
-blockers: 9
+blockers: 6
 warnings: 4
-passed: 36
+passed: 39
 ```
 
 Blocker:
@@ -105,9 +99,6 @@ Blocker:
 - AGB enthält noch `Arbeitsfassung`.
 - Stornobedingungen enthält noch `Arbeitsfassung`.
 - `MORROW_LEGAL_APPROVED_AT` fehlt.
-- `MORROW_ADMIN_APP_URL` fehlt.
-- `MORROW_GUEST_APP_URL` fehlt.
-- `MORROW_OWNER_APP_URL` fehlt.
 - `MORROW_SECRETS_ROTATED_AT` fehlt.
 - `MORROW_OFFER_DATA_APPROVED_AT` fehlt.
 
@@ -130,7 +121,7 @@ blockers: 1
 
 Einziger Konsolidierungsblocker:
 
-- Der neueste Admin-Paritätslauf `docs/qa/admin-parity/2026-06-30-admin-parity-run.md` ist nicht validiert grün.
+- Der neueste Admin-Paritätslauf `docs/qa/admin-parity/2026-06-30-admin-parity-run.md` ist wegen der finalen automatischen Gates noch nicht validiert grün.
 
 Die Strukturpruefungen sichern inzwischen nicht nur die Konsolidierungsdokumente und Scripts ab, sondern auch:
 
@@ -142,25 +133,27 @@ Die Strukturpruefungen sichern inzwischen nicht nur die Konsolidierungsdokumente
 
 Aus `npm run qa:admin-parity:status`:
 
-- Nächster Block: `Zugang Und Baseline`
-- Offene Gates: 1 `Admin-Login`, 23 `Audit-Log`
+- Nächster Block: `Finale Bewertung`
+- Offene manuelle Gates: keine
+- Offene automatische Gates: `npm run qa:readiness`, `npm run qa:launch-gates`
 
-Vor dem manuellen Test müssen zuerst im aktuellen QA-Kontext gesetzt sein:
+Vor einem echten Start muessen zuerst erledigt und belegt werden:
 
-- App-URLs für Admin, Gäste-App und Owner-App
-- Admin-Testlogin
-- Gäste-Testbuchung
-- Owner-Testlogin
+- Rechtstexte finalisieren und rechtlich/fachlich freigeben.
+- Geteilte Secrets rotieren und Freigabezeitpunkt setzen.
+- Angebotsdaten final pruefen: Termine, Preise, enthaltene Leistungen, Bildrechte, Verantwortlichkeit.
+- Tracking-/Consent-Entscheidung treffen und, falls aktiv, GA4/Meta IDs setzen.
+- Nach Deployment den Owner-App-Bildfallback mit `qa:apps` erneut gegen Production pruefen.
 
 Danach:
 
 ```bash
-npm run qa:admin-parity:preflight
-npm run qa:admin-parity:block1
+npm run qa:readiness
+npm run qa:launch-gates
 npm run qa:admin-parity:status
 ```
 
-Erst wenn Block 1 mit aktueller Evidenz abgeschlossen ist, wird Block 2 `Anfrage Zu Kunde Und Buchung` begonnen.
+Erst wenn diese Gates gruen sind, darf das Protokoll von `Rot` auf eine Startfreigabe umgestellt werden.
 
 ## Bewertung
 

@@ -1,11 +1,13 @@
 import fs from 'node:fs'
 import { chromium } from 'playwright'
+import { createQaEnv } from './lib/qa-env.mjs'
 
 const screenshotsDir = 'tmp/qa/apps-production'
-const allowPartialApps = process.env.MORROW_QA_ALLOW_PARTIAL_APPS === '1'
+const qaEnv = createQaEnv(process.cwd())
+const allowPartialApps = qaEnv.value('MORROW_QA_ALLOW_PARTIAL_APPS') === '1'
 
 function firstEnv(...names) {
-  return names.map((name) => process.env[name]).find(Boolean)
+  return names.map((name) => qaEnv.value(name)).find(Boolean)
 }
 
 const targets = [
@@ -16,8 +18,8 @@ const targets = [
     acceptedBaseUrlEnv: ['ADMIN_BASE_URL', 'MORROW_ADMIN_APP_URL'],
     expectedLandingText: /Morrow Admin|Steuerung für Anfragen/i,
     login: {
-      email: process.env.ADMIN_EMAIL,
-      password: process.env.ADMIN_PASSWORD,
+      email: qaEnv.value('ADMIN_EMAIL'),
+      password: qaEnv.value('ADMIN_PASSWORD'),
       dashboardText: /Anfragen|Buchungen|Support|Morrow Admin/i,
       requiredDashboardTexts: [/Anfragen/i, /Buchungen/i, /Support/i],
     },
@@ -29,8 +31,8 @@ const targets = [
     acceptedBaseUrlEnv: ['OWNER_BASE_URL', 'MORROW_OWNER_APP_URL'],
     expectedLandingText: /Morrow Eigentümer|Transparenz für Objekt/i,
     login: {
-      email: process.env.OWNER_EMAIL,
-      password: process.env.OWNER_PASSWORD,
+      email: qaEnv.value('OWNER_EMAIL'),
+      password: qaEnv.value('OWNER_PASSWORD'),
       dashboardText: /Guten Überblick|Objekte|Auszeiten|Buchungen/i,
       requiredDashboardTexts: [/Objekte/i, /Buchungen/i, /Lücken/i, /Abrechnung/i, /Dokumente/i],
     },
@@ -42,8 +44,8 @@ const targets = [
     acceptedBaseUrlEnv: ['GUEST_BASE_URL', 'MORROW_GUEST_APP_URL'],
     expectedLandingText: /Deine Auszeit|Alles Wichtige/i,
     guestStay: {
-      bookingId: process.env.GUEST_BOOKING_ID,
-      accessCode: process.env.GUEST_ACCESS_CODE,
+      bookingId: qaEnv.value('GUEST_BOOKING_ID'),
+      accessCode: qaEnv.value('GUEST_ACCESS_CODE'),
       expectedText: /Anreise|Buchung|Vor Ort|Hilfe|Auszeit/i,
     },
   },
@@ -186,7 +188,16 @@ const consoleErrors = []
 
 for (const targetPage of [page, mobile]) {
   targetPage.on('console', (message) => {
-    if (message.type() === 'error') consoleErrors.push(message.text())
+    if (message.type() === 'error') {
+      const location = message.location()
+      consoleErrors.push({
+        page: targetPage === mobile ? 'mobile' : 'desktop',
+        text: message.text(),
+        url: location.url,
+        lineNumber: location.lineNumber,
+        columnNumber: location.columnNumber,
+      })
+    }
   })
 }
 
@@ -219,7 +230,11 @@ try {
   await browser.close()
 
   if (consoleErrors.length > 0) {
-    console.error(consoleErrors.join('\n'))
+    console.error(JSON.stringify({
+      ok: false,
+      reason: 'Browser console errors detected during app QA.',
+      consoleErrors,
+    }, null, 2))
     process.exit(1)
   }
 

@@ -20,9 +20,10 @@ Grund:
 
 Aktueller maschineller Stand:
 
-- `npm run qa:migration-consolidation` besteht alle Struktur-, Dokumentations- und Snapshot-Pruefungen, bleibt aber rot wegen `admin-parity:not-green`.
-- `npm run qa:admin-parity:status` zeigt den neuesten Lauf weiter als Rot mit 24 offenen manuellen Gates und fehlender Evidenz.
-- Daraus folgt: `apps/admin` ist Ziel-App und Konsolidierungsort, aber noch nicht als alleinige operative Quelle der Wahrheit freigegeben.
+- `npm run qa:admin-parity:status` zeigt 24/24 manuelle Gates ohne offene Evidenzluecken. Die Bloecke 1 bis 5 sind technisch gruen dokumentiert.
+- Der neueste Admin-Paritaetslauf bleibt insgesamt Rot, weil die finalen automatischen Gates `npm run qa:readiness` und `npm run qa:launch-gates` noch offen sind.
+- `npm run qa:launch-gates` steht nach gesetzten App-URLs bei 6 Blockern: Rechtstexte/Freigabe, Secret-Rotation und Angebotsfreigabe. Tracking ist weiter Warnung, solange es bewusst nicht final freigegeben ist.
+- Daraus folgt: `apps/admin` hat die manuelle CRM-Paritaet als Ziel-App weitgehend bewiesen, wird aber erst nach finaler Bewertung und Launch-Gates als alleinige operative Quelle der Wahrheit freigegeben.
 
 ## Fuehrende App Pro Bereich
 
@@ -322,31 +323,29 @@ Dieser Check gleicht den alten Vite-Admin-Union-Typ `AdminSection` aus `src/App.
 - die erwarteten Supabase-Tabellen muessen im Next-Admin geladen oder mutiert werden,
 - die Paritaet muss in `docs/ADMIN_CRM_PARITY_CHECKLIST.md` oder im Migrationsaudit dokumentiert sein.
 
-Der Check ist eine Schutzplanke gegen stilles Weglassen. Er ersetzt nicht den manuellen Admin-Paritaetslauf mit 24 Gates und Evidenz.
+Der Check ist eine Schutzplanke gegen stilles Weglassen. Er ersetzt nicht den manuellen Admin-Paritaetslauf mit 24 Gates und Evidenz. Der aktuelle Lauf vom 2026-06-30 hat diese manuellen Gates technisch geschlossen; offen ist die finale Bewertung mit Readiness-/Launch-Gates.
 
 ## Konsolidierungs-Backlog Vor Neuem Featurebau
 
-1. `apps/admin` gegen alten Vite-Admin bereichsweise abnehmen.
-2. Admin-README und Plattformdoku weiter auf realen Stand bringen.
-3. Clientseitige Admin-Arbeitsbereiche gegen reale Nutzung testen und spaeter entscheiden, ob echte Admin-Routen noetig werden.
-4. Kundenbereich in `apps/admin` real testen: Dublettenlogik und spaetere Customer-Erzeugung klaeren.
-5. Aufgabenbereich real testen: Archivierungsstrategie statt hartem Loeschen und dedizierte Anbieterbearbeitung entscheiden.
-6. Lead-Spam-/Loeschpolicy und Marketing-Consent pruefen/entscheiden; `leads.follow_up_at`, WhatsApp-Kontaktzustimmung und Lead-Reisegruppe sind bereits normalisiert.
-7. Repository-/Mutation-Helper aus App-Komponenten in klare Supabase-/Domain-Services ziehen.
+1. Finale Bewertung Block 6 abschliessen: `npm run qa:readiness` und `npm run qa:launch-gates` muessen gruen oder bewusst mit dokumentierter Entscheidung eingeordnet sein.
+2. Rechtstexte finalisieren und rechtlich/fachlich freigeben: Impressum, AGB und Stornobedingungen enthalten noch Arbeits-/Platzhalterhinweise.
+3. Geteilte Secrets rotieren und `MORROW_SECRETS_ROTATED_AT` erst danach setzen.
+4. Angebotsdaten final freigeben: reale Termine, Preise, enthaltene Leistungen, Bildrechte und Supportverantwortung je Auszeit.
+5. Tracking-/Consent-Entscheidung treffen: GA4/Meta entweder final konfigurieren und freigeben oder Paid-Ads bewusst weiter blockieren.
+6. Nach Deployment den Owner-App-Bildfallback und `npm run qa:apps` erneut gegen Production pruefen.
+7. Repository-/Mutation-Helper aus App-Komponenten in klare Supabase-/Domain-Services ziehen, sobald die Launch-Gates geschlossen sind.
 8. Entscheiden, welche Vite-Funktionen explizit ersetzt sind und welche als Referenz offen bleiben.
-9. QA-Gates fuer Admin-Paritaet ueber `docs/ADMIN_PARITY_QA_RUNBOOK.md` real durchlaufen: mindestens Login, Leads, Reservierung, Buchung, Aufgabe, Supportantwort, Paket, Unterkunft, Erlebnis, Ort, Owner-Dokument, Abrechnung, Operation.
-10. Erst danach neue Produktfeatures wieder aufnehmen.
+9. Erst danach neue Produktfeatures wieder aufnehmen.
 
 ## Naechster empfohlener Schritt
 
 Nicht weiter Guest-/Owner-Features bauen.
 
-Als naechstes wird der Admin-Paritaetslauf blockweise abgearbeitet:
+Als naechstes wird Block 6 `Finale Bewertung` abgearbeitet:
 
-1. Fehlende Preflight-Werte setzen: Admin-, Guest- und Owner-App-URLs, Admin-Testlogin, Guest-Testbuchung, Owner-Testlogin.
-2. `npm run qa:admin-parity:preflight` ausfuehren, bis alle Eingaben und Health-Checks gruen sind.
-3. Block 1 aus `docs/ADMIN_PARITY_EXECUTION_PLAN.md` abnehmen: Admin-Login und Audit-Log.
-4. Erst danach Block 2 starten: Anfrage zu Kunde und Buchung. Der technische Vorcheck dafuer ist `npm run qa:admin-parity:block2`.
-5. Jeder bestandene Flow bekommt Evidenz im aktuellen Protokoll unter `docs/qa/admin-parity/`.
+1. Die offenen Rechtstext-Blocker in `apps/web/app/impressum`, `apps/web/app/agb` und `apps/web/app/stornobedingungen` fachlich finalisieren.
+2. Secret-Rotation, Angebotsfreigabe und Tracking-/Consent-Entscheidung ausserhalb des Codes erledigen und danach die passenden Freigabevariablen setzen.
+3. `npm run qa:readiness`, `npm run qa:launch-gates`, `npm run qa:admin-parity:status` erneut ausfuehren.
+4. Erst wenn diese Gates gruen sind, das Admin-Paritaetsprotokoll von Rot auf eine belastbare Freigabe umstellen.
 
-Erst wenn der neueste Admin-Paritaetslauf mindestens die fuer kontrollierte echte Leads noetigen Gates nachweist, darf ueber einen Softlaunch mit echten Leads gesprochen werden. Neue Produktfeatures bleiben bis dahin pausiert.
+Erst wenn der neueste Admin-Paritaetslauf die finalen Gates nachweist, darf ueber einen Softlaunch mit echten Leads gesprochen werden. Neue Produktfeatures bleiben bis dahin pausiert.
