@@ -12,7 +12,7 @@ Pfad: `docs/qa/workflow-ux-final-2026-07-02/`
 - Routing/App-Einstieg: `guest-00-entry-mobile-from-platform-desktop.png`, `guest-00-live-landing-mobile.png`, `owner-00-entry-desktop.png`, `owner-00-live-landing-desktop.png`, `admin-00-live-landing-desktop.png`
 - Guest mobile: `guest-01-first-view-mobile.png`, `guest-02-booking-mobile.png`, `guest-03-local-mobile.png`, `guest-04-local-food-mobile.png`, `guest-05-place-drawer-mobile.png`, `guest-06-help-mobile.png`
 - Guest Supabase-Stay: `guest-07-live-stay-mobile.png`, `guest-08-www-stay-mobile.png`
-- Admin desktop: `admin-01-login-desktop.png`, `admin-02-cockpit-desktop.png`, `admin-03-crm-list-desktop.png`, `admin-04-crm-search-desktop.png`, `admin-05-detail-drawer-desktop.png`, `admin-06-tasks-desktop.png`, `admin-07-support-desktop.png`
+- Admin desktop: `admin-01-login-desktop.png`, `admin-02-cockpit-desktop.png`, `admin-03-crm-list-desktop.png`, `admin-04-crm-search-desktop.png`, `admin-05-detail-drawer-desktop.png`, `admin-06-tasks-desktop.png`, `admin-07-support-desktop.png`, `admin-08-www-dashboard-desktop.png`, `admin-09-www-crm-search-desktop.png`, `admin-10-www-lead-drawer-status-desktop.png`, `admin-11-www-tasks-desktop.png`, `admin-12-www-support-desktop.png`
 - Owner mobile/desktop: `owner-01-login-mobile.png`, `owner-02-dashboard-mobile.png`, `owner-03-object-drawer-mobile.png`, `owner-04-bookings-mobile.png`, `owner-05-billing-mobile.png`, `owner-06-contact-mobile.png`, `owner-07-www-dashboard-desktop.png`
 
 ## URL- und Routing-Abnahme
@@ -162,12 +162,15 @@ Ampel: grün.
 Geprüfte Wege:
 
 - Login unter `/admin`.
+- Login unter `https://www.getmorrow.de/admin`.
 - Redirect landet korrekt auf `/admin/dashboard`.
 - Cockpit zeigt Kennzahlen, Tagessteuerung, Support und Datenlücken.
 - CRM-Liste öffnen.
 - CRM-Suche nutzen.
 - Detaildrawer öffnen und Kontakt, Auszeit, Termin, Quelle, Kampagnenkontext und Bearbeitungsfelder prüfen.
+- Statusänderung an einer QA-Anfrage speichern.
 - Aufgabenbereich öffnen.
+- Buchungskontext im CRM prüfen.
 - Supportbereich öffnen.
 
 Gefundene und behobene Punkte:
@@ -179,6 +182,16 @@ Bewertung:
 
 - Admin wirkt jetzt wie CRM/Operations-Cockpit und nicht wie eine öffentliche Website.
 - Suche, Liste, Drawer, Status-/Bearbeitungsfelder, Aufgaben und Support sind als Hauptworkflow sichtbar.
+- Live-Workflow wurde am 2026-07-02 über die öffentliche Plattformstruktur geprüft:
+
+```bash
+ADMIN_BASE_URL=https://www.getmorrow.de/admin \
+ADMIN_EMAIL=auszeiten@getmorrow.de \
+ADMIN_PASSWORD=<admin-password> \
+npm run qa:apps
+```
+
+Zusätzlich wurde eine klar markierte QA-Anfrage in Supabase angelegt, im CRM gesucht, im Detaildrawer geöffnet, auf `In Prüfung` gesetzt, gespeichert und danach archiviert. Der Lauf prüfte außerdem Aufgaben, Buchungskontext und Support. Ergebnis: grün, keine Browser-Console-Fehler, keine sichtbaren Rohwerte wie `key_safe`. Die Screenshots `admin-08-www-dashboard-desktop.png` bis `admin-12-www-support-desktop.png` belegen den aktuellen www-Workflow.
 
 ## Owner App
 
