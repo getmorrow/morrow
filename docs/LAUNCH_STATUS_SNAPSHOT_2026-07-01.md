@@ -22,7 +22,7 @@ Einordnung der Entfernung zum Start:
 - Oeffentliche Website: technisch live, aber Launch-Gates fuer Recht, finale Freigaben und Tracking noch rot.
 - App-Fundament: live unter der deutschen Plattformstruktur erreichbar; `npm run qa:production` prueft `/admin`, `/app/gast`, `/app/eigentuemer` und die Legacy-Redirects erfolgreich gegen `https://www.getmorrow.de`.
 - Live-Lead-Erfassung: echter QA-Testlead ueber `www.getmorrow.de` wurde in Supabase inklusive Attribution verifiziert und danach archiviert.
-- Lead-Attribution: neue Anfragen speichern Quelle, Kampagne, Medium, Content, Term, Referrer, Landingpage, aktuellen Pfad, Klick-IDs und CTA-Ausloeser normalisiert auf `leads`; alte Payload-Werte bleiben als Fallback vorhanden.
+- Lead-Attribution: Datenbank, Code und QA sind vorbereitet, aber der letzte Live-Retest gegen `www.getmorrow.de` zeigt noch, dass das Web-Deployment die neuen normalisierten Felder nicht schreibt. Vor Start muss das Web-Projekt neu deployed und erneut gruen getestet werden.
 - Backup/Recovery: technischer Supabase-Probeexport vom 2026-07-02 war erfolgreich.
 - Operativer MVP: noch nicht freigegeben, weil Recht/Secrets/Angebotsfreigabe/Tracking und die finale Bewertung offen sind.
 - Zahlende Gaeste und Paid Ads: noch nicht freigegeben.
@@ -112,11 +112,12 @@ Einordnung:
 
 ### Lead-Attribution
 
-Ergebnis: technisch vorbereitet, Consent-/Tracking-Freigabe weiter offen.
+Ergebnis: Code und Datenbank vorbereitet, Live-Web-Retest noch rot.
 
 ```text
 remote migration: 202607020001_leads_attribution_fields.sql
 normalized fields: source, campaign, medium, content, term, referrer, landing_path, current_path, gclid, fbclid, conversion_event, conversion_label, conversion_path
+latest strict live retest: red, web deployment writes medium/content/landing_path still null
 ```
 
 Einordnung:
@@ -125,6 +126,7 @@ Einordnung:
 - Alte Leads werden aus vorhandenen Payload-Werten zurückbefuellt, soweit Daten vorhanden sind.
 - Das Admin-Detail liest die normalisierten Werte bevorzugt und nutzt Payload nur als Fallback.
 - `npm run qa:launch-gates` prueft jetzt, dass das Formular die normalisierten Attributionsfelder schreibt.
+- Der strenge Live-Rehearsal gegen `https://www.getmorrow.de` vom 2026-07-02 hat App-Routen und Redirects gruen geprueft, ist aber bei `Expected normalized medium rehearsal, got null` stehen geblieben. Das spricht fuer ein noch nicht aktualisiertes Web-Deployment. Der dabei angelegte QA-Lead wurde automatisch archiviert.
 - Die Marketing-/Consent-Entscheidung bleibt davon getrennt: GA4/Meta/Ads-Tracking wird erst nach Freigabe aktiviert.
 
 
@@ -240,6 +242,7 @@ Vor einem echten Start muessen zuerst erledigt und belegt werden:
 - Rechtstexte rechtlich/fachlich freigeben; die oeffentlichen Platzhaltertexte sind bereinigt, aber die Freigabevariable bleibt bis zur echten Freigabe leer.
 - Geteilte Secrets rotieren und Freigabezeitpunkt setzen.
 - Angebotsdaten final pruefen: Termine, Preise, enthaltene Leistungen, Bildrechte, Verantwortlichkeit.
+- Web-App neu deployen und `MORROW_QA_SUBMIT_LEAD=1 QA_BASE_URL=https://www.getmorrow.de npm run qa:production` erneut mit App-URLs und Supabase-Service-Env ausfuehren, bis normalisierte Attribution live gruen ist.
 - Tracking-/Consent-Entscheidung treffen: `MORROW_TRACKING_MODE=disabled` fuer Start ohne Paid Ads oder `enabled` mit GA4/Meta IDs fuer Paid Ads. Die technische Lead-Attribution ist vorbereitet; die Consent- und Werbetracking-Freigabe bleibt separat offen.
 - App-Workflows erneut nur dann wiederholen, wenn an Admin-, Owner- oder Guest-App wieder Code geändert wird. Der aktuelle Full-App-Lauf über `www.getmorrow.de` ist grün belegt.
 

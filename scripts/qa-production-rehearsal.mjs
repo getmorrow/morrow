@@ -277,6 +277,23 @@ async function verifyLeadInSupabase() {
   }
 }
 
+async function archiveSubmittedLead() {
+  if (!submitLead || !supabaseUrl || !supabaseServiceRoleKey) {
+    return { checked: false, archived: 0 }
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
+  const { data, error } = await supabase
+    .from('leads')
+    .update({ archived_at: new Date().toISOString(), status: 'Archiviert' })
+    .eq('email', testEmail)
+    .is('archived_at', null)
+    .select('id')
+
+  if (error) throw error
+  return { checked: true, archived: data?.length ?? 0 }
+}
+
 const browser = await chromium.launch({ headless: true })
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } })
 const mobile = await browser.newPage({ viewport: { width: 390, height: 900 }, deviceScaleFactor: 1 })
@@ -308,6 +325,7 @@ try {
     await submitGuestLead(mobile)
   }
   const leadVerification = await verifyLeadInSupabase()
+  const leadCleanup = await archiveSubmittedLead()
 
   await mobile.goto(`${baseUrl}/auszeiten/family-escape?utm_source=qa&utm_campaign=${campaign}`, { waitUntil: 'networkidle' })
   await mobile.locator('#anfrage').scrollIntoViewIfNeeded()
@@ -329,9 +347,18 @@ try {
     redirects,
     consent,
     leadVerification,
+    leadCleanup,
     screenshot: `${screenshotsDir}/family-form-mobile.png`,
   }, null, 2))
 } catch (error) {
+  try {
+    const cleanup = await archiveSubmittedLead()
+    if (cleanup.checked && cleanup.archived > 0) {
+      console.error(`Archived submitted QA lead after failure: ${cleanup.archived}`)
+    }
+  } catch (cleanupError) {
+    console.error(`Failed to archive submitted QA lead: ${cleanupError instanceof Error ? cleanupError.message : cleanupError}`)
+  }
   await browser.close()
   console.error(error instanceof Error ? error.message : error)
   process.exit(1)
