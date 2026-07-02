@@ -137,6 +137,7 @@ type LeadScopeFilter = "active" | "archived";
 type LeadTypeFilter = "all" | LeadRow["type"];
 type LeadStatusFilter = "all" | string;
 type LeadWorkFilter = "all" | "due" | "new" | "review";
+type CrmSortMode = "priority" | "newest" | "name" | "status";
 type AdminWorkspace =
   | "overview"
   | "crm"
@@ -416,70 +417,60 @@ const adminWorkspaces: Array<{
   label: string;
   title: string;
   text: string;
-  legacySections: string[];
 }> = [
   {
     id: "overview",
     label: "Übersicht",
     title: "Guten Überblick.",
     text: "Tagessteuerung mit Kennzahlen, Monitoring und aktuellen Änderungen.",
-    legacySections: ["Übersicht"],
   },
   {
     id: "crm",
     label: "CRM",
     title: "Anfragen, Kunden und Buchungen.",
     text: "Gastkontakte von der ersten Anfrage bis zur verbindlichen Buchung führen.",
-    legacySections: ["Anfragen", "Kunden", "Buchungen"],
   },
   {
     id: "tasks",
     label: "Aufgaben",
     title: "Operative To-dos steuern.",
     text: "Aufgaben mit Bezug, Fälligkeit und Priorität anlegen und abarbeiten.",
-    legacySections: ["Aufgaben"],
   },
   {
     id: "support",
     label: "Support",
     title: "Gäste begleiten und Feedback prüfen.",
     text: "Supportfälle, Nachrichten aus dem Gästebereich und Rückmeldungen nach dem Aufenthalt.",
-    legacySections: ["Gästesupport", "Feedback"],
   },
   {
     id: "operations",
     label: "Operations",
     title: "Vor Ort, Erlebnisse und Termine.",
     text: "Kuratierte Orte, Erlebnisbausteine und buchbare Zeiträume pflegen.",
-    legacySections: ["Erlebnisse", "Vor Ort", "Termine"],
   },
   {
     id: "inventory",
     label: "Bestand",
     title: "Auszeiten und Unterkünfte.",
     text: "Paket- und Objektbestand als Grundlage der Plattform pflegen.",
-    legacySections: ["Auszeiten", "Unterkünfte"],
   },
   {
     id: "partners",
     label: "Partner",
     title: "Agenturen und Startpartner.",
     text: "Phase-1-Partner, Objektzugang und Verfügbarkeitsabsprachen steuern.",
-    legacySections: ["Agenturen", "Erlebnisanbieter"],
   },
   {
     id: "owners",
     label: "Eigentümer",
     title: "Eigentümerdaten und Freigaben.",
     text: "Profile, Objektzugriffe, Dokumente, Abrechnungen und Objektarbeit verwalten.",
-    legacySections: ["Eigentümer"],
   },
   {
     id: "activity",
     label: "Aktivität",
     title: "Änderungen nachvollziehen.",
     text: "Audit-Log und letzte operative Änderungen prüfen.",
-    legacySections: ["Aktivität", "Kommunikation"],
   },
 ];
 const propertyAttributeOptions = [
@@ -573,7 +564,7 @@ function guestAccessCodeForBooking(booking: BookingRow) {
 }
 
 function guestAreaHref(booking: BookingRow) {
-  return `/deine-auszeit/${booking.id}?code=${guestAccessCodeForBooking(booking)}`;
+  return `/app/gast/deine-auszeit/${booking.id}?code=${guestAccessCodeForBooking(booking)}`;
 }
 
 function leadDetailsDraftFromLead(lead: LeadRow | null): LeadDetailsDraft {
@@ -833,10 +824,26 @@ function leadSourceLabel(lead: LeadRow) {
   return campaign ? `${source} · ${campaign}` : source;
 }
 
+function packageSlugLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    "couple-reset": "Couple Reset",
+    "family-escape": "Family Escape",
+    wellness_escape: "Wellness-Auszeit",
+  };
+  if (!value) return "";
+
+  return labels[value] || value
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(" ");
+}
+
 function leadIntentLabel(lead: LeadRow) {
   if (lead.type === "owner") return "Eigentümer";
   if (lead.type === "experience") return "Erlebnispartner";
-  return lead.package_slug || getPayloadText(lead.payload ?? {}, ["packageName", "packageSlug"]) || "Gastanfrage";
+  const payload = lead.payload ?? {};
+  return getPayloadText(payload, ["packageName"]) || packageSlugLabel(lead.package_slug || getPayloadText(payload, ["packageSlug"])) || "Gastanfrage";
 }
 
 function formatShortDate(value: string | null) {
@@ -1458,6 +1465,35 @@ function getBookingLabel(booking: BookingRow) {
   );
 }
 
+function compareLeadBySort(a: LeadRow, b: LeadRow, mode: CrmSortMode) {
+  if (mode === "name") return getLeadLabel(a).localeCompare(getLeadLabel(b), "de");
+  if (mode === "status") return a.status.localeCompare(b.status, "de") || compareNewest(a.created_at, b.created_at);
+  if (mode === "newest") return compareNewest(a.created_at, b.created_at);
+
+  return Number(isLeadDue(b)) - Number(isLeadDue(a)) || compareNewest(a.created_at, b.created_at);
+}
+
+function compareCustomerBySort(a: CustomerRow, b: CustomerRow, mode: CrmSortMode) {
+  if (mode === "name") return a.name.localeCompare(b.name, "de");
+  if (mode === "status") return a.latestStatus.localeCompare(b.latestStatus, "de") || compareNewest(a.latestCreatedAt, b.latestCreatedAt);
+  if (mode === "newest") return compareNewest(a.latestCreatedAt, b.latestCreatedAt);
+
+  if (a.due !== b.due) return a.due ? -1 : 1;
+  return compareNewest(a.latestCreatedAt, b.latestCreatedAt);
+}
+
+function getBookingSortDate(booking: BookingRow) {
+  return booking.selected_date || getPayloadText(booking.payload ?? {}, ["selectedDate", "startsOn", "starts_on"]) || booking.created_at;
+}
+
+function compareBookingBySort(a: BookingRow, b: BookingRow, mode: CrmSortMode) {
+  if (mode === "name") return getBookingLabel(a).localeCompare(getBookingLabel(b), "de");
+  if (mode === "status") return `${a.status} ${a.payment_status}`.localeCompare(`${b.status} ${b.payment_status}`, "de") || compareNewest(a.created_at, b.created_at);
+  if (mode === "newest") return compareNewest(a.created_at, b.created_at);
+
+  return new Date(getBookingSortDate(a)).getTime() - new Date(getBookingSortDate(b)).getTime();
+}
+
 function getSupportLabel(support: SupportRow) {
   return (
     support.subject ||
@@ -1549,15 +1585,6 @@ function feedbackReturnInterestLabel(value: string | null) {
   };
 
   return value ? labels[value] || value : "nicht angegeben";
-}
-
-function averageFeedbackRating(feedback: GuestFeedbackRow[]) {
-  const ratings = feedback
-    .map((item) => item.rating)
-    .filter((rating): rating is number => typeof rating === "number");
-
-  if (!ratings.length) return null;
-  return ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
 }
 
 function agencyStatusLabel(status: string) {
@@ -2019,9 +2046,11 @@ function AdminDashboardView({
   const [supportUrgencyFilter, setSupportUrgencyFilter] = useState<SupportUrgencyFilter>("all");
   const [supportCategoryFilter, setSupportCategoryFilter] = useState("all");
   const [leadScopeFilter, setLeadScopeFilter] = useState<LeadScopeFilter>("active");
+  const [leadSearch, setLeadSearch] = useState("");
   const [leadTypeFilter, setLeadTypeFilter] = useState<LeadTypeFilter>("all");
   const [leadStatusFilter, setLeadStatusFilter] = useState<LeadStatusFilter>("all");
   const [leadWorkFilter, setLeadWorkFilter] = useState<LeadWorkFilter>("all");
+  const [crmSortMode, setCrmSortMode] = useState<CrmSortMode>("priority");
   const [taskStatusFilter, setTaskStatusFilter] = useState<TaskStatusFilter>("open");
   const [taskReferenceFilter, setTaskReferenceFilter] = useState<TaskReferenceFilter>("all");
   const [taskPriorityFilter, setTaskPriorityFilter] = useState<TaskPriorityFilter>("all");
@@ -2141,33 +2170,108 @@ function AdminDashboardView({
   const data = dataState;
   const openLeads = useMemo(() => getOpenLeads(data.leads), [data.leads]);
   const activeLeads = data.leads.filter((lead) => !lead.archived_at);
-  const archivedLeads = data.leads.filter((lead) => lead.archived_at);
   const filteredLeads = data.leads
     .filter((lead) => leadScopeFilter === "archived" ? Boolean(lead.archived_at) : !lead.archived_at)
     .filter((lead) => leadTypeFilter === "all" || lead.type === leadTypeFilter)
     .filter((lead) => leadStatusFilter === "all" || lead.status === leadStatusFilter)
+    .filter((lead) => {
+      const query = leadSearch.trim().toLowerCase();
+      if (!query) return true;
+      const payload = lead.payload ?? {};
+      const haystack = [
+        lead.name,
+        lead.email,
+        lead.phone,
+        lead.status,
+        lead.type,
+        getPayloadText(payload, [
+          "packageName",
+          "packageSlug",
+          "selectedDate",
+          "dateLabel",
+          "travelDate",
+          "message",
+          "campaign",
+          "source",
+          "propertyLocation",
+          "businessName",
+          "location",
+        ]),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(query);
+    })
     .filter((lead) => {
       if (leadWorkFilter === "due") return isLeadDue(lead);
       if (leadWorkFilter === "new") return lead.status === "Neu";
       if (leadWorkFilter === "review") return lead.status === "In Prüfung";
       return true;
     })
-    .sort((a, b) => Number(isLeadDue(b)) - Number(isLeadDue(a)) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    .sort((a, b) => compareLeadBySort(a, b, crmSortMode));
   const customerRows = useMemo(
     () => buildCustomerRows(data.leads, data.bookings, data.customers),
     [data.leads, data.bookings, data.customers],
   );
   const activeCustomerRows = customerRows.filter((customer) => !customer.isTest);
+  const crmSearchQuery = leadSearch.trim().toLowerCase();
   const filteredCustomerRows = activeCustomerRows.filter((customer) => {
     if (customerPhaseFilter === "request") return customer.leads.length > 0 && customer.bookings.length === 0;
     if (customerPhaseFilter === "booking") return customer.bookings.length > 0;
     if (customerPhaseFilter === "due") return customer.due;
     return true;
-  });
+  }).filter((customer) => {
+    if (!crmSearchQuery) return true;
+    const haystack = [
+      customer.name,
+      customer.email,
+      customer.phone,
+      customer.source,
+      customer.latestStatus,
+      customer.nextStep,
+      ...customer.leads.map((lead) => [
+        lead.name,
+        lead.email,
+        lead.phone,
+        lead.status,
+        lead.package_slug,
+        lead.source,
+        lead.campaign,
+      ].filter(Boolean).join(" ")),
+      ...customer.bookings.map((booking) => [
+        booking.guest_name,
+        booking.guest_email,
+        booking.guest_phone,
+        booking.status,
+        booking.payment_status,
+        booking.package_id,
+        booking.selected_date,
+        booking.guest_access_code,
+      ].filter(Boolean).join(" ")),
+    ].filter(Boolean).join(" ").toLowerCase();
+    return haystack.includes(crmSearchQuery);
+  }).sort((a, b) => compareCustomerBySort(a, b, crmSortMode));
+  const filteredBookings = data.bookings.filter((booking) => {
+    if (!crmSearchQuery) return true;
+    const payload = booking.payload ?? {};
+    const haystack = [
+      booking.id,
+      booking.guest_name,
+      booking.guest_email,
+      booking.guest_phone,
+      booking.status,
+      booking.payment_status,
+      booking.package_id,
+      booking.selected_date,
+      booking.guest_access_code,
+      getPayloadText(payload, ["packageName", "packageSlug", "customerName", "name", "email", "phone", "source"]),
+    ].filter(Boolean).join(" ").toLowerCase();
+    return haystack.includes(crmSearchQuery);
+  }).sort((a, b) => compareBookingBySort(a, b, crmSortMode));
   const selectedCustomer = selectedCustomerId
     ? customerRows.find((customer) => customer.id === selectedCustomerId) ?? null
     : null;
-  const paidBookings = data.bookings.filter((booking) => booking.payment_status === "bezahlt");
   const openSupport = data.supportMessages.filter((message) => message.status !== "closed");
   const supportCategoryOptions = useMemo(() => (
     Array.from(new Set(data.supportMessages.map((support) => support.category || "general")))
@@ -2211,7 +2315,11 @@ function AdminDashboardView({
   }, [data.tasks, editingTaskId, taskDraft.referenceValue, taskReferenceOptions]);
   const filteredTasks = useMemo(() => (
     [...data.tasks]
-      .filter((task) => taskStatusFilter === "all" || task.status === taskStatusFilter)
+      .filter((task) => {
+        if (taskStatusFilter === "all") return true;
+        if (taskStatusFilter === "open") return task.status !== "done";
+        return task.status === taskStatusFilter;
+      })
       .filter((task) => {
         if (taskReferenceFilter === "all") return true;
         if (taskReferenceFilter === "support") return task.reference_type === "support" ||
@@ -2227,10 +2335,8 @@ function AdminDashboardView({
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       })
   ), [data.tasks, taskPriorityFilter, taskReferenceFilter, taskStatusFilter]);
-  const approvedLocalPlaces = data.localPlaces.filter((place) => place.status === "approved");
   const candidateLocalPlaces = data.localPlaces.filter((place) => place.status === "candidate");
   const monitoring = monitoringItems(data);
-  const averageRating = averageFeedbackRating(data.guestFeedback);
   const lowFeedback = data.guestFeedback.filter((feedback) => typeof feedback.rating === "number" && feedback.rating <= 3);
   const overviewWorkItems = [
     ...dueTasks.slice(0, 4).map((task) => ({
@@ -5867,12 +5973,16 @@ function AdminDashboardView({
   }
 
   return (
-    <main className="admin-shell admin-dashboard">
-      <header className="admin-header">
-        <a aria-label="Morrow Startseite" href="https://www.getmorrow.de">
+    <main className="admin-shell admin-dashboard admin-app-shell">
+      <aside className="admin-sidebar" aria-label="Morrow Admin">
+        <a className="admin-sidebar-brand" aria-label="Morrow Startseite" href="https://www.getmorrow.de">
           <img alt="morrow" src="/brand/morrow-wordmark-offblack.svg" />
         </a>
-        <nav aria-label="Admin Navigation">
+        <div className="admin-sidebar-context">
+          <span>Operations Cockpit</span>
+          <strong>{displayName}</strong>
+        </div>
+        <nav className="admin-sidebar-nav" aria-label="Admin Navigation">
           {adminWorkspaces.map((item) => (
             <button
               aria-pressed={activeWorkspace === item.id}
@@ -5884,36 +5994,32 @@ function AdminDashboardView({
               {item.label}
             </button>
           ))}
-          <button onClick={onLogout} type="button">
-            Abmelden
-          </button>
         </nav>
-      </header>
+        <button className="admin-sidebar-logout" onClick={onLogout} type="button">
+          Abmelden
+        </button>
+      </aside>
 
-      <section className="admin-hero">
-        <p className="admin-eyebrow">Morrow Admin</p>
-        <h1>{workspace.title}</h1>
-        <p>{workspace.text}</p>
-        <p className="admin-hero-meta">Migrierte Bereiche: {workspace.legacySections.join(" · ")}</p>
-        <p className="admin-hero-meta">Angemeldet als {displayName}</p>
-        {actionMessage ? <p className="admin-action-message">{actionMessage}</p> : null}
-      </section>
+      <div className="admin-workspace">
+        <section className="admin-workspace-head">
+          <div>
+            <p className="admin-eyebrow">Morrow Admin</p>
+            <h1>{workspace.title}</h1>
+            <p>{workspace.text}</p>
+          </div>
+          <div className="admin-workspace-status">
+            <span>{openLeads.length} neue Anfragen</span>
+            <span>{dueTasks.length} heute fällig</span>
+            <span>{openSupport.length} Support offen</span>
+          </div>
+          {actionMessage ? <p className="admin-action-message">{actionMessage}</p> : null}
+        </section>
 
       <section className="admin-metrics" aria-label="Kennzahlen" hidden={activeWorkspace !== "overview"}>
         <article>
-          <span>Offene Anfragen</span>
+          <span>Neue Anfragen</span>
           <strong>{openLeads.length}</strong>
-          <p>{activeLeads.length} aktiv · {archivedLeads.length} archiviert</p>
-        </article>
-        <article>
-          <span>Buchungen</span>
-          <strong>{data.bookings.length}</strong>
-          <p>{paidBookings.length} bezahlt markiert</p>
-        </article>
-        <article>
-          <span>Kunden</span>
-          <strong>{activeCustomerRows.length}</strong>
-          <p>{customerRows.length - activeCustomerRows.length} Testkontakte ausgeblendet</p>
+          <p>{activeLeads.length} aktiv zu bearbeiten</p>
         </article>
         <article>
           <span>Heute fällig</span>
@@ -5921,19 +6027,14 @@ function AdminDashboardView({
           <p>{activeTasks.length} aktive Aufgaben</p>
         </article>
         <article>
-          <span>Monitoring</span>
+          <span>Support offen</span>
+          <strong>{openSupport.length}</strong>
+          <p>Nachrichten und Klärfälle</p>
+        </article>
+        <article>
+          <span>Datenlücken</span>
           <strong>{monitoring.length}</strong>
-          <p>{openSupport.length} offene Supportfälle</p>
-        </article>
-        <article>
-          <span>Feedback</span>
-          <strong>{averageRating ? averageRating.toFixed(1) : "–"}</strong>
-          <p>{data.guestFeedback.length} Rückmeldungen geladen</p>
-        </article>
-        <article>
-          <span>Vor Ort</span>
-          <strong>{approvedLocalPlaces.length}</strong>
-          <p>{candidateLocalPlaces.length} Kandidaten prüfen</p>
+          <p>{candidateLocalPlaces.length} Vor-Ort-Kandidaten prüfen</p>
         </article>
       </section>
 
@@ -6046,7 +6147,7 @@ function AdminDashboardView({
                 onClick={() => setTaskStatusFilter(status)}
                 type="button"
               >
-                {status === "all" ? "Alle Status" : taskStatusLabel(status)}
+                {status === "all" ? "Alle Status" : status === "open" ? "Offen & in Arbeit" : taskStatusLabel(status)}
               </button>
             ))}
             {(["all", "lead", "booking", "support", "package", "property", "experience", "localPlace", "owner", "experienceProvider"] as TaskReferenceFilter[]).map((filter) => (
@@ -6125,7 +6226,7 @@ function AdminDashboardView({
           <p className="admin-eyebrow">Monitoring</p>
           <h2>Fehlende Daten und Risiken</h2>
           <div className="admin-list">
-            {monitoring.slice(0, 8).map((item) => (
+            {monitoring.slice(0, 4).map((item) => (
               <article className="admin-list-item" key={item.id}>
                 <div>
                   <small>{item.label} · {item.severity === "high" ? "hoch" : "prüfen"}</small>
@@ -6141,7 +6242,7 @@ function AdminDashboardView({
         </article>
         ) : null}
 
-        {["overview", "activity"].includes(activeWorkspace) ? (
+        {activeWorkspace === "activity" ? (
         <article className="admin-card admin-card-wide" id="audit">
           <p className="admin-eyebrow">Änderungen</p>
           <h2>Letzte Aktivitäten</h2>
@@ -6242,6 +6343,15 @@ function AdminDashboardView({
         <article className="admin-card">
           <p className="admin-eyebrow">Anfragen</p>
           <h2>{leadScopeFilter === "archived" ? "Archivierte Anfragen" : "Aktive Anfragen"}</h2>
+          <label className="admin-search-field">
+            CRM suchen
+            <input
+              onChange={(event) => setLeadSearch(event.target.value)}
+              placeholder="Name, E-Mail, Telefon, Auszeit, Buchung oder Quelle"
+              type="search"
+              value={leadSearch}
+            />
+          </label>
           <div className="admin-card-toolbar" aria-label="Anfragenfilter">
             {(["active", "archived"] as LeadScopeFilter[]).map((scope) => (
               <button
@@ -6285,6 +6395,24 @@ function AdminDashboardView({
                 type="button"
               >
                 {work === "all" ? "Alle Arbeit" : work === "due" ? "Fällig" : work === "new" ? "Neu" : "In Prüfung"}
+              </button>
+            ))}
+          </div>
+          <div className="admin-card-toolbar" aria-label="CRM-Sortierung">
+            {([
+              ["priority", "Priorität"],
+              ["newest", "Neueste"],
+              ["name", "Name"],
+              ["status", "Status"],
+            ] as [CrmSortMode, string][]).map(([mode, label]) => (
+              <button
+                aria-pressed={crmSortMode === mode}
+                className={crmSortMode === mode ? "is-active" : undefined}
+                key={mode}
+                onClick={() => setCrmSortMode(mode)}
+                type="button"
+              >
+                {label}
               </button>
             ))}
           </div>
@@ -6446,7 +6574,7 @@ function AdminDashboardView({
           <p className="admin-eyebrow">Buchungen</p>
           <h2>Aktuelle Aufenthalte</h2>
           <div className="admin-list">
-            {data.bookings.slice(0, 8).map((booking) => (
+            {filteredBookings.slice(0, 8).map((booking) => (
               <article className="admin-list-item" key={booking.id}>
                 <div>
                   <small>{formatDate(booking.created_at)}</small>
@@ -6480,6 +6608,9 @@ function AdminDashboardView({
                 </div>
               </article>
             ))}
+            {filteredBookings.length === 0 ? (
+              <p className="admin-drawer-message">Keine passenden Buchungen vorhanden.</p>
+            ) : null}
           </div>
         </article>
       </section>
@@ -8057,6 +8188,7 @@ function AdminDashboardView({
         packages={data.packages}
         pending={Boolean(pendingAction?.startsWith("date"))}
       />
+      </div>
     </main>
   );
 }
@@ -8346,8 +8478,8 @@ function AdminDetailDrawer({
   const email = lead?.email || getPayloadText(payload, ["email"]);
   const phone = lead?.phone || getPayloadText(payload, ["phone"]);
   const packageName =
-    getPayloadText(payload, ["packageName", "packageTitle", "stayName", "packageSlug"]) ||
-    lead?.package_slug;
+    getPayloadText(payload, ["packageName", "packageTitle", "stayName"]) ||
+    packageSlugLabel(lead?.package_slug || getPayloadText(payload, ["packageSlug"]));
   const selectedDate = getPayloadText(payload, [
     "selectedDate",
     "dateLabel",

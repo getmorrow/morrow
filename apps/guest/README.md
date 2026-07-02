@@ -34,7 +34,7 @@ Admin bleibt Quelle der Wahrheit; diese App zeigt nur gaesterelevante Ausschnitt
 - Sichtbare Antworten aus Admin laufen ueber `get_guest_support_events()` zurueck in den Hilfe-Verlauf.
 - Feedback wird in `guest_feedback` gespeichert.
 - Vor-Ort-Karte mit Leaflet und kuratierten Orten.
-- Lokaler Dev-Sichttest: `/deine-auszeit/dev-active?code=MORROWDEV` funktioniert nur ausserhalb von Production.
+- Lokaler Dev-Sichttest: `/app/gast/deine-auszeit/dev-active?code=MORROWDEV` funktioniert nur ausserhalb von Production.
 
 ## Noch Nicht Als Final Bewiesen
 

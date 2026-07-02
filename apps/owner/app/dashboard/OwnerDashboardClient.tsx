@@ -25,6 +25,12 @@ type OwnerGap = OwnerDashboardDate & {
 };
 
 type OwnerContactCategory = "general" | "property" | "booking" | "availability" | "accounting";
+type OwnerBookingFilter = "active" | "paid" | "reserved" | "all";
+
+type OwnerDetailSelection =
+  | { type: "booking"; id: string }
+  | { type: "property"; id: string }
+  | { type: "statement"; id: string };
 
 const ownerContactCategoryLabels: Record<OwnerContactCategory, string> = {
   general: "Allgemeine Rückfrage",
@@ -298,6 +304,45 @@ function formatOwnerStatementStatus(statement: OwnerDashboardStatement) {
   return labels[statement.status] || statement.status;
 }
 
+function formatOwnerAccessRole(role: string | null) {
+  const labels: Record<string, string> = {
+    owner: "Eigentümerzugang",
+    agency: "Agenturzugang",
+    viewer: "Lesezugang",
+  };
+  return role ? labels[role] || role : "nicht gesetzt";
+}
+
+function formatOwnerCheckInType(type: string | null) {
+  const labels: Record<string, string> = {
+    agency_pickup: "Schlüsselabholung",
+    key_safe: "Schlüsselsafe",
+    personal_handover: "Persönliche Übergabe",
+    smart_lock: "Smart Lock",
+  };
+  return type ? labels[type] || type : "offen";
+}
+
+function formatOwnerSupportType(type: string | null) {
+  const labels: Record<string, string> = {
+    agency: "Agentur",
+    hotel: "Hotel",
+    morrow: "Morrow Betreuung",
+    owner: "Eigentümer",
+  };
+  return type ? labels[type] || type : "offen";
+}
+
+function formatOwnerPropertyStatus(status: string | null) {
+  const labels: Record<string, string> = {
+    active: "Aktiv",
+    archived: "Archiviert",
+    draft: "Entwurf",
+    inactive: "Inaktiv",
+  };
+  return status ? labels[status] || status : "offen";
+}
+
 function formatOperationLabel(type: string, status: string) {
   return [
     ownerOperationTypeLabels[type] || type,
@@ -446,7 +491,23 @@ function OwnerDashboardView({
   const [contactEndsOn, setContactEndsOn] = useState("");
   const [contactMessage, setContactMessage] = useState("");
   const [contactStatus, setContactStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
-  const nextBookings = useMemo(() => getNextBookings(data.bookings), [data.bookings]);
+  const [detailSelection, setDetailSelection] = useState<OwnerDetailSelection | null>(null);
+  const [ownerBookingFilter, setOwnerBookingFilter] = useState<OwnerBookingFilter>("active");
+  const ownerBookingRows = useMemo(() => {
+    const rows = ownerBookingFilter === "active"
+      ? getNextBookings(data.bookings)
+      : [...data.bookings].sort((a, b) => {
+          const aDate = a.startsOn ? new Date(a.startsOn).getTime() : Number.MAX_SAFE_INTEGER;
+          const bDate = b.startsOn ? new Date(b.startsOn).getTime() : Number.MAX_SAFE_INTEGER;
+          return aDate - bDate;
+        });
+
+    return rows.filter((booking) => {
+      if (ownerBookingFilter === "paid") return booking.paymentStatus === "bezahlt";
+      if (ownerBookingFilter === "reserved") return booking.status === "Reserviert";
+      return true;
+    }).slice(0, 8);
+  }, [data.bookings, ownerBookingFilter]);
   const upcomingDates = useMemo(() => getUpcomingDates(data.dates ?? []), [data.dates]);
   const openNotes = useMemo(() => getOpenPropertyNotes(data.properties), [data.properties]);
   const visibleGaps = useMemo(() => getVisibleGaps(data.dates ?? []), [data.dates]);
@@ -470,6 +531,18 @@ function OwnerDashboardView({
   const isAvailabilityRequest = contactCategory === "availability";
   const hasInvalidAvailabilityRange =
     isAvailabilityRequest && Boolean(contactStartsOn && contactEndsOn && contactEndsOn < contactStartsOn);
+  const selectedPropertyDetail =
+    detailSelection?.type === "property"
+      ? data.properties.find((property) => property.id === detailSelection.id) ?? null
+      : null;
+  const selectedBookingDetail =
+    detailSelection?.type === "booking"
+      ? data.bookings.find((booking) => booking.id === detailSelection.id) ?? null
+      : null;
+  const selectedStatementDetail =
+    detailSelection?.type === "statement"
+      ? ownerStatements.find((statement) => statement.id === detailSelection.id) ?? null
+      : null;
 
   async function sendOwnerMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -540,12 +613,16 @@ function OwnerDashboardView({
   }
 
   return (
-    <main className="owner-shell owner-dashboard">
-      <div className="owner-container">
-        <header className="owner-app-header">
-          <a aria-label="Morrow Startseite" href="https://www.getmorrow.de">
+    <main className="owner-shell owner-dashboard owner-portal">
+      <div className="owner-container owner-portal-layout">
+        <aside className="owner-portal-sidebar">
+          <a className="owner-portal-brand" aria-label="Morrow Startseite" href="https://www.getmorrow.de">
             <img alt="morrow" src="/brand/morrow-wordmark-offblack.svg" />
           </a>
+          <div className="owner-portal-context">
+            <span>Eigentümerportal</span>
+            <strong>{displayName}</strong>
+          </div>
           <nav className="owner-dashboard-nav" aria-label="Eigentümerbereich">
             <a href="#objekte">Objekte</a>
             <a href="#buchungen">Buchungen</a>
@@ -558,17 +635,18 @@ function OwnerDashboardView({
               Abmelden
             </button>
           </nav>
-        </header>
+        </aside>
 
-        <section className="owner-dashboard-hero">
-          <p className="eyebrow">Eigentümerbereich</p>
-          <h1>Guten Überblick, {displayName}.</h1>
-          <p>
-            Hier siehst du, welche Objekte verbunden sind, welche Auszeiten
-            sichtbar sind, welche Buchungen anstehen und wie Morrow freie
-            Zeiträume aktiv in Nachfrage verwandelt.
-          </p>
-        </section>
+        <div className="owner-portal-workspace">
+          <section className="owner-dashboard-hero">
+            <p className="eyebrow">Eigentümerbereich</p>
+            <h1>Guten Überblick, {displayName}.</h1>
+            <p>
+              Objekte, Buchungen, freie Zeiträume, Operations und Abrechnung an
+              einem Ort. Morrow bleibt Quelle der Arbeit, du siehst den für dich
+              freigegebenen Stand.
+            </p>
+          </section>
 
         <section className="owner-metrics-grid" aria-label="Kennzahlen">
           <article className="owner-metric-card">
@@ -631,11 +709,11 @@ function OwnerDashboardView({
         <section className="owner-section owner-card owner-contact-card" id="kontakt">
           <div>
             <p className="eyebrow">Direkter Draht</p>
-            <h2>Eine Rückfrage, die direkt im Morrow Admin landet.</h2>
+            <h2>Eine Rückfrage direkt an Morrow.</h2>
             <p>
               Für Objekt, Buchung, Abrechnung oder freie Zeiträume kannst du
-              hier eine kurze Nachricht senden. Morrow ordnet sie intern deinem
-              Profil und dem passenden Objekt zu.
+              hier eine kurze Nachricht senden. Wir ordnen sie dem passenden
+              Objekt zu und melden uns mit einer klaren Rückmeldung.
             </p>
           </div>
           <form className="owner-contact-form" onSubmit={sendOwnerMessage}>
@@ -721,7 +799,7 @@ function OwnerDashboardView({
                 {contactStatus === "sending" ? "Wird gesendet" : "Nachricht senden"}
               </button>
               {contactStatus === "sent" ? (
-                <p>Nachricht ist angekommen und wird im Admin weiterbearbeitet.</p>
+                <p>Nachricht ist angekommen und wird weiterbearbeitet.</p>
               ) : null}
               {contactStatus === "error" ? (
                 <p>
@@ -744,7 +822,7 @@ function OwnerDashboardView({
             </div>
             <p>
               Damit nichts in E-Mails oder einzelnen Nachrichten verschwindet,
-              siehst du hier die letzten Anliegen, die im Admin weiterbearbeitet werden.
+              siehst du hier die letzten Anliegen mit dem aktuellen Stand.
             </p>
           </div>
           <div className="owner-message-list">
@@ -817,21 +895,28 @@ function OwnerDashboardView({
                   {property.bedrooms ? ` · ${property.bedrooms} Schlafzimmer` : ""}
                 </p>
                 <div className="owner-pill-row">
-                  <span>{property.status}</span>
-                  <span>{property.accessRole}</span>
+                  <span>{formatOwnerPropertyStatus(property.status)}</span>
+                  <span>{formatOwnerAccessRole(property.accessRole)}</span>
                   <span>{propertyReadiness(property).label}</span>
                   {property.canViewFinancials ? <span>Abrechnung sichtbar</span> : null}
                 </div>
                 <div className="owner-detail-list">
                   <span>
                     Check-in
-                    <strong>{property.checkInType || "offen"}</strong>
+                    <strong>{formatOwnerCheckInType(property.checkInType)}</strong>
                   </span>
                   <span>
                     Betreuung
-                    <strong>{property.supportName || property.supportType || "offen"}</strong>
+                    <strong>{property.supportName || formatOwnerSupportType(property.supportType)}</strong>
                   </span>
                 </div>
+                <button
+                  className="owner-inline-action"
+                  onClick={() => setDetailSelection({ type: "property", id: property.id })}
+                  type="button"
+                >
+                  Objekt ansehen
+                </button>
               </div>
             </article>
           ))}
@@ -875,19 +960,46 @@ function OwnerDashboardView({
           <article className="owner-card">
             <p className="eyebrow">Buchungen</p>
             <h2>Aktuelle Buchungen</h2>
+            <div className="owner-filter-row" aria-label="Buchungen filtern">
+              {([
+                ["active", "Aktiv"],
+                ["paid", "Bezahlt"],
+                ["reserved", "Reserviert"],
+                ["all", "Alle"],
+              ] as [OwnerBookingFilter, string][]).map(([value, label]) => (
+                <button
+                  aria-pressed={ownerBookingFilter === value}
+                  className={ownerBookingFilter === value ? "is-active" : undefined}
+                  key={value}
+                  onClick={() => setOwnerBookingFilter(value)}
+                  type="button"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
             <div className="owner-status-list">
-              {nextBookings.length ? (
-                nextBookings.map((booking) => (
+              {ownerBookingRows.length ? (
+                ownerBookingRows.map((booking) => (
                   <article className="owner-status-item" key={booking.id}>
                     <span className="owner-status-copy">
                       <b>{formatDateRange(booking)}</b>
                       <small>{booking.propertyName || booking.status}</small>
                     </span>
-                    <strong>{booking.packageName || booking.status}</strong>
+                    <div className="owner-status-action">
+                      <strong>{booking.packageName || booking.status}</strong>
+                      <button
+                        className="owner-inline-action"
+                        onClick={() => setDetailSelection({ type: "booking", id: booking.id })}
+                        type="button"
+                      >
+                        Details
+                      </button>
+                    </div>
                   </article>
                 ))
               ) : (
-                <p>Noch keine aktiven Buchungen sichtbar.</p>
+                <p>Keine Buchungen für diesen Filter sichtbar.</p>
               )}
             </div>
           </article>
@@ -1058,6 +1170,13 @@ function OwnerDashboardView({
                         </div>
                         <div>
                           <strong>{formatCurrency(statement.ownerPayout)}</strong>
+                          <button
+                            className="owner-inline-action"
+                            onClick={() => setDetailSelection({ type: "statement", id: statement.id })}
+                            type="button"
+                          >
+                            Details
+                          </button>
                           {statement.documentUrl ? (
                             <a href={statement.documentUrl} target="_blank" rel="noreferrer">
                               Beleg öffnen
@@ -1101,7 +1220,88 @@ function OwnerDashboardView({
             </div>
           </article>
         </section>
+        </div>
       </div>
+
+      {detailSelection ? (
+        <div className="owner-drawer-backdrop" onClick={() => setDetailSelection(null)}>
+          <aside className="owner-detail-drawer" onClick={(event) => event.stopPropagation()} aria-label="Detailansicht">
+            <div className="owner-drawer-head">
+              <span className="owner-drawer-handle" aria-hidden="true" />
+              <button onClick={() => setDetailSelection(null)} type="button">
+                Schließen
+              </button>
+            </div>
+
+            {selectedPropertyDetail ? (
+              <div className="owner-drawer-content">
+                <p className="eyebrow">Objekt</p>
+                <h2>{selectedPropertyDetail.name}</h2>
+                <p>
+                  {selectedPropertyDetail.address || selectedPropertyDetail.location || "Adresse wird gepflegt"}
+                  {selectedPropertyDetail.sleeps ? ` · bis ${selectedPropertyDetail.sleeps} Personen` : ""}
+                </p>
+                <div className="owner-drawer-facts">
+                  <article><span>Status</span><strong>{formatOwnerPropertyStatus(selectedPropertyDetail.status)}</strong></article>
+                  <article><span>Zugriff</span><strong>{formatOwnerAccessRole(selectedPropertyDetail.accessRole)}</strong></article>
+                  <article><span>Check-in</span><strong>{formatOwnerCheckInType(selectedPropertyDetail.checkInType)}</strong></article>
+                  <article><span>Betreuung</span><strong>{selectedPropertyDetail.supportName || formatOwnerSupportType(selectedPropertyDetail.supportType)}</strong></article>
+                </div>
+                <div className="owner-drawer-section">
+                  <span>Ausstattung</span>
+                  <p>{(selectedPropertyDetail.amenities ?? getPayloadLines(selectedPropertyDetail.payload ?? {}, ["amenities", "features"])).slice(0, 6).join(" · ") || "Ausstattung wird gepflegt."}</p>
+                </div>
+                <div className="owner-drawer-section">
+                  <span>Offene Punkte</span>
+                  <p>{getOpenPropertyNotes([selectedPropertyDetail]).join(" · ") || "Keine offenen Pflichtpunkte sichtbar."}</p>
+                </div>
+              </div>
+            ) : null}
+
+            {selectedBookingDetail ? (
+              <div className="owner-drawer-content">
+                <p className="eyebrow">Buchung</p>
+                <h2>{selectedBookingDetail.packageName || "Morrow Auszeit"}</h2>
+                <p>{formatDateRange(selectedBookingDetail)} · {selectedBookingDetail.propertyName || "Objekt"}</p>
+                <div className="owner-drawer-facts">
+                  <article><span>Status</span><strong>{selectedBookingDetail.status}</strong></article>
+                  <article><span>Zahlung</span><strong>{selectedBookingDetail.paymentStatus || "offen"}</strong></article>
+                  <article><span>Gastdaten</span><strong>geschützt</strong></article>
+                  <article><span>Betrag</span><strong>{selectedBookingDetail.paymentAmount ? formatCurrency(Number(selectedBookingDetail.paymentAmount)) : "offen"}</strong></article>
+                </div>
+                <div className="owner-drawer-section">
+                  <span>Einordnung</span>
+                  <p>Diese Buchung ist dem Objekt zugeordnet und wird in Abrechnung, Operations und Kommunikation weitergeführt.</p>
+                </div>
+              </div>
+            ) : null}
+
+            {selectedStatementDetail ? (
+              <div className="owner-drawer-content">
+                <p className="eyebrow">Abrechnung</p>
+                <h2>{selectedStatementDetail.periodLabel}</h2>
+                <p>{selectedStatementDetail.propertyName || "Objekt"} · {formatOwnerStatementStatus(selectedStatementDetail)}</p>
+                <div className="owner-drawer-facts">
+                  <article><span>Umsatz</span><strong>{formatCurrency(selectedStatementDetail.grossRevenue)}</strong></article>
+                  <article><span>Morrow</span><strong>{formatCurrency(selectedStatementDetail.morrowFee)}</strong></article>
+                  <article><span>Kosten</span><strong>{formatCurrency(selectedStatementDetail.otherCosts)}</strong></article>
+                  <article><span>Auszahlung</span><strong>{formatCurrency(selectedStatementDetail.ownerPayout)}</strong></article>
+                </div>
+                {selectedStatementDetail.documentUrl ? (
+                  <a className="owner-button" href={selectedStatementDetail.documentUrl} target="_blank" rel="noreferrer">
+                    Beleg öffnen
+                  </a>
+                ) : (
+                  <div className="owner-drawer-section">
+                    <span>Beleg</span>
+                    <p>Noch kein Beleg für diese Abrechnung hinterlegt.</p>
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </aside>
+        </div>
+      ) : null}
     </main>
   );
 }

@@ -35,34 +35,47 @@ Screenshots liegen unter:
 
 `docs/qa/design-ux-audit-2026-07-01/`
 
+Fix-Evidence nach Umsetzung:
+
+`docs/qa/design-ux-fixes-2026-07-01/`
+
+Neu geprüfte Fix-Ansichten:
+- Website Startseite Desktop: `web-home-desktop-1440x900.png`
+- Website Family Escape Anfrage Mobile: `web-family-request-drawer-mobile-390x844.png`
+- Guest App Buchung Mobile/Desktop: `guest-booking-active-mobile-390x844.png`, `guest-booking-active-desktop-1440x900.png`
+- Owner App Dashboard Mobile/Desktop: `owner-dashboard-mobile-390x844.png`, `owner-dashboard-desktop-1440x900.png`
+- Admin Dashboard Desktop/Mobile: `admin-dashboard-desktop-hiddenfix-1440x900.png`, `admin-dashboard-mobile-final-390x844.png`
+
 Geprüfte Ansichten:
 - Website: Startseite, Family Escape, Ratgeber, Eigentümerseite jeweils Desktop und Mobile.
 - Guest App: Einstieg, abgeschlossener Testaufenthalt, Buchung, Feedback, Auszeiten-Navigation Mobile/Desktop.
-- Owner App: Login/Einstieg Mobile/Desktop. Dashboard nicht per Screenshot verifiziert, weil kein freigegebener Owner-Testlogin im aktuellen Kontext vorlag.
+- Owner App: Login/Einstieg Mobile/Desktop sowie Dashboard Mobile/Desktop mit temporärem QA-Owner.
 - Admin App: Login Mobile/Desktop und eingeloggtes Dashboard Mobile/Desktop.
 
 Technische Sichtprüfung:
 - Keine horizontale Überlaufprobleme in den geprüften Screens.
 - Website-Bilder laden grundsätzlich.
 - Admin-Dashboard-Höhe: ca. 27.500px Desktop, ca. 36.400px Mobile. Das ist für tägliche Arbeit zu lang.
+- Fix-Messung Admin nach Umsetzung: ca. 1.953px Desktop, ca. 1.913px Mobile; nur eine aktive Admin-Arbeitsansicht sichtbar.
 - Guest-App abgeschlossener Aufenthalt: Mobile-Seitenhöhe ca. 1.800px, aber aktive Inhalte liegen nach Navigation unter dem dominanten Hero.
+- Fix-Update Guest App: Nach Tabwechsel scrollt die App zum aktiven Inhalt; Unterviews nutzen einen kompakteren Hero.
 
 ## Gesamtampel
 
 | App | Status | Kurzbegründung |
 | --- | --- | --- |
-| Website | Gelb | Starke Markenbasis, aber Hero/Anfrage-UX und einige visuelle Rhythmen sind noch nicht launch-poliert genug. |
-| Guest App | Gelb | Gute Richtung als App-Welt, aber Navigation, Icon-System und direkte Aufgabenführung brauchen vor Launch Feinschliff. |
-| Owner App | Gelb/Rot | Login wirkt markenkonsistent, aber Dashboard konnte nicht visuell verifiziert werden; für Eigentümer-Proof fehlt damit Abnahmesicherheit. |
-| Admin App | Gelb/Rot | Funktional umfangreich, aber Dashboard ist zu lang, zu kachelartig und für tägliche Steuerung noch nicht ausreichend verdichtet. |
+| Website | Grün/Gelb | Hero-Collage und mobile Anfrage-UX wurden korrigiert; mobile Plattformnavigation bleibt späteres P2-Thema. |
+| Guest App | Grün/Gelb | Navigation nutzt jetzt MingCute-Icons und führt bei Tabwechsel direkt in den aktiven Inhalt; tiefe Statusflows bleiben weiter QA-relevant. |
+| Owner App | Gelb | Dashboard wurde mit temporärem QA-Owner visuell verifiziert; tiefe Owner-Flows bleiben später separat zu prüfen. |
+| Admin App | Gelb | Dashboard-Überblick ist deutlich verdichtet; tiefere Modulflows bleiben separat visuell zu prüfen. |
 
 ## P0 Findings
 
-### P0-1: Owner-Dashboard visuell nicht verifiziert
+### P0-1: Owner-Dashboard visuell verifiziert
 
 App: Owner App  
 Bereich: geschützter Eigentümerbereich  
-Evidenz: Nur Login-Screenshots möglich; kein freigegebener Owner-Testlogin im aktuellen Kontext.
+Evidenz: Ursprünglich nur Login-Screenshots möglich; nach Fix mit temporärem QA-Owner visuell geprüft.
 
 Warum kritisch:
 - Die Owner App ist strategisch ein Kernbeweis für Transparenz, Ertrag und professionelle Betreuung.
@@ -73,8 +86,10 @@ Empfehlung:
 - Owner Dashboard mobil und desktop screenshotbasiert gegen Plattformarchitektur prüfen.
 
 Status:
-- Vor echter Eigentümerfreigabe blockierend.
-- Für reine Gäste-Leadphase nicht blockierend, aber nicht als „Owner App grün“ freigeben.
+- Erledigt für die Audit-Abnahme.
+- Fix-Update 2026-07-01: `npm run supabase:verify-owner` mit `OWNER_VERIFY_TEMP_OWNER=1` erfolgreich. Tabellen, RPCs und temporärer Owner-Dashboard-Zugriff wurden geprüft.
+- Zusätzlich wurde ein temporärer Owner-QA-Zugang auf `Nordlicht Lodge` angelegt, mobil/desktop eingeloggt, screenshotbasiert geprüft und anschließend wieder entfernt.
+- Evidence: `docs/qa/design-ux-fixes-2026-07-01/owner-dashboard-mobile-390x844.png`, `docs/qa/design-ux-fixes-2026-07-01/owner-dashboard-desktop-1440x900.png`
 
 ## P1 Findings
 
@@ -96,6 +111,10 @@ Konkrete Verbesserung:
 - Kleine Overlay-Cards nur verwenden, wenn Bild und Text zusammen sichtbar tragen.
 - Keine zusätzliche neue Richtung entwickeln, sondern näher an `DESIGN_REFERENCE_HOME_DESIGNER_DRAFT.md`: Hauptbild + 1-2 echte Momentbilder + kompakte Auszeit-Einstiege.
 
+Fix-Status 2026-07-01:
+- Erledigt. Bestehende Hero-Collage wurde enger an die Designer-Referenz geführt: Nebenbilder wirken jetzt stärker als echte Momentbilder statt als leere UI-Karten.
+- Evidence: `docs/qa/design-ux-fixes-2026-07-01/web-home-desktop-1440x900.png`
+
 ### P1-2: Mobile Anfrage-CTA springt tief zur Seite statt als Bottom-Drawer zu öffnen
 
 App: Website  
@@ -114,6 +133,10 @@ Konkrete Verbesserung:
 - Desktop kann weiterhin Scrollziel oder eingebettetes Formular bleiben.
 - Erfolg/Error-Zustände im Drawer sichtbar halten, damit der Nutzer nach Absenden nicht Orientierung verliert.
 
+Fix-Status 2026-07-01:
+- Erledigt. Mobile CTA öffnet jetzt ein Bottom-Sheet mit derselben `LeadForm`; Desktop bleibt beim eingebetteten Formular/Anker.
+- Evidence: `docs/qa/design-ux-fixes-2026-07-01/web-family-request-drawer-mobile-390x844.png`
+
 ### P1-3: Guest-App-Navigation nutzt Unicode-Symbole statt MingCute Icons
 
 App: Guest App  
@@ -130,6 +153,10 @@ Konkrete Verbesserung:
 - Bottom Navigation auf MingCute-Icons umstellen.
 - Labels enger und ruhiger ausrichten, aber nicht wieder gequetscht.
 - Aktiver Zustand klar, aber weniger „Button im Button“-Wirkung.
+
+Fix-Status 2026-07-01:
+- Erledigt. Guest Navigation nutzt jetzt `@mingcute/react` Icons statt Unicode-Symbole.
+- Evidence: `docs/qa/design-ux-fixes-2026-07-01/guest-booking-active-mobile-390x844.png`
 
 ### P1-4: Guest-App zeigt nach Tabwechsel den aktiven Inhalt zu tief unter dem Hero
 
@@ -150,6 +177,10 @@ Konkrete Verbesserung:
 - Bei Tabwechsel entweder zum aktiven Bereich scrollen oder den Hero in Unterviews kompakter machen.
 - Start darf emotional sein; Detailviews sollten stärker funktional führen.
 - Nach abgeschlossener Buchung: Start/Wiederkommen emotional, Buchung/Feedback direkt und kompakt.
+
+Fix-Status 2026-07-01:
+- Erledigt. Tabwechsel scrollt zum aktiven Inhaltsbereich; Unterviews nutzen einen kompakteren Hero.
+- Evidence: `docs/qa/design-ux-fixes-2026-07-01/guest-booking-active-mobile-390x844.png`, `docs/qa/design-ux-fixes-2026-07-01/guest-booking-active-desktop-1440x900.png`
 
 ### P1-5: Admin-Dashboard ist für tägliche Arbeit zu lang und zu kachelartig
 
@@ -174,6 +205,11 @@ Konkrete Verbesserung:
 - Mobile: weniger KPI-Cards, mehr priorisierte Liste.
 - Desktop: zweispaltige Arbeitsfläche statt langer Ein-Spalten-Strom.
 
+Fix-Status 2026-07-01:
+- Erledigt im Dashboard-Überblick. KPI-Flut wurde auf vier tägliche Arbeitskennzahlen reduziert; inaktive Module werden nicht mehr durch CSS sichtbar gehalten.
+- Messung: Desktop-Höhe ca. 1.953px, Mobile-Höhe ca. 1.913px statt ca. 27.500px/36.400px im Audit.
+- Evidence: `docs/qa/design-ux-fixes-2026-07-01/admin-dashboard-desktop-hiddenfix-1440x900.png`, `docs/qa/design-ux-fixes-2026-07-01/admin-dashboard-mobile-final-390x844.png`
+
 ### P1-6: Admin-Mobile Navigation ist funktional, aber nicht effizient genug
 
 App: Admin App  
@@ -191,6 +227,11 @@ Konkrete Verbesserung:
 - Mobile Admin-Navigation als kompakte Tabs/Segmentleiste oder Menü mit aktueller Ansicht.
 - Häufige Arbeitsbereiche zuerst: Übersicht, CRM, Support, Aufgaben.
 - Weniger wichtige Module in `Mehr`.
+
+Fix-Status 2026-07-01:
+- Teilweise erledigt ohne neue Menüarchitektur. Mobile Navigation ist jetzt eine horizontale, kompakte Arbeitsleiste; vertikale Mehrzeilen-Navigation entfällt.
+- Kein neues `Mehr`-Menü gebaut, weil das eine neue Navigationsfunktion wäre.
+- Evidence: `docs/qa/design-ux-fixes-2026-07-01/admin-dashboard-mobile-final-390x844.png`
 
 ### P1-7: Website-Hero-Navigation auf Mobile zeigt nur Logo und CTA, keine Menüführung
 
@@ -304,66 +345,66 @@ Ampel: Gelb
 
 ### Owner App
 
-Nutzerführung: Login gut, Dashboard nicht verifiziert  
-Professionalität: Login gut  
-Übersichtlichkeit: Login gut  
-Markenkonsistenz: gut  
-Plattformtauglichkeit: nicht vollständig belegbar  
-Mobile UX: Login solide, aber viel Text  
-Desktop UX: Login solide  
-Navigation: Dashboard nicht geprüft  
-Formulare: Login sichtbar und klar  
-Tabellen/Listen/Karten: Dashboard nicht visuell geprüft  
-Empty/Error/Success States: Code enthält Loading/Empty/Error-States  
-Hauptflows: Login-Screen geprüft, echter Owner-Dashboard-Flow nicht geprüft
+Nutzerführung: Login gut, Dashboard jetzt sichtbar und verständlich
+Professionalität: gut
+Übersichtlichkeit: gut im Dashboard-Einstieg, tiefe Owner-Flows separat prüfen
+Markenkonsistenz: gut
+Plattformtauglichkeit: belegbar als Eigentümer-Einstieg, tiefe Flows offen
+Mobile UX: solide, Navigation noch mehrzeilig aber nutzbar
+Desktop UX: solide
+Navigation: Dashboard-Navigation geprüft, tiefe Bereiche nicht vollständig abgenommen
+Formulare: Login sichtbar und klar
+Tabellen/Listen/Karten: Dashboard-Karten visuell geprüft, tiefe Detailbereiche offen
+Empty/Error/Success States: Code enthält Loading/Empty/Error-States
+Hauptflows: Login und Dashboard geprüft; Rückfragen, Abrechnung, Operations und Dokumente separat offen
 
-Ampel: Gelb/Rot
+Ampel: Gelb
 
 ### Admin App
 
-Nutzerführung: mittel  
-Professionalität: mittel bis gut  
-Übersichtlichkeit: mittel bis schwach im Dashboard  
-Markenkonsistenz: gut, aber Dashboard zu viel Card-Fläche  
-Plattformtauglichkeit: funktional stark, UX noch nicht reif genug  
-Mobile UX: schwach bis mittel wegen Länge und Navigation  
-Desktop UX: mittel, braucht Verdichtung  
-Navigation: zu viel Raum auf Mobile  
-Formulare: viele Admin-Formulare im Code, nicht jedes Detail visuell geprüft  
-Tabellen/Listen/Karten: zu viele Karten/Listen im Dashboard, Module wahrscheinlich besser getrennt  
-Empty/Error/Success States: Code enthält Loading/Error; Detailprüfung je Modul offen  
+Nutzerführung: mittel bis gut im Überblick
+Professionalität: mittel bis gut
+Übersichtlichkeit: gut im Dashboard-Überblick, tiefe Module weiter separat prüfen
+Markenkonsistenz: gut, Card-Fläche im Überblick reduziert
+Plattformtauglichkeit: funktional stark, Dashboard-Überblick deutlich besser verdichtet
+Mobile UX: mittel bis gut im Überblick; tiefe Module offen
+Desktop UX: gut im Überblick; tiefe Module offen
+Navigation: mobile Navigation kompakter als horizontale Arbeitsleiste
+Formulare: viele Admin-Formulare im Code, nicht jedes Detail visuell geprüft
+Tabellen/Listen/Karten: Dashboard-Überblick reduziert; tiefe Modulansichten weiter separat prüfen
+Empty/Error/Success States: Code enthält Loading/Error; Detailprüfung je Modul offen
 Hauptflows: Login und Dashboard geprüft; tiefe CRM-/Support-/Bestandsflows nicht vollständig visuell durchgeklickt
 
-Ampel: Gelb/Rot
+Ampel: Gelb
 
 ## Kritische Designabweichungen
 
-1. Guest-App Icons entsprechen nicht dem Styleguide (`P1`).
-2. Mobile Auszeit-Anfrage ist nicht als Bottom-Drawer umgesetzt (`P1`).
-3. Admin-Dashboard ist zu lang und zu wenig verdichtet für tägliches Arbeiten (`P1`).
-4. Guest-App Tabwechsel führt nicht direkt genug zum aktiven Inhalt (`P1`).
-5. Owner-Dashboard konnte nicht visuell abgenommen werden (`P0` für Owner-Freigabe).
+1. Guest-App Icons entsprachen nicht dem Styleguide (`P1`) - erledigt.
+2. Mobile Auszeit-Anfrage war nicht als Bottom-Drawer umgesetzt (`P1`) - erledigt.
+3. Admin-Dashboard war zu lang und zu wenig verdichtet für tägliches Arbeiten (`P1`) - erledigt im Überblick.
+4. Guest-App Tabwechsel führte nicht direkt genug zum aktiven Inhalt (`P1`) - erledigt.
+5. Owner-Dashboard war ursprünglich nicht visuell abgenommen (`P0` für Owner-Freigabe) - erledigt mit temporärem QA-Owner.
 
 ## Muss Vor Launch Korrigiert Werden
 
 Für kontrollierte Gäste-Leads:
-- Mobile Anfrage-UX entscheiden: Drawer umsetzen oder dokumentiert bewusst auf Scrollziel ändern.
-- Website-Hero prüfen, damit Desktop nicht bildleer/konstruiert wirkt.
-- Guest-App Bottom Navigation auf echte Icons umstellen, wenn Gästebereich zum MVP gehört.
-- Guest-App aktive Views mobil direkter führen.
+- Mobile Anfrage-UX: erledigt als Bottom-Drawer.
+- Website-Hero: erledigt, Desktop-Collage wirkt bildhafter.
+- Guest-App Bottom Navigation: erledigt mit MingCute-Icons.
+- Guest-App aktive Views: erledigt durch Scroll zum aktiven Bereich und kompakten Unterview-Hero.
 
 Für zahlende Gäste mit aktivem Gästebereich:
-- Guest-App Navigation und Aufgabenführung korrigieren.
+- Guest-App Navigation und Aufgabenführung: erledigt für die geprüfte Buchungsansicht.
 - Feedback/Buchung/Hilfe-Zustände je Status prüfen: vor Anreise, aktiv, abgeschlossen.
 - Vor-Ort-Flow mit aktivem Aufenthalt erneut screenshotbasiert prüfen.
 
 Für Eigentümer-Launch:
-- Owner-Dashboard mit echtem Testzugang prüfen.
-- Owner-Dashboard erst freigeben, wenn die Screens Transparenz, Ertrag und operative Entlastung wirklich klar zeigen.
+- Owner-Dashboard mit echtem Testzugang prüfen: erledigt mit temporärem QA-Owner.
+- Tiefe Owner-Flows vor echter Eigentümerfreigabe weiter separat abnehmen.
 
 Für internes Arbeiten:
-- Admin-Dashboard verdichten.
-- Mobile Admin-Navigation verbessern.
+- Admin-Dashboard verdichten: erledigt im Überblick.
+- Mobile Admin-Navigation verbessern: teilweise erledigt ohne neue Menüarchitektur.
 - Wichtigste CRM-/Support-/Buchungsflows je Modul separat visuell abnehmen.
 
 ## Kann Später Verbessert Werden
@@ -376,16 +417,15 @@ Für internes Arbeiten:
 
 ## Fazit
 
-Die Plattform ist visuell nicht grundsätzlich falsch. Sie kommt sichtbar aus der Morrow-Farbwelt, nutzt Hanken, Offwhite/Offblack/Sage und eine ruhige Grundhaltung. Der aktuelle Stand ist aber noch nicht überall launch-poliert.
+Die Plattform ist visuell nicht grundsätzlich falsch. Sie kommt sichtbar aus der Morrow-Farbwelt, nutzt Hanken, Offwhite/Offblack/Sage und eine ruhige Grundhaltung. Die im Audit festgestellten zentralen P1-Abweichungen für Website, Guest App und Admin-Übersicht wurden korrigiert.
 
 Die wichtigste Unterscheidung:
-- Website und Guest App sind nah an der Marke, brauchen aber gezielte P1-Korrekturen.
-- Admin ist funktional stark, aber UX-seitig noch zu breit und zu lang für tägliche Steuerung.
-- Owner kann ohne echten Dashboard-Screenshot nicht final bewertet werden.
+- Website und Guest App sind nah an der Marke; die geprüften P1-Korrekturen sind umgesetzt.
+- Admin ist funktional stark; die Übersicht ist jetzt deutlich kompakter, tiefe Module bleiben separat zu prüfen.
+- Owner ist jetzt screenshotbasiert bewertbar; tiefe Owner-Flows bleiben separat zu prüfen.
 
 Empfohlene Reihenfolge:
-1. Guest-App Navigation und aktive View-Führung korrigieren.
-2. Website mobile Anfrage-UX finalisieren.
-3. Admin-Dashboard verdichten.
-4. Owner-Testzugang bereitstellen und Owner-Dashboard auditieren.
-5. Danach erneuter Kurz-Audit mit denselben Screenshots und Ampelvergleich.
+1. Tiefe Admin-Module CRM, Support, Buchungen, Bestand und Operations visuell abnehmen.
+2. Guest-App Statusflows vor Anreise, aktiv und abgeschlossen erneut komplett durchklicken.
+3. Tiefe Owner-Flows für Rückfragen, Abrechnung, Operations und Dokumente separat prüfen.
+4. P2-Themen separat priorisieren, wenn die Launch-Flows stabil sind.

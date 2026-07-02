@@ -24,50 +24,82 @@ function normalizeBaseUrl(url) {
   return url.trim().replace(/\/$/, '')
 }
 
-async function checkAppHealth(names, expectedApp) {
-  const rawUrl = firstUsableValue(names)
+const appBasePaths = {
+  admin: '/admin',
+  guest: '/app/gast',
+  owner: '/app/eigentuemer',
+}
 
-  if (!rawUrl) {
+function appBaseUrlCandidates(names, expectedApp) {
+  return names
+    .flatMap((name) => {
+      const rawUrl = firstUsableValue([name])
+      if (!rawUrl) return []
+      const baseUrl = normalizeBaseUrl(rawUrl)
+      const appPath = appBasePaths[expectedApp]
+      const hasAppPath = appPath && new URL(baseUrl).pathname.includes(appPath)
+      const candidates = []
+
+      if (appPath && !hasAppPath) {
+        candidates.push({
+          name,
+          baseUrl: `${baseUrl}${appPath}`,
+        })
+      }
+
+      candidates.push({
+        name,
+        baseUrl,
+      })
+
+      return candidates
+    })
+}
+
+async function checkAppHealth(names, expectedApp) {
+  const candidates = appBaseUrlCandidates(names, expectedApp)
+
+  if (candidates.length === 0) {
     return {
       pass: false,
       missing: labelAny(names),
     }
   }
 
-  const baseUrl = normalizeBaseUrl(rawUrl)
+  const attempts = []
 
-  try {
-    const response = await fetch(`${baseUrl}/health`, {
-      headers: { accept: 'application/json' },
-    })
+  for (const candidate of candidates) {
+    const baseUrl = candidate.baseUrl
 
-    if (!response.ok) {
-      return {
-        pass: false,
-        missing: `${labelAny(names)} with /health returning app=${expectedApp}`,
-        detail: `${baseUrl}/health returned HTTP ${response.status}`,
+    try {
+      const response = await fetch(`${baseUrl}/health`, {
+        headers: { accept: 'application/json' },
+      })
+
+      if (!response.ok) {
+        attempts.push(`${baseUrl}/health returned HTTP ${response.status}`)
+        continue
       }
-    }
 
-    const body = await response.json()
-    if (body?.app !== expectedApp || body?.status !== 'ok') {
-      return {
-        pass: false,
-        missing: `${labelAny(names)} with /health returning app=${expectedApp}`,
-        detail: `${baseUrl}/health returned app=${body?.app ?? 'missing'} status=${body?.status ?? 'missing'}`,
+      const body = await response.json()
+      if (body?.app !== expectedApp || body?.status !== 'ok') {
+        attempts.push(`${baseUrl}/health returned app=${body?.app ?? 'missing'} status=${body?.status ?? 'missing'}`)
+        continue
       }
-    }
 
-    return {
-      pass: true,
-      detail: `${baseUrl}/health returned app=${body.app} status=${body.status}`,
+      return {
+        pass: true,
+        detail: `${baseUrl}/health returned app=${body.app} status=${body.status}`,
+      }
+    } catch (error) {
+      attempts.push(`${baseUrl}/health failed: ${error instanceof Error ? error.message : String(error)}`)
     }
-  } catch (error) {
-    return {
-      pass: false,
-      missing: `${labelAny(names)} with reachable /health`,
-      detail: `${baseUrl}/health failed: ${error instanceof Error ? error.message : String(error)}`,
-    }
+  }
+
+  return {
+    pass: false,
+    missing: `${labelAny(names)} with /health returning app=${expectedApp}`,
+    detail: attempts.join(' | '),
   }
 }
 

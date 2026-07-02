@@ -35,13 +35,13 @@ Operative Arbeit gehoert nicht in diese App. Leads gehen nach Supabase/Admin; Ga
 - Rechteseiten als technische Arbeitsfassungen.
 - Leadformulare mit WhatsApp-Opt-in optional und Reisegruppenfeldern.
 - Analytics-Komponente mit Consent-Gate, aktiv nur bei gesetzten GA-/Meta-IDs.
-- Redirect-Vorbereitung fuer Admin-, Guest- und Owner-App ueber App-URLs.
+- Multi-Zone-Vorbereitung fuer Admin-, Guest- und Owner-App ueber interne App-URLs.
 
 ## Noch Nicht Launch-Frei
 
 - Rechtstexte und Impressum enthalten teilweise Arbeitsfassungs-/Platzhalterhinweise.
 - Juristische Freigabe fehlt.
-- App-Redirect-URLs fuer Admin, Guest und Owner muessen in Production gesetzt werden.
+- App-Zone-URLs fuer Admin, Guest und Owner muessen in Production gesetzt werden, damit `www.getmorrow.de` per Rewrite auf die App-Projekte proxyt.
 - Secret-Rotation und finale Angebotsfreigabe muessen bestaetigt werden.
 - Tracking-/Consent-Entscheidung und Conversion-Tests fehlen fuer Paid Ads.
 - Ratgeber- und Keyword-Ausbau ist langfristig weiter offen, aber nicht Blocker fuer technische Migration.
@@ -74,13 +74,21 @@ NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
-App-Redirects:
+Interne App-Zone-URLs fuer Rewrites:
 
 ```bash
 MORROW_ADMIN_APP_URL=https://<admin-app-domain>
 MORROW_GUEST_APP_URL=https://<guest-app-domain>
 MORROW_OWNER_APP_URL=https://<owner-app-domain>
 ```
+
+Öffentliche Einstiegspfade:
+
+- `/admin` -> Admin-App
+- `/app/gast` -> Gäste-App
+- `/app/gast/deine-auszeit/...` -> konkrete Gäste-App-Buchung
+- `/app/eigentuemer` -> Eigentümer-App
+- `/deine-auszeit/...`, `/owner`, `/app/guest`, `/app/owner` -> Weiterleitung auf die deutschen Plattformpfade
 
 Optionales Tracking:
 

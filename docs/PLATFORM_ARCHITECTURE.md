@@ -163,7 +163,7 @@ Zweck:
 
 Bestehender Einstieg:
 
-- `/deine-auszeit/[bookingOrLeadId]?code=...`
+- `/app/gast/deine-auszeit/[bookingOrLeadId]?code=...`
 
 Langfristiger App-Name:
 
@@ -205,12 +205,12 @@ Zweck:
 Moeglicher Einstieg:
 
 - Phase 1: oeffentliche Landingpage `/eigentuemer` plus Leadformular
-- Phase 1/2: geschuetzter Bereich als eigene App, ueber `/owner` oder `/app/eigentuemer` von der Website weitergeleitet
+- Phase 1/2: geschuetzter Bereich als eigene App, oeffentlich unter `/app/eigentuemer` erreichbar
 
 Empfohlene langfristige Route:
 
 - Oeffentliche Landingpage: `/eigentuemer`
-- Geschuetzter Bereich: `/owner`
+- Geschuetzter Bereich: `/app/eigentuemer`
 - Alternativer sprechender Einstieg: `/app/eigentuemer`
 
 Kernmodule:
@@ -460,14 +460,14 @@ erDiagram
 Kurzfristig bestehende Routen respektieren:
 
 - Website bleibt unter `/`
-- Gaeste-App bleibt unter `/deine-auszeit/[id]`
+- Gaeste-App laeuft oeffentlich unter `/app/gast`; konkrete Buchungen liegen unter `/app/gast/deine-auszeit/[id]`
 - Admin bleibt unter `/admin`
 - Eigentuemer-Landingpage bleibt unter `/eigentuemer`
 
 Langfristige Struktur:
 
 - `/` oeffentliche Website
-- `/deine-auszeit/[id]` Gaeste-App, solange Zugang codebasiert ist
+- `/app/gast/deine-auszeit/[id]` Gaeste-App, solange Zugang codebasiert ist
 - `/app/eigentuemer` Eigentuemer-App
 - `/admin` Admin-App
 - `/partner/erlebnisanbieter` bleibt oeffentliche Partner-Landingpage

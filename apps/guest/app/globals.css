@@ -83,6 +83,7 @@ a {
 }
 
 .guest-app-header span {
+  display: none;
   color: rgba(25, 24, 23, 0.58);
   font-size: 0.78rem;
   font-weight: 800;
@@ -104,6 +105,7 @@ a {
 .guest-hero-card,
 .guest-status-card,
 .guest-card-grid article,
+.guest-card-grid button,
 .guest-content-card,
 .guest-place-list article {
   border: 1px solid rgba(25, 24, 23, 0.12);
@@ -159,6 +161,21 @@ a {
   padding: 0.95rem 1.45rem;
 }
 
+.guest-card-grid button {
+  width: 100%;
+  border: 1px solid rgba(25, 24, 23, 0.12);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.guest-card-grid button:hover,
+.guest-card-grid button:focus-visible {
+  border-color: rgba(121, 114, 61, 0.34);
+  background: rgba(255, 252, 244, 0.92);
+  outline: none;
+}
+
 .guest-hero-card {
   overflow: hidden;
   border-radius: 1.55rem;
@@ -173,6 +190,31 @@ a {
 
 .guest-hero-card > div {
   padding: clamp(1.4rem, 5vw, 2.6rem);
+}
+
+.guest-hero-card.is-compact {
+  display: grid;
+  grid-template-columns: 5.8rem minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.guest-hero-card.is-compact img {
+  height: 100%;
+  min-height: 8.4rem;
+}
+
+.guest-hero-card.is-compact h1 {
+  max-width: 16ch;
+  font-size: clamp(1.95rem, 9vw, 3rem);
+}
+
+.guest-hero-card.is-compact p:not(.eyebrow) {
+  font-size: clamp(0.98rem, 3.4vw, 1.08rem);
+  line-height: 1.48;
+}
+
+.guest-view-content {
+  scroll-margin-top: 1rem;
 }
 
 .guest-section-stack {
@@ -217,6 +259,7 @@ a {
 }
 
 .guest-card-grid article,
+.guest-card-grid button,
 .guest-detail-grid article,
 .guest-info-block,
 .guest-list article,
@@ -996,6 +1039,19 @@ a {
   background: rgba(25, 24, 23, 0.18);
 }
 
+.guest-drawer-close {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.9rem;
+  z-index: 2;
+  min-height: 0;
+  border: 1px solid rgba(25, 24, 23, 0.12);
+  background: rgba(255, 252, 244, 0.94);
+  color: #191817;
+  font-size: 0.76rem;
+  padding: 0.48rem 0.7rem;
+}
+
 .guest-detail-drawer > img {
   width: calc(100% - 1.5rem);
   height: 12.5rem;
@@ -1118,8 +1174,13 @@ a {
   height: 1.66rem;
   place-items: center;
   border-radius: 999px;
-  font-size: 0.98rem;
   line-height: 1;
+}
+
+.guest-nav-icon {
+  display: block;
+  height: 1.08rem;
+  width: 1.08rem;
 }
 
 .guest-bottom-nav button small {
@@ -1165,6 +1226,22 @@ a {
   .guest-hero-card > div {
     display: grid;
     align-content: center;
+  }
+
+  .guest-hero-card.is-compact {
+    grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr);
+  }
+
+  .guest-hero-card.is-compact img {
+    min-height: 15rem;
+  }
+
+  .guest-hero-card.is-compact h1 {
+    font-size: clamp(2.6rem, 5vw, 4.2rem);
+  }
+
+  .guest-view-content {
+    scroll-margin-top: 6rem;
   }
 
   .guest-card-grid,
@@ -1261,8 +1338,152 @@ a {
     background: transparent;
   }
 
+  .guest-bottom-nav button.is-active span {
+    background: transparent;
+    color: inherit;
+  }
+
   .guest-bottom-nav button.is-active {
     background: #191817;
     color: #fffaf0;
+  }
+}
+
+/* App shell foundation: Guest is a stay app, not a long marketing page. */
+.guest-stay-overview {
+  background: rgba(255, 252, 244, 0.76);
+  border: 1px solid rgba(25, 24, 23, 0.12);
+  border-radius: 1.35rem;
+  box-shadow: 0 1.2rem 3.2rem rgba(50, 45, 35, 0.08);
+  display: grid;
+  gap: 1rem;
+  overflow: hidden;
+  padding: 0.75rem;
+}
+
+.guest-stay-media {
+  min-height: 12.5rem;
+  position: relative;
+}
+
+.guest-stay-media img {
+  border-radius: 1rem;
+  display: block;
+  height: 100%;
+  min-height: 12.5rem;
+  object-fit: cover;
+  width: 100%;
+}
+
+.guest-stay-media span {
+  background: rgba(255, 252, 244, 0.9);
+  border: 1px solid rgba(25, 24, 23, 0.1);
+  border-radius: 999px;
+  bottom: 0.75rem;
+  color: #191817;
+  font-size: 0.78rem;
+  font-weight: 900;
+  left: 0.75rem;
+  letter-spacing: 0.06em;
+  padding: 0.5rem 0.72rem;
+  position: absolute;
+  text-transform: uppercase;
+}
+
+.guest-stay-summary {
+  display: grid;
+  gap: 0.82rem;
+  padding: 0.45rem 0.25rem 0.35rem;
+}
+
+.guest-stay-summary h1 {
+  font-size: clamp(2.15rem, 9vw, 3.2rem);
+  line-height: 1;
+  margin: 0;
+  max-width: 12ch;
+}
+
+.guest-stay-summary p:not(.eyebrow) {
+  color: rgba(25, 24, 23, 0.66);
+  font-size: 1rem;
+  line-height: 1.48;
+  margin: 0;
+  max-width: 42rem;
+}
+
+.guest-app-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.guest-app-facts span {
+  background: rgba(235, 229, 215, 0.62);
+  border: 1px solid rgba(25, 24, 23, 0.08);
+  border-radius: 999px;
+  color: rgba(25, 24, 23, 0.72);
+  font-size: 0.78rem;
+  font-weight: 850;
+  padding: 0.48rem 0.65rem;
+}
+
+.guest-content-card,
+.guest-status-card {
+  padding: clamp(1.1rem, 4vw, 1.65rem);
+}
+
+.guest-status-card h2,
+.guest-content-card h2 {
+  font-size: clamp(1.7rem, 6vw, 2.35rem);
+  max-width: 18ch;
+}
+
+.guest-content-card > p,
+.guest-status-card p {
+  font-size: 1rem;
+  line-height: 1.48;
+}
+
+.guest-card-grid article,
+.guest-card-grid button,
+.guest-detail-grid article,
+.guest-info-block,
+.guest-list article,
+.guest-place-list article {
+  padding: 0.95rem;
+}
+
+@media (min-width: 760px) {
+  .guest-stay-overview {
+    align-items: stretch;
+    grid-template-columns: minmax(12rem, 0.46fr) minmax(0, 1fr);
+    padding: 0.85rem;
+  }
+
+  .guest-stay-overview.is-compact {
+    grid-template-columns: 8rem minmax(0, 1fr);
+  }
+
+  .guest-stay-media,
+  .guest-stay-media img {
+    min-height: 15rem;
+  }
+
+  .guest-stay-overview.is-compact .guest-stay-media,
+  .guest-stay-overview.is-compact .guest-stay-media img {
+    min-height: 9.2rem;
+  }
+
+  .guest-stay-summary {
+    align-content: center;
+    padding: 1.2rem 1.35rem;
+  }
+
+  .guest-stay-summary h1 {
+    font-size: clamp(2.4rem, 4vw, 3.55rem);
+  }
+
+  .guest-stay-overview.is-compact .guest-stay-summary h1 {
+    font-size: clamp(2rem, 3.2vw, 2.8rem);
   }
 }

@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   },
   description:
     "Der persönliche Gästebereich für Anreise, Buchung, Empfehlungen vor Ort, Hilfe und Feedback zur gebuchten Morrow Auszeit.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({

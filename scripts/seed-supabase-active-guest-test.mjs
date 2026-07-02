@@ -184,4 +184,4 @@ if (bookingResult.error) throw bookingResult.error
 console.log('active-next-guest-test-seeded')
 console.log(`GUEST_BOOKING_ID=${bookingId}`)
 console.log(`GUEST_ACCESS_CODE=${guestAccessCode}`)
-console.log(`url: /deine-auszeit/${bookingId}?code=${guestAccessCode}`)
+console.log(`url: /app/gast/deine-auszeit/${bookingId}?code=${guestAccessCode}`)

@@ -71,7 +71,7 @@ NEXT_PUBLIC_META_PIXEL_ID=...
 
 `NEXT_PUBLIC_GA_MEASUREMENT_ID` und `NEXT_PUBLIC_META_PIXEL_ID` nur setzen, wenn Tracking/Consent final gewollt ist. Ohne diese Werte rendert kein Tracking-Banner und keine Tracking-Skripte.
 
-In `apps/web` zusaetzlich setzen, sobald die App-Projekte live sind:
+In `apps/web` zusaetzlich setzen, sobald die App-Projekte live sind. Diese Werte sind interne Vercel-App-Origins fuer Multi-Zone-Rewrites; nach außen bleiben die deutschen Plattformpfade unter `www.getmorrow.de` sichtbar:
 
 ```bash
 MORROW_ADMIN_APP_URL=https://<admin-app-domain>
@@ -79,20 +79,26 @@ MORROW_GUEST_APP_URL=https://<guest-app-domain>
 MORROW_OWNER_APP_URL=https://<owner-app-domain>
 ```
 
-Damit leitet die oeffentliche Website diese Einstiegspunkte weiter:
+Damit proxyt die oeffentliche Website diese Einstiegspunkte:
 - `/admin` -> Admin-App
-- `/deine-auszeit/...` -> Gaeste-App
-- `/owner` -> Eigentuemer-App
+- `/app/gast` -> Gaeste-App
+- `/app/gast/deine-auszeit/...` -> konkrete Gaeste-Buchung
 - `/app/eigentuemer` -> Eigentuemer-App
+
+Legacy-Pfade leiten auf die neuen deutschen Plattformpfade:
+- `/deine-auszeit/...` -> `/app/gast/deine-auszeit/...`
+- `/owner` -> `/app/eigentuemer`
+- `/app/guest` -> `/app/gast`
+- `/app/owner` -> `/app/eigentuemer`
 
 Die oeffentliche Eigentuemer-Landingpage bleibt bewusst unter `/eigentuemer`.
 
-App-Domains duerfen erst als gesetzt gelten, wenn diese Health-Checks gruen sind:
+App-Domains duerfen erst als gesetzt gelten, wenn diese Health-Checks auf der Plattform gruen sind:
 
 ```bash
-curl -fsS https://<admin-app-domain>/health
-curl -fsS https://<guest-app-domain>/health
-curl -fsS https://<owner-app-domain>/health
+curl -fsS https://www.getmorrow.de/admin/health
+curl -fsS https://www.getmorrow.de/app/gast/health
+curl -fsS https://www.getmorrow.de/app/eigentuemer/health
 ```
 
 Erwartete App-IDs:

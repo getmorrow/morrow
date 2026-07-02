@@ -16,7 +16,9 @@ function loadRootEnv() {
 loadRootEnv();
 
 const nextConfig: NextConfig = {
+  basePath: "/admin",
   env: {
+    NEXT_PUBLIC_APP_BASE_PATH: "/admin",
     NEXT_PUBLIC_SUPABASE_URL:
       process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY:

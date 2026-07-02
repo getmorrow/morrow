@@ -5,27 +5,46 @@ const baseUrl = (process.env.QA_BASE_URL ?? 'http://localhost:3000').replace(/\/
 const submitLead = process.env.MORROW_QA_SUBMIT_LEAD === '1'
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-const expectedRedirects = [
+const appRouteChecks = [
   {
     label: 'admin',
     path: '/admin',
-    expectedBaseUrl: process.env.MORROW_ADMIN_APP_URL,
+    configured: Boolean(process.env.MORROW_ADMIN_APP_URL),
+    text: /Morrow Admin|Steuerung für Anfragen/i,
   },
   {
     label: 'guest',
-    path: '/deine-auszeit/qa-booking?code=qa-code',
-    expectedBaseUrl: process.env.MORROW_GUEST_APP_URL,
-    expectedPathPrefix: '/deine-auszeit/qa-booking',
+    path: '/app/gast',
+    configured: Boolean(process.env.MORROW_GUEST_APP_URL),
+    text: /Deine Auszeit|Alles Wichtige/i,
   },
   {
     label: 'owner',
-    path: '/owner',
-    expectedBaseUrl: process.env.MORROW_OWNER_APP_URL,
+    path: '/app/eigentuemer',
+    configured: Boolean(process.env.MORROW_OWNER_APP_URL),
+    text: /Morrow Eigentümer|Transparenz für Objekt/i,
+  },
+]
+const legacyRedirects = [
+  {
+    label: 'legacyGuestStay',
+    path: '/deine-auszeit/qa-booking?code=qa-code',
+    expectedPathPrefix: '/app/gast/deine-auszeit/qa-booking',
   },
   {
-    label: 'ownerAppAlias',
-    path: '/app/eigentuemer',
-    expectedBaseUrl: process.env.MORROW_OWNER_APP_URL,
+    label: 'legacyOwner',
+    path: '/owner',
+    expectedPathPrefix: '/app/eigentuemer',
+  },
+  {
+    label: 'legacyEnglishGuest',
+    path: '/app/guest',
+    expectedPathPrefix: '/app/gast',
+  },
+  {
+    label: 'legacyEnglishOwner',
+    path: '/app/owner',
+    expectedPathPrefix: '/app/eigentuemer',
   },
 ]
 const runId = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14)
@@ -83,19 +102,37 @@ async function checkStaticEndpoint(page, path, expectedText) {
   assert(body.includes(expectedText), `${path} does not include ${expectedText}`)
 }
 
-async function checkRedirects() {
-  const configuredRedirects = expectedRedirects.filter((item) => item.expectedBaseUrl)
+async function checkAppRoutes(page) {
+  const configuredRoutes = appRouteChecks.filter((item) => item.configured)
 
-  if (configuredRedirects.length === 0) {
+  if (configuredRoutes.length === 0) {
     return {
       checked: false,
-      reason: 'No app redirect env vars set. Provide MORROW_ADMIN_APP_URL, MORROW_GUEST_APP_URL and/or MORROW_OWNER_APP_URL.',
+      reason: 'No app route env vars set. Provide MORROW_ADMIN_APP_URL, MORROW_GUEST_APP_URL and/or MORROW_OWNER_APP_URL.',
     }
   }
 
   const checks = []
+  for (const item of configuredRoutes) {
+    const response = await page.goto(`${baseUrl}${item.path}`, { waitUntil: 'networkidle' })
+    assert(response?.ok(), `${item.path} returned ${response?.status()}`)
+    const body = await page.locator('body').innerText()
+    assertNoSoft404(item.path, body)
+    assert(item.text.test(body), `${item.path} did not include expected app text`)
+    checks.push({ label: item.label, path: item.path, status: response.status() })
+  }
 
-  for (const item of configuredRedirects) {
+  return {
+    checked: true,
+    count: checks.length,
+    checks,
+  }
+}
+
+async function checkLegacyRedirects() {
+  const checks = []
+
+  for (const item of legacyRedirects) {
     const response = await fetch(`${baseUrl}${item.path}`, { redirect: 'manual' })
     assert(
       response.status >= 300 && response.status < 400,
@@ -106,18 +143,14 @@ async function checkRedirects() {
     assert(location, `${item.path} redirect did not include Location header`)
 
     const redirectUrl = new URL(location, baseUrl)
-    const expectedBaseUrl = new URL(item.expectedBaseUrl)
-
     assert(
-      redirectUrl.origin === expectedBaseUrl.origin,
-      `${item.path} expected redirect origin ${expectedBaseUrl.origin}, got ${redirectUrl.origin}`,
+      redirectUrl.origin === new URL(baseUrl).origin,
+      `${item.path} expected same-platform redirect, got ${redirectUrl.origin}`,
     )
-    if (item.expectedPathPrefix) {
-      assert(
-        redirectUrl.pathname.startsWith(item.expectedPathPrefix),
-        `${item.path} expected redirect path ${item.expectedPathPrefix}, got ${redirectUrl.pathname}`,
-      )
-    }
+    assert(
+      redirectUrl.pathname.startsWith(item.expectedPathPrefix),
+      `${item.path} expected redirect path ${item.expectedPathPrefix}, got ${redirectUrl.pathname}`,
+    )
 
     checks.push({
       label: item.label,
@@ -244,7 +277,8 @@ try {
 
   await checkStaticEndpoint(page, '/robots.txt', 'Sitemap:')
   await checkStaticEndpoint(page, '/sitemap.xml', '<urlset')
-  const redirects = await checkRedirects()
+  const appRoutes = await checkAppRoutes(page)
+  const redirects = await checkLegacyRedirects()
 
   for (const check of formChecks) {
     await checkForm(mobile, check)
@@ -273,6 +307,7 @@ try {
     baseUrl,
     checkedPages: requiredPages.length,
     checkedForms: formChecks.length,
+    appRoutes,
     redirects,
     consent,
     leadVerification,

@@ -1,6 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Book2Line,
+  Calendar2Line,
+  Home4Line,
+  MapPinLine,
+  QuestionLine,
+  Refresh2Line,
+  StarLine,
+} from "@mingcute/react";
 import {
   createSupabaseBrowserClient,
   localPlaceBaseSelectColumns,
@@ -210,6 +219,7 @@ const devLocalPlaces: LocalPlace[] = [
     website: "https://www.arche-noah-spo.de/",
     reservation_url: "https://www.arche-noah-spo.de/",
     rating: 4.4,
+    images: ["/brand/generated/morrow-local-food-table.png"],
     payload: {
       cuisine: "Nordsee, Fisch, unkompliziert",
       bestFor: ["Strandtag", "gut erreichbar", "Abendessen"],
@@ -224,6 +234,7 @@ const devLocalPlaces: LocalPlace[] = [
     lat: 54.314,
     lng: 8.607,
     address: "Strandabschnitt Bad, Sankt Peter-Ording",
+    images: ["/brand/generated/morrow-local-beach-pfahlbau.png"],
     payload: {
       bestFor: ["kurze Wege", "Spaziergang", "Pfahlbauten"],
       description: "Ein guter erster Strandmoment, wenn ihr schnell ans Wasser möchtet.",
@@ -237,6 +248,7 @@ const devLocalPlaces: LocalPlace[] = [
     lat: 54.306,
     lng: 8.642,
     address: "Sankt Peter-Ording",
+    images: ["/brand/generated/morrow-local-practical-path.png"],
     payload: {
       eventDate: "2026-08-13",
       eventTime: "09:00-13:00 Uhr",
@@ -251,6 +263,7 @@ const devLocalPlaces: LocalPlace[] = [
     status: "approved",
     lat: 54.301,
     lng: 8.598,
+    images: ["/brand/generated/morrow-local-watt-walk.png"],
     payload: {
       bestFor: ["Natur", "Nordseegefühl", "bewusst geplant"],
       description: "Ein kuratierter Naturmoment, wenn Tide, Wetter und Tagesrhythmus passen.",
@@ -276,14 +289,14 @@ const viewLabels: Record<GuestView, string> = {
   again: "Auszeiten",
 };
 
-const viewIcons: Record<GuestView, string> = {
-  home: "•",
-  plan: "✦",
-  booking: "□",
-  local: "⌖",
-  help: "♡",
-  feedback: "☆",
-  again: "↻",
+const viewIcons = {
+  home: Home4Line,
+  plan: Book2Line,
+  booking: Calendar2Line,
+  local: MapPinLine,
+  help: QuestionLine,
+  feedback: StarLine,
+  again: Refresh2Line,
 };
 
 const allowedStatuses = ["Bezahlt", "Vor Anreise", "Aktiv", "Abgeschlossen"];
@@ -550,8 +563,24 @@ function placeDescription(place: LocalPlace) {
   );
 }
 
+function localPlaceFallbackImage(category: string) {
+  const normalized = normalizeCategory(category);
+  const images: Partial<Record<LocalFilter, string>> = {
+    beach: "/brand/generated/morrow-local-beach-pfahlbau.png",
+    food: "/brand/generated/morrow-local-food-table.png",
+    experience: "/brand/generated/morrow-local-watt-walk.png",
+    event: "/brand/generated/morrow-local-practical-path.png",
+    shopping: "/brand/generated/morrow-local-practical-path.png",
+    emergency: "/brand/generated/morrow-spo-interior.png",
+    weather: "/brand/generated/morrow-local-beach-pfahlbau.png",
+    tide: "/brand/generated/morrow-local-watt-walk.png",
+  };
+
+  return images[normalized] || "/brand/generated/morrow-spo-interior.png";
+}
+
 function placeDetailImage(place: LocalPlace, packageItem?: GuestPackage | null) {
-  return place.images?.[0] || payloadText(place.payload, ["image"]) || payloadImages(place.payload)[0] || packageImage(packageItem);
+  return place.images?.[0] || payloadText(place.payload, ["image"]) || payloadImages(place.payload)[0] || localPlaceFallbackImage(place.category) || packageImage(packageItem);
 }
 
 function placeMeta(place: LocalPlace) {
@@ -695,6 +724,14 @@ export function GuestStayClient({
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherRange, setWeatherRange] = useState<"today" | "3" | "14">("today");
   const [tideRange, setTideRange] = useState<"today" | "3" | "4">("today");
+  const viewContentRef = useRef<HTMLDivElement>(null);
+
+  function changeView(view: GuestView) {
+    setActiveView(view);
+    window.requestAnimationFrame(() => {
+      viewContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -1048,10 +1085,13 @@ export function GuestStayClient({
           <span>{completed ? "Willkommen zurück" : "Gästebereich"}</span>
         </header>
 
-        <section className="guest-hero-card">
-          <img alt="" src={packageImage(packageItem)} />
-          <div>
-            <p className="eyebrow">{booking.packageName ?? packageItem?.name ?? "Morrow Auszeit"}</p>
+        <section className={`guest-stay-overview ${activeView === "home" ? "" : "is-compact"}`}>
+          <div className="guest-stay-media">
+            <img alt="" src={packageImage(packageItem)} />
+            <span>{completed ? "Rückblick" : countdown === null ? "Vorbereitet" : `${countdown} Tage`}</span>
+          </div>
+          <div className="guest-stay-summary">
+            <p className="eyebrow">Mein Aufenthalt</p>
             <h1>
               {completed
                 ? `${firstName(guestName)}, schön, dass ihr da wart.`
@@ -1062,9 +1102,15 @@ export function GuestStayClient({
                 ? "Eure vergangene Buchung bleibt hier sichtbar. Wenn ihr wieder raus möchtet, findet ihr direkt den Weg zur nächsten Auszeit."
                 : "Alles Wichtige liegt hier zusammen: Anreise, Buchung, Empfehlungen vor Ort und Hilfe, wenn ihr sie braucht."}
             </p>
+            <div className="guest-app-facts">
+              <span>{booking.packageName ?? packageItem?.name ?? "Morrow Auszeit"}</span>
+              <span>{stayDate}</span>
+              <span>{packageItem?.stay?.name ?? packageItem?.location ?? "Sankt Peter-Ording"}</span>
+            </div>
           </div>
         </section>
 
+        <div className="guest-view-content" ref={viewContentRef}>
         {activeView === "home" && (
           <section className="guest-section-stack">
             <div className="guest-status-card">
@@ -1075,16 +1121,16 @@ export function GuestStayClient({
             {completed ? (
               <>
                 <div className="guest-card-grid">
-                  <article>
+                  <button type="button" onClick={() => changeView("booking")}>
                     <span>Rückblick</span>
                     <strong>{booking.packageName ?? packageItem?.name ?? "Eure Morrow Auszeit"}</strong>
                     <p>{stayDate}. Eure Buchungsdetails bleiben sichtbar, damit ihr später noch einmal nachsehen könnt.</p>
-                  </article>
-                  <article>
+                  </button>
+                  <button type="button" onClick={() => changeView("feedback")}>
                     <span>Feedback</span>
                     <strong>Was sollen wir behalten?</strong>
                     <p>Ein kurzer Eindruck hilft uns, kommende Auszeiten noch ruhiger und passender vorzubereiten.</p>
-                  </article>
+                  </button>
                 </div>
                 <section className="guest-return-section">
                   <div>
@@ -1105,16 +1151,16 @@ export function GuestStayClient({
               </>
             ) : (
               <div className="guest-card-grid">
-                <article>
+                <button type="button" onClick={() => changeView("booking")}>
                   <span>Heute wichtig</span>
                   <strong>Anreise prüfen</strong>
                   <p>Schlüssel, Zeitfenster und Unterkunftshinweise findet ihr in Buchung.</p>
-                </article>
-                <article>
+                </button>
+                <button type="button" onClick={() => changeView("local")}>
                   <span>Vor Ort</span>
                   <strong>{localPlaces.length} kuratierte Orte</strong>
                   <p>Restaurants, Strand, Erlebnisse und praktische Hinweise werden bewusst reduziert gezeigt.</p>
-                </article>
+                </button>
               </div>
             )}
           </section>
@@ -1476,12 +1522,16 @@ export function GuestStayClient({
             <a className="guest-primary-link" href="https://www.getmorrow.de/auszeiten">Alle Auszeiten ansehen</a>
           </section>
         )}
+        </div>
       </div>
 
       {selectedPlace ? (
         <div className="guest-drawer-backdrop" onClick={() => setSelectedPlace(null)}>
           <aside className="guest-detail-drawer" onClick={(event) => event.stopPropagation()} aria-label={`${selectedPlace.name} Details`}>
             <span className="guest-drawer-handle" aria-hidden="true" />
+            <button className="guest-drawer-close" type="button" aria-label="Schließen" onClick={() => setSelectedPlace(null)}>
+              Schließen
+            </button>
             <img alt="" src={placeDetailImage(selectedPlace, packageItem)} />
             <div className="guest-drawer-content">
               <p className="eyebrow">{categoryLabel(selectedPlace.category)}</p>
@@ -1549,12 +1599,18 @@ export function GuestStayClient({
 
       {!selectedPlace ? (
         <nav className="guest-bottom-nav" aria-label="Gästebereich Navigation">
-          {navItems.map((item) => (
-            <button key={item} className={activeView === item ? "is-active" : ""} type="button" onClick={() => setActiveView(item)}>
-              <span aria-hidden="true">{viewIcons[item]}</span>
-              <small>{viewLabels[item]}</small>
-            </button>
-          ))}
+          {navItems.map((item) => {
+            const ViewIcon = viewIcons[item];
+
+            return (
+              <button key={item} className={activeView === item ? "is-active" : ""} type="button" onClick={() => changeView(item)}>
+                <span aria-hidden="true">
+                  <ViewIcon className="guest-nav-icon" size={18} />
+                </span>
+                <small>{viewLabels[item]}</small>
+              </button>
+            );
+          })}
         </nav>
       ) : null}
     </main>

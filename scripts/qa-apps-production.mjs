@@ -10,24 +10,45 @@ function firstEnv(...names) {
   return names.map((name) => qaEnv.value(name)).find(Boolean)
 }
 
+const appBasePaths = {
+  admin: '/admin',
+  guest: '/app/gast',
+  owner: '/app/eigentuemer',
+}
+
+function firstAppBaseUrl(key, ...names) {
+  for (const name of names) {
+    const rawValue = qaEnv.value(name)
+    if (!rawValue) continue
+
+    const baseUrl = normalizeBaseUrl(rawValue)
+    const appPath = appBasePaths[key]
+    const isInternalZoneOrigin = name.startsWith('MORROW_') && appPath && !new URL(baseUrl).pathname.includes(appPath)
+
+    return isInternalZoneOrigin ? `${baseUrl}${appPath}` : baseUrl
+  }
+
+  return undefined
+}
+
 const targets = [
   {
     key: 'admin',
     name: 'Admin-App',
-    baseUrl: firstEnv('ADMIN_BASE_URL', 'MORROW_ADMIN_APP_URL'),
+    baseUrl: firstAppBaseUrl('admin', 'ADMIN_BASE_URL', 'MORROW_ADMIN_APP_URL'),
     acceptedBaseUrlEnv: ['ADMIN_BASE_URL', 'MORROW_ADMIN_APP_URL'],
     expectedLandingText: /Morrow Admin|Steuerung für Anfragen/i,
     login: {
       email: qaEnv.value('ADMIN_EMAIL'),
       password: qaEnv.value('ADMIN_PASSWORD'),
-      dashboardText: /Anfragen|Buchungen|Support|Morrow Admin/i,
-      requiredDashboardTexts: [/Anfragen/i, /Buchungen/i, /Support/i],
+      dashboardText: /Operations Cockpit|CRM|Support|Morrow Admin/i,
+      requiredDashboardTexts: [/CRM/i, /Aufgaben/i, /Support/i],
     },
   },
   {
     key: 'owner',
     name: 'Eigentümer-App',
-    baseUrl: firstEnv('OWNER_BASE_URL', 'MORROW_OWNER_APP_URL'),
+    baseUrl: firstAppBaseUrl('owner', 'OWNER_BASE_URL', 'MORROW_OWNER_APP_URL'),
     acceptedBaseUrlEnv: ['OWNER_BASE_URL', 'MORROW_OWNER_APP_URL'],
     expectedLandingText: /Morrow Eigentümer|Transparenz für Objekt/i,
     login: {
@@ -40,7 +61,7 @@ const targets = [
   {
     key: 'guest',
     name: 'Gäste-App',
-    baseUrl: firstEnv('GUEST_BASE_URL', 'MORROW_GUEST_APP_URL'),
+    baseUrl: firstAppBaseUrl('guest', 'GUEST_BASE_URL', 'MORROW_GUEST_APP_URL'),
     acceptedBaseUrlEnv: ['GUEST_BASE_URL', 'MORROW_GUEST_APP_URL'],
     expectedLandingText: /Deine Auszeit|Alles Wichtige/i,
     guestStay: {

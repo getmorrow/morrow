@@ -3,6 +3,7 @@ import { Button, Card, Container, Eyebrow, SectionHeader } from "@morrow/ui";
 import { JsonLd } from "../../_components/JsonLd";
 import { LeadForm } from "../../_components/LeadForm";
 import { SiteHeader } from "../../_components/SiteHeader";
+import { StayRequestDrawer } from "../../_components/StayRequestDrawer";
 import { stayStructuredData } from "../../_lib/structuredData";
 
 const stay = stayDetails["couple-reset"];
@@ -28,13 +29,13 @@ export default function CoupleResetPage() {
             <h1>{stay.heroTitle}</h1>
             <p>{stay.heroLead}</p>
             <div className="stay-hero-actions">
-              <Button
-                data-conversion="stay_request_click"
-                data-conversion-label="Couple Reset Hero Anfrage"
-                href="#anfrage"
-              >
-                Auszeit anfragen
-              </Button>
+              <StayRequestDrawer
+                audience={stay.audience}
+                dates={stay.dates}
+                label="Couple Reset Hero Anfrage"
+                packageName={stay.title}
+                packageSlug={stay.slug}
+              />
               <Button
                 data-conversion="cta_stays_view"
                 data-conversion-label="Couple Reset Hero Auszeiten ansehen"

@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   },
   description:
     "Der Morrow Eigentümerbereich zeigt Objekte, Buchungen, freie Zeiträume, Vermarktung und Abrechnung transparent an einem Ort.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({
