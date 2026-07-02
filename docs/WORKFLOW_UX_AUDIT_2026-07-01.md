@@ -18,19 +18,19 @@ Pfad: `docs/qa/workflow-ux-final-2026-07-02/`
 
 Ampel lokal: grün.
 
-Ampel Production `https://www.getmorrow.de`: rot, Stand 2026-07-02 nach Push von `dadd670`.
+Ampel Production `https://www.getmorrow.de`: grün, Stand 2026-07-02 nach Vercel-Deployment der aktuellen Web-App.
 
-Production-Blocker:
+Geprüft live:
 
-- `/app/gast` liefert noch 404.
-- `/admin` leitet noch auf `https://morrow-admin.vercel.app`.
-- `/app/eigentuemer` leitet noch auf `https://morrow-owner.vercel.app`.
-- `/deine-auszeit/...` leitet noch auf `https://morrow-guest.vercel.app/deine-auszeit/...`.
-- `/app/guest` und `/app/owner` liefern noch 404 statt auf die deutschen Pfade zu redirecten.
-
-Bewertung:
-
-Der Code und die lokale Multi-Zone-Konfiguration sind grün. Production nutzt aber noch ein altes Web-Deployment oder alte Web-App-Environment-/Routing-Einstellungen. Vor finaler Abnahme muss Vercel die aktuelle `apps/web`-Version mit `MORROW_ADMIN_APP_URL`, `MORROW_GUEST_APP_URL` und `MORROW_OWNER_APP_URL` deployen.
+- `https://www.getmorrow.de/` liefert 200.
+- `https://www.getmorrow.de/app/gast` liefert 200.
+- `https://www.getmorrow.de/app/eigentuemer` liefert 200.
+- `https://www.getmorrow.de/admin` liefert 200.
+- `/app/guest` leitet mit 307 auf `/app/gast`.
+- `/app/owner` leitet mit 307 auf `/app/eigentuemer`.
+- `/deine-auszeit/...` leitet mit 307 auf `/app/gast/deine-auszeit/...`.
+- `/admin/health`, `/app/gast/health`, `/app/eigentuemer/health` liefern jeweils `status=ok` mit korrekter App-ID.
+- `robots.txt` disallowt `/admin`, `/app/gast` und `/app/eigentuemer`.
 
 Geprüft lokal über Web-Multi-Zone-Rewrites:
 
@@ -56,6 +56,18 @@ npm run qa:production
 ```
 
 Ergebnis: grün, inklusive 12 Seiten, 4 Formularchecks, 3 App-Routen und 4 Legacy-Redirects.
+
+Production-Rehearsal gegen echte Domain:
+
+```bash
+QA_BASE_URL=https://www.getmorrow.de \
+MORROW_ADMIN_APP_URL=https://morrow-admin.vercel.app \
+MORROW_GUEST_APP_URL=https://morrow-guest.vercel.app \
+MORROW_OWNER_APP_URL=https://morrow-owner.vercel.app \
+npm run qa:production
+```
+
+Ergebnis: grün, inklusive 12 Seiten, 4 Formularchecks, 3 App-Routen und 4 Legacy-Redirects. Consent und Lead-Submission waren bewusst nicht aktiv: keine GA/Meta-IDs gesetzt, `MORROW_QA_SUBMIT_LEAD` nicht gesetzt.
 
 Zusätzlicher App-Check:
 
