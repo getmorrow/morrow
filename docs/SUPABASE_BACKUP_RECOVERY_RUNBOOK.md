@@ -29,6 +29,7 @@ Das Skript `npm run supabase:backup` exportiert aktuell:
 - `experience_blocks`
 - `local_places`
 - `support_messages`
+- `support_status_events`
 - `guest_feedback`
 - `communication_events`
 - `email_events`
@@ -36,6 +37,9 @@ Das Skript `npm run supabase:backup` exportiert aktuell:
 - `admin_audit_logs`
 - `owner_profiles`
 - `owner_property_access`
+- `owner_documents`
+- `owner_operations`
+- `owner_statements`
 - `agencies`
 
 Die Dateien landen unter `backups/supabase/<timestamp>/`. Der Ordner `backups/` ist in `.gitignore` ausgeschlossen.
@@ -65,6 +69,14 @@ Nach jedem Lauf pruefen:
 - Alle Tabellen haben `status: "exported"`.
 - Die Zeilenanzahl wirkt plausibel.
 - Der Ordner wurde an einem sicheren Ort abgelegt.
+
+Letzter technischer Probe-Export:
+
+- 2026-07-02: `backups/supabase/2026-07-02T07-40-10-178Z`
+- 22 Tabellen exportiert
+- 153 Zeilen gesichert
+- 0 fehlgeschlagene Tabellen
+- `manifest.json` geprueft
 
 ## Frequenz Fuer Phase 1
 
