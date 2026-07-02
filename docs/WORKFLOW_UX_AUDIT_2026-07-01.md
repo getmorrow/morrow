@@ -182,7 +182,7 @@ Bewertung:
 
 ## Owner App
 
-Ampel: grün mit P2-Hinweis.
+Ampel: gelb/grün.
 
 Geprüfte Wege:
 
@@ -198,10 +198,22 @@ Bewertung:
 - Owner wirkt als Portal und nicht als Marketingseite.
 - Objekt, Buchung, Abrechnung, Kontakt, Drawer und Filter sind im aktuellen Evidence-Set vorhanden.
 - Rohwerte wie `key_safe`, `owner`, `morrow` und `active` werden im Portal als verständliche Labels angezeigt.
+- Backend-/RLS-Workflow wurde am 2026-07-02 mit temporärem Owner-Zugang geprüft:
+
+```bash
+OWNER_VERIFY_TEMP_OWNER=1 \
+OWNER_VERIFY_SUPPORT_INSERT=1 \
+OWNER_VERIFY_DOCUMENT_ACCESS=1 \
+OWNER_VERIFY_STATEMENT_ACCESS=1 \
+OWNER_VERIFY_OPERATION_ACCESS=1 \
+npm run supabase:verify-owner
+```
+
+Ergebnis: grün. Der Test hat temporären Owner-Login, `get_owner_dashboard()`, Supportnachricht, Verfügbarkeitsanfrage mit Admin-Aufgabe, Rückkanal-Historie, Dokumentzugriff, Abrechnungszugriff und Operationsmeldung erfolgreich geprüft und temporäre Testdaten aufgeräumt.
 
 P2-Rest:
 
-- Für Production-QA sollte zusätzlich ein aktueller, echter Eigentümer-Testzugang mit stabilen Supabase-Daten gepflegt werden, damit Owner-Workflows ohne temporäre Testdaten reproduzierbar bleiben.
+- Für vollständige Browser-Workflow-Abnahme sollte zusätzlich ein aktueller, echter Eigentümer-Testzugang mit stabilen Supabase-Daten gepflegt werden, damit `npm run qa:apps` auch den Owner-Login und das Owner-Dashboard wiederholbar gegen Production prüft.
 
 ## Rohwerte und doppelte Inhalte
 
