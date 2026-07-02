@@ -86,7 +86,7 @@ export const ownerAccessSelectColumns =
   "id,owner_profile_id,property_id,role,can_view_financials,can_view_operations,created_at" as const;
 
 export const leadSelectColumns =
-  "id,type,status,name,email,phone,package_slug,source,campaign,follow_up_at,whatsapp_opt_in,whatsapp_consent_at,adults,children,children_ages,dog,archived_at,created_at,payload" as const;
+  "id,type,status,name,email,phone,package_slug,source,campaign,medium,content,term,referrer,landing_path,current_path,gclid,fbclid,conversion_event,conversion_label,conversion_path,follow_up_at,whatsapp_opt_in,whatsapp_consent_at,adults,children,children_ages,dog,archived_at,created_at,payload" as const;
 
 export const bookingSelectColumns =
   "id,lead_id,customer_id,package_id,status,payment_status,guest_access_code,guest_name,guest_email,guest_phone,selected_date,reservation_deadline,payment_due_date,payment_amount,payment_date,payment_method,payment_reference,payment_proof_url,adults,children,children_ages,dog,check_in_status,experience_status,next_task,created_at,payload" as const;
@@ -292,6 +292,17 @@ export type LeadRowBase = {
   package_slug: string | null;
   source?: string | null;
   campaign?: string | null;
+  medium?: string | null;
+  content?: string | null;
+  term?: string | null;
+  referrer?: string | null;
+  landing_path?: string | null;
+  current_path?: string | null;
+  gclid?: string | null;
+  fbclid?: string | null;
+  conversion_event?: string | null;
+  conversion_label?: string | null;
+  conversion_path?: string | null;
   follow_up_at?: string | null;
   whatsapp_opt_in?: boolean | null;
   whatsapp_consent_at?: string | null;

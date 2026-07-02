@@ -238,7 +238,7 @@ async function verifyLeadInSupabase() {
   const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
   const { data, error } = await supabase
     .from('leads')
-    .select('id,type,status,email,source,campaign,package_slug,payload,created_at')
+    .select('id,type,status,email,source,campaign,medium,content,term,referrer,landing_path,current_path,gclid,fbclid,conversion_event,conversion_label,conversion_path,package_slug,payload,created_at')
     .eq('email', testEmail)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -250,6 +250,11 @@ async function verifyLeadInSupabase() {
   assert(data.package_slug === 'family-escape', `Expected family-escape, got ${data.package_slug}`)
   assert(data.source === 'qa', `Expected source qa, got ${data.source}`)
   assert(data.campaign === campaign, `Expected campaign ${campaign}, got ${data.campaign}`)
+  assert(data.medium === 'rehearsal', `Expected normalized medium rehearsal, got ${data.medium}`)
+  assert(data.content === 'lead-submit', `Expected normalized content lead-submit, got ${data.content}`)
+  assert(data.landing_path === '/auszeiten/family-escape', `Expected normalized landing path /auszeiten/family-escape, got ${data.landing_path}`)
+  assert(data.current_path === '/auszeiten/family-escape', `Expected normalized current path /auszeiten/family-escape, got ${data.current_path}`)
+  assert(data.conversion_label, 'Expected normalized conversion label to be stored.')
   assert(data.payload?.utm?.medium === 'rehearsal', `Expected utm medium rehearsal, got ${data.payload?.utm?.medium}`)
   assert(
     data.payload?.utm?.landingPath === '/auszeiten/family-escape',
@@ -265,7 +270,9 @@ async function verifyLeadInSupabase() {
     leadId: data.id,
     source: data.source,
     campaign: data.campaign,
-    medium: data.payload?.utm?.medium,
+    medium: data.medium,
+    content: data.content,
+    landingPath: data.landing_path,
     form: data.payload?.formContext?.formLabel,
   }
 }

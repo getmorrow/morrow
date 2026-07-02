@@ -15,13 +15,14 @@ Aktueller Status:
 - Zahlende Gäste: rot
 - Paid Ads: rot
 
-Hauptgrund: Die manuelle Admin-CRM-Parität, das Plattform-Routing, die Live-Lead-Erfassung und ein Supabase-Backup sind technisch belegt, aber die finalen Launch-Gates fuer Recht, Secret-Rotation, Angebotsfreigabe und Tracking sind noch nicht geschlossen.
+Hauptgrund: Die manuelle Admin-CRM-Parität, das Plattform-Routing, die Live-Lead-Erfassung, normalisierte Lead-Attribution und ein Supabase-Backup sind technisch belegt, aber die finalen Launch-Gates fuer Recht, Secret-Rotation, Angebotsfreigabe und Tracking-/Consent-Entscheidung sind noch nicht geschlossen.
 
 Einordnung der Entfernung zum Start:
 
 - Oeffentliche Website: technisch live, aber Launch-Gates fuer Recht, finale Freigaben und Tracking noch rot.
 - App-Fundament: live unter der deutschen Plattformstruktur erreichbar; `npm run qa:production` prueft `/admin`, `/app/gast`, `/app/eigentuemer` und die Legacy-Redirects erfolgreich gegen `https://www.getmorrow.de`.
 - Live-Lead-Erfassung: echter QA-Testlead ueber `www.getmorrow.de` wurde in Supabase inklusive Attribution verifiziert und danach archiviert.
+- Lead-Attribution: neue Anfragen speichern Quelle, Kampagne, Medium, Content, Term, Referrer, Landingpage, aktuellen Pfad, Klick-IDs und CTA-Ausloeser normalisiert auf `leads`; alte Payload-Werte bleiben als Fallback vorhanden.
 - Backup/Recovery: technischer Supabase-Probeexport vom 2026-07-02 war erfolgreich.
 - Operativer MVP: noch nicht freigegeben, weil Recht/Secrets/Angebotsfreigabe/Tracking und die finale Bewertung offen sind.
 - Zahlende Gaeste und Paid Ads: noch nicht freigegeben.
@@ -108,6 +109,23 @@ Einordnung:
 - `manifest.json` wurde maschinell geprueft.
 - `backups/` ist von Git ignoriert.
 - Das Runbook `docs/SUPABASE_BACKUP_RECOVERY_RUNBOOK.md` wurde auf die tatsaechliche Tabellenliste aktualisiert.
+
+### Lead-Attribution
+
+Ergebnis: technisch vorbereitet, Consent-/Tracking-Freigabe weiter offen.
+
+```text
+remote migration: 202607020001_leads_attribution_fields.sql
+normalized fields: source, campaign, medium, content, term, referrer, landing_path, current_path, gclid, fbclid, conversion_event, conversion_label, conversion_path
+```
+
+Einordnung:
+
+- Website-Leads speichern Attribution nicht mehr nur verschachtelt im Payload, sondern auch normalisiert auf `leads`.
+- Alte Leads werden aus vorhandenen Payload-Werten zurückbefuellt, soweit Daten vorhanden sind.
+- Das Admin-Detail liest die normalisierten Werte bevorzugt und nutzt Payload nur als Fallback.
+- `npm run qa:launch-gates` prueft jetzt, dass das Formular die normalisierten Attributionsfelder schreibt.
+- Die Marketing-/Consent-Entscheidung bleibt davon getrennt: GA4/Meta/Ads-Tracking wird erst nach Freigabe aktiviert.
 
 
 ### `npm run qa:readiness`
@@ -222,7 +240,7 @@ Vor einem echten Start muessen zuerst erledigt und belegt werden:
 - Rechtstexte rechtlich/fachlich freigeben; die oeffentlichen Platzhaltertexte sind bereinigt, aber die Freigabevariable bleibt bis zur echten Freigabe leer.
 - Geteilte Secrets rotieren und Freigabezeitpunkt setzen.
 - Angebotsdaten final pruefen: Termine, Preise, enthaltene Leistungen, Bildrechte, Verantwortlichkeit.
-- Tracking-/Consent-Entscheidung treffen: `MORROW_TRACKING_MODE=disabled` fuer Start ohne Paid Ads oder `enabled` mit GA4/Meta IDs fuer Paid Ads.
+- Tracking-/Consent-Entscheidung treffen: `MORROW_TRACKING_MODE=disabled` fuer Start ohne Paid Ads oder `enabled` mit GA4/Meta IDs fuer Paid Ads. Die technische Lead-Attribution ist vorbereitet; die Consent- und Werbetracking-Freigabe bleibt separat offen.
 - App-Workflows erneut nur dann wiederholen, wenn an Admin-, Owner- oder Guest-App wieder Code geändert wird. Der aktuelle Full-App-Lauf über `www.getmorrow.de` ist grün belegt.
 
 Danach:

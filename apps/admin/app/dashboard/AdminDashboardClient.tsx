@@ -8503,15 +8503,15 @@ function AdminDetailDrawer({
   const leadConversionContext = typeof payload.conversionContext === "object" && payload.conversionContext !== null
     ? payload.conversionContext as Record<string, unknown>
     : {};
-  const leadMedium = getPayloadText(leadUtm, ["medium", "utm_medium"]);
-  const leadContent = getPayloadText(leadUtm, ["content", "utm_content"]);
-  const leadClickId = getPayloadText(leadUtm, ["gclid"]) || getPayloadText(leadUtm, ["fbclid"]);
-  const leadLandingPath = getPayloadText(leadUtm, ["landingPath"]);
-  const leadReferrer = getPayloadText(leadUtm, ["referrer"]);
-  const leadCurrentPath = getPayloadText(leadFormContext, ["currentPath"]) || getPayloadText(leadUtm, ["currentPath"]);
+  const leadMedium = lead?.medium || getPayloadText(leadUtm, ["medium", "utm_medium"]);
+  const leadContent = lead?.content || getPayloadText(leadUtm, ["content", "utm_content"]);
+  const leadClickId = lead?.gclid || lead?.fbclid || getPayloadText(leadUtm, ["gclid"]) || getPayloadText(leadUtm, ["fbclid"]);
+  const leadLandingPath = lead?.landing_path || getPayloadText(leadUtm, ["landingPath"]);
+  const leadReferrer = lead?.referrer || getPayloadText(leadUtm, ["referrer"]);
+  const leadCurrentPath = lead?.current_path || getPayloadText(leadFormContext, ["currentPath"]) || getPayloadText(leadUtm, ["currentPath"]);
   const leadFormLabel = getPayloadText(leadFormContext, ["formLabel"]);
-  const leadCtaLabel = getPayloadText(leadConversionContext, ["label"]);
-  const leadCtaPath = getPayloadText(leadConversionContext, ["path", "location"]);
+  const leadCtaLabel = lead?.conversion_label || getPayloadText(leadConversionContext, ["label"]);
+  const leadCtaPath = lead?.conversion_path || getPayloadText(leadConversionContext, ["path", "location"]);
 
   return (
     <div className="admin-drawer-layer" role="presentation">

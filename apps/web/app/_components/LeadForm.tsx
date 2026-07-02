@@ -187,6 +187,17 @@ export function LeadForm({ audience, dates = [], packageName, packageSlug, type 
         .from("leads")
         .insert({
           campaign: utm.campaign || null,
+          content: utm.content || null,
+          conversion_event: conversionContext.event || conversionContext.name || null,
+          conversion_label: conversionContext.label || null,
+          conversion_path: conversionContext.path || conversionContext.location || null,
+          current_path: utm.currentPath || formContext.currentPath || null,
+          fbclid: utm.fbclid || null,
+          gclid: utm.gclid || null,
+          landing_path: utm.landingPath || null,
+          medium: utm.medium || null,
+          referrer: utm.referrer || null,
+          term: utm.term || null,
           adults,
           children,
           children_ages: childrenAges,

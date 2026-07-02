@@ -298,5 +298,5 @@ Diese Punkte blockieren nicht die lokale Workflow-UX-Abnahme, bleiben aber vor e
 
 - Rechtsfreigabe für Rechtstexte, WhatsApp-Opt-in und Buchungsbedingungen.
 - Secret-Rotation für geteilte Supabase-/Resend-/Admin-Werte.
-- Tracking-/Attribution-Entscheidung und Implementierung für Gast-, Eigentümer- und Partneranfragen.
+- Tracking-/Consent-Entscheidung für Gast-, Eigentümer- und Partneranfragen. Die technische Lead-Attribution ist auf Website-Leads normalisiert vorbereitet; finale Consent-/Ads-Freigabe bleibt offen.
 - Echte Angebotsdaten inklusive Bildrechte, Termine, Preise, Erlebnisse und Zuständigkeiten.

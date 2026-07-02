@@ -306,6 +306,31 @@ function checkLeadAndConsentImplementation() {
         leadFormFile,
       )
     }
+
+    const normalizedAttributionFields = [
+      'source',
+      'campaign',
+      'medium',
+      'content',
+      'term',
+      'referrer',
+      'landing_path',
+      'current_path',
+      'gclid',
+      'fbclid',
+      'conversion_label',
+      'conversion_path',
+    ]
+    const missingAttributionFields = normalizedAttributionFields.filter((field) => !body.includes(`${field}:`))
+    if (missingAttributionFields.length === 0) {
+      addPassed('tracking:lead-attribution-fields', 'Lead form stores normalized attribution fields for CRM and conversion analysis.')
+    } else {
+      addBlocker(
+        'tracking:lead-attribution-fields',
+        'Lead form must store normalized attribution fields, not only nested payload data.',
+        `${leadFormFile}: missing ${missingAttributionFields.join(', ')}`,
+      )
+    }
   }
 
   if (requireFile(analyticsFile, 'Analytics component')) {
