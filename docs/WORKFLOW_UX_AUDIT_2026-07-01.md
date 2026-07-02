@@ -100,7 +100,7 @@ Ergebnis: grün für alle drei direkten App-Projekte. Der Check normalisiert `ht
 
 Login-/persoenliche Stay-Tiefpruefungen wurden in diesem Live-Lauf uebersprungen, weil keine aktuellen Zugangsdaten in `.env.local` gesetzt waren. Die fruehere lokale Deep-Evidence bleibt gueltig fuer UX-Abnahme; fuer Production-Go sollte ein stabiler Admin-/Owner-/Guest-Testzugang gepflegt werden.
 
-Zusaetzlicher Guest-Stay-Check mit Supabase-Testbuchung gegen den aktuellen Guest-Build:
+Zusaetzlicher Guest-Stay-Check mit Supabase-Testbuchung gegen den aktuellen Guest-Build, danach erneut live nach Vercel-Deployment:
 
 ```bash
 GUEST_BASE_URL=http://127.0.0.1:5102 \
@@ -110,7 +110,13 @@ MORROW_QA_ALLOW_PARTIAL_APPS=1 \
 npm run qa:apps
 ```
 
-Ergebnis: gruen fuer Guest-Stay. Der Test nutzt echte Supabase-Daten und hat einen vorherigen Asset-Fehler sichtbar gemacht: alte Datenpfade wie `/brand/...` wurden im direkten Guest-App-Origin als Root-Pfade geladen. Der aktuelle Build normalisiert diese Pfade auf den Guest-BasePath `/app/gast/...`; der frische Screenshot `guest-07-live-stay-mobile.png` belegt den ersten View mit echtem Supabase-Aufenthalt.
+```bash
+GUEST_BOOKING_ID=11111111-1111-4111-8111-111111111111 \
+GUEST_ACCESS_CODE=MORROW1 \
+npm run qa:apps
+```
+
+Ergebnis: gruen fuer Guest-Stay lokal und live unter `https://morrow-guest.vercel.app/app/gast`. Der Test nutzt echte Supabase-Daten und hat einen vorherigen Asset-Fehler sichtbar gemacht: alte Datenpfade wie `/brand/...` wurden im direkten Guest-App-Origin als Root-Pfade geladen. Der aktuelle Build normalisiert diese Pfade auf den Guest-BasePath `/app/gast/...`; der frische Screenshot `guest-07-live-stay-mobile.png` belegt den ersten View mit echtem Supabase-Aufenthalt aus dem Live-App-Lauf.
 
 ## Guest App
 
@@ -135,7 +141,7 @@ Gefundene und behobene Punkte:
 
 P2-Rest:
 
-- Der Live-Guest-App-Check mit persoenlichem Aufenthalt sollte nach dem naechsten Vercel-Deployment erneut gegen `https://morrow-guest.vercel.app/app/gast` laufen, damit der lokal gruen getestete Asset-Fix auch auf Production belegt ist.
+- Fuer eine vollstaendige Production-Workflow-Abnahme bleiben stabile Admin-/Owner-Testzugänge sinnvoll; der persoenliche Guest-Stay ist live mit Supabase-Testbuchung belegt.
 
 ## Admin App
 
