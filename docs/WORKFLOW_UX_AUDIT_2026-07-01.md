@@ -265,10 +265,19 @@ Ergebnis: grün. Geprüft wurden Login, Dashboard, Objekt-Drawer, Buchungen, Abr
 Aktueller Deep-Workflow-Lauf am 2026-07-02:
 
 ```bash
-tmp/qa/workflow-fresh-2026-07-02/workflow-result.json
+set -a; source ./.env.local; set +a; \
+QA_BASE_URL=https://www.getmorrow.de \
+ADMIN_BASE_URL=https://www.getmorrow.de/admin \
+ADMIN_EMAIL=auszeiten@getmorrow.de \
+ADMIN_PASSWORD=<admin-password> \
+GUEST_BASE_URL=https://www.getmorrow.de/app/gast \
+GUEST_BOOKING_ID=11111111-1111-4111-8111-111111111111 \
+GUEST_ACCESS_CODE=MORROW1 \
+OWNER_BASE_URL=https://www.getmorrow.de/app/eigentuemer \
+npm run qa:workflow-ux
 ```
 
-Ergebnis: grün für Admin, Owner und Guest. Die maschinenlesbare Zusammenfassung liegt als `workflow-result-current.json` in der Evidence.
+Ergebnis: grün für Admin, Owner und Guest. Der Lauf prüft Routing, Guest-App, Admin-CRM inklusive Statusänderung in Supabase, Owner-Portal, sichtbare Rohwerte und bereinigt temporäre Lead-/Owner-Testdaten wieder. Die maschinenlesbare Zusammenfassung liegt als `workflow-result-current.json` in der Evidence.
 
 P2-Rest:
 

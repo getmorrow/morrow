@@ -1,30 +1,99 @@
 {
   "ok": true,
+  "checkedAt": "2026-07-02T13:29:40.633Z",
+  "baseUrl": "https://www.getmorrow.de",
   "outDir": "tmp/qa/workflow-fresh-2026-07-02",
+  "routes": [
+    {
+      "label": "website",
+      "url": "https://www.getmorrow.de",
+      "status": 200
+    },
+    {
+      "label": "guest",
+      "url": "https://www.getmorrow.de/app/gast",
+      "status": 200
+    },
+    {
+      "label": "owner",
+      "url": "https://www.getmorrow.de/app/eigentuemer",
+      "status": 200
+    },
+    {
+      "label": "admin",
+      "url": "https://www.getmorrow.de/admin",
+      "status": 200
+    },
+    {
+      "label": "/app/guest",
+      "url": "https://www.getmorrow.de/app/gast",
+      "status": 307
+    },
+    {
+      "label": "/app/owner",
+      "url": "https://www.getmorrow.de/app/eigentuemer",
+      "status": 307
+    }
+  ],
   "guest": {
-    "firstViewHasAppSignals": true,
-    "bookingHasCheckin": true,
-    "drawerHasUsefulDetails": true,
-    "helpHasSupport": true,
+    "ok": true,
+    "screenshots": [
+      "tmp/qa/workflow-fresh-2026-07-02/guest-01-first-view-mobile.png",
+      "tmp/qa/workflow-fresh-2026-07-02/guest-02-booking-mobile.png",
+      "tmp/qa/workflow-fresh-2026-07-02/guest-03-local-mobile.png",
+      "tmp/qa/workflow-fresh-2026-07-02/guest-04-local-food-mobile.png",
+      "tmp/qa/workflow-fresh-2026-07-02/guest-05-place-drawer-mobile.png",
+      "tmp/qa/workflow-fresh-2026-07-02/guest-06-help-mobile-after-help-curation.png"
+    ],
+    "assertions": {
+      "appFirstView": true,
+      "bookingHasCheckIn": true,
+      "placeDrawerHasDetails": true,
+      "helpHasSupportFlow": true,
+      "helpHasNoMedicalEmergencyCards": true
+    },
     "rawFindings": []
   },
   "admin": {
-    "cockpitSignals": true,
-    "crmSignals": true,
-    "drawerSignals": true,
-    "taskSignals": true,
-    "supportSignals": true,
-    "rawFindings": [
-      "/\\bactive\\b/i",
-      "/\\bowner\\b/i"
-    ]
+    "ok": true,
+    "screenshots": [
+      "tmp/qa/workflow-fresh-2026-07-02/admin-01-dashboard-desktop.png",
+      "tmp/qa/workflow-fresh-2026-07-02/admin-02-crm-list-desktop.png",
+      "tmp/qa/workflow-fresh-2026-07-02/admin-03-crm-search-desktop.png",
+      "tmp/qa/workflow-fresh-2026-07-02/admin-04-detail-drawer-desktop.png",
+      "tmp/qa/workflow-fresh-2026-07-02/admin-05-tasks-desktop.png",
+      "tmp/qa/workflow-fresh-2026-07-02/admin-06-support-desktop.png"
+    ],
+    "statusChangeVerified": "In Prüfung",
+    "assertions": {
+      "cockpitSignals": true,
+      "crmSignals": true,
+      "drawerSignals": true,
+      "taskSignals": true,
+      "supportSignals": true
+    },
+    "rawFindings": []
   },
   "owner": {
-    "portalSignals": true,
-    "drawerSignals": true,
-    "bookingSignals": true,
-    "billingSignals": true,
-    "contactSignals": true,
+    "ok": true,
+    "screenshots": [
+      "tmp/qa/workflow-fresh-2026-07-02/owner-01-dashboard-mobile.png",
+      "tmp/qa/workflow-fresh-2026-07-02/owner-02-object-drawer-mobile.png",
+      "tmp/qa/workflow-fresh-2026-07-02/owner-03-bookings-mobile.png",
+      "tmp/qa/workflow-fresh-2026-07-02/owner-04-billing-mobile.png",
+      "tmp/qa/workflow-fresh-2026-07-02/owner-05-contact-mobile.png"
+    ],
+    "assertions": {
+      "portalSignals": true,
+      "drawerSignals": true,
+      "bookingSignals": true,
+      "billingSignals": true,
+      "contactSignals": true
+    },
     "rawFindings": []
+  },
+  "cleanup": {
+    "ok": true,
+    "errors": []
   }
 }
