@@ -8,12 +8,13 @@ Ziel: Abnahme nicht nur anhand von Startseiten, sondern anhand echter Hauptworkf
 
 Pfad: `docs/qa/workflow-ux-final-2026-07-02/`
 
+- Aktueller Deep-Workflow-Lauf: `workflow-result-current.json`
 - Website: `web-01-home-desktop.png`
 - Routing/App-Einstieg: `guest-00-entry-mobile-from-platform-desktop.png`, `guest-00-live-landing-mobile.png`, `owner-00-entry-desktop.png`, `owner-00-live-landing-desktop.png`, `admin-00-live-landing-desktop.png`
-- Guest mobile: `guest-01-first-view-mobile.png`, `guest-02-booking-mobile.png`, `guest-03-local-mobile.png`, `guest-04-local-food-mobile.png`, `guest-05-place-drawer-mobile.png`, `guest-06-help-mobile.png`
+- Guest mobile aktuell: `guest-01-first-view-mobile.png`, `guest-02-booking-mobile.png`, `guest-03-local-mobile.png`, `guest-04-local-food-mobile.png`, `guest-05-place-drawer-mobile.png`, `guest-06-help-mobile-after-help-curation.png`
 - Guest Supabase-Stay: `guest-07-live-stay-mobile.png`, `guest-08-www-stay-mobile.png`, `guest-09-www-full-qa-stay-mobile.png`, `guest-10-www-landing-current.png`, `guest-11-www-stay-current.png`
-- Admin desktop: `admin-01-login-desktop.png`, `admin-02-cockpit-desktop.png`, `admin-03-crm-list-desktop.png`, `admin-04-crm-search-desktop.png`, `admin-05-detail-drawer-desktop.png`, `admin-06-tasks-desktop.png`, `admin-07-support-desktop.png`, `admin-08-www-dashboard-desktop.png`, `admin-09-www-crm-search-desktop.png`, `admin-10-www-lead-drawer-status-desktop.png`, `admin-11-www-tasks-desktop.png`, `admin-12-www-support-desktop.png`, `admin-13-www-full-qa-dashboard-desktop.png`, `admin-14-www-landing-current.png`, `admin-15-www-dashboard-current.png`
-- Owner mobile/desktop: `owner-01-login-mobile.png`, `owner-02-dashboard-mobile.png`, `owner-03-object-drawer-mobile.png`, `owner-04-bookings-mobile.png`, `owner-05-billing-mobile.png`, `owner-06-contact-mobile.png`, `owner-07-www-dashboard-desktop.png`, `owner-08-www-full-qa-dashboard-desktop.png`, `owner-09-www-landing-current.png`, `owner-10-www-dashboard-current.png`
+- Admin desktop aktuell: `admin-01-dashboard-desktop.png`, `admin-02-crm-list-desktop.png`, `admin-03-crm-search-desktop.png`, `admin-04-detail-drawer-desktop.png`, `admin-05-tasks-desktop.png`, `admin-06-support-desktop.png`
+- Owner mobile aktuell: `owner-01-dashboard-mobile.png`, `owner-02-object-drawer-mobile.png`, `owner-03-bookings-mobile.png`, `owner-04-billing-mobile.png`, `owner-05-contact-mobile.png`
 
 ## URL- und Routing-Abnahme
 
@@ -61,10 +62,8 @@ Ergebnis: grün, inklusive 12 Seiten, 4 Formularchecks, 3 App-Routen und 4 Legac
 Production-Rehearsal gegen echte Domain:
 
 ```bash
+set -a; source ./.env.local; set +a; \
 QA_BASE_URL=https://www.getmorrow.de \
-MORROW_ADMIN_APP_URL=https://morrow-admin.vercel.app \
-MORROW_GUEST_APP_URL=https://morrow-guest.vercel.app \
-MORROW_OWNER_APP_URL=https://morrow-owner.vercel.app \
 npm run qa:production
 ```
 
@@ -150,6 +149,10 @@ Ergebnis: gruen fuer alle drei Apps in einem Lauf: Admin-Health, Admin-Landing, 
 Technische Abschlusschecks nach diesem Lauf:
 
 ```bash
+npm run web:build
+npm run admin:build
+npm run guest:build
+npm run owner:build
 npm run qa:production
 npm run typecheck
 npm run lint
@@ -160,12 +163,11 @@ Ergebnis: gruen. `npm run qa:readiness` und `npm run qa:launch-gates` bleiben be
 
 ## Guest App
 
-Ampel: grün mit P2-Hinweis.
+Ampel: grün mit P2-Hinweis zur Informationsdichte.
 
 Geprüfte Wege:
 
-- Aufenthalt unter `/app/gast/deine-auszeit/dev-active?code=MORROWDEV` öffnen.
-- Supabase-Testaufenthalt `11111111-1111-4111-8111-111111111111` mit Code `MORROW1` gegen den aktuellen Guest-Build öffnen.
+- Supabase-Testaufenthalt `11111111-1111-4111-8111-111111111111` mit Code `MORROW1` live unter `https://www.getmorrow.de/app/gast` öffnen.
 - Erster View wirkt wie App-Bereich: Logo, große persönliche Aufenthaltskarte, Bottom-Navigation.
 - `Buchung` öffnen und Anreise, Zahlung, Gäste, Hund, Schlüssel und Unterkunft prüfen.
 - `Vor Ort` öffnen.
@@ -178,10 +180,11 @@ Gefundene und behobene Punkte:
 - P1: Der lokale Restaurant-Drawer zeigte als Fallback das Couple-Hero-Bild. Behoben durch kategoriebezogene Local-Place-Bilder und Fallbacks für Essen, Strand, Erlebnis, Veranstaltungen, Praktisches, Hilfe, Wetter und Gezeiten.
 - P1: Der alte Smoke-Test nutzte einen lokal nicht verfügbaren Testzugang. Aktualisiert auf `/app/gast/deine-auszeit/dev-active?code=MORROWDEV`.
 - P1: Supabase-Daten enthielten noch alte Bildpfade wie `/brand/...`, die in der direkten Guest-App zu 404-Assets fuehrten. Behoben durch Normalisierung von Supabase-Bildpfaden auf `/app/gast/...`.
+- P1: Der Hilfe-Bereich zeigte freigegebene medizinische Notfall-/Bereitschaftsdienst-Kandidaten prominent in der Guest-App. Diese Kandidaten wurden in Code und Supabase auf `paused` gesetzt. Der aktuelle Hilfe-Screenshot zeigt stattdessen Morrow-Routing, Unterkunftszuständigkeit, Thema, Dringlichkeit und Verlauf.
 
 P2-Rest:
 
-- Fuer eine vollstaendige Production-Workflow-Abnahme bleiben stabile Admin-/Owner-Testzugänge sinnvoll; der persoenliche Guest-Stay ist live mit Supabase-Testbuchung belegt.
+- Der erste View wirkt wie App, aber unterhalb folgen weiterhin mehrere Cards. Das ist fuer den MVP akzeptabel, sollte aber bei der nächsten Politur weiter verdichtet werden.
 
 ## Admin App
 
@@ -223,7 +226,7 @@ Zusätzlich wurde eine klar markierte QA-Anfrage in Supabase angelegt, im CRM ge
 
 ## Owner App
 
-Ampel: grün mit P2-Hinweis.
+Ampel: grün.
 
 Geprüfte Wege:
 
@@ -251,31 +254,21 @@ npm run supabase:verify-owner
 ```
 
 Ergebnis: grün. Der Test hat temporären Owner-Login, `get_owner_dashboard()`, Supportnachricht, Verfügbarkeitsanfrage mit Admin-Aufgabe, Rückkanal-Historie, Dokumentzugriff, Abrechnungszugriff und Operationsmeldung erfolgreich geprüft und temporäre Testdaten aufgeräumt.
-- Browser-Workflow wurde am 2026-07-02 zusätzlich über die öffentliche Plattformstruktur geprüft:
+- Browser-Workflow wurde am 2026-07-02 zusätzlich über die öffentliche Plattformstruktur mit temporärem Owner-Zugang geprüft:
 
 ```bash
-OWNER_BASE_URL=https://www.getmorrow.de/app/eigentuemer \
-OWNER_EMAIL=<owner-qa-browser-email> \
-OWNER_PASSWORD=<owner-qa-browser-password> \
-GUEST_BASE_URL=https://www.getmorrow.de/app/gast \
-GUEST_BOOKING_ID=11111111-1111-4111-8111-111111111111 \
-GUEST_ACCESS_CODE=MORROW1 \
-MORROW_QA_ALLOW_PARTIAL_APPS=1 \
-npm run qa:apps
+tmp/qa/workflow-fresh-2026-07-02
 ```
 
-Ergebnis: grün. `qa:apps` prüfte Owner-Health, Owner-Landing, Login und Dashboard mit den Pflichtbereichen Objekte, Buchungen, Lücken, Abrechnung und Dokumente. Der Screenshot `owner-07-www-dashboard-desktop.png` belegt den Portal-View über `https://www.getmorrow.de/app/eigentuemer`.
+Ergebnis: grün. Geprüft wurden Login, Dashboard, Objekt-Drawer, Buchungen, Abrechnung und Kontakt. Der temporäre Owner wurde nach dem Lauf aus Auth, `owner_profiles` und `owner_property_access` entfernt.
 
-Zusätzlicher frischer Full-App-Lauf am 2026-07-02:
+Aktueller Deep-Workflow-Lauf am 2026-07-02:
 
 ```bash
-ADMIN_BASE_URL=https://www.getmorrow.de/admin \
-OWNER_BASE_URL=https://www.getmorrow.de/app/eigentuemer \
-GUEST_BASE_URL=https://www.getmorrow.de/app/gast \
-npm run qa:apps
+tmp/qa/workflow-fresh-2026-07-02/workflow-result.json
 ```
 
-Ergebnis: grün für Admin, Owner und Guest. Geprüft wurden Health, Landing, Admin-Login/Dashboard, Owner-Login/Dashboard mit temporärem Owner-Zugang `Familie Hansen`, Guest-Landing und persönlicher Guest-Stay mit Code `MORROW1`. Der temporäre Owner-Zugang wurde nach dem Test aus Auth, `owner_profiles` und `owner_property_access` entfernt. Neue Screenshots: `admin-14-www-landing-current.png`, `admin-15-www-dashboard-current.png`, `owner-09-www-landing-current.png`, `owner-10-www-dashboard-current.png`, `guest-10-www-landing-current.png`, `guest-11-www-stay-current.png`.
+Ergebnis: grün für Admin, Owner und Guest. Die maschinenlesbare Zusammenfassung liegt als `workflow-result-current.json` in der Evidence.
 
 P2-Rest:
 
@@ -290,6 +283,7 @@ Geprüft:
 - Guest-Screens zeigen keine sichtbaren Rohwerte wie `active`, `key_safe`, `owner`, `morrow`.
 - Owner-Drawer zeigt verständliche Labels: `Aktiv`, `Eigentümerzugang`, `Schlüsselabholung`.
 - Admin-CRM zeigt `Couple Reset` statt `couple-reset`.
+- Admin-Eigentümerliste zeigt `Aktiv`, `Eingeladen`, `Pausiert`, `Archiviert` statt Rohstatus wie `active`.
 
 Hinweis:
 

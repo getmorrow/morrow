@@ -1,0 +1,30 @@
+{
+  "ok": true,
+  "outDir": "tmp/qa/workflow-fresh-2026-07-02",
+  "guest": {
+    "firstViewHasAppSignals": true,
+    "bookingHasCheckin": true,
+    "drawerHasUsefulDetails": true,
+    "helpHasSupport": true,
+    "rawFindings": []
+  },
+  "admin": {
+    "cockpitSignals": true,
+    "crmSignals": true,
+    "drawerSignals": true,
+    "taskSignals": true,
+    "supportSignals": true,
+    "rawFindings": [
+      "/\\bactive\\b/i",
+      "/\\bowner\\b/i"
+    ]
+  },
+  "owner": {
+    "portalSignals": true,
+    "drawerSignals": true,
+    "bookingSignals": true,
+    "billingSignals": true,
+    "contactSignals": true,
+    "rawFindings": []
+  }
+}

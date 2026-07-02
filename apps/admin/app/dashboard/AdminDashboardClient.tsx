@@ -412,6 +412,12 @@ const ownerOperationVisibilityLabels: Record<string, string> = {
   internal: "Intern",
   owner_visible: "Eigentümer sichtbar",
 };
+const ownerProfileStatusLabels: Record<string, string> = {
+  active: "Aktiv",
+  archived: "Archiviert",
+  invited: "Eingeladen",
+  paused: "Pausiert",
+};
 const adminWorkspaces: Array<{
   id: AdminWorkspace;
   label: string;
@@ -7486,7 +7492,7 @@ function AdminDashboardView({
               data.ownerProfiles.map((owner) => (
                 <article className="admin-list-item" key={owner.id}>
                   <div>
-                    <small>{owner.status}</small>
+                    <small>{ownerProfileStatusLabels[owner.status] || owner.status}</small>
                     <strong>{owner.display_name || owner.email}</strong>
                     <em>{owner.email}{owner.phone ? ` · ${owner.phone}` : ""}</em>
                   </div>
