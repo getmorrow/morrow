@@ -11,7 +11,7 @@ Pfad: `docs/qa/workflow-ux-final-2026-07-02/`
 - Website: `web-01-home-desktop.png`
 - Routing/App-Einstieg: `guest-00-entry-mobile-from-platform-desktop.png`, `guest-00-live-landing-mobile.png`, `owner-00-entry-desktop.png`, `owner-00-live-landing-desktop.png`, `admin-00-live-landing-desktop.png`
 - Guest mobile: `guest-01-first-view-mobile.png`, `guest-02-booking-mobile.png`, `guest-03-local-mobile.png`, `guest-04-local-food-mobile.png`, `guest-05-place-drawer-mobile.png`, `guest-06-help-mobile.png`
-- Guest Supabase-Stay: `guest-07-live-stay-mobile.png`
+- Guest Supabase-Stay: `guest-07-live-stay-mobile.png`, `guest-08-www-stay-mobile.png`
 - Admin desktop: `admin-01-login-desktop.png`, `admin-02-cockpit-desktop.png`, `admin-03-crm-list-desktop.png`, `admin-04-crm-search-desktop.png`, `admin-05-detail-drawer-desktop.png`, `admin-06-tasks-desktop.png`, `admin-07-support-desktop.png`
 - Owner mobile: `owner-01-login-mobile.png`, `owner-02-dashboard-mobile.png`, `owner-03-object-drawer-mobile.png`, `owner-04-bookings-mobile.png`, `owner-05-billing-mobile.png`, `owner-06-contact-mobile.png`
 
@@ -117,6 +117,18 @@ npm run qa:apps
 ```
 
 Ergebnis: gruen fuer Guest-Stay lokal und live unter `https://morrow-guest.vercel.app/app/gast`. Der Test nutzt echte Supabase-Daten und hat einen vorherigen Asset-Fehler sichtbar gemacht: alte Datenpfade wie `/brand/...` wurden im direkten Guest-App-Origin als Root-Pfade geladen. Der aktuelle Build normalisiert diese Pfade auf den Guest-BasePath `/app/gast/...`; der frische Screenshot `guest-07-live-stay-mobile.png` belegt den ersten View mit echtem Supabase-Aufenthalt aus dem Live-App-Lauf.
+
+Zusaetzlicher Plattform-URL-Check:
+
+```bash
+GUEST_BASE_URL=https://www.getmorrow.de/app/gast \
+GUEST_BOOKING_ID=11111111-1111-4111-8111-111111111111 \
+GUEST_ACCESS_CODE=MORROW1 \
+MORROW_QA_ALLOW_PARTIAL_APPS=1 \
+npm run qa:apps
+```
+
+Ergebnis: gruen fuer Guest-Stay ueber die oeffentliche Plattformstruktur `https://www.getmorrow.de/app/gast`. Der Screenshot `guest-08-www-stay-mobile.png` belegt den ersten View ueber die finale deutsche URL-Struktur.
 
 ## Guest App
 
