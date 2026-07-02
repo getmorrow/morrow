@@ -11,9 +11,9 @@ Pfad: `docs/qa/workflow-ux-final-2026-07-02/`
 - Website: `web-01-home-desktop.png`
 - Routing/App-Einstieg: `guest-00-entry-mobile-from-platform-desktop.png`, `guest-00-live-landing-mobile.png`, `owner-00-entry-desktop.png`, `owner-00-live-landing-desktop.png`, `admin-00-live-landing-desktop.png`
 - Guest mobile: `guest-01-first-view-mobile.png`, `guest-02-booking-mobile.png`, `guest-03-local-mobile.png`, `guest-04-local-food-mobile.png`, `guest-05-place-drawer-mobile.png`, `guest-06-help-mobile.png`
-- Guest Supabase-Stay: `guest-07-live-stay-mobile.png`, `guest-08-www-stay-mobile.png`
-- Admin desktop: `admin-01-login-desktop.png`, `admin-02-cockpit-desktop.png`, `admin-03-crm-list-desktop.png`, `admin-04-crm-search-desktop.png`, `admin-05-detail-drawer-desktop.png`, `admin-06-tasks-desktop.png`, `admin-07-support-desktop.png`, `admin-08-www-dashboard-desktop.png`, `admin-09-www-crm-search-desktop.png`, `admin-10-www-lead-drawer-status-desktop.png`, `admin-11-www-tasks-desktop.png`, `admin-12-www-support-desktop.png`
-- Owner mobile/desktop: `owner-01-login-mobile.png`, `owner-02-dashboard-mobile.png`, `owner-03-object-drawer-mobile.png`, `owner-04-bookings-mobile.png`, `owner-05-billing-mobile.png`, `owner-06-contact-mobile.png`, `owner-07-www-dashboard-desktop.png`
+- Guest Supabase-Stay: `guest-07-live-stay-mobile.png`, `guest-08-www-stay-mobile.png`, `guest-09-www-full-qa-stay-mobile.png`
+- Admin desktop: `admin-01-login-desktop.png`, `admin-02-cockpit-desktop.png`, `admin-03-crm-list-desktop.png`, `admin-04-crm-search-desktop.png`, `admin-05-detail-drawer-desktop.png`, `admin-06-tasks-desktop.png`, `admin-07-support-desktop.png`, `admin-08-www-dashboard-desktop.png`, `admin-09-www-crm-search-desktop.png`, `admin-10-www-lead-drawer-status-desktop.png`, `admin-11-www-tasks-desktop.png`, `admin-12-www-support-desktop.png`, `admin-13-www-full-qa-dashboard-desktop.png`
+- Owner mobile/desktop: `owner-01-login-mobile.png`, `owner-02-dashboard-mobile.png`, `owner-03-object-drawer-mobile.png`, `owner-04-bookings-mobile.png`, `owner-05-billing-mobile.png`, `owner-06-contact-mobile.png`, `owner-07-www-dashboard-desktop.png`, `owner-08-www-full-qa-dashboard-desktop.png`
 
 ## URL- und Routing-Abnahme
 
@@ -129,6 +129,34 @@ npm run qa:apps
 ```
 
 Ergebnis: gruen fuer Guest-Stay ueber die oeffentliche Plattformstruktur `https://www.getmorrow.de/app/gast`. Der Screenshot `guest-08-www-stay-mobile.png` belegt den ersten View ueber die finale deutsche URL-Struktur.
+
+Kombinierter Full-App-Check ueber die finale Plattformstruktur:
+
+```bash
+ADMIN_BASE_URL=https://www.getmorrow.de/admin \
+ADMIN_EMAIL=auszeiten@getmorrow.de \
+ADMIN_PASSWORD=<admin-password> \
+OWNER_BASE_URL=https://www.getmorrow.de/app/eigentuemer \
+OWNER_EMAIL=<owner-qa-full-email> \
+OWNER_PASSWORD=<owner-qa-full-password> \
+GUEST_BASE_URL=https://www.getmorrow.de/app/gast \
+GUEST_BOOKING_ID=11111111-1111-4111-8111-111111111111 \
+GUEST_ACCESS_CODE=MORROW1 \
+npm run qa:apps
+```
+
+Ergebnis: gruen fuer alle drei Apps in einem Lauf: Admin-Health, Admin-Landing, Admin-Login/Dashboard; Owner-Health, Owner-Landing, Owner-Login/Dashboard; Guest-Health, Guest-Landing und persoenlicher Guest-Stay. Die Screenshots `admin-13-www-full-qa-dashboard-desktop.png`, `owner-08-www-full-qa-dashboard-desktop.png` und `guest-09-www-full-qa-stay-mobile.png` belegen diesen gemeinsamen Plattformlauf.
+
+Technische Abschlusschecks nach diesem Lauf:
+
+```bash
+npm run qa:production
+npm run typecheck
+npm run lint
+git diff --check
+```
+
+Ergebnis: gruen. `npm run qa:readiness` und `npm run qa:launch-gates` bleiben bewusst rot, weil Rechtsfreigabe, Secret-Rotation, Angebotsfreigabe und Tracking-Entscheidung noch nicht final gesetzt sind.
 
 ## Guest App
 

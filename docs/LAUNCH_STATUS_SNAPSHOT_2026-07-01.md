@@ -73,22 +73,24 @@ Geprueft:
 
 ### Live `npm run qa:apps`
 
-Ergebnis: gruen fuer alle drei App-Projekte nach BasePath-Asset-Fix.
+Ergebnis: gruen fuer alle drei App-Projekte nach BasePath-Asset-Fix und nach zusaetzlichem Full-App-Check ueber die finale Plattformstruktur.
 
 ```text
 checkedApps: 3
 partial: false
 missingApps: []
-admin: health ok, landing ok
-guest: health ok, landing ok
-owner: health ok, landing ok
+admin: health ok, landing ok, login/dashboard ok
+guest: health ok, landing ok, stay ok
+owner: health ok, landing ok, login/dashboard ok
 ```
 
 Einordnung:
 
 - Direkte Vercel-App-Origins werden im QA-Script automatisch auf die jeweiligen BasePaths normalisiert.
 - Admin-, Guest- und Owner-App laden Logo/Fonts nicht mehr aus Root-Pfaden.
-- Login-/persoenliche Stay-Pruefungen wurden in diesem Lauf uebersprungen, weil keine `ADMIN_EMAIL`/`ADMIN_PASSWORD`, `OWNER_EMAIL`/`OWNER_PASSWORD` und `GUEST_BOOKING_ID`/`GUEST_ACCESS_CODE` in `.env.local` gesetzt waren.
+- Der zusaetzliche Full-App-Lauf am 2026-07-02 nutzte `https://www.getmorrow.de/admin`, `https://www.getmorrow.de/app/eigentuemer` und `https://www.getmorrow.de/app/gast` als Base-URLs. Admin-Login/Dashboard, Owner-Login/Dashboard und ein persoenlicher Guest-Stay mit Supabase-Testbuchung wurden in einem gemeinsamen Lauf geprueft.
+- Zugehoerige Evidence liegt in `docs/qa/workflow-ux-final-2026-07-02/`: `admin-13-www-full-qa-dashboard-desktop.png`, `owner-08-www-full-qa-dashboard-desktop.png`, `guest-09-www-full-qa-stay-mobile.png`.
+- Nach dem Full-App-Lauf waren `npm run qa:production`, `npm run typecheck`, `npm run lint` und `git diff --check` gruen.
 
 ### Supabase Backup-Probe
 
@@ -110,7 +112,7 @@ Einordnung:
 
 ### `npm run qa:readiness`
 
-Ergebnis: rot.
+Ergebnis: rot, zuletzt erneut nach dem Full-App-Lauf am 2026-07-02 geprueft.
 
 ```text
 internalTesting: green
@@ -136,7 +138,7 @@ Blockergruppen:
 
 ### `npm run qa:launch-gates`
 
-Ergebnis: rot.
+Ergebnis: rot, zuletzt erneut nach dem Full-App-Lauf am 2026-07-02 geprueft.
 
 ```text
 blockers: 3
