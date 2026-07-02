@@ -16,7 +16,21 @@ Pfad: `docs/qa/workflow-ux-final-2026-07-02/`
 
 ## URL- und Routing-Abnahme
 
-Ampel: grün.
+Ampel lokal: grün.
+
+Ampel Production `https://www.getmorrow.de`: rot, Stand 2026-07-02 nach Push von `dadd670`.
+
+Production-Blocker:
+
+- `/app/gast` liefert noch 404.
+- `/admin` leitet noch auf `https://morrow-admin.vercel.app`.
+- `/app/eigentuemer` leitet noch auf `https://morrow-owner.vercel.app`.
+- `/deine-auszeit/...` leitet noch auf `https://morrow-guest.vercel.app/deine-auszeit/...`.
+- `/app/guest` und `/app/owner` liefern noch 404 statt auf die deutschen Pfade zu redirecten.
+
+Bewertung:
+
+Der Code und die lokale Multi-Zone-Konfiguration sind grün. Production nutzt aber noch ein altes Web-Deployment oder alte Web-App-Environment-/Routing-Einstellungen. Vor finaler Abnahme muss Vercel die aktuelle `apps/web`-Version mit `MORROW_ADMIN_APP_URL`, `MORROW_GUEST_APP_URL` und `MORROW_OWNER_APP_URL` deployen.
 
 Geprüft lokal über Web-Multi-Zone-Rewrites:
 
