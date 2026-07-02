@@ -71,6 +71,25 @@ Geprueft:
 - Redirect `/app/owner` -> `/app/eigentuemer`
 - echter Testlead mit Quelle `qa`, Medium `rehearsal`, Kampagne `production-rehearsal-20260702073619` und Formular `Auszeit anfragen`; Lead `50dfe27d-0649-4d70-82cd-674208001f0e` wurde danach archiviert.
 
+### Live `npm run qa:apps`
+
+Ergebnis: gruen fuer alle drei App-Projekte nach BasePath-Asset-Fix.
+
+```text
+checkedApps: 3
+partial: false
+missingApps: []
+admin: health ok, landing ok
+guest: health ok, landing ok
+owner: health ok, landing ok
+```
+
+Einordnung:
+
+- Direkte Vercel-App-Origins werden im QA-Script automatisch auf die jeweiligen BasePaths normalisiert.
+- Admin-, Guest- und Owner-App laden Logo/Fonts nicht mehr aus Root-Pfaden.
+- Login-/persoenliche Stay-Pruefungen wurden in diesem Lauf uebersprungen, weil keine `ADMIN_EMAIL`/`ADMIN_PASSWORD`, `OWNER_EMAIL`/`OWNER_PASSWORD` und `GUEST_BOOKING_ID`/`GUEST_ACCESS_CODE` in `.env.local` gesetzt waren.
+
 ### Supabase Backup-Probe
 
 Ergebnis: gruen.
