@@ -180,6 +180,22 @@ Die Strukturpruefungen sichern inzwischen nicht nur die Konsolidierungsdokumente
 - die gezielten QA-Selectoren `QA_BLOCK2_*`, `QA_BLOCK4_*` und `QA_BLOCK5_*` im Env-Template,
 - die erweiterten Testdatenlabels fuer Erlebnisbaustein, Vor-Ort-Ort, Veranstaltung und Owner-Daten.
 
+### `npm run qa:app-deployment-config`
+
+Ergebnis: grün.
+
+```text
+checkedApps: web, admin, guest, owner
+blockers: 0
+passed: 16
+```
+
+Geprüft:
+
+- Web-, Admin-, Guest- und Owner-App nutzen das erwartete Next.js-Deployment-Setup.
+- Install-/Build-Commands sind monorepo-sicher und zielen auf die richtigen Workspaces.
+- Health-Routen identifizieren die jeweilige App korrekt.
+
 ## Nächster Abnahmeblock
 
 Aus `npm run qa:admin-parity:status`:
@@ -194,7 +210,7 @@ Vor einem echten Start muessen zuerst erledigt und belegt werden:
 - Geteilte Secrets rotieren und Freigabezeitpunkt setzen.
 - Angebotsdaten final pruefen: Termine, Preise, enthaltene Leistungen, Bildrechte, Verantwortlichkeit.
 - Tracking-/Consent-Entscheidung treffen: `MORROW_TRACKING_MODE=disabled` fuer Start ohne Paid Ads oder `enabled` mit GA4/Meta IDs fuer Paid Ads.
-- Optional: `qa:apps` mit echten Admin-/Owner-/Guest-Testzugängen gegen die App-Domains wiederholen, falls an App-Login/Portal-Flows erneut gearbeitet wird.
+- App-Workflows erneut nur dann wiederholen, wenn an Admin-, Owner- oder Guest-App wieder Code geändert wird. Der aktuelle Full-App-Lauf über `www.getmorrow.de` ist grün belegt.
 
 Danach:
 
