@@ -1,8 +1,8 @@
 # Morrow Launch Status Snapshot
 
-Stand: 2026-07-01
+Stand: 2026-07-02
 
-Dieser Snapshot dokumentiert den aktuellen Go-/No-Go-Stand nach Abschluss der manuellen Admin-Paritaetsbloecke 1 bis 5 und nach der Vereinheitlichung der QA-Env-Ladung fuer App-Production-Checks.
+Dieser Snapshot dokumentiert den aktuellen Go-/No-Go-Stand nach Abschluss der manuellen Admin-Paritaetsbloecke 1 bis 5, nach der deutschen Plattform-Routing-Freigabe unter `www.getmorrow.de` und nach Live-Testlead/Backup-Probe.
 
 ## Kurzfazit
 
@@ -15,12 +15,14 @@ Aktueller Status:
 - Zahlende Gäste: rot
 - Paid Ads: rot
 
-Hauptgrund: Die manuelle Admin-CRM-Parität ist technisch belegt, aber die finalen Launch-Gates fuer Recht, Secret-Rotation, Angebotsfreigabe und Tracking sind noch nicht geschlossen. `apps/admin` ist als Ziel-App fachlich naheliegend, wird aber erst nach Block 6/finalen Gates als alleinige produktive Quelle der Wahrheit freigegeben.
+Hauptgrund: Die manuelle Admin-CRM-Parität, das Plattform-Routing, die Live-Lead-Erfassung und ein Supabase-Backup sind technisch belegt, aber die finalen Launch-Gates fuer Recht, Secret-Rotation, Angebotsfreigabe und Tracking sind noch nicht geschlossen.
 
 Einordnung der Entfernung zum Start:
 
 - Oeffentliche Website: technisch live, aber Launch-Gates fuer Recht, finale Freigaben und Tracking noch rot.
-- App-Fundament: lokal konsistent; `npm run qa:app-deployment-config`, `npm run qa:apps` und die Health-Endpunkte fuer Web/Admin/Guest/Owner sind gruen, sobald die QA-URLs gesetzt sind.
+- App-Fundament: live unter der deutschen Plattformstruktur erreichbar; `npm run qa:production` prueft `/admin`, `/app/gast`, `/app/eigentuemer` und die Legacy-Redirects erfolgreich gegen `https://www.getmorrow.de`.
+- Live-Lead-Erfassung: echter QA-Testlead ueber `www.getmorrow.de` wurde in Supabase inklusive Attribution verifiziert und danach archiviert.
+- Backup/Recovery: technischer Supabase-Probeexport vom 2026-07-02 war erfolgreich.
 - Operativer MVP: noch nicht freigegeben, weil Recht/Secrets/Angebotsfreigabe/Tracking und die finale Bewertung offen sind.
 - Zahlende Gaeste und Paid Ads: noch nicht freigegeben.
 
@@ -46,17 +48,45 @@ Einordnung:
 - Block 5 Owner-App ist mit Owner-Profil, Objektzugriff, Dokument, Abrechnung, Operation und Audit-Evidenz abgeschlossen.
 - Der Admin-Paritaetslauf bleibt rot, weil die automatischen finalen Gates noch nicht abgehakt werden duerfen.
 
-### `npm run qa:apps`
-
-Ergebnis: gruen fuer alle drei App-URLs.
+### Live `npm run qa:production`
 
 ```text
-checkedApps: 3
-partial: false
-missingApps: []
+baseUrl: https://www.getmorrow.de
+checkedPages: 12
+checkedForms: 4
+appRoutes: admin, guest, owner
+redirects: 4
+leadVerification: true
 ```
 
-Mit gesetzten QA-Zugangsdaten wurden Admin-, Owner- und Guest-Flows zusaetzlich isoliert geoeffnet. Dabei fiel ein Owner-App-Bildpfad aus Supabase-Payload auf, der live auf ein nicht vorhandenes Legacy-Asset zeigte. Der Owner-Code normalisiert solche Legacy-Bildpfade jetzt auf ein vorhandenes Owner-App-Fallback-Asset; der Fix ist nach Deployment live zu pruefen.
+Geprueft:
+
+- `https://www.getmorrow.de`
+- `https://www.getmorrow.de/admin`
+- `https://www.getmorrow.de/app/gast`
+- `https://www.getmorrow.de/app/eigentuemer`
+- Redirect `/deine-auszeit/...` -> `/app/gast/deine-auszeit/...`
+- Redirect `/owner` -> `/app/eigentuemer`
+- Redirect `/app/guest` -> `/app/gast`
+- Redirect `/app/owner` -> `/app/eigentuemer`
+- echter Testlead mit Quelle `qa`, Medium `rehearsal`, Kampagne `production-rehearsal-20260702073619` und Formular `Auszeit anfragen`; Lead `50dfe27d-0649-4d70-82cd-674208001f0e` wurde danach archiviert.
+
+### Supabase Backup-Probe
+
+Ergebnis: gruen.
+
+```text
+backupDir: backups/supabase/2026-07-02T07-40-10-178Z
+tables: 22
+rows: 153
+failed: 0
+```
+
+Einordnung:
+
+- `manifest.json` wurde maschinell geprueft.
+- `backups/` ist von Git ignoriert.
+- Das Runbook `docs/SUPABASE_BACKUP_RECOVERY_RUNBOOK.md` wurde auf die tatsaechliche Tabellenliste aktualisiert.
 
 
 ### `npm run qa:readiness`
@@ -143,7 +173,7 @@ Vor einem echten Start muessen zuerst erledigt und belegt werden:
 - Geteilte Secrets rotieren und Freigabezeitpunkt setzen.
 - Angebotsdaten final pruefen: Termine, Preise, enthaltene Leistungen, Bildrechte, Verantwortlichkeit.
 - Tracking-/Consent-Entscheidung treffen: `MORROW_TRACKING_MODE=disabled` fuer Start ohne Paid Ads oder `enabled` mit GA4/Meta IDs fuer Paid Ads.
-- Nach Deployment den Owner-App-Bildfallback mit `qa:apps` erneut gegen Production pruefen.
+- Optional: `qa:apps` mit echten Admin-/Owner-/Guest-Testzugängen gegen die App-Domains wiederholen, falls an App-Login/Portal-Flows erneut gearbeitet wird.
 
 Danach:
 

@@ -1,6 +1,6 @@
 # Morrow Production Launch Checklist
 
-Stand: 2026-06-26
+Stand: 2026-07-02
 
 Ziel: Morrow sicher von lokalem MVP zu einer öffentlich erreichbaren Phase-1-Version bringen.
 
@@ -354,6 +354,10 @@ Einmal vollständig testen:
 - Supabase-Backup mit `npm run supabase:backup` ausführen und `manifest.json` prüfen.
 - Runbook `docs/SUPABASE_BACKUP_RECOVERY_RUNBOOK.md` lesen und sicheren Ablageort für Exporte festlegen.
 
+Aktuelle technische Evidenz:
+- 2026-07-02: Live `qa:production` gegen `https://www.getmorrow.de` gruen, inklusive `/admin`, `/app/gast`, `/app/eigentuemer`, Legacy-Redirects und echtem QA-Testlead mit Supabase-Attribution.
+- 2026-07-02: `npm run supabase:backup` gruen, 22 Tabellen, 153 Zeilen, 0 Fehler; Manifest geprueft.
+
 ## 8a. App Production Rehearsal
 
 Vor dem Browser-Rehearsal Admin-Zugang und Rollen-/RLS-Zugriff pruefen:
@@ -410,11 +414,13 @@ Technisch deutlich näher an production-ready:
 - E-Mail-Automation aktiv.
 - Kommunikationshistorie V1 aktiv.
 - Öffentliche Website unter `getmorrow.de` ist erreichbar.
-- Lokale App-Deployment-Konfiguration ist grün: `npm run qa:app-deployment-config`.
+- Deutsche Plattformpfade sind live erreichbar: `/admin`, `/app/gast`, `/app/eigentuemer`.
+- Live-Lead mit Supabase-Attribution wurde erfolgreich getestet und archiviert.
+- Supabase-Backup-Probe wurde erfolgreich durchgeführt.
+- App-Deployment-Konfiguration ist grün: `npm run qa:app-deployment-config`.
 
 Noch nicht live-ready ohne:
 - finale Rechtstexte mit echten Unternehmensdaten.
-- getrennte, erreichbare Vercel-App-URLs fuer Admin, Gaeste-App und Owner-App mit korrektem `/health`-Signal.
 - Secret-Rotation.
 - finale echte Angebotsdaten.
 - Tracking-/Consent-Entscheidung.

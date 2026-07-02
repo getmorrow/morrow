@@ -131,6 +131,22 @@ NEXT_PUBLIC_META_PIXEL_ID=...
 MORROW_TRACKING_APPROVED_AT=2026-..-..
 ```
 
+## Backup Und Recovery
+
+Status: technisch geprueft, organisatorischer Ablageort noch festlegen
+
+Technisch vorhanden:
+- `npm run supabase:backup` exportiert die operativ relevanten Tabellen als JSON plus `manifest.json`.
+- `backups/` ist vom Git ausgeschlossen.
+- Probe-Export vom 2026-07-02 war erfolgreich: 22 Tabellen, 153 Zeilen, 0 fehlgeschlagene Tabellen.
+- Runbook: `docs/SUPABASE_BACKUP_RECOVERY_RUNBOOK.md`
+
+Vor echten zahlenden Gaesten noch festlegen:
+- sicherer Ablageort fuer Exportordner
+- Zugriffskreis fuer lokale Backups
+- Frequenz im laufenden MVP-Betrieb
+- Supabase Dashboard Backups/PITR im gebuchten Plan pruefen
+
 ## Aktueller Go-/No-Go
 
 - Kontrollierte echte Leads: nicht freigegeben
