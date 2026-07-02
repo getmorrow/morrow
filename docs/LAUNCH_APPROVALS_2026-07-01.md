@@ -108,7 +108,8 @@ Technisch vorhanden:
 - Tracking-Komponente laedt GA/Meta nur nach Zustimmung.
 - Ohne Public Tracking IDs werden keine Tracking-Skripte geladen.
 - CTA-Klicks mit `data-conversion` werden nach Zustimmung an GA4 und Meta gemeldet, wenn IDs gesetzt sind.
-- Live-Testlead vom 2026-07-02 ueber `https://www.getmorrow.de/auszeiten/family-escape` wurde in Supabase verifiziert: Quelle `qa`, Medium `rehearsal`, Kampagne `production-rehearsal-20260702073619`, Formular `Auszeit anfragen`. Der QA-Lead `50dfe27d-0649-4d70-82cd-674208001f0e` wurde danach archiviert.
+- Live-Testlead vom 2026-07-02 ueber `https://www.getmorrow.de/auszeiten/family-escape` wurde in Supabase verifiziert: Quelle `qa`, Medium `rehearsal`, Content `lead-submit`, Kampagne `production-rehearsal-20260702123743`, Landing Path `/auszeiten/family-escape`, Formular `Auszeit anfragen`. Der QA-Lead `1de17a9f-b879-4bff-98ee-b599f7ae9e65` wurde danach automatisch archiviert.
+- Supabase normalisiert Lead-Attribution zusätzlich per Trigger aus `payload`, damit auch ein noch nicht aktualisierter Client keine leeren CRM-Attributionsspalten erzeugt.
 
 Empfohlene Launch-Entscheidung:
 - Kontrollierte echte Leads koennen ohne GA4/Meta starten, wenn Recht, Secrets und Angebotsdaten freigegeben sind.
