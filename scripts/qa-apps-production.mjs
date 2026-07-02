@@ -98,6 +98,10 @@ async function checkLanding(page, target) {
   const body = await readBody(page)
   assertNoSoft404(target.name, body)
   assert(target.expectedLandingText.test(body), `${target.name} landing text did not match`)
+  const screenshot = `${screenshotsDir}/${target.key}-landing.png`
+  await page.screenshot({ path: screenshot, fullPage: false })
+
+  return { checked: true, screenshot }
 }
 
 async function checkHealth(target) {
@@ -228,13 +232,12 @@ try {
   for (const target of configuredTargets) {
     const activePage = target.key === 'guest' ? mobile : page
     const health = await checkHealth(target)
-    await checkLanding(activePage, target)
 
     const result = {
       app: target.key,
       baseUrl: target.baseUrl,
       health,
-      landing: { checked: true },
+      landing: await checkLanding(activePage, target),
     }
 
     if (target.login) {

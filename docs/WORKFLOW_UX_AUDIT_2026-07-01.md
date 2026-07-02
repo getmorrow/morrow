@@ -9,7 +9,7 @@ Ziel: Abnahme nicht nur anhand von Startseiten, sondern anhand echter Hauptworkf
 Pfad: `docs/qa/workflow-ux-final-2026-07-02/`
 
 - Website: `web-01-home-desktop.png`
-- Routing/App-Einstieg: `guest-00-entry-mobile-from-platform-desktop.png`, `owner-00-entry-desktop.png`
+- Routing/App-Einstieg: `guest-00-entry-mobile-from-platform-desktop.png`, `guest-00-live-landing-mobile.png`, `owner-00-entry-desktop.png`, `owner-00-live-landing-desktop.png`, `admin-00-live-landing-desktop.png`
 - Guest mobile: `guest-01-first-view-mobile.png`, `guest-02-booking-mobile.png`, `guest-03-local-mobile.png`, `guest-04-local-food-mobile.png`, `guest-05-place-drawer-mobile.png`, `guest-06-help-mobile.png`
 - Admin desktop: `admin-01-login-desktop.png`, `admin-02-cockpit-desktop.png`, `admin-03-crm-list-desktop.png`, `admin-04-crm-search-desktop.png`, `admin-05-detail-drawer-desktop.png`, `admin-06-tasks-desktop.png`, `admin-07-support-desktop.png`
 - Owner mobile: `owner-01-login-mobile.png`, `owner-02-dashboard-mobile.png`, `owner-03-object-drawer-mobile.png`, `owner-04-bookings-mobile.png`, `owner-05-billing-mobile.png`, `owner-06-contact-mobile.png`
@@ -84,6 +84,20 @@ npm run qa:apps
 ```
 
 Ergebnis: grün für Health, Landing, Admin-Login/Dashboard und Guest-Stay. Owner-Login wurde ohne gesetzte Owner-Credentials im Script übersprungen; Owner-Portal-Screenshots liegen separat als frische Evidence vor.
+
+Live-App-Check nach BasePath-Asset-Fix:
+
+```bash
+npm run qa:apps
+```
+
+Ergebnis: grün für alle drei direkten App-Projekte. Der Check normalisiert `https://morrow-admin.vercel.app`, `https://morrow-guest.vercel.app` und `https://morrow-owner.vercel.app` automatisch auf `/admin`, `/app/gast` und `/app/eigentuemer`; Health und Landing sind grün. Frische Landing-Screenshots wurden erzeugt und in `docs/qa/workflow-ux-final-2026-07-02/` abgelegt:
+
+- `admin-00-live-landing-desktop.png`
+- `guest-00-live-landing-mobile.png`
+- `owner-00-live-landing-desktop.png`
+
+Login-/persoenliche Stay-Tiefpruefungen wurden in diesem Live-Lauf uebersprungen, weil keine aktuellen Zugangsdaten in `.env.local` gesetzt waren. Die fruehere lokale Deep-Evidence bleibt gueltig fuer UX-Abnahme; fuer Production-Go sollte ein stabiler Admin-/Owner-/Guest-Testzugang gepflegt werden.
 
 ## Guest App
 
