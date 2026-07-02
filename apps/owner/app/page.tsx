@@ -6,7 +6,7 @@ export default function OwnerLoginPage() {
       <div className="owner-container">
         <header className="owner-app-header">
           <a aria-label="Morrow Startseite" href="https://www.getmorrow.de">
-            <img alt="morrow" src="/brand/morrow-wordmark-offblack.svg" />
+            <img alt="morrow" src="/app/eigentuemer/brand/morrow-wordmark-offblack.svg" />
           </a>
           <span>Eigentümerbereich</span>
         </header>

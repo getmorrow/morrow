@@ -5976,7 +5976,7 @@ function AdminDashboardView({
     <main className="admin-shell admin-dashboard admin-app-shell">
       <aside className="admin-sidebar" aria-label="Morrow Admin">
         <a className="admin-sidebar-brand" aria-label="Morrow Startseite" href="https://www.getmorrow.de">
-          <img alt="morrow" src="/brand/morrow-wordmark-offblack.svg" />
+          <img alt="morrow" src="/admin/brand/morrow-wordmark-offblack.svg" />
         </a>
         <div className="admin-sidebar-context">
           <span>Operations Cockpit</span>

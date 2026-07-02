@@ -6,7 +6,7 @@ export default function AdminLoginPage() {
       <div className="admin-login-grid">
         <section className="admin-login-copy">
           <a aria-label="Morrow Startseite" href="https://www.getmorrow.de">
-            <img alt="morrow" src="/brand/morrow-wordmark-offblack.svg" />
+            <img alt="morrow" src="/admin/brand/morrow-wordmark-offblack.svg" />
           </a>
           <p className="admin-eyebrow">Morrow Admin</p>
           <h1>Steuerung für Anfragen, Buchungen und Aufenthalte.</h1>

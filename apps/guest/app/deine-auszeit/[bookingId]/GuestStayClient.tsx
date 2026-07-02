@@ -167,12 +167,12 @@ const devGuestStayPayload: GuestStayPayload = {
     title: "Raus aus dem Alltag. Rein in gemeinsame Zeit.",
     description:
       "Unterkunft, ruhiger Rhythmus und passende Empfehlungen sind vorbereitet, damit ihr ankommt, ohne vorher alles selbst zu sortieren.",
-    image: "/brand/generated/morrow-spo-couple.png",
+    image: "/app/gast/brand/generated/morrow-spo-couple.png",
     stay: {
       name: "Nordsee Rückzugsort",
       location: "Sankt Peter-Ording Bad",
       address: "Die genaue Adresse liegt vor Anreise bereit.",
-      image: "/brand/generated/morrow-spo-couple.png",
+      image: "/app/gast/brand/generated/morrow-spo-couple.png",
       checkInType: "Schlüsselsafe",
       checkInInstructions: "Check-in ab 16 Uhr. Den finalen Code erhaltet ihr kurz vor der Anreise.",
       propertySupportType: "morrow",
@@ -219,7 +219,7 @@ const devLocalPlaces: LocalPlace[] = [
     website: "https://www.arche-noah-spo.de/",
     reservation_url: "https://www.arche-noah-spo.de/",
     rating: 4.4,
-    images: ["/brand/generated/morrow-local-food-table.png"],
+    images: ["/app/gast/brand/generated/morrow-local-food-table.png"],
     payload: {
       cuisine: "Nordsee, Fisch, unkompliziert",
       bestFor: ["Strandtag", "gut erreichbar", "Abendessen"],
@@ -234,7 +234,7 @@ const devLocalPlaces: LocalPlace[] = [
     lat: 54.314,
     lng: 8.607,
     address: "Strandabschnitt Bad, Sankt Peter-Ording",
-    images: ["/brand/generated/morrow-local-beach-pfahlbau.png"],
+    images: ["/app/gast/brand/generated/morrow-local-beach-pfahlbau.png"],
     payload: {
       bestFor: ["kurze Wege", "Spaziergang", "Pfahlbauten"],
       description: "Ein guter erster Strandmoment, wenn ihr schnell ans Wasser möchtet.",
@@ -248,7 +248,7 @@ const devLocalPlaces: LocalPlace[] = [
     lat: 54.306,
     lng: 8.642,
     address: "Sankt Peter-Ording",
-    images: ["/brand/generated/morrow-local-practical-path.png"],
+    images: ["/app/gast/brand/generated/morrow-local-practical-path.png"],
     payload: {
       eventDate: "2026-08-13",
       eventTime: "09:00-13:00 Uhr",
@@ -263,7 +263,7 @@ const devLocalPlaces: LocalPlace[] = [
     status: "approved",
     lat: 54.301,
     lng: 8.598,
-    images: ["/brand/generated/morrow-local-watt-walk.png"],
+    images: ["/app/gast/brand/generated/morrow-local-watt-walk.png"],
     payload: {
       bestFor: ["Natur", "Nordseegefühl", "bewusst geplant"],
       description: "Ein kuratierter Naturmoment, wenn Tide, Wetter und Tagesrhythmus passen.",
@@ -513,7 +513,7 @@ function packageImage(packageItem?: GuestPackage | null) {
     packageItem?.heroImage ||
     packageItem?.image ||
     packageItem?.stay?.image ||
-    "/brand/generated/morrow-spo-couple.png"
+    "/app/gast/brand/generated/morrow-spo-couple.png"
   );
 }
 
@@ -566,17 +566,17 @@ function placeDescription(place: LocalPlace) {
 function localPlaceFallbackImage(category: string) {
   const normalized = normalizeCategory(category);
   const images: Partial<Record<LocalFilter, string>> = {
-    beach: "/brand/generated/morrow-local-beach-pfahlbau.png",
-    food: "/brand/generated/morrow-local-food-table.png",
-    experience: "/brand/generated/morrow-local-watt-walk.png",
-    event: "/brand/generated/morrow-local-practical-path.png",
-    shopping: "/brand/generated/morrow-local-practical-path.png",
-    emergency: "/brand/generated/morrow-spo-interior.png",
-    weather: "/brand/generated/morrow-local-beach-pfahlbau.png",
-    tide: "/brand/generated/morrow-local-watt-walk.png",
+    beach: "/app/gast/brand/generated/morrow-local-beach-pfahlbau.png",
+    food: "/app/gast/brand/generated/morrow-local-food-table.png",
+    experience: "/app/gast/brand/generated/morrow-local-watt-walk.png",
+    event: "/app/gast/brand/generated/morrow-local-practical-path.png",
+    shopping: "/app/gast/brand/generated/morrow-local-practical-path.png",
+    emergency: "/app/gast/brand/generated/morrow-spo-interior.png",
+    weather: "/app/gast/brand/generated/morrow-local-beach-pfahlbau.png",
+    tide: "/app/gast/brand/generated/morrow-local-watt-walk.png",
   };
 
-  return images[normalized] || "/brand/generated/morrow-spo-interior.png";
+  return images[normalized] || "/app/gast/brand/generated/morrow-spo-interior.png";
 }
 
 function placeDetailImage(place: LocalPlace, packageItem?: GuestPackage | null) {
@@ -1047,7 +1047,7 @@ export function GuestStayClient({
       <main className="guest-page">
         <div className="guest-shell">
           <header className="guest-app-header">
-            <img alt="morrow" src="/brand/morrow-wordmark-offblack.svg" />
+            <img alt="morrow" src="/app/gast/brand/morrow-wordmark-offblack.svg" />
           </header>
           <section className="guest-loading-card">
             <p className="eyebrow">Deine Auszeit</p>
@@ -1063,7 +1063,7 @@ export function GuestStayClient({
       <main className="guest-page">
         <div className="guest-shell">
           <header className="guest-app-header">
-            <img alt="morrow" src="/brand/morrow-wordmark-offblack.svg" />
+            <img alt="morrow" src="/app/gast/brand/morrow-wordmark-offblack.svg" />
           </header>
           <section className="guest-login-hero">
             <p className="eyebrow">Deine Auszeit</p>
@@ -1080,7 +1080,7 @@ export function GuestStayClient({
       <div className="guest-shell">
         <header className="guest-app-header guest-app-header-floating">
           <a aria-label="Morrow Startseite" href="https://www.getmorrow.de">
-            <img alt="morrow" src="/brand/morrow-wordmark-offblack.svg" />
+            <img alt="morrow" src="/app/gast/brand/morrow-wordmark-offblack.svg" />
           </a>
           <span>{completed ? "Willkommen zurück" : "Gästebereich"}</span>
         </header>

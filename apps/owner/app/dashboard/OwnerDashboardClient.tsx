@@ -169,7 +169,7 @@ function dateDistanceLabel(startsOn: string | null) {
 }
 
 function propertyImage(property: OwnerDashboardProperty) {
-  const fallbackImage = "/brand/generated/morrow-spo-interior.png";
+  const fallbackImage = "/app/eigentuemer/brand/generated/morrow-spo-interior.png";
   const media = property.media?.length ? property.media : getPayloadLines(property.payload ?? {}, ["media"]);
   const image = getPayloadText(property.payload ?? {}, ["image"]) || media[0] || fallbackImage;
 
@@ -617,7 +617,7 @@ function OwnerDashboardView({
       <div className="owner-container owner-portal-layout">
         <aside className="owner-portal-sidebar">
           <a className="owner-portal-brand" aria-label="Morrow Startseite" href="https://www.getmorrow.de">
-            <img alt="morrow" src="/brand/morrow-wordmark-offblack.svg" />
+            <img alt="morrow" src="/app/eigentuemer/brand/morrow-wordmark-offblack.svg" />
           </a>
           <div className="owner-portal-context">
             <span>Eigentümerportal</span>

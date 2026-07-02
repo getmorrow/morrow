@@ -23,7 +23,7 @@ function firstAppBaseUrl(key, ...names) {
 
     const baseUrl = normalizeBaseUrl(rawValue)
     const appPath = appBasePaths[key]
-    const isInternalZoneOrigin = name.startsWith('MORROW_') && appPath && !new URL(baseUrl).pathname.includes(appPath)
+    const isInternalZoneOrigin = appPath && !new URL(baseUrl).pathname.includes(appPath)
 
     return isInternalZoneOrigin ? `${baseUrl}${appPath}` : baseUrl
   }
