@@ -7,6 +7,7 @@ const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 const consentStorageKey = "morrow_cookie_consent_v1";
 const attributionStorageKey = "morrow_attribution_v1";
+const conversionStorageKey = "morrow_last_conversion_v1";
 type ConsentState = "accepted" | "declined" | null;
 
 function attributionFromCurrentPage() {
@@ -20,8 +21,8 @@ function attributionFromCurrentPage() {
     "gclid",
     "fbclid",
   ].some((key) => params.has(key));
-
-  if (!hasPaidOrUtmContext && !document.referrer) return null;
+  const referrer = document.referrer || "";
+  const referrerHost = referrer ? new URL(referrer).hostname : "";
 
   return {
     capturedAt: new Date().toISOString(),
@@ -30,10 +31,11 @@ function attributionFromCurrentPage() {
     currentPath: window.location.pathname,
     fbclid: params.get("fbclid") || "",
     gclid: params.get("gclid") || "",
+    hasPaidOrUtmContext: hasPaidOrUtmContext ? "true" : "false",
     landingPath: window.location.pathname,
-    medium: params.get("utm_medium") || "",
-    referrer: document.referrer || "",
-    source: params.get("utm_source") || "website",
+    medium: params.get("utm_medium") || (referrer ? "referral" : "direct"),
+    referrer,
+    source: params.get("utm_source") || referrerHost || "direct",
     term: params.get("utm_term") || "",
     url: window.location.href,
   };
@@ -69,8 +71,6 @@ export function Analytics() {
   }, []);
 
   useEffect(() => {
-    if (!canTrack) return;
-
     function handleClick(event: MouseEvent) {
       const target = event.target;
       if (!(target instanceof Element)) return;
@@ -88,8 +88,23 @@ export function Analytics() {
         href: element instanceof HTMLAnchorElement ? element.href : undefined,
       };
 
-      window.gtag?.("event", eventName, payload);
-      window.fbq?.("trackCustom", eventName, payload);
+      window.localStorage.setItem(
+        conversionStorageKey,
+        JSON.stringify({
+          clickedAt: new Date().toISOString(),
+          eventName,
+          href: payload.href || "",
+          label: eventLabel,
+          location: eventLocation,
+          path: window.location.pathname,
+          url: window.location.href,
+        }),
+      );
+
+      if (canTrack) {
+        window.gtag?.("event", eventName, payload);
+        window.fbq?.("trackCustom", eventName, payload);
+      }
     }
 
     document.addEventListener("click", handleClick);

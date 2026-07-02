@@ -8497,11 +8497,21 @@ function AdminDetailDrawer({
   const leadUtm = typeof payload.utm === "object" && payload.utm !== null
     ? payload.utm as Record<string, unknown>
     : {};
+  const leadFormContext = typeof payload.formContext === "object" && payload.formContext !== null
+    ? payload.formContext as Record<string, unknown>
+    : {};
+  const leadConversionContext = typeof payload.conversionContext === "object" && payload.conversionContext !== null
+    ? payload.conversionContext as Record<string, unknown>
+    : {};
   const leadMedium = getPayloadText(leadUtm, ["medium", "utm_medium"]);
   const leadContent = getPayloadText(leadUtm, ["content", "utm_content"]);
   const leadClickId = getPayloadText(leadUtm, ["gclid"]) || getPayloadText(leadUtm, ["fbclid"]);
   const leadLandingPath = getPayloadText(leadUtm, ["landingPath"]);
   const leadReferrer = getPayloadText(leadUtm, ["referrer"]);
+  const leadCurrentPath = getPayloadText(leadFormContext, ["currentPath"]) || getPayloadText(leadUtm, ["currentPath"]);
+  const leadFormLabel = getPayloadText(leadFormContext, ["formLabel"]);
+  const leadCtaLabel = getPayloadText(leadConversionContext, ["label"]);
+  const leadCtaPath = getPayloadText(leadConversionContext, ["path", "location"]);
 
   return (
     <div className="admin-drawer-layer" role="presentation">
@@ -8556,6 +8566,14 @@ function AdminDetailDrawer({
               <article>
                 <small>Einstieg</small>
                 <strong>{leadLandingPath || leadReferrer || "nicht gesetzt"}</strong>
+              </article>
+              <article>
+                <small>Formular</small>
+                <strong>{leadFormLabel || leadCurrentPath || "nicht gesetzt"}</strong>
+              </article>
+              <article>
+                <small>Auslöser</small>
+                <strong>{[leadCtaLabel, leadCtaPath].filter(Boolean).join(" · ") || "nicht gesetzt"}</strong>
               </article>
             </>
           ) : null}

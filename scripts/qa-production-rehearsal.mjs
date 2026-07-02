@@ -250,12 +250,23 @@ async function verifyLeadInSupabase() {
   assert(data.package_slug === 'family-escape', `Expected family-escape, got ${data.package_slug}`)
   assert(data.source === 'qa', `Expected source qa, got ${data.source}`)
   assert(data.campaign === campaign, `Expected campaign ${campaign}, got ${data.campaign}`)
+  assert(data.payload?.utm?.medium === 'rehearsal', `Expected utm medium rehearsal, got ${data.payload?.utm?.medium}`)
+  assert(
+    data.payload?.utm?.landingPath === '/auszeiten/family-escape',
+    `Expected landing path /auszeiten/family-escape, got ${data.payload?.utm?.landingPath}`,
+  )
+  assert(
+    data.payload?.formContext?.formLabel === 'Auszeit anfragen',
+    `Expected form context Auszeit anfragen, got ${data.payload?.formContext?.formLabel}`,
+  )
 
   return {
     checked: true,
     leadId: data.id,
     source: data.source,
     campaign: data.campaign,
+    medium: data.payload?.utm?.medium,
+    form: data.payload?.formContext?.formLabel,
   }
 }
 

@@ -209,6 +209,12 @@ Vor Aktivierung entscheiden:
 - Google Ads Conversion kann spaeter ergaenzt werden.
 - Consent Mode / Cookie Banner final pruefen.
 
+Operative Attribution fuer Anfragen:
+- Oeffentliche Formulare speichern Quelle, Medium, Kampagne, Content, Suchbegriff, Referrer, Landing Path, aktuelle URL sowie `gclid` und `fbclid`, sofern vorhanden.
+- Auch ohne Tracking-Consent wird fuer die Bearbeitung der Anfrage ein technischer Formular-/Anfragekontext gespeichert: Formularart, Auszeit, aktuelle Seite und letzter CTA-Ausloeser.
+- Im Admin-Drawer sind Quelle, Kampagne, Kampagnenkontext, Klick-ID, Einstieg, Formular und Ausloeser sichtbar.
+- `npm run qa:production` prueft bei optionalem Testlead Quelle, Kampagne, Medium, Landing Path und Formular-Kontext.
+
 Für Phase 1 messen:
 - Formular-Abschluss Gast.
 - Eigentümer-Anfrage.

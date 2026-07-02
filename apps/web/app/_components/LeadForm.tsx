@@ -31,6 +31,8 @@ type FormState = {
   whatsappOptIn: boolean;
 };
 
+const conversionStorageKey = "morrow_last_conversion_v1";
+
 const initialState: FormState = {
   adults: "2",
   businessName: "",
@@ -95,6 +97,19 @@ function readStoredAttribution() {
   }
 }
 
+function readLastConversionContext() {
+  try {
+    const rawConversion = window.localStorage.getItem(conversionStorageKey);
+    if (!rawConversion) return {} as Record<string, string>;
+    const conversion = JSON.parse(rawConversion) as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.entries(conversion).map(([key, value]) => [key, typeof value === "string" ? value : ""]),
+    ) as Record<string, string>;
+  } catch {
+    return {} as Record<string, string>;
+  }
+}
+
 function integerOrNull(value: string) {
   const trimmed = value.trim();
   if (!/^[0-9]+$/.test(trimmed)) return null;
@@ -131,18 +146,30 @@ export function LeadForm({ audience, dates = [], packageName, packageSlug, type 
     try {
       const supabase = createSupabaseBrowserClient();
       const utm = getUtmContext();
+      const conversionContext = readLastConversionContext();
       const submittedAt = new Date().toISOString();
       const adults = integerOrNull(form.adults);
       const children = integerOrNull(form.children);
       const childrenAges = form.childrenAges.trim() || null;
       const dog = form.dog || null;
+      const formContext = {
+        audience: audience || "",
+        currentPath: window.location.pathname,
+        currentUrl: window.location.href,
+        formLabel: fieldLabel(type),
+        packageName: packageName || "",
+        packageSlug: packageSlug || "",
+        type,
+      };
       const leadPayload = {
         adults,
         businessName: form.businessName.trim(),
         children,
         childrenAges,
+        conversionContext,
         dog,
         experienceType: form.experienceType.trim(),
+        formContext,
         message: form.message.trim(),
         occasion: form.occasion.trim(),
         packageName,
