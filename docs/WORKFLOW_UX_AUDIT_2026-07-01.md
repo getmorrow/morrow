@@ -11,6 +11,7 @@ Pfad: `docs/qa/workflow-ux-final-2026-07-02/`
 - Website: `web-01-home-desktop.png`
 - Routing/App-Einstieg: `guest-00-entry-mobile-from-platform-desktop.png`, `guest-00-live-landing-mobile.png`, `owner-00-entry-desktop.png`, `owner-00-live-landing-desktop.png`, `admin-00-live-landing-desktop.png`
 - Guest mobile: `guest-01-first-view-mobile.png`, `guest-02-booking-mobile.png`, `guest-03-local-mobile.png`, `guest-04-local-food-mobile.png`, `guest-05-place-drawer-mobile.png`, `guest-06-help-mobile.png`
+- Guest Supabase-Stay: `guest-07-live-stay-mobile.png`
 - Admin desktop: `admin-01-login-desktop.png`, `admin-02-cockpit-desktop.png`, `admin-03-crm-list-desktop.png`, `admin-04-crm-search-desktop.png`, `admin-05-detail-drawer-desktop.png`, `admin-06-tasks-desktop.png`, `admin-07-support-desktop.png`
 - Owner mobile: `owner-01-login-mobile.png`, `owner-02-dashboard-mobile.png`, `owner-03-object-drawer-mobile.png`, `owner-04-bookings-mobile.png`, `owner-05-billing-mobile.png`, `owner-06-contact-mobile.png`
 
@@ -99,6 +100,18 @@ Ergebnis: grün für alle drei direkten App-Projekte. Der Check normalisiert `ht
 
 Login-/persoenliche Stay-Tiefpruefungen wurden in diesem Live-Lauf uebersprungen, weil keine aktuellen Zugangsdaten in `.env.local` gesetzt waren. Die fruehere lokale Deep-Evidence bleibt gueltig fuer UX-Abnahme; fuer Production-Go sollte ein stabiler Admin-/Owner-/Guest-Testzugang gepflegt werden.
 
+Zusaetzlicher Guest-Stay-Check mit Supabase-Testbuchung gegen den aktuellen Guest-Build:
+
+```bash
+GUEST_BASE_URL=http://127.0.0.1:5102 \
+GUEST_BOOKING_ID=11111111-1111-4111-8111-111111111111 \
+GUEST_ACCESS_CODE=MORROW1 \
+MORROW_QA_ALLOW_PARTIAL_APPS=1 \
+npm run qa:apps
+```
+
+Ergebnis: gruen fuer Guest-Stay. Der Test nutzt echte Supabase-Daten und hat einen vorherigen Asset-Fehler sichtbar gemacht: alte Datenpfade wie `/brand/...` wurden im direkten Guest-App-Origin als Root-Pfade geladen. Der aktuelle Build normalisiert diese Pfade auf den Guest-BasePath `/app/gast/...`; der frische Screenshot `guest-07-live-stay-mobile.png` belegt den ersten View mit echtem Supabase-Aufenthalt.
+
 ## Guest App
 
 Ampel: grün mit P2-Hinweis.
@@ -106,6 +119,7 @@ Ampel: grün mit P2-Hinweis.
 Geprüfte Wege:
 
 - Aufenthalt unter `/app/gast/deine-auszeit/dev-active?code=MORROWDEV` öffnen.
+- Supabase-Testaufenthalt `11111111-1111-4111-8111-111111111111` mit Code `MORROW1` gegen den aktuellen Guest-Build öffnen.
 - Erster View wirkt wie App-Bereich: Logo, große persönliche Aufenthaltskarte, Bottom-Navigation.
 - `Buchung` öffnen und Anreise, Zahlung, Gäste, Hund, Schlüssel und Unterkunft prüfen.
 - `Vor Ort` öffnen.
@@ -117,10 +131,11 @@ Gefundene und behobene Punkte:
 
 - P1: Der lokale Restaurant-Drawer zeigte als Fallback das Couple-Hero-Bild. Behoben durch kategoriebezogene Local-Place-Bilder und Fallbacks für Essen, Strand, Erlebnis, Veranstaltungen, Praktisches, Hilfe, Wetter und Gezeiten.
 - P1: Der alte Smoke-Test nutzte einen lokal nicht verfügbaren Testzugang. Aktualisiert auf `/app/gast/deine-auszeit/dev-active?code=MORROWDEV`.
+- P1: Supabase-Daten enthielten noch alte Bildpfade wie `/brand/...`, die in der direkten Guest-App zu 404-Assets fuehrten. Behoben durch Normalisierung von Supabase-Bildpfaden auf `/app/gast/...`.
 
 P2-Rest:
 
-- Der lokale Dev-Aufenthalt ist bewusst ein Musterdatensatz. Für die finale Production-Abnahme braucht es zusätzlich einen echten Supabase-Testgast mit aktueller Buchung und Access-Code.
+- Der Live-Guest-App-Check mit persoenlichem Aufenthalt sollte nach dem naechsten Vercel-Deployment erneut gegen `https://morrow-guest.vercel.app/app/gast` laufen, damit der lokal gruen getestete Asset-Fix auch auf Production belegt ist.
 
 ## Admin App
 

@@ -449,13 +449,24 @@ function payloadImages(payload: Record<string, unknown> | undefined) {
   for (const key of ["images", "gallery", "media"]) {
     const value = payload[key];
     if (Array.isArray(value)) {
-      return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+      return value
+        .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+        .map(normalizeGuestAssetPath);
     }
     if (typeof value === "string" && value.trim()) {
-      return value.split(/\n|,/).map((item) => item.trim()).filter(Boolean);
+      return value.split(/\n|,/).map((item) => normalizeGuestAssetPath(item.trim())).filter(Boolean);
     }
   }
   return [];
+}
+
+function normalizeGuestAssetPath(value?: string | null) {
+  if (!value) return "";
+  const trimmed = value.trim();
+  if (trimmed.startsWith("/app/gast/") || /^https?:\/\//i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith("/brand/")) return `/app/gast${trimmed}`;
+  if (trimmed.startsWith("/fonts/")) return `/app/gast${trimmed}`;
+  return trimmed;
 }
 
 function firstName(name: string) {
@@ -509,7 +520,7 @@ function daysUntilFromLabel(label?: string) {
 }
 
 function packageImage(packageItem?: GuestPackage | null) {
-  return (
+  return normalizeGuestAssetPath(
     packageItem?.heroImage ||
     packageItem?.image ||
     packageItem?.stay?.image ||
@@ -580,7 +591,7 @@ function localPlaceFallbackImage(category: string) {
 }
 
 function placeDetailImage(place: LocalPlace, packageItem?: GuestPackage | null) {
-  return place.images?.[0] || payloadText(place.payload, ["image"]) || payloadImages(place.payload)[0] || localPlaceFallbackImage(place.category) || packageImage(packageItem);
+  return normalizeGuestAssetPath(place.images?.[0]) || normalizeGuestAssetPath(payloadText(place.payload, ["image"])) || payloadImages(place.payload)[0] || localPlaceFallbackImage(place.category) || packageImage(packageItem);
 }
 
 function placeMeta(place: LocalPlace) {
