@@ -298,5 +298,5 @@ Diese Punkte blockieren nicht die lokale Workflow-UX-Abnahme, bleiben aber vor e
 
 - Rechtsfreigabe für Rechtstexte, WhatsApp-Opt-in und Buchungsbedingungen.
 - Secret-Rotation für geteilte Supabase-/Resend-/Admin-Werte.
-- Tracking-/Consent-Entscheidung für Gast-, Eigentümer- und Partneranfragen. Die technische Lead-Attribution ist auf Website-Leads normalisiert vorbereitet, aber der strenge Live-Retest gegen `www.getmorrow.de` zeigt noch ein ausstehendes Web-Deployment: normalisierte Felder wie `medium` kommen live noch leer an. Finale Consent-/Ads-Freigabe bleibt zusätzlich offen.
+- Tracking-/Consent-Entscheidung für Gast-, Eigentümer- und Partneranfragen. Die technische Lead-Attribution ist live normalisiert verifiziert; finale Consent-/Ads-Freigabe bleibt zusätzlich offen.
 - Echte Angebotsdaten inklusive Bildrechte, Termine, Preise, Erlebnisse und Zuständigkeiten.
