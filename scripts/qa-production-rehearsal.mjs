@@ -78,6 +78,15 @@ function assert(condition, message) {
   if (!condition) throw new Error(message)
 }
 
+function attributionFailureMessage(field, expected, actual, data) {
+  const payloadHasAttribution = Boolean(data.payload?.utm?.medium || data.payload?.utm?.content || data.payload?.utm?.landingPath)
+  const hint = payloadHasAttribution
+    ? 'Payload attribution is present but normalized columns are empty. This usually means the live web deployment is stale and does not include the latest LeadForm insert fields.'
+    : 'Payload attribution is also missing. Check the client-side attribution capture before the form submit.'
+
+  return `Expected normalized ${field} ${expected}, got ${actual ?? 'null'}. ${hint}`
+}
+
 function assertNoSoft404(path, body) {
   const normalizedBody = body.replace(/\s+/g, ' ').trim()
   assert(
@@ -250,10 +259,10 @@ async function verifyLeadInSupabase() {
   assert(data.package_slug === 'family-escape', `Expected family-escape, got ${data.package_slug}`)
   assert(data.source === 'qa', `Expected source qa, got ${data.source}`)
   assert(data.campaign === campaign, `Expected campaign ${campaign}, got ${data.campaign}`)
-  assert(data.medium === 'rehearsal', `Expected normalized medium rehearsal, got ${data.medium}`)
-  assert(data.content === 'lead-submit', `Expected normalized content lead-submit, got ${data.content}`)
-  assert(data.landing_path === '/auszeiten/family-escape', `Expected normalized landing path /auszeiten/family-escape, got ${data.landing_path}`)
-  assert(data.current_path === '/auszeiten/family-escape', `Expected normalized current path /auszeiten/family-escape, got ${data.current_path}`)
+  assert(data.medium === 'rehearsal', attributionFailureMessage('medium', 'rehearsal', data.medium, data))
+  assert(data.content === 'lead-submit', attributionFailureMessage('content', 'lead-submit', data.content, data))
+  assert(data.landing_path === '/auszeiten/family-escape', attributionFailureMessage('landing path', '/auszeiten/family-escape', data.landing_path, data))
+  assert(data.current_path === '/auszeiten/family-escape', attributionFailureMessage('current path', '/auszeiten/family-escape', data.current_path, data))
   assert(data.conversion_label, 'Expected normalized conversion label to be stored.')
   assert(data.payload?.utm?.medium === 'rehearsal', `Expected utm medium rehearsal, got ${data.payload?.utm?.medium}`)
   assert(
