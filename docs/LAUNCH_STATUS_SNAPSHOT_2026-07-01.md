@@ -196,6 +196,19 @@ Geprüft:
 - Install-/Build-Commands sind monorepo-sicher und zielen auf die richtigen Workspaces.
 - Health-Routen identifizieren die jeweilige App korrekt.
 
+### Frische Workspace-Builds
+
+Ergebnis: grün.
+
+```bash
+npm run -w @morrow/web build
+npm run -w @morrow/admin build
+npm run -w @morrow/guest build
+npm run -w @morrow/owner build
+```
+
+Alle vier Next-Apps bauen aus dem aktuellen Stand erfolgreich. Der Root-`npm run build` baut weiterhin den eingefrorenen Vite-Prototyp und ist nicht der fuehrende Produktionsnachweis fuer die neue Plattformarchitektur.
+
 ## Nächster Abnahmeblock
 
 Aus `npm run qa:admin-parity:status`:
