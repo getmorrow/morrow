@@ -13,7 +13,7 @@ Pfad: `docs/qa/workflow-ux-final-2026-07-02/`
 - Guest mobile: `guest-01-first-view-mobile.png`, `guest-02-booking-mobile.png`, `guest-03-local-mobile.png`, `guest-04-local-food-mobile.png`, `guest-05-place-drawer-mobile.png`, `guest-06-help-mobile.png`
 - Guest Supabase-Stay: `guest-07-live-stay-mobile.png`, `guest-08-www-stay-mobile.png`
 - Admin desktop: `admin-01-login-desktop.png`, `admin-02-cockpit-desktop.png`, `admin-03-crm-list-desktop.png`, `admin-04-crm-search-desktop.png`, `admin-05-detail-drawer-desktop.png`, `admin-06-tasks-desktop.png`, `admin-07-support-desktop.png`
-- Owner mobile: `owner-01-login-mobile.png`, `owner-02-dashboard-mobile.png`, `owner-03-object-drawer-mobile.png`, `owner-04-bookings-mobile.png`, `owner-05-billing-mobile.png`, `owner-06-contact-mobile.png`
+- Owner mobile/desktop: `owner-01-login-mobile.png`, `owner-02-dashboard-mobile.png`, `owner-03-object-drawer-mobile.png`, `owner-04-bookings-mobile.png`, `owner-05-billing-mobile.png`, `owner-06-contact-mobile.png`, `owner-07-www-dashboard-desktop.png`
 
 ## URL- und Routing-Abnahme
 
@@ -182,7 +182,7 @@ Bewertung:
 
 ## Owner App
 
-Ampel: gelb/grün.
+Ampel: grün mit P2-Hinweis.
 
 Geprüfte Wege:
 
@@ -210,10 +210,24 @@ npm run supabase:verify-owner
 ```
 
 Ergebnis: grün. Der Test hat temporären Owner-Login, `get_owner_dashboard()`, Supportnachricht, Verfügbarkeitsanfrage mit Admin-Aufgabe, Rückkanal-Historie, Dokumentzugriff, Abrechnungszugriff und Operationsmeldung erfolgreich geprüft und temporäre Testdaten aufgeräumt.
+- Browser-Workflow wurde am 2026-07-02 zusätzlich über die öffentliche Plattformstruktur geprüft:
+
+```bash
+OWNER_BASE_URL=https://www.getmorrow.de/app/eigentuemer \
+OWNER_EMAIL=<owner-qa-browser-email> \
+OWNER_PASSWORD=<owner-qa-browser-password> \
+GUEST_BASE_URL=https://www.getmorrow.de/app/gast \
+GUEST_BOOKING_ID=11111111-1111-4111-8111-111111111111 \
+GUEST_ACCESS_CODE=MORROW1 \
+MORROW_QA_ALLOW_PARTIAL_APPS=1 \
+npm run qa:apps
+```
+
+Ergebnis: grün. `qa:apps` prüfte Owner-Health, Owner-Landing, Login und Dashboard mit den Pflichtbereichen Objekte, Buchungen, Lücken, Abrechnung und Dokumente. Der Screenshot `owner-07-www-dashboard-desktop.png` belegt den Portal-View über `https://www.getmorrow.de/app/eigentuemer`.
 
 P2-Rest:
 
-- Für vollständige Browser-Workflow-Abnahme sollte zusätzlich ein aktueller, echter Eigentümer-Testzugang mit stabilen Supabase-Daten gepflegt werden, damit `npm run qa:apps` auch den Owner-Login und das Owner-Dashboard wiederholbar gegen Production prüft.
+- Für den laufenden Betrieb sollte ein dauerhaft gepflegter Eigentümer-Testzugang im Passwortmanager/Vercel-Secret-Kontext liegen, damit `npm run qa:apps` ohne neu erzeugten QA-Owner wiederholbar gegen Production laufen kann.
 
 ## Rohwerte und doppelte Inhalte
 
