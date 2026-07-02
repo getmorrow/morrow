@@ -698,7 +698,7 @@ function stayAsLocalPlace(packageItem?: GuestPackage | null): LocalPlace {
         packageItem?.stay?.checkInInstructions ||
         "Eure Unterkunft ist der Ausgangspunkt für Anreise, Strand, Empfehlungen und die vorbereitete Auszeit.",
       bestFor: ["Ankommen", "Orientierung", "Ausgangspunkt"],
-      image: packageItem?.stay?.image || packageImage(packageItem),
+      image: normalizeGuestAssetPath(packageItem?.stay?.image) || packageImage(packageItem),
     },
   };
 }
